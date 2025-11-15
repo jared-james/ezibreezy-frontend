@@ -8,7 +8,7 @@ export default function LandingPageHero() {
       <div className="mx-auto w-full max-w-5xl">
         <div className="relative mx-auto mb-8 h-64 w-full max-w-md md:h-[28rem]">
           <Image
-            src="/background_logo_02.png"
+            src="/background_logo_02.webp"
             alt="Featured illustration for EziBreezy"
             fill
             className="object-contain opacity-80 grayscale"
