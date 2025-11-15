@@ -1,46 +1,47 @@
 /* app/globals.css */
 @import "tailwindcss";
 
-/* ---------- THEME TOKENS ---------- */
+/* ---------- THEME TOKENS (NEWSPAPER LIGHT) ---------- */
 :root {
-  /* Brand Colors - Burnt Orange Theme */
-  --brand-primary: #c94a06;
-  --brand-primary-hover: #f97316;
+  /* Brand Colors */
+  --brand-primary: #af7fdb;
+  --brand-primary-hover: #9a63d3;
   --brand-accent: #0b84cc;
   --brand-accent-hover: #096cab;
 
   --brand-primary-foreground: #ffffff;
 
-  /* Semantic Colors - Off-black with subtle blue tinge */
-  --background: #0a0a0b;
-  --foreground: #ededed;
-  --muted: #71717a;
-  --muted-foreground: #a1a1aa;
+  /* Semantic Colors - Newspaper Light Mode */
+  --background: #f5f5e9; /* newspaper page */
+  --foreground: #1a1a1a; /* ink black */
+  --muted: #6e6b65; /* worn ink grey */
+  --muted-foreground: #9b978f;
 
   /* State Colors */
-  --success: #4d8b50;
-  --success-hover: #3e6f42;
+  --success: #16a34a;
+  --success-hover: #15803d;
   --error: #ef4444;
-  --error-hover: #f87171;
+  --error-hover: #dc2626;
   --warning: #f59e0b;
-  --warning-hover: #fbbf24;
+  --warning-hover: #d97706;
   --info: #3b82f6;
-  --info-hover: #60a5fa;
+  --info-hover: #2563eb;
   --error-foreground: #ffffff;
   --success-foreground: #ffffff;
 
-  /* Surface Colors - More distinct from background */
-  --surface: #1a1a1c;
-  --surface-hover: #27272a;
-  --border: #3f3f46;
-  --border-hover: #52525b;
+  /* Surface Colors - Cards / Panels */
+  --surface: #ffffff; /* crisp sheet */
+  --surface-hover: #f7f7ef;
+
+  --border: #d6d3cc; /* print-line grey */
+  --border-hover: #c7c3bb;
 
   /* Card/Panel */
-  --card: #18181b;
-  --card-hover: #27272a;
+  --card: #ffffff;
+  --card-hover: #f7f7ef;
 
   /* Border Radius */
-  --radius-sm: 0.375rem;
+  --radius-sm: 0.25rem;
   --radius: 0.5rem;
   --radius-lg: 0.75rem;
   --radius-xl: 1rem;
@@ -57,21 +58,21 @@
   --space-12: 3rem;
   --space-16: 4rem;
 
-  /* Typography Scale - Adjusted for mobile */
-  --text-xs: 0.6875rem; /* Slightly smaller: was 0.75rem */
-  --text-sm: 0.8125rem; /* Slightly smaller: was 0.875rem */
-  --text-base: 0.9375rem; /* Slightly smaller: was 1rem */
-  --text-lg: 1.0625rem; /* Slightly smaller: was 1.125rem */
-  --text-xl: 1.1875rem; /* Slightly smaller: was 1.25rem */
-  --text-2xl: 1.4375rem; /* Slightly smaller: was 1.5rem */
-  --text-3xl: 1.75rem; /* Slightly smaller: was 1.875rem */
-  --text-4xl: 2.125rem; /* Slightly smaller: was 2.25rem */
+  /* Typography Scale - Newspaper feel */
+  --text-xs: 0.7rem;
+  --text-sm: 0.82rem;
+  --text-base: 0.95rem;
+  --text-lg: 1.08rem;
+  --text-xl: 1.2rem;
+  --text-2xl: 1.5rem;
+  --text-3xl: 1.9rem;
+  --text-4xl: 2.3rem;
 
-  /* Card sizing - slightly larger on mobile */
+  /* Card sizing */
   --card-min-height-mobile: 120px;
   --card-min-height-desktop: 140px;
 
-  color-scheme: dark;
+  color-scheme: light;
 }
 
 /* ---------- MAP TOKENS TO TAILWIND ---------- */
@@ -81,28 +82,33 @@
   --color-foreground: var(--foreground);
   --color-muted: var(--muted);
   --color-muted-foreground: var(--muted-foreground);
+
   --color-primary: var(--brand-primary);
   --color-primary-hover: var(--brand-primary-hover);
+  --color-primary-foreground: var(--brand-primary-foreground);
+
   --color-accent: var(--brand-accent);
   --color-accent-hover: var(--brand-accent-hover);
+
   --color-success: var(--success);
   --color-success-hover: var(--success-hover);
+  --color-success-foreground: var(--success-foreground);
+
   --color-error: var(--error);
   --color-error-hover: var(--error-hover);
+  --color-error-foreground: var(--error-foreground);
+
   --color-warning: var(--warning);
   --color-warning-hover: var(--warning-hover);
   --color-info: var(--info);
   --color-info-hover: var(--info-hover);
+
   --color-surface: var(--surface);
   --color-surface-hover: var(--surface-hover);
   --color-border: var(--border);
   --color-border-hover: var(--border-hover);
   --color-card: var(--card);
   --color-card-hover: var(--card-hover);
-  --color-primary-foreground: var(--brand-primary-foreground);
-
-  --color-error-foreground: var(--error-foreground);
-  --color-success-foreground: var(--success-foreground);
 
   /* Spacing */
   --spacing-1: var(--space-1);
@@ -131,6 +137,10 @@
   --font-size-2xl: var(--text-2xl);
   --font-size-3xl: var(--text-3xl);
   --font-size-4xl: var(--text-4xl);
+
+  /* Serif font (used by `font-serif`) */
+  --font-family-serif: var(--font-serif), Georgia, Cambria, "Times New Roman",
+    Times, serif;
 }
 
 /* ---------- BASE LAYER ---------- */
@@ -150,7 +160,7 @@
   }
 
   ::selection {
-    background: color-mix(in oklab, var(--brand-accent) 25%, transparent);
+    background: color-mix(in oklab, var(--brand-accent) 20%, transparent);
   }
 
   input,
@@ -167,12 +177,147 @@
   }
 
   a {
-    color: var(--brand-accent);
-    text-decoration: none;
-    transition: color 0.15s ease;
+    color: var(--foreground);
+  }
+  a:hover {
+    color: var(--foreground);
+    text-decoration: underline;
+  }
+}
+
+/* ---------- COMPONENTS (CARDS, BUTTONS, NEWSPAPER TYPE) ---------- */
+@layer components {
+  /* Cards */
+  .card {
+    background: var(--card);
+    border-radius: var(--radius-lg);
+    padding: var(--space-4);
+    min-height: var(--card-min-height-mobile);
+    box-shadow: 0 0 0 1px rgba(15, 23, 42, 0.03),
+      0 1px 2px rgba(15, 23, 42, 0.06);
+    transition: box-shadow 120ms ease-out, transform 120ms ease-out,
+      background-color 120ms ease-out;
   }
 
-  a:hover {
-    color: var(--brand-accent-hover);
+  @media (min-width: 768px) {
+    .card {
+      min-height: var(--card-min-height-desktop);
+    }
+  }
+
+  .card:hover {
+    background: var(--card-hover);
+    box-shadow: 0 0 0 1px rgba(15, 23, 42, 0.06),
+      0 4px 10px rgba(15, 23, 42, 0.08);
+    transform: translateY(-1px);
+  }
+
+  .card-muted {
+    background: var(--surface);
+  }
+
+  /* Buttons - newspaper / 1905 */
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.375rem;
+
+    padding-inline: var(--space-4);
+    padding-block: 0.45rem;
+
+    border-width: 1px;
+    border-style: solid;
+    border-color: var(--border);
+    border-radius: var(--radius-sm);
+
+    font-size: var(--text-sm);
+    font-weight: 500;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+
+    background: #ffffff;
+    color: var(--foreground);
+
+    box-shadow: 0 0 0 1px rgba(15, 23, 42, 0.02),
+      0 1px 1px rgba(15, 23, 42, 0.04);
+
+    transition: background-color 120ms ease-out, border-color 120ms ease-out,
+      color 120ms ease-out, box-shadow 120ms ease-out, transform 80ms ease-out;
+  }
+
+  .btn:hover {
+    background: #f7f7ef;
+    border-color: var(--border-hover);
+    box-shadow: 0 0 0 1px rgba(15, 23, 42, 0.04),
+      0 1px 3px rgba(15, 23, 42, 0.06);
+  }
+
+  .btn:active {
+    transform: translateY(0.5px);
+    background: #e9e7df;
+    box-shadow: 0 0 0 1px rgba(15, 23, 42, 0.06), 0 0 0 rgba(0, 0, 0, 0);
+  }
+
+  .btn-primary {
+    background: var(--brand-primary);
+    color: var(--brand-primary-foreground);
+    border-color: color-mix(in oklab, var(--brand-primary) 75%, black);
+  }
+
+  .btn-primary:hover {
+    background: var(--brand-primary-hover);
+    border-color: color-mix(in oklab, var(--brand-primary-hover) 75%, black);
+  }
+
+  .btn-outline {
+    background: transparent;
+    color: var(--foreground);
+  }
+
+  .btn-outline:hover {
+    background: #f9f5eb;
+  }
+
+  .btn-icon {
+    padding-inline: var(--space-2);
+    padding-block: 0.35rem;
+  }
+
+  /* Newspaper-style typography helpers */
+  .eyebrow {
+    font-size: var(--text-xs);
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--muted-foreground);
+  }
+
+  .headline {
+    font-size: var(--text-3xl);
+    line-height: 1.1;
+    letter-spacing: 0.02em;
+  }
+
+  .subheadline {
+    font-size: var(--text-lg);
+    color: var(--muted);
+  }
+
+  .byline {
+    font-size: var(--text-xs);
+    color: var(--muted-foreground);
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+  }
+
+  .dateline {
+    font-size: var(--text-xs);
+    color: var(--muted-foreground);
+  }
+
+  .article-body {
+    font-size: var(--text-sm);
+    line-height: 1.7;
+    color: var(--foreground);
   }
 }
