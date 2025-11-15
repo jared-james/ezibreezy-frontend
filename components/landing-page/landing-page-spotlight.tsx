@@ -19,15 +19,14 @@ export default function LandingPageSpotlight() {
       number: "03",
       title: "Cross-post to all social platforms",
       description:
-        "Sync seamlessly with WHOOP to get automatic updates on your sleep, recovery, and strain. No manual tracking required.",
+        "Copy about cross posting to all social platforms in one layout, instagram feed etc",
       logo: "/logo_cross_post.png",
     },
 
     {
       number: "04",
       title: "Calendar",
-      description:
-        "Plan, schedule, and post at the perfect time. Your content adapts to each platform's best-performing windows so you stay consistent without guessing.",
+      description: "Copy about the calender",
       logo: "/logo_cal.webp",
     },
 

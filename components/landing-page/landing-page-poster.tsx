@@ -41,7 +41,7 @@ export default function LandingPagePoster() {
             <p className="font-serif text-base leading-relaxed text-[--foreground] max-w-md">
               Know exactly when to post across every platform. Your calendar
               adapts to peak performance windows, audience patterns, and
-              consistency goals — ensuring your work lands when it matters most.
+              consistency goals, ensuring your work lands when it matters most.
             </p>
           </div>
         </div>
