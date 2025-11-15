@@ -5,6 +5,7 @@
 import { createClient } from "@/lib/supabase/client";
 import { useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 
 export default function SignUp() {
   const [email, setEmail] = useState("");
@@ -34,86 +35,276 @@ export default function SignUp() {
 
   if (isSubmitted) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-gray-50">
-        <div className="w-full max-w-md p-8 text-center bg-white rounded-lg shadow-md">
-          <h1 className="text-2xl font-bold text-gray-800">Check your email</h1>
-          <p className="mt-4 text-gray-600">
-            We've sent a confirmation link to your email address. Please click
-            the link to complete your registration.
-          </p>
+      <div className="min-h-screen bg-[--background] px-4 py-8 flex items-center justify-center">
+        <div className="w-full max-w-2xl">
+          {/* POSTCARD CONTAINER - Success */}
+          <div className="bg-[#f5f0e8] border-2 border-[--success] shadow-lg relative">
+            {/* Postcard stamp area */}
+            <div className="absolute top-4 right-4 w-20 h-24 border-2 border-[--success] bg-green-50 flex items-center justify-center">
+              <div className="text-center">
+                <svg
+                  className="w-12 h-12 text-[--success] mx-auto"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M5 13l4 4L19 7"
+                  />
+                </svg>
+              </div>
+            </div>
+
+            <div className="grid md:grid-cols-2 min-h-[500px]">
+              {/* LEFT SIDE - Message area */}
+              <div className="p-8 md:p-10 border-r-2 border-[--success] flex flex-col">
+                <div className="mb-6">
+                  <h1
+                    className="font-serif text-2xl uppercase tracking-wider text-[--muted]"
+                    style={{ fontWeight: 400, letterSpacing: "0.2em" }}
+                  >
+                    Sign Up
+                  </h1>
+                </div>
+
+                <div className="flex-1 flex items-center">
+                  <div className="space-y-1">
+                    <p
+                      className="font-serif text-2xl md:text-3xl"
+                      style={{
+                        fontStyle: "italic",
+                        fontWeight: 300,
+                        lineHeight: 1.4,
+                        color: "#4a4a4a",
+                      }}
+                    >
+                      Check your
+                    </p>
+                    <p
+                      className="font-serif text-2xl md:text-3xl"
+                      style={{
+                        fontStyle: "italic",
+                        fontWeight: 300,
+                        lineHeight: 1.4,
+                        color: "#4a4a4a",
+                      }}
+                    >
+                      mailbox for
+                    </p>
+                    <p
+                      className="font-serif text-2xl md:text-3xl"
+                      style={{
+                        fontStyle: "italic",
+                        fontWeight: 300,
+                        lineHeight: 1.4,
+                        color: "#4a4a4a",
+                      }}
+                    >
+                      your invitation
+                    </p>
+                  </div>
+                </div>
+
+                <div className="mt-auto pt-6">
+                  <p className="font-serif text-sm font-bold uppercase tracking-[0.2em]">
+                    EziBreezy
+                  </p>
+                </div>
+              </div>
+
+              {/* RIGHT SIDE - Confirmation message */}
+              <div className="p-8 md:p-10 flex flex-col justify-center">
+                <div className="space-y-4">
+                  <p className="font-serif text-lg leading-relaxed text-[--foreground]">
+                    We've sent a confirmation link to your email address.
+                  </p>
+                  <p className="font-serif text-sm text-[--muted]">
+                    Click the link in the email to complete your registration
+                    and access your account.
+                  </p>
+                </div>
+
+                <div className="mt-8 pt-6 border-t border-[--border]">
+                  <Link href="/" className="btn btn-outline w-full">
+                    Return Home
+                  </Link>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="mt-6 text-center">
+            <p className="font-serif text-xs text-[--muted-foreground] uppercase tracking-wider">
+              Est. 2025 · All Rights Reserved
+            </p>
+          </div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gray-50">
-      <div className="w-full max-w-md p-8 space-y-6 bg-white rounded-lg shadow-md">
-        <h1 className="text-2xl font-bold text-center text-gray-800">
-          Create Your Account
-        </h1>
-
-        <form onSubmit={handleSignUp} className="space-y-4">
-          <div>
-            <label
-              htmlFor="email"
-              className="block text-sm font-medium text-gray-700"
-            >
-              Email Address
-            </label>
-            <input
-              id="email"
-              name="email"
-              type="email"
-              required
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="w-full px-3 py-2 mt-1 border border-gray-300 rounded-md shadow-sm focus:ring-green-500 focus:border-green-500"
+    <div className="min-h-screen bg-[--background] px-4 py-8 flex items-center justify-center">
+      <div className="w-full max-w-2xl">
+        {/* POSTCARD CONTAINER */}
+        <div className="bg-[#f5f0e8] border-2 border-[--foreground] shadow-lg relative">
+          {/* Postcard stamp area */}
+          <div className="absolute top-4 right-4 w-20 h-24 flex items-center justify-center p-2">
+            <Image
+              src="/logo_smile.webp"
+              alt="EziBreezy Logo"
+              width={80}
+              height={80}
+              className="object-contain"
             />
           </div>
 
-          <div>
-            <label
-              htmlFor="password"
-              className="block text-sm font-medium text-gray-700"
-            >
-              Password
-            </label>
-            <input
-              id="password"
-              name="password"
-              type="password"
-              required
-              minLength={6}
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="w-full px-3 py-2 mt-1 border border-gray-300 rounded-md shadow-sm focus:ring-green-500 focus:border-green-500"
-            />
-          </div>
+          <div className="grid md:grid-cols-2 min-h-[500px]">
+            {/* LEFT SIDE - Message area */}
+            <div className="p-8 md:p-10 border-r-2 border-[--foreground] flex flex-col">
+              {/* Postcard header */}
+              <div className="mb-6">
+                <h1
+                  className="font-serif text-2xl uppercase tracking-wider text-[--muted]"
+                  style={{ fontWeight: 400, letterSpacing: "0.2em" }}
+                >
+                  Sign Up
+                </h1>
+              </div>
 
-          {error && (
-            <div className="p-3 text-sm text-center text-red-700 bg-red-100 rounded-md">
-              {error}
+              {/* Handwritten-style message */}
+              <div className="flex-1 flex items-center">
+                <div className="space-y-1">
+                  <p
+                    className="font-serif text-2xl md:text-3xl"
+                    style={{
+                      fontStyle: "italic",
+                      fontWeight: 300,
+                      lineHeight: 1.4,
+                      color: "#4a4a4a",
+                    }}
+                  >
+                    Join us and start
+                  </p>
+                  <p
+                    className="font-serif text-2xl md:text-3xl"
+                    style={{
+                      fontStyle: "italic",
+                      fontWeight: 300,
+                      lineHeight: 1.4,
+                      color: "#4a4a4a",
+                    }}
+                  >
+                    creating content
+                  </p>
+                  <p
+                    className="font-serif text-2xl md:text-3xl"
+                    style={{
+                      fontStyle: "italic",
+                      fontWeight: 300,
+                      lineHeight: 1.4,
+                      color: "#4a4a4a",
+                    }}
+                  >
+                    with ease
+                  </p>
+                </div>
+              </div>
+
+              {/* EziBreezy branding at bottom */}
+              <div className="mt-auto pt-6">
+                <p className="font-serif text-sm font-bold uppercase tracking-[0.2em]">
+                  EziBreezy
+                </p>
+              </div>
             </div>
-          )}
 
-          <button
-            type="submit"
-            className="w-full px-4 py-2 font-semibold text-white bg-green-600 rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
-          >
-            Sign Up
-          </button>
-        </form>
+            {/* RIGHT SIDE - Address/Form area */}
+            <div className="p-8 md:p-10 flex flex-col">
+              <form onSubmit={handleSignUp} className="flex-1 flex flex-col">
+                <div className="flex-1"></div>
 
-        <p className="text-sm text-center text-gray-600">
-          Already have an account?{" "}
+                <div className="space-y-4">
+                  {/* Address lines styling */}
+                  <div className="space-y-1">
+                    <div className="border-b border-[--muted] pb-2">
+                      <input
+                        id="email"
+                        name="email"
+                        type="email"
+                        required
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        placeholder="your.email@example.com"
+                        className="w-full bg-transparent border-none font-serif text-[--foreground] focus:outline-none placeholder:text-[--muted-foreground] placeholder:italic"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-1">
+                    <div className="border-b border-[--muted] pb-2">
+                      <input
+                        id="password"
+                        name="password"
+                        type="password"
+                        required
+                        minLength={6}
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        placeholder="password (min. 6 characters)"
+                        className="w-full bg-transparent border-none font-serif text-[--foreground] focus:outline-none placeholder:text-[--muted-foreground] placeholder:italic"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {error && (
+                  <div className="p-3 border border-[--error] bg-red-50 mt-4">
+                    <p className="font-serif text-xs text-[--error]">{error}</p>
+                  </div>
+                )}
+
+                <div className="pt-4">
+                  <button type="submit" className="btn btn-primary w-full py-3">
+                    Sign Up
+                  </button>
+                </div>
+
+                <div className="pt-2">
+                  <p className="font-serif text-[0.65rem] text-[--muted-foreground] text-center italic">
+                    By creating an account, you agree to our Terms & Privacy
+                  </p>
+                </div>
+              </form>
+
+              {/* Footer links */}
+              <div className="mt-6 pt-6 border-t border-[--border]">
+                <p className="text-center font-serif text-sm text-[--muted]">
+                  Already a member?{" "}
+                  <Link
+                    href="/auth/login"
+                    className="font-bold text-[--foreground] hover:underline"
+                  >
+                    Sign In
+                  </Link>
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Footer */}
+        <div className="mt-6 text-center">
           <Link
-            href="/auth/login"
-            className="font-medium text-blue-600 hover:underline"
+            href="/"
+            className="font-serif text-sm text-[--muted-foreground] hover:underline"
           >
-            Sign In
+            ← Back to Home
           </Link>
-        </p>
+        </div>
       </div>
     </div>
   );

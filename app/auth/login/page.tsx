@@ -6,6 +6,7 @@ import { createClient } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 
 export default function Login() {
   const [email, setEmail] = useState("");
@@ -27,77 +28,162 @@ export default function Login() {
       setError(error.message);
     } else {
       router.push("/dashboard");
-      router.refresh(); // Ensures the layout refetches user state
+      router.refresh();
     }
   };
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gray-50">
-      <div className="w-full max-w-md p-8 space-y-6 bg-white rounded-lg shadow-md">
-        <h1 className="text-2xl font-bold text-center text-gray-800">
-          Sign In to ezibreezy
-        </h1>
-
-        <form onSubmit={handleLogin} className="space-y-4">
-          <div>
-            <label
-              htmlFor="email"
-              className="block text-sm font-medium text-gray-700"
-            >
-              Email Address
-            </label>
-            <input
-              id="email"
-              name="email"
-              type="email"
-              required
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="w-full px-3 py-2 mt-1 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
+    <div className="min-h-screen bg-[--background] px-4 py-8 flex items-center justify-center">
+      <div className="w-full max-w-2xl">
+        {/* POSTCARD CONTAINER */}
+        <div className="bg-[#f5f0e8] border-2 border-[--foreground] shadow-lg relative">
+          {/* Postcard stamp area */}
+          <div className="absolute top-4 right-4 w-20 h-24 flex items-center justify-center p-2">
+            <Image
+              src="/logo_smile.webp"
+              alt="EziBreezy Logo"
+              width={80}
+              height={80}
+              className="object-contain"
             />
           </div>
 
-          <div>
-            <label
-              htmlFor="password"
-              className="block text-sm font-medium text-gray-700"
-            >
-              Password
-            </label>
-            <input
-              id="password"
-              name="password"
-              type="password"
-              required
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="w-full px-3 py-2 mt-1 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
-            />
-          </div>
+          <div className="grid md:grid-cols-2 min-h-[500px]">
+            {/* LEFT SIDE - Message area */}
+            <div className="p-8 md:p-10 border-r-2 border-[--foreground] flex flex-col">
+              {/* Postcard header */}
+              <div className="mb-6">
+                <h1
+                  className="font-serif text-2xl uppercase tracking-wider text-[--muted]"
+                  style={{ fontWeight: 400, letterSpacing: "0.2em" }}
+                >
+                  Login
+                </h1>
+              </div>
 
-          {error && (
-            <div className="p-3 text-sm text-center text-red-700 bg-red-100 rounded-md">
-              {error}
+              {/* Handwritten-style message */}
+              <div className="flex-1 flex items-center">
+                <div className="space-y-1">
+                  <p
+                    className="font-serif text-2xl md:text-3xl"
+                    style={{
+                      fontStyle: "italic",
+                      fontWeight: 300,
+                      lineHeight: 1.4,
+                      color: "#4a4a4a",
+                    }}
+                  >
+                    Welcome back
+                  </p>
+                  <p
+                    className="font-serif text-2xl md:text-3xl"
+                    style={{
+                      fontStyle: "italic",
+                      fontWeight: 300,
+                      lineHeight: 1.4,
+                      color: "#4a4a4a",
+                    }}
+                  >
+                    to your content
+                  </p>
+                  <p
+                    className="font-serif text-2xl md:text-3xl"
+                    style={{
+                      fontStyle: "italic",
+                      fontWeight: 300,
+                      lineHeight: 1.4,
+                      color: "#4a4a4a",
+                    }}
+                  >
+                    headquarters
+                  </p>
+                </div>
+              </div>
+
+              {/* EziBreezy branding at bottom */}
+              <div className="mt-auto pt-6">
+                <p className="font-serif text-sm font-bold uppercase tracking-[0.2em]">
+                  EziBreezy
+                </p>
+              </div>
             </div>
-          )}
 
-          <button
-            type="submit"
-            className="w-full px-4 py-2 font-semibold text-white bg-blue-600 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-          >
-            Sign In
-          </button>
-        </form>
+            {/* RIGHT SIDE - Address/Form area */}
+            <div className="p-8 md:p-10 flex flex-col">
+              <form onSubmit={handleLogin} className="flex-1 flex flex-col">
+                <div className="flex-1"></div>
 
-        <p className="text-sm text-center text-gray-600">
-          Don&apos;t have an account?{" "}
+                <div className="space-y-4">
+                  {/* Address lines styling */}
+                  <div className="space-y-1">
+                    <div className="border-b border-[--muted] pb-2">
+                      <input
+                        id="email"
+                        name="email"
+                        type="email"
+                        required
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        placeholder="your.email@example.com"
+                        className="w-full bg-transparent border-none font-serif text-[--foreground] focus:outline-none placeholder:text-[--muted-foreground] placeholder:italic"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-1">
+                    <div className="border-b border-[--muted] pb-2">
+                      <input
+                        id="password"
+                        name="password"
+                        type="password"
+                        required
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        placeholder="password"
+                        className="w-full bg-transparent border-none font-serif text-[--foreground] focus:outline-none placeholder:text-[--muted-foreground] placeholder:italic"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {error && (
+                  <div className="p-3 border border-[--error] bg-red-50 mt-4">
+                    <p className="font-serif text-xs text-[--error]">{error}</p>
+                  </div>
+                )}
+
+                <div className="pt-4">
+                  <button type="submit" className="btn btn-primary w-full py-3">
+                    Login
+                  </button>
+                </div>
+              </form>
+
+              {/* Footer links */}
+              <div className="mt-6 pt-6 border-t border-[--border]">
+                <p className="text-center font-serif text-sm text-[--muted]">
+                  New here?{" "}
+                  <Link
+                    href="/auth/signup"
+                    className="font-bold text-[--foreground] hover:underline"
+                  >
+                    Create Account
+                  </Link>
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Footer */}
+        <div className="mt-6 text-center">
           <Link
-            href="/auth/signup"
-            className="font-medium text-blue-600 hover:underline"
+            href="/"
+            className="font-serif text-sm text-[--muted-foreground] hover:underline"
           >
-            Sign Up
+            ← Back to Home
           </Link>
-        </p>
+        </div>
       </div>
     </div>
   );
