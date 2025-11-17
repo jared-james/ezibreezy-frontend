@@ -1,6 +1,6 @@
 import { getCurrentUser } from "@/lib/auth";
 import { redirect } from "next/navigation";
-import Link from "next/link";
+import Sidebar from "@/components/sidebar";
 
 export default async function AppLayout({
   children,
@@ -14,13 +14,18 @@ export default async function AppLayout({
   }
 
   return (
-    <div>
-      <header className="bg-white shadow-sm">
-        <nav className="container mx-auto px-4 py-3 flex justify-between items-center">
-          <Link href="/dashboard" className="font-bold text-xl text-gray-800">
-            ezibreezy
-          </Link>
-          <div className="flex items-center space-x-4">
+    <div className="flex h-screen bg-gray-50">
+      {/* Sidebar */}
+      <Sidebar />
+
+      {/* Main content area */}
+      <div className="flex-1 flex flex-col overflow-hidden">
+        {/* Top bar */}
+        <header className="h-16 bg-white border-b border-gray-200 flex items-center justify-between px-6">
+          <div className="flex-1" />
+
+          {/* User menu */}
+          <div className="flex items-center gap-4">
             <span className="text-sm text-gray-600">{user.displayName}</span>
             <form action="/auth/signout" method="post">
               <button
@@ -31,9 +36,13 @@ export default async function AppLayout({
               </button>
             </form>
           </div>
-        </nav>
-      </header>
-      <main className="container mx-auto p-4">{children}</main>
+        </header>
+
+        {/* Page content */}
+        <main className="flex-1 overflow-auto">
+          <div className="p-8">{children}</div>
+        </main>
+      </div>
     </div>
   );
 }

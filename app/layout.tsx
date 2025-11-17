@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Libre_Caslon_Text } from "next/font/google";
 import "./globals.css";
+import Providers from "./client-providers";
 
 const libreCaslon = Libre_Caslon_Text({
   subsets: ["latin"],
@@ -21,7 +22,9 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" className={libreCaslon.variable}>
-      <body>{children}</body>
+      <body>
+        <Providers>{children}</Providers>
+      </body>
     </html>
   );
 }
