@@ -4,6 +4,7 @@
 
 import { Smile } from "lucide-react";
 import type { Platform } from "./channel-selector";
+import { Textarea } from "@/components/ui/textarea";
 
 type SelectedAccounts = Record<string, string[]>;
 
@@ -28,8 +29,12 @@ export default function CaptionEditor({
   onAccountSelect,
   postType,
 }: CaptionEditorProps) {
-  const textareaClasses =
-    "w-full bg-white font-serif p-4 border border-border focus:border-foreground focus:ring-1 focus:ring-foreground transition-colors";
+  const mainPlaceholder =
+    postType === "video"
+      ? "Introduce the hook, context, and call to action for your video..."
+      : postType === "image"
+      ? "Describe the visual, context, and what you want people to feel..."
+      : "Draft the main caption you want to adapt across platforms...";
 
   return (
     <>
@@ -43,13 +48,13 @@ export default function CaptionEditor({
             <Smile className="h-4 w-4" />
           </button>
         </label>
-        <textarea
+        <Textarea
           id="caption"
           rows={10}
           value={mainCaption}
           onChange={(e) => onMainCaptionChange(e.target.value)}
-          placeholder="Once upon a time..."
-          className={textareaClasses}
+          placeholder={mainPlaceholder}
+          className="min-h-32"
         />
       </div>
 
@@ -58,7 +63,7 @@ export default function CaptionEditor({
         if (!platform) return null;
 
         return (
-          <div key={platformId}>
+          <div key={platformId} className="mt-6">
             <label
               htmlFor={`caption-${platformId}`}
               className="eyebrow mb-2 flex items-center gap-3"
@@ -71,6 +76,7 @@ export default function CaptionEditor({
                       const isSelected = selectedAccounts[platformId]?.includes(
                         acc.id
                       );
+
                       return (
                         <button
                           key={acc.id}
@@ -97,7 +103,7 @@ export default function CaptionEditor({
                 <Smile className="h-4 w-4" />
               </button>
             </label>
-            <textarea
+            <Textarea
               id={`caption-${platformId}`}
               rows={10}
               value={platformCaptions[platformId] || ""}
@@ -105,7 +111,7 @@ export default function CaptionEditor({
                 onPlatformCaptionChange(platformId, e.target.value)
               }
               placeholder={`${platform.name} specific caption...`}
-              className={textareaClasses}
+              className="min-h-32"
             />
           </div>
         );

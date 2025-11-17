@@ -3,6 +3,7 @@
 "use client";
 
 import { Type, Image as ImageIcon, Video } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 interface PostTypeSelectorProps {
   postType: "text" | "image" | "video";
@@ -16,37 +17,37 @@ export default function PostTypeSelector({
   return (
     <div>
       <label className="eyebrow">Post Type</label>
+
       <div className="mt-3 flex items-center gap-2">
-        <button
+        <Button
           onClick={() => onPostTypeChange("text")}
-          className={`btn btn-sm ${
-            postType === "text"
-              ? "bg-[--foreground] text-[--background]"
-              : ""
-          }`}
+          variant={postType === "text" ? "primary" : "outline"}
+          size="sm"
+          className="gap-1.5"
         >
-          <Type className="w-4 h-4" /> Text
-        </button>
-        <button
+          <Type className="w-4 h-4" />
+          Text
+        </Button>
+
+        <Button
           onClick={() => onPostTypeChange("image")}
-          className={`btn btn-sm ${
-            postType === "image"
-              ? "bg-[--foreground] text-[--background]"
-              : ""
-          }`}
+          variant={postType === "image" ? "primary" : "outline"}
+          size="sm"
+          className="gap-1.5"
         >
-          <ImageIcon className="w-4 h-4" /> Image
-        </button>
-        <button
+          <ImageIcon className="w-4 h-4" />
+          Image
+        </Button>
+
+        <Button
           onClick={() => onPostTypeChange("video")}
-          className={`btn btn-sm ${
-            postType === "video"
-              ? "bg-[--foreground] text-[--background]"
-              : ""
-          }`}
+          variant={postType === "video" ? "primary" : "outline"}
+          size="sm"
+          className="gap-1.5"
         >
-          <Video className="w-4 h-4" /> Video
-        </button>
+          <Video className="w-4 h-4" />
+          Video
+        </Button>
       </div>
     </div>
   );
