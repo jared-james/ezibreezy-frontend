@@ -1,4 +1,4 @@
-// app/(app)/ideas/components/NewClipping.tsx
+// app/(app)/ideas/components/new-clipping.tsx
 
 import { BookmarkPlus } from "lucide-react";
 
@@ -10,10 +10,7 @@ export default function NewClipping() {
       </h2>
       <div className="space-y-6">
         <div>
-          <label
-            htmlFor="manual-title"
-            className="eyebrow text-[--foreground]"
-          >
+          <label htmlFor="manual-title" className="eyebrow text-[--foreground]">
             Title / Headline
           </label>
           <input
@@ -24,10 +21,7 @@ export default function NewClipping() {
           />
         </div>
         <div>
-          <label
-            htmlFor="manual-desc"
-            className="eyebrow text-[--foreground]"
-          >
+          <label htmlFor="manual-desc" className="eyebrow text-[--foreground]">
             Notes / Description
           </label>
           <textarea

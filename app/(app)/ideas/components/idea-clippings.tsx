@@ -1,4 +1,4 @@
-// app/(app)/ideas/components/IdeaClippings.tsx
+// app/(app)/ideas/components/idea-clippings.tsx
 
 "use client";
 
@@ -113,9 +113,7 @@ export default function IdeaClippings() {
                   key={platform.id}
                   onClick={() =>
                     setFormattingPlatform(
-                      formattingPlatform === platform.id
-                        ? null
-                        : platform.id
+                      formattingPlatform === platform.id ? null : platform.id
                     )
                   }
                   title={platform.name}
@@ -135,9 +133,7 @@ export default function IdeaClippings() {
             {formattingPlatform === "x" && (
               <div className="mt-4 bg-white p-4 border border-[--border] animate-in fade-in-50">
                 <div className="flex items-center justify-between mb-2">
-                  <h4 className="font-serif font-bold text-sm">
-                    Format for X
-                  </h4>
+                  <h4 className="font-serif font-bold text-sm">Format for X</h4>
                   <button
                     onClick={() => setFormattingPlatform(null)}
                     className="text-[--muted] hover:text-[--foreground]"

@@ -1,4 +1,4 @@
-// app/(app)/ideas/components/EditClippingModal.tsx
+// app/(app)/ideas/components/edit-clipping-modal.tsx
 
 "use client";
 
@@ -19,14 +19,12 @@ import {
   PlusCircle,
   BookmarkPlus,
 } from "lucide-react";
+import type { Clipping } from "@/lib/api/ideas";
 
 interface EditClippingModalProps {
   isOpen: boolean;
   onClose: () => void;
-  idea: {
-    title: string;
-    description: string;
-  };
+  idea: Clipping;
 }
 
 // MOCK DATA: Includes nested accounts for each platform
@@ -169,7 +167,7 @@ export default function EditClippingModal({
                   <textarea
                     id="caption"
                     rows={10}
-                    defaultValue={idea.description}
+                    defaultValue={idea.body}
                     placeholder="Once upon a time..."
                     className="w-full bg-white font-serif p-4 border border-[--border] focus:border-[--foreground] focus:ring-1 focus:ring-[--foreground] transition-colors"
                   />

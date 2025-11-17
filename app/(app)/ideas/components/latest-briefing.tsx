@@ -1,11 +1,11 @@
-// app/(app)/ideas/components/LatestBriefing.tsx
+// app/(app)/ideas/components/latest-briefing.tsx
 
 "use client";
 
 import { useState } from "react";
 import { RefreshCw, PenLine, BookmarkPlus, Lightbulb } from "lucide-react";
-import EditClippingModal from "./EditClippingModal";
-import type { Clipping } from "@/lib/api-client";
+import EditClippingModal from "./edit-clipping-modal";
+import type { Clipping } from "@/lib/api/ideas"; // CORRECTED IMPORT
 
 interface LatestBriefingProps {
   clippings: Clipping[];
@@ -80,7 +80,7 @@ export default function LatestBriefing({ clippings }: LatestBriefingProps) {
         <EditClippingModal
           isOpen={!!selectedIdea}
           onClose={() => setSelectedIdea(null)}
-          idea={{ title: selectedIdea.title, description: selectedIdea.body }}
+          idea={selectedIdea}
         />
       )}
     </>

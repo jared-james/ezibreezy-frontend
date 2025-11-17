@@ -1,10 +1,10 @@
-// app/(app)/ideas/components/AIBriefing.tsx
+// app/(app)/ideas/components/ai-briefing.tsx
 
 "use client";
 import { useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { Send, Paperclip, Loader2 } from "lucide-react";
-import { generateClippings, type Clipping } from "@/lib/api-client";
+import { Clipping, generateClippings } from "@/lib/api/ideas";
 interface AIBriefingProps {
   onNewBriefingGenerated: (clippings: Clipping[]) => void;
 }

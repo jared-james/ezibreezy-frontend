@@ -4,12 +4,12 @@
 
 import { useState } from "react";
 import { Lightbulb, Archive, PenSquare } from "lucide-react";
-import PageHeading from "./components/PageHeading";
-import AIBriefing from "./components/AIBriefing";
-import LatestBriefing from "./components/LatestBriefing";
-import NewClipping from "./components/NewClipping";
-import IdeaClippings from "./components/IdeaClippings";
-import type { Clipping } from "@/lib/api-client";
+import PageHeading from "./components/page-heading";
+import AIBriefing from "./components/ai-briefing";
+import LatestBriefing from "./components/latest-briefing";
+import NewClipping from "./components/new-clipping";
+import IdeaClippings from "./components/idea-clippings";
+import type { Clipping } from "@/lib/api/ideas"; // CORRECTED IMPORT
 
 export default function IdeasPage() {
   const [mainTab, setMainTab] = useState<"ai" | "manual" | "archive">("ai");

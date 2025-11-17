@@ -1,4 +1,4 @@
-// app/(app)/ideas/components/PageHeading.tsx
+// app/(app)/ideas/components/page-heading.tsx
 
 export default function PageHeading() {
   return (
