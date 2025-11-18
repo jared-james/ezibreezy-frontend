@@ -178,14 +178,15 @@ export default function IntegrationsPage() {
                             <div className="flex items-center gap-3">
                               <img
                                 src={
-                                  account.profileImageUrl ||
+                                  account.avatarUrl || // Changed from profileImageUrl
                                   "/placeholder-pfp.png"
                                 }
-                                alt={account.username}
+                                alt={account.platformUsername} // Changed from username
                                 className="w-8 h-8 rounded-full bg-muted border border-border"
                               />
                               <span className="font-serif text-sm font-bold text-foreground">
-                                @{account.username}
+                                @{account.platformUsername}{" "}
+                                {/* Changed from username */}
                               </span>
                             </div>
                             <Button
