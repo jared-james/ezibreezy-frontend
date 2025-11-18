@@ -26,6 +26,7 @@ interface DistributionPanelProps {
   onFirstCommentChange?: (value: string) => void;
   onCollaboratorsChange?: (value: string) => void;
   onLocationChange?: (value: string) => void;
+  showActionButtons?: boolean; // <-- Add this prop
 }
 
 export default function DistributionPanel({
@@ -41,6 +42,7 @@ export default function DistributionPanel({
   onFirstCommentChange,
   onCollaboratorsChange,
   onLocationChange,
+  showActionButtons = true, // <-- Give it a default value
 }: DistributionPanelProps) {
   return (
     <div className="flex flex-col">
@@ -53,6 +55,7 @@ export default function DistributionPanel({
 
       <div className="bg-surface border border-border p-5 space-y-6 mt-4">
         <div className="space-y-4">
+          {/* Input fields remain unchanged... */}
           <div className="relative">
             <label htmlFor="labels" className="eyebrow">
               Labels
@@ -68,7 +71,6 @@ export default function DistributionPanel({
               />
             </div>
           </div>
-
           <div className="relative">
             <label htmlFor="hashtags" className="eyebrow">
               Hashtags
@@ -84,7 +86,6 @@ export default function DistributionPanel({
               />
             </div>
           </div>
-
           <div className="relative">
             <label htmlFor="first-comment" className="eyebrow">
               First Comment
@@ -100,7 +101,6 @@ export default function DistributionPanel({
               />
             </div>
           </div>
-
           <div className="relative">
             <label htmlFor="collaborators" className="eyebrow">
               Collaborators
@@ -116,7 +116,6 @@ export default function DistributionPanel({
               />
             </div>
           </div>
-
           <div className="relative">
             <label htmlFor="location" className="eyebrow">
               Location
@@ -134,20 +133,24 @@ export default function DistributionPanel({
           </div>
         </div>
 
-        <div className="pt-4 space-y-3">
-          <Button onClick={onSaveClipping} className="w-full gap-2">
-            <BookmarkPlus className="w-4 h-4" />
-            Save Clipping
-          </Button>
-          <Button
-            onClick={onOpenInEditorial}
-            variant="outline"
-            className="w-full gap-2"
-          >
-            <Edit3 className="w-4 h-4" />
-            Open in Editorial
-          </Button>
-        </div>
+        {/* --- START OF CHANGE --- */}
+        {showActionButtons && (
+          <div className="pt-4 space-y-3">
+            <Button onClick={onSaveClipping} className="w-full gap-2">
+              <BookmarkPlus className="w-4 h-4" />
+              Save Clipping
+            </Button>
+            <Button
+              onClick={onOpenInEditorial}
+              variant="outline"
+              className="w-full gap-2"
+            >
+              <Edit3 className="w-4 h-4" />
+              Open in Editorial
+            </Button>
+          </div>
+        )}
+        {/* --- END OF CHANGE --- */}
       </div>
     </div>
   );
