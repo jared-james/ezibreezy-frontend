@@ -12,6 +12,7 @@ import {
   Youtube,
   Calendar,
   Loader2,
+  Instagram,
 } from "lucide-react";
 import { useEditorialStore } from "@/lib/store/editorial-store";
 import PostTypeSelector from "../ideas/components/edit-modal/post-type-selector";
@@ -32,6 +33,7 @@ const platformDefinitions = {
   x: { name: "Twitter/X", icon: Twitter },
   linkedin: { name: "LinkedIn", icon: Linkedin },
   youtube: { name: "YouTube", icon: Youtube },
+  instagram: { name: "Instagram", icon: Instagram },
 };
 
 type SelectedAccounts = Record<string, string[]>;
@@ -371,6 +373,7 @@ export default function EditorialPage() {
               }
               onLocationChange={(val) => updateState({ location: val })}
               showActionButtons={false}
+              activePlatforms={activePlatforms}
             />
 
             <div className="flex flex-col">

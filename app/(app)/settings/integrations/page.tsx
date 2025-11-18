@@ -12,6 +12,7 @@ import {
   Link as LinkIcon,
   X,
   Loader2,
+  Instagram,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import ConnectAccountModal from "@/components/connect-account-modal";
@@ -23,7 +24,7 @@ import {
 } from "@/lib/api/integrations";
 
 type PlatformDefinition = {
-  id: "x" | "linkedin" | "youtube";
+  id: "x" | "linkedin" | "youtube" | "instagram";
   name: string;
   icon: React.ElementType;
   description: string;
@@ -35,6 +36,13 @@ const platformDefinitions: PlatformDefinition[] = [
     name: "Twitter / X",
     icon: Twitter,
     description: "Connect your X accounts to post and schedule threads.",
+  },
+  {
+    id: "instagram",
+    name: "Instagram",
+    icon: Instagram,
+    description:
+      "Connect your Instagram accounts to publish posts, carousels, and Reels.",
   },
   {
     id: "linkedin",
@@ -178,15 +186,13 @@ export default function IntegrationsPage() {
                             <div className="flex items-center gap-3">
                               <img
                                 src={
-                                  account.avatarUrl || // Changed from profileImageUrl
-                                  "/placeholder-pfp.png"
+                                  account.avatarUrl || "/placeholder-pfp.png"
                                 }
-                                alt={account.platformUsername} // Changed from username
+                                alt={account.platformUsername}
                                 className="w-8 h-8 rounded-full bg-muted border border-border"
                               />
                               <span className="font-serif text-sm font-bold text-foreground">
                                 @{account.platformUsername}{" "}
-                                {/* Changed from username */}
                               </span>
                             </div>
                             <Button

@@ -3,9 +3,9 @@ import apiClient from "./index";
 
 export interface Connection {
   id: string;
-  platform: "x" | "linkedin" | "youtube";
-  platformUsername: string; // Changed from username
-  avatarUrl: string | null; // Changed from profileImageUrl
+  platform: "x" | "linkedin" | "youtube" | "instagram";
+  platformUsername: string;
+  avatarUrl: string | null;
   platformUserId: string;
 }
 

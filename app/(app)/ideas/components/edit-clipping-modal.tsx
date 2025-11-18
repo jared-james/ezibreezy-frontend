@@ -31,7 +31,7 @@ interface EditClippingModalProps {
 
 const platforms: Platform[] = [
   {
-    id: "twitter",
+    id: "x",
     name: "Twitter/X",
     icon: Twitter,
     accounts: [
@@ -48,15 +48,6 @@ const platforms: Platform[] = [
       { id: "ig1", name: "breezy_times", img: "/placeholder-pfp.png" },
     ],
   },
-  {
-    id: "linkedin",
-    name: "LinkedIn",
-    icon: Linkedin,
-    accounts: [{ id: "li1", name: "John Doe", img: "/placeholder-pfp.png" }],
-  },
-  { id: "facebook", name: "Facebook", icon: Facebook, accounts: [] },
-  { id: "tiktok", name: "TikTok", icon: Video, accounts: [] },
-  { id: "youtube", name: "YouTube", icon: Youtube, accounts: [] },
 ];
 
 type SelectedAccounts = Record<string, string[]>;
@@ -89,7 +80,6 @@ export default function EditClippingModal({
   const { setDraft } = useEditorialStore();
 
   const handleOpenInEditorial = () => {
-    // Prepare the draft data
     const draft: EditorialDraft = {
       postType,
       mainCaption,
@@ -115,19 +105,14 @@ export default function EditClippingModal({
       sourceTitle: idea.title,
     };
 
-    // Store the draft
     setDraft(draft);
 
-    // Navigate to editorial page
     router.push("/editorial");
 
-    // Close the modal
     onClose();
   };
 
   const handleSaveClipping = () => {
-    // TODO: Implement save clipping functionality
-    // This will save to the database/archive
     console.log("Save clipping functionality to be implemented");
   };
 
@@ -267,6 +252,7 @@ export default function EditClippingModal({
                   onFirstCommentChange={setFirstComment}
                   onCollaboratorsChange={setCollaborators}
                   onLocationChange={setLocation}
+                  activePlatforms={activePlatforms}
                 />
               </div>
             </div>
