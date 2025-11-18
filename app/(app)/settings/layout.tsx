@@ -23,19 +23,22 @@ export default function SettingsLayout({
   const pathname = usePathname();
 
   return (
-    <div className="max-w-7xl mx-auto">
+    <div className="h-full flex flex-col w-full max-w-7xl mx-auto p-4 md:p-6">
       {/* Header */}
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">Settings</h1>
-        <p className="text-gray-600">
-          Manage your account and application preferences
+      <div className="mb-8 border-b-4 border-double border-[--foreground] pb-6">
+        <p className="eyebrow mb-2">Administration</p>
+        <h1 className="font-serif text-4xl md:text-5xl font-bold uppercase tracking-tight text-[--foreground]">
+          Settings
+        </h1>
+        <p className="font-serif text-[--muted] mt-2 max-w-xl text-lg italic">
+          Manage your account, connections, and application preferences.
         </p>
       </div>
 
-      <div className="flex gap-8">
+      <div className="flex-1 grid grid-cols-1 lg:grid-cols-12 gap-8 min-h-0">
         {/* Settings sidebar */}
-        <aside className="w-64 flex-shrink-0">
-          <nav className="bg-white rounded-xl shadow border border-gray-200 p-2">
+        <aside className="lg:col-span-3">
+          <nav className="border border-[--border] bg-[--surface] p-2 space-y-1">
             {settingsNav.map((item) => {
               const Icon = item.icon;
               const isActive = pathname === item.href;
@@ -44,14 +47,16 @@ export default function SettingsLayout({
                 <Link
                   key={item.name}
                   href={item.href}
-                  className={`flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors ${
-                    isActive
-                      ? "bg-blue-50 text-blue-700"
-                      : "text-gray-700 hover:bg-gray-50"
-                  }`}
+                  className={`flex items-center gap-3 px-3 py-2
+                    font-serif text-sm transition-colors
+                    ${
+                      isActive
+                        ? "font-bold bg-surface-hover text-[--foreground]"
+                        : "text-[--muted] hover:text-[--foreground] hover:bg-surface-hover"
+                    }`}
                 >
-                  <Icon className="w-5 h-5" />
-                  {item.name}
+                  <Icon className="w-4 h-4" />
+                  <span className="mt-[1px]">{item.name}</span>
                 </Link>
               );
             })}
@@ -59,7 +64,7 @@ export default function SettingsLayout({
         </aside>
 
         {/* Settings content */}
-        <main className="flex-1 bg-white rounded-xl shadow border border-gray-200 p-8">
+        <main className="lg:col-span-9 border border-[--border] bg-[--surface] p-6 md:p-8">
           {children}
         </main>
       </div>

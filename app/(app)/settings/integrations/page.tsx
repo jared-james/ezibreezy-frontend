@@ -1,90 +1,184 @@
 // app/(app)/settings/integrations/page.tsx
-// Social platform integrations
+"use client";
 
-import { CheckCircle2, Share2 } from "lucide-react";
+import { useState } from "react";
+import { Twitter, Linkedin, Youtube, Link as LinkIcon, X } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import ConnectAccountModal from "@/components/connect-account-modal"; // Import the modal
 
-const platforms = [
+// Define a more specific type for a platform
+type Platform = {
+  id: string;
+  name: string;
+  icon: React.ElementType;
+  description: string;
+  accounts: Account[];
+};
+
+const initialPlatforms: Platform[] = [
   {
+    id: "twitter",
     name: "Twitter / X",
-    icon: Share2,
-    description: "Connect your Twitter account to post and schedule tweets",
-    connected: false,
+    icon: Twitter,
+    description: "Connect your X accounts to post and schedule threads.",
+    accounts: [],
   },
   {
+    id: "linkedin",
     name: "LinkedIn",
-    icon: Share2,
-    description: "Share professional content on your LinkedIn profile",
-    connected: false,
+    icon: Linkedin,
+    description: "Share professional content on your LinkedIn profile.",
+    accounts: [],
   },
   {
-    name: "Facebook",
-    icon: Share2,
-    description: "Post to your Facebook page or profile",
-    connected: false,
-  },
-  {
-    name: "Instagram",
-    icon: Share2,
-    description: "Schedule posts and stories to Instagram",
-    connected: false,
+    id: "youtube",
+    name: "YouTube",
+    icon: Youtube,
+    description: "Connect your YouTube channel to manage content.",
+    accounts: [],
   },
 ];
 
+type Account = {
+  id: string;
+  username: string;
+  avatar: string;
+};
+
 export default function IntegrationsPage() {
+  const [platforms, setPlatforms] = useState<Platform[]>(initialPlatforms);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedPlatform, setSelectedPlatform] = useState<Platform | null>(
+    null
+  );
+
+  const openConnectModal = (platform: Platform) => {
+    setSelectedPlatform(platform);
+    setIsModalOpen(true);
+  };
+
+  const handleConnect = () => {
+    if (!selectedPlatform) return;
+
+    const newAccount: Account = {
+      id: `${selectedPlatform.id}-${Math.random()}`,
+      username: `@mock_${selectedPlatform.id}_${(Math.random() * 100).toFixed(
+        0
+      )}`,
+      avatar: "/placeholder-pfp.png",
+    };
+
+    setPlatforms(
+      platforms.map((p) =>
+        p.id === selectedPlatform.id
+          ? { ...p, accounts: [...p.accounts, newAccount] }
+          : p
+      )
+    );
+  };
+
+  const handleDisconnect = (platformId: string, accountId: string) => {
+    setPlatforms(
+      platforms.map((p) =>
+        p.id === platformId
+          ? { ...p, accounts: p.accounts.filter((a) => a.id !== accountId) }
+          : p
+      )
+    );
+  };
+
   return (
-    <div>
-      <h2 className="text-2xl font-bold text-gray-900 mb-2">Integrations</h2>
-      <p className="text-gray-600 mb-8">
-        Connect your social media accounts to publish content
-      </p>
+    <>
+      <div>
+        <div className="border-b-2 border-[--foreground] pb-3 mb-6">
+          <h2 className="font-serif text-2xl font-bold text-[--foreground]">
+            Integrations & Connections
+          </h2>
+          <p className="font-serif text-[--muted] mt-1">
+            Connect your social media accounts to publish content directly from
+            EziBreezy.
+          </p>
+        </div>
 
-      <div className="space-y-4">
-        {platforms.map((platform) => {
-          const Icon = platform.icon;
-          return (
-            <div
-              key={platform.name}
-              className="flex items-center justify-between p-6 border border-gray-200 rounded-lg hover:border-gray-300 transition-colors"
-            >
-              <div className="flex items-center gap-4">
-                <div className="p-3 bg-gray-100 rounded-lg">
-                  <Icon className="w-6 h-6 text-gray-700" />
-                </div>
-                <div>
-                  <div className="flex items-center gap-2 mb-1">
-                    <h3 className="font-semibold text-gray-900">
-                      {platform.name}
-                    </h3>
-                    {platform.connected && (
-                      <CheckCircle2 className="w-4 h-4 text-green-600" />
-                    )}
+        <div className="space-y-6">
+          {platforms.map((platform) => {
+            const Icon = platform.icon;
+            return (
+              <div
+                key={platform.id}
+                className="border border-[--border] bg-[--background] p-5"
+              >
+                <div className="flex flex-col md:flex-row md:items-start md:justify-between">
+                  <div className="flex items-start gap-4">
+                    <div className="w-10 h-10 flex items-center justify-center border border-[--border] bg-[--surface]">
+                      <Icon className="w-5 h-5 text-[--foreground]" />
+                    </div>
+                    <div>
+                      <h3 className="font-serif font-bold text-lg text-[--foreground]">
+                        {platform.name}
+                      </h3>
+                      <p className="font-serif text-sm text-[--muted]">
+                        {platform.description}
+                      </p>
+                    </div>
                   </div>
-                  <p className="text-sm text-gray-600">
-                    {platform.description}
-                  </p>
+                  <div className="mt-4 md:mt-0 md:ml-4 flex-shrink-0">
+                    <Button onClick={() => openConnectModal(platform)}>
+                      <LinkIcon className="w-4 h-4" />
+                      Connect New Account
+                    </Button>
+                  </div>
                 </div>
+
+                {platform.accounts.length > 0 && (
+                  <div className="mt-4 pt-4 border-t border-dashed border-[--border]">
+                    <p className="eyebrow mb-3">Connected Accounts</p>
+                    <div className="space-y-3">
+                      {platform.accounts.map((account: Account) => (
+                        <div
+                          key={account.id}
+                          className="flex items-center justify-between p-3 bg-[--surface] border border-[--border]"
+                        >
+                          <div className="flex items-center gap-3">
+                            <img
+                              src={account.avatar}
+                              alt={account.username}
+                              className="w-8 h-8 rounded-full"
+                            />
+                            <span className="font-serif text-sm font-bold text-[--foreground]">
+                              {account.username}
+                            </span>
+                          </div>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="text-[--muted] hover:text-[--error]"
+                            onClick={() =>
+                              handleDisconnect(platform.id, account.id)
+                            }
+                          >
+                            <X className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
-
-              {platform.connected ? (
-                <button className="px-4 py-2 text-red-600 hover:text-red-700 font-medium text-sm border border-red-300 rounded-lg hover:bg-red-50 transition-colors">
-                  Disconnect
-                </button>
-              ) : (
-                <button className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium text-sm rounded-lg transition-colors">
-                  Connect
-                </button>
-              )}
-            </div>
-          );
-        })}
+            );
+          })}
+        </div>
       </div>
 
-      <div className="mt-8 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-        <p className="text-sm text-blue-900">
-          <strong>Note:</strong> You can connect multiple accounts for each
-          platform. Manage your connected accounts after connecting.
-        </p>
-      </div>
-    </div>
+      {selectedPlatform && (
+        <ConnectAccountModal
+          isOpen={isModalOpen}
+          onClose={() => setIsModalOpen(false)}
+          platformName={selectedPlatform.name}
+          platformIcon={selectedPlatform.icon}
+          onConnect={handleConnect}
+        />
+      )}
+    </>
   );
 }

@@ -6,6 +6,8 @@ import { PlusCircle } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { ChannelCircleButton } from "@/components/ui/channel-circle-button";
 import { cn } from "@/lib/utils";
+// Import Link from next/link
+import Link from "next/link";
 
 export interface Platform {
   id: string;
@@ -29,13 +31,14 @@ export default function ChannelSelector({
     <div>
       <div className="flex justify-between items-center mb-3">
         <p className="eyebrow text-foreground">Channels</p>
-        <a
-          href="/settings/connections"
+        {/* Changed <a> to <Link> and updated the href */}
+        <Link
+          href="/settings/integrations"
           className="flex items-center gap-2 text-xs font-serif text-brand-accent hover:underline"
         >
           <PlusCircle className="w-3 h-3" />
           Connect Accounts
-        </a>
+        </Link>
       </div>
 
       <div className="flex items-center gap-3 flex-wrap">
