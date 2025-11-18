@@ -10,7 +10,8 @@ import LatestBriefing from "./components/latest-briefing";
 import NewClipping from "./components/new-clipping";
 import IdeaClippings from "./components/idea-clippings";
 import EditClippingModal from "./components/edit-clipping-modal";
-import type { Clipping } from "@/lib/api/ideas";
+import type { Clipping as GeneratedClipping } from "@/lib/api/ideas";
+import type { Clipping } from "@/lib/types/editorial";
 import { Button } from "@/components/ui/button";
 
 const mockClipping: Clipping = {
@@ -25,7 +26,7 @@ const mockClipping: Clipping = {
 
 export default function IdeasPage() {
   const [mainTab, setMainTab] = useState<"ai" | "manual" | "archive">("ai");
-  const [latestBriefing, setLatestBriefing] = useState<Clipping[]>([]);
+  const [latestBriefing, setLatestBriefing] = useState<GeneratedClipping[]>([]);
   const [showDevModal, setShowDevModal] = useState(false);
 
   return (

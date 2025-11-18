@@ -12,7 +12,8 @@ import {
   Youtube,
   Video,
 } from "lucide-react";
-import type { Clipping } from "@/lib/api/ideas";
+import type { Clipping as GeneratedClipping } from "@/lib/api/ideas";
+import type { Clipping } from "@/lib/types/editorial";
 import { useEditorialStore } from "@/lib/store/editorial-store";
 import type { EditorialDraft } from "@/lib/types/editorial";
 import ModalHeader from "./edit-modal/modal-header";
@@ -25,7 +26,7 @@ import DistributionPanel from "./edit-modal/distribution-panel";
 interface EditClippingModalProps {
   isOpen: boolean;
   onClose: () => void;
-  idea: Clipping;
+  idea: Clipping | GeneratedClipping;
 }
 
 const platforms: Platform[] = [
@@ -110,7 +111,7 @@ export default function EditClippingModal({
         collaborators,
         location,
       },
-      sourceId: idea.id,
+      sourceId: "id" in idea ? idea.id : undefined,
       sourceTitle: idea.title,
     };
 

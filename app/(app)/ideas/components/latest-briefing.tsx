@@ -5,15 +5,17 @@
 import { useState } from "react";
 import { RefreshCw, PenLine, BookmarkPlus, Lightbulb } from "lucide-react";
 import EditClippingModal from "./edit-clipping-modal";
-import type { Clipping } from "@/lib/api/ideas";
+import type { Clipping as GeneratedClipping } from "@/lib/api/ideas";
 import { Button } from "@/components/ui/button";
 
 interface LatestBriefingProps {
-  clippings: Clipping[];
+  clippings: GeneratedClipping[];
 }
 
 export default function LatestBriefing({ clippings }: LatestBriefingProps) {
-  const [selectedIdea, setSelectedIdea] = useState<Clipping | null>(null);
+  const [selectedIdea, setSelectedIdea] = useState<GeneratedClipping | null>(
+    null
+  );
 
   if (clippings.length === 0) {
     return (

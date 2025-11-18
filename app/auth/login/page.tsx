@@ -12,32 +12,44 @@ export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
   const supabase = createClient();
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
+    setIsLoading(true);
 
-    const { error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
+    try {
+      const { error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
 
-    if (error) {
-      setError(error.message);
-    } else {
-      router.push("/dashboard");
-      router.refresh();
+      if (error) {
+        const errorMessage = error.message.includes("Invalid login credentials")
+          ? "Invalid email or password"
+          : error.message.includes("Email not confirmed")
+          ? "Please check your email to confirm your account"
+          : "Unable to sign in. Please try again.";
+
+        setError(errorMessage);
+      } else {
+        router.push("/dashboard");
+        router.refresh();
+      }
+    } catch (err) {
+      setError("An unexpected error occurred");
+    } finally {
+      setIsLoading(false);
     }
   };
 
   return (
     <div className="min-h-screen bg-[--background] px-4 py-8 flex items-center justify-center">
       <div className="w-full max-w-2xl">
-        {/* POSTCARD CONTAINER */}
         <div className="bg-[#f5f0e8] border-2 border-[--foreground] shadow-lg relative">
-          {/* Postcard stamp area */}
           <div className="absolute top-4 right-4 w-20 h-24 flex items-center justify-center p-2">
             <Image
               src="/logo_smile.webp"
@@ -49,9 +61,7 @@ export default function Login() {
           </div>
 
           <div className="grid md:grid-cols-2 min-h-[500px]">
-            {/* LEFT SIDE - Message area */}
             <div className="p-8 md:p-10 border-r-2 border-[--foreground] flex flex-col">
-              {/* Postcard header */}
               <div className="mb-6">
                 <h1
                   className="font-serif text-2xl uppercase tracking-wider text-[--muted]"
@@ -61,7 +71,6 @@ export default function Login() {
                 </h1>
               </div>
 
-              {/* Handwritten-style message */}
               <div className="flex-1 flex items-center">
                 <div className="space-y-1">
                   <p
@@ -100,7 +109,6 @@ export default function Login() {
                 </div>
               </div>
 
-              {/* EziBreezy branding at bottom */}
               <div className="mt-auto pt-6">
                 <p className="font-serif text-sm font-bold uppercase tracking-[0.2em]">
                   EziBreezy
@@ -108,13 +116,11 @@ export default function Login() {
               </div>
             </div>
 
-            {/* RIGHT SIDE - Address/Form area */}
             <div className="p-8 md:p-10 flex flex-col">
               <form onSubmit={handleLogin} className="flex-1 flex flex-col">
                 <div className="flex-1"></div>
 
                 <div className="space-y-4">
-                  {/* Address lines styling */}
                   <div className="space-y-1">
                     <div className="border-b border-[--muted] pb-2">
                       <input
@@ -126,6 +132,7 @@ export default function Login() {
                         onChange={(e) => setEmail(e.target.value)}
                         placeholder="your.email@example.com"
                         className="w-full bg-transparent border-none font-serif text-[--foreground] focus:outline-none placeholder:text-[--muted-foreground] placeholder:italic"
+                        disabled={isLoading}
                       />
                     </div>
                   </div>
@@ -141,6 +148,7 @@ export default function Login() {
                         onChange={(e) => setPassword(e.target.value)}
                         placeholder="password"
                         className="w-full bg-transparent border-none font-serif text-[--foreground] focus:outline-none placeholder:text-[--muted-foreground] placeholder:italic"
+                        disabled={isLoading}
                       />
                     </div>
                   </div>
@@ -153,13 +161,16 @@ export default function Login() {
                 )}
 
                 <div className="pt-4">
-                  <button type="submit" className="btn btn-primary w-full py-3">
-                    Login
+                  <button
+                    type="submit"
+                    className="btn btn-primary w-full py-3"
+                    disabled={isLoading}
+                  >
+                    {isLoading ? "Logging in..." : "Login"}
                   </button>
                 </div>
               </form>
 
-              {/* Footer links */}
               <div className="mt-6 pt-6 border-t border-[--border]">
                 <p className="text-center font-serif text-sm text-[--muted]">
                   New here?{" "}
@@ -175,7 +186,6 @@ export default function Login() {
           </div>
         </div>
 
-        {/* Footer */}
         <div className="mt-6 text-center">
           <Link
             href="/"

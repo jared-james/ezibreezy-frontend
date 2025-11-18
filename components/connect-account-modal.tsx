@@ -2,16 +2,15 @@
 
 "use client";
 
-import type { ElementType } from "react";
 import { X } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Button } from "./ui/button";
 
 interface ConnectAccountModalProps {
   isOpen: boolean;
   onClose: () => void;
   platformName: string;
-  platformIcon: ElementType;
-  onConnect: () => void;
+  platformIcon: React.ElementType;
+  platformId: string;
 }
 
 export default function ConnectAccountModal({
@@ -19,53 +18,53 @@ export default function ConnectAccountModal({
   onClose,
   platformName,
   platformIcon: Icon,
-  onConnect,
+  platformId,
 }: ConnectAccountModalProps) {
-  if (!isOpen) return null;
+  if (!isOpen) {
+    return null;
+  }
 
   const handleConnectClick = () => {
-    onConnect();
-    onClose();
+    // 1. Store which platform we're connecting
+    try {
+      window.sessionStorage.setItem("connecting_platform", platformId);
+    } catch (e) {
+      console.error("Could not save to sessionStorage", e);
+    }
+
+    // 2. Redirect through our Next.js API route (not directly to backend)
+    // This route will handle authentication and forward to the backend
+    window.location.href = `/api/connections/${platformId}/connect`;
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
-      <div className="bg-surface border-4 border-foreground w-full max-w-lg p-8 shadow-[0_0_0_3px_rgba(0,0,0,0.4)] relative">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+      <div className="bg-surface border-4 border-foreground w-full max-w-lg shadow-2xl p-6 relative">
         <button
-          type="button"
           onClick={onClose}
-          className="absolute top-4 right-4 text-muted-foreground hover:text-foreground"
+          className="absolute top-4 right-4 text-muted hover:text-foreground"
         >
           <X className="w-5 h-5" />
         </button>
-
         <div className="text-center">
-          <div className="w-20 h-20 mx-auto flex items-center justify-center border border-border bg-background mb-6">
-            <Icon className="w-9 h-9 text-foreground" />
+          <div className="w-16 h-16 mx-auto flex items-center justify-center border border-border bg-background mb-4">
+            <Icon className="w-8 h-8 text-foreground" />
           </div>
-
-          <h2 className="font-serif text-3xl font-bold text-foreground tracking-tight">
+          <h2 className="font-serif text-2xl font-bold text-foreground">
             Connect to {platformName}
           </h2>
-
-          <p className="font-serif text-sm text-muted-foreground mt-3 mb-8 leading-relaxed max-w-md mx-auto">
+          <p className="font-serif text-muted mt-2 mb-6 max-w-sm mx-auto">
             You will be redirected to {platformName} to authorize EziBreezy to
             manage posts on your behalf.
           </p>
-
-          <div className="flex justify-center gap-4">
-            <Button
-              variant="outline"
-              className="w-32 font-serif tracking-wide text-xs uppercase"
-              onClick={onClose}
-            >
+          <div className="flex justify-center gap-3">
+            <Button variant="outline" onClick={onClose} className="w-32">
               Cancel
             </Button>
-
             <Button
               variant="primary"
-              className="w-48 font-serif tracking-wide text-xs uppercase"
               onClick={handleConnectClick}
+              className="w-48"
             >
               Continue to {platformName}
             </Button>

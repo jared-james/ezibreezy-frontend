@@ -3,10 +3,9 @@
 "use client";
 
 import { X } from "lucide-react";
-import type { Clipping } from "@/lib/api/ideas";
 
 interface ModalHeaderProps {
-  idea: Clipping;
+  idea: { title: string };
   onClose: () => void;
 }
 

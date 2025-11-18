@@ -1,7 +1,10 @@
+// app/layout.tsx
+
 import type { Metadata } from "next";
 import { Libre_Caslon_Text } from "next/font/google";
 import "./globals.css";
 import Providers from "./client-providers";
+import { Toaster } from "@/components/ui/sonner";
 
 const libreCaslon = Libre_Caslon_Text({
   subsets: ["latin"],
@@ -24,6 +27,7 @@ export default function RootLayout({
     <html lang="en" className={libreCaslon.variable}>
       <body>
         <Providers>{children}</Providers>
+        <Toaster />
       </body>
     </html>
   );

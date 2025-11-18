@@ -12,24 +12,32 @@ export default function SignUp() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const supabase = createClient();
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
+    setIsLoading(true);
 
-    const { error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        emailRedirectTo: `${location.origin}/auth/callback`,
-      },
-    });
+    try {
+      const { error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          emailRedirectTo: `${location.origin}/auth/callback`,
+        },
+      });
 
-    if (error) {
-      setError(error.message);
-    } else {
-      setIsSubmitted(true);
+      if (error) {
+        setError(error.message);
+      } else {
+        setIsSubmitted(true);
+      }
+    } catch (err) {
+      setError("An unexpected error occurred");
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -37,9 +45,7 @@ export default function SignUp() {
     return (
       <div className="min-h-screen bg-[--background] px-4 py-8 flex items-center justify-center">
         <div className="w-full max-w-2xl">
-          {/* POSTCARD CONTAINER - Success */}
           <div className="bg-[#f5f0e8] border-2 border-[--success] shadow-lg relative">
-            {/* Postcard stamp area */}
             <div className="absolute top-4 right-4 w-20 h-24 border-2 border-[--success] bg-green-50 flex items-center justify-center">
               <div className="text-center">
                 <svg
@@ -59,7 +65,6 @@ export default function SignUp() {
             </div>
 
             <div className="grid md:grid-cols-2 min-h-[500px]">
-              {/* LEFT SIDE - Message area */}
               <div className="p-8 md:p-10 border-r-2 border-[--success] flex flex-col">
                 <div className="mb-6">
                   <h1
@@ -115,7 +120,6 @@ export default function SignUp() {
                 </div>
               </div>
 
-              {/* RIGHT SIDE - Confirmation message */}
               <div className="p-8 md:p-10 flex flex-col justify-center">
                 <div className="space-y-4">
                   <p className="font-serif text-lg leading-relaxed text-[--foreground]">
@@ -149,9 +153,7 @@ export default function SignUp() {
   return (
     <div className="min-h-screen bg-[--background] px-4 py-8 flex items-center justify-center">
       <div className="w-full max-w-2xl">
-        {/* POSTCARD CONTAINER */}
         <div className="bg-[#f5f0e8] border-2 border-[--foreground] shadow-lg relative">
-          {/* Postcard stamp area */}
           <div className="absolute top-4 right-4 w-20 h-24 flex items-center justify-center p-2">
             <Image
               src="/logo_smile.webp"
@@ -163,9 +165,7 @@ export default function SignUp() {
           </div>
 
           <div className="grid md:grid-cols-2 min-h-[500px]">
-            {/* LEFT SIDE - Message area */}
             <div className="p-8 md:p-10 border-r-2 border-[--foreground] flex flex-col">
-              {/* Postcard header */}
               <div className="mb-6">
                 <h1
                   className="font-serif text-2xl uppercase tracking-wider text-[--muted]"
@@ -175,7 +175,6 @@ export default function SignUp() {
                 </h1>
               </div>
 
-              {/* Handwritten-style message */}
               <div className="flex-1 flex items-center">
                 <div className="space-y-1">
                   <p
@@ -214,7 +213,6 @@ export default function SignUp() {
                 </div>
               </div>
 
-              {/* EziBreezy branding at bottom */}
               <div className="mt-auto pt-6">
                 <p className="font-serif text-sm font-bold uppercase tracking-[0.2em]">
                   EziBreezy
@@ -222,13 +220,11 @@ export default function SignUp() {
               </div>
             </div>
 
-            {/* RIGHT SIDE - Address/Form area */}
             <div className="p-8 md:p-10 flex flex-col">
               <form onSubmit={handleSignUp} className="flex-1 flex flex-col">
                 <div className="flex-1"></div>
 
                 <div className="space-y-4">
-                  {/* Address lines styling */}
                   <div className="space-y-1">
                     <div className="border-b border-[--muted] pb-2">
                       <input
@@ -240,6 +236,7 @@ export default function SignUp() {
                         onChange={(e) => setEmail(e.target.value)}
                         placeholder="your.email@example.com"
                         className="w-full bg-transparent border-none font-serif text-[--foreground] focus:outline-none placeholder:text-[--muted-foreground] placeholder:italic"
+                        disabled={isLoading}
                       />
                     </div>
                   </div>
@@ -256,6 +253,7 @@ export default function SignUp() {
                         onChange={(e) => setPassword(e.target.value)}
                         placeholder="password (min. 6 characters)"
                         className="w-full bg-transparent border-none font-serif text-[--foreground] focus:outline-none placeholder:text-[--muted-foreground] placeholder:italic"
+                        disabled={isLoading}
                       />
                     </div>
                   </div>
@@ -268,8 +266,12 @@ export default function SignUp() {
                 )}
 
                 <div className="pt-4">
-                  <button type="submit" className="btn btn-primary w-full py-3">
-                    Sign Up
+                  <button
+                    type="submit"
+                    className="btn btn-primary w-full py-3"
+                    disabled={isLoading}
+                  >
+                    {isLoading ? "Creating account..." : "Sign Up"}
                   </button>
                 </div>
 
@@ -280,7 +282,6 @@ export default function SignUp() {
                 </div>
               </form>
 
-              {/* Footer links */}
               <div className="mt-6 pt-6 border-t border-[--border]">
                 <p className="text-center font-serif text-sm text-[--muted]">
                   Already a member?{" "}
@@ -296,7 +297,6 @@ export default function SignUp() {
           </div>
         </div>
 
-        {/* Footer */}
         <div className="mt-6 text-center">
           <Link
             href="/"
