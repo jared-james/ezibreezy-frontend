@@ -2,120 +2,106 @@
 
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Twitter, Linkedin, Youtube, Link as LinkIcon, X } from "lucide-react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import {
+  Twitter,
+  Linkedin,
+  Youtube,
+  Link as LinkIcon,
+  X,
+  Loader2,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import ConnectAccountModal from "@/components/connect-account-modal";
 import { toast } from "sonner";
+import {
+  getConnections,
+  Connection,
+  disconnectAccount,
+} from "@/lib/api/integrations";
 
-// ... (Keep Platform and Account types)
-type Platform = {
-  id: string;
+type PlatformDefinition = {
+  id: "x" | "linkedin" | "youtube";
   name: string;
   icon: React.ElementType;
   description: string;
-  accounts: Account[];
-};
-type Account = {
-  id: string;
-  username: string;
-  avatar: string;
 };
 
-const initialPlatforms: Platform[] = [
+const platformDefinitions: PlatformDefinition[] = [
   {
     id: "x",
     name: "Twitter / X",
     icon: Twitter,
     description: "Connect your X accounts to post and schedule threads.",
-    accounts: [],
   },
   {
     id: "linkedin",
     name: "LinkedIn",
     icon: Linkedin,
-    description: "Share professional content on your LinkedIn profile.",
-    accounts: [],
+    description: "Connect your LinkedIn profile to publish articles and posts.",
   },
   {
     id: "youtube",
     name: "YouTube",
     icon: Youtube,
-    description: "Connect your YouTube channel to manage content.",
-    accounts: [],
+    description: "Connect your YouTube channel to manage video content.",
   },
 ];
 
 export default function IntegrationsPage() {
-  const [platforms, setPlatforms] = useState<Platform[]>(initialPlatforms);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [selectedPlatform, setSelectedPlatform] = useState<Platform | null>(
-    null
-  );
+  const [selectedPlatform, setSelectedPlatform] =
+    useState<PlatformDefinition | null>(null);
 
   const searchParams = useSearchParams();
   const router = useRouter();
+  const queryClient = useQueryClient();
 
-  const handleConnect = useCallback((platform: Platform) => {
-    const newAccount: Account = {
-      id: `${platform.id}-${Math.random()}`,
-      username: `@mock_${platform.id}_${(Math.random() * 100).toFixed(0)}`,
-      avatar: "/placeholder-pfp.png",
-    };
+  const {
+    data: connections = [],
+    isLoading,
+    error,
+  } = useQuery<Connection[]>({
+    queryKey: ["connections"],
+    queryFn: getConnections,
+  });
 
-    setPlatforms((prevPlatforms) =>
-      prevPlatforms.map((p) =>
-        p.id === platform.id
-          ? { ...p, accounts: [...p.accounts, newAccount] }
-          : p
-      )
-    );
-  }, []);
+  useEffect(() => {
+    console.log("Query state:", { isLoading, error, connections });
+  }, [isLoading, error, connections]);
 
   useEffect(() => {
     const connected = searchParams.get("connected");
-    const error = searchParams.get("error");
+    const errorParam = searchParams.get("error");
 
     if (connected) {
       toast.success("Account connected successfully!");
-
-      // --- THIS IS THE FIX ---
-      // 1. Check sessionStorage to see which platform was connected.
-      const platformId = window.sessionStorage.getItem("connecting_platform");
-      if (platformId) {
-        // 2. Find that platform in our state and update the UI.
-        const platformToUpdate = platforms.find((p) => p.id === platformId);
-        if (platformToUpdate) {
-          handleConnect(platformToUpdate);
-        }
-        // 3. Clean up the sessionStorage.
-        window.sessionStorage.removeItem("connecting_platform");
-      }
-
+      queryClient.invalidateQueries({ queryKey: ["connections"] });
       router.replace("/settings/integrations", { scroll: false });
     }
 
-    if (error) {
+    if (errorParam) {
       toast.error("Connection failed. Please try again.");
-      window.sessionStorage.removeItem("connecting_platform"); // Also clean up on error
       router.replace("/settings/integrations", { scroll: false });
     }
-  }, [searchParams, router, handleConnect, platforms]);
+  }, [searchParams, router, queryClient]);
 
-  const openConnectModal = (platform: Platform) => {
+  const openConnectModal = (platform: PlatformDefinition) => {
     setSelectedPlatform(platform);
     setIsModalOpen(true);
   };
 
-  const handleDisconnect = (platformId: string, accountId: string) => {
-    setPlatforms(
-      platforms.map((p) =>
-        p.id === platformId
-          ? { ...p, accounts: p.accounts.filter((a) => a.id !== accountId) }
-          : p
-      )
-    );
+  const handleDisconnect = async (platformId: string, accountId: string) => {
+    try {
+      await disconnectAccount(platformId, accountId);
+      toast.success("Account disconnected.");
+      queryClient.invalidateQueries({ queryKey: ["connections"] });
+    } catch (error) {
+      toast.error("Failed to disconnect account.");
+      console.error("Disconnect error:", error);
+    }
   };
 
   return (
@@ -131,74 +117,98 @@ export default function IntegrationsPage() {
           </p>
         </div>
 
-        <div className="space-y-6">
-          {platforms.map((platform) => {
-            const Icon = platform.icon;
-            return (
-              <div
-                key={platform.id}
-                className="border border-border bg-background p-5"
-              >
-                <div className="flex flex-col md:flex-row md:items-start md:justify-between">
-                  <div className="flex items-start gap-4">
-                    <div className="w-10 h-10 flex items-center justify-center border border-border bg-surface">
-                      <Icon className="w-5 h-5 text-foreground" />
-                    </div>
-                    <div>
-                      <h3 className="font-serif font-bold text-lg text-foreground">
-                        {platform.name}
-                      </h3>
-                      <p className="font-serif text-sm text-muted">
-                        {platform.description}
-                      </p>
-                    </div>
-                  </div>
-                  <div className="mt-4 md:mt-0 md:ml-4 flex-shrink-0">
-                    <Button onClick={() => openConnectModal(platform)}>
-                      <LinkIcon className="w-4 h-4" />
-                      Connect New Account
-                    </Button>
-                  </div>
-                </div>
+        {isLoading && (
+          <div className="flex items-center justify-center p-12">
+            <Loader2 className="w-8 h-8 animate-spin text-muted" />
+          </div>
+        )}
 
-                {platform.accounts.length > 0 && (
-                  <div className="mt-4 pt-4 border-t border-dashed border-border">
-                    <p className="eyebrow mb-3">Connected Accounts</p>
-                    <div className="space-y-3">
-                      {platform.accounts.map((account: Account) => (
-                        <div
-                          key={account.id}
-                          className="flex items-center justify-between p-3 bg-surface border border-border"
-                        >
-                          <div className="flex items-center gap-3">
-                            <img
-                              src={account.avatar}
-                              alt={account.username}
-                              className="w-8 h-8 rounded-full"
-                            />
-                            <span className="font-serif text-sm font-bold text-foreground">
-                              {account.username}
-                            </span>
-                          </div>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="text-muted hover:text-error"
-                            onClick={() =>
-                              handleDisconnect(platform.id, account.id)
-                            }
-                          >
-                            <X className="w-4 h-4" />
-                          </Button>
-                        </div>
-                      ))}
+        {error && (
+          <div className="border border-error bg-red-50 p-4 text-center">
+            <p className="font-serif text-sm text-error">
+              Failed to load connections: {error.message}
+            </p>
+          </div>
+        )}
+
+        {!isLoading && !error && (
+          <div className="space-y-6">
+            {platformDefinitions.map((platform) => {
+              const Icon = platform.icon;
+              const connectedAccounts = connections.filter(
+                (c) => c.platform === platform.id
+              );
+
+              return (
+                <div
+                  key={platform.id}
+                  className="border border-border bg-background p-5"
+                >
+                  <div className="flex flex-col md:flex-row md:items-start md:justify-between">
+                    <div className="flex items-start gap-4">
+                      <div className="w-10 h-10 flex items-center justify-center border border-border bg-surface">
+                        <Icon className="w-5 h-5 text-foreground" />
+                      </div>
+                      <div>
+                        <h3 className="font-serif font-bold text-lg text-foreground">
+                          {platform.name}
+                        </h3>
+                        <p className="font-serif text-sm text-muted">
+                          {platform.description}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="mt-4 md:mt-0 md:ml-4 flex-shrink-0">
+                      <Button onClick={() => openConnectModal(platform)}>
+                        <LinkIcon className="w-4 h-4" />
+                        Connect New Account
+                      </Button>
                     </div>
                   </div>
-                )}
-              </div>
-            );
-          })}
-        </div>
+
+                  {connectedAccounts.length > 0 && (
+                    <div className="mt-4 pt-4 border-t border-dashed border-border">
+                      <p className="eyebrow mb-3">Connected Accounts</p>
+                      <div className="space-y-3">
+                        {connectedAccounts.map((account) => (
+                          <div
+                            key={account.id}
+                            className="flex items-center justify-between p-3 bg-surface border border-border hover:border-border-hover transition-colors"
+                          >
+                            <div className="flex items-center gap-3">
+                              <img
+                                src={
+                                  account.profileImageUrl ||
+                                  "/placeholder-pfp.png"
+                                }
+                                alt={account.username}
+                                className="w-8 h-8 rounded-full bg-muted border border-border"
+                              />
+                              <span className="font-serif text-sm font-bold text-foreground">
+                                @{account.username}
+                              </span>
+                            </div>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="border-error/30 bg-error/5 text-error hover:bg-error hover:text-error-foreground hover:border-error transition-all"
+                              onClick={() =>
+                                handleDisconnect(platform.id, account.id)
+                              }
+                            >
+                              <X className="w-4 h-4 mr-1" />
+                              Disconnect
+                            </Button>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        )}
       </div>
 
       {selectedPlatform && (

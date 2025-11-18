@@ -1,4 +1,4 @@
-// app/api/connections/[platform]/connect/route.ts
+// app/api/integrations/[platform]/connect/route.ts
 
 import { createClient } from "@/lib/supabase/server";
 import { NextResponse } from "next/server";
@@ -12,7 +12,6 @@ export async function GET(
 ) {
   const supabase = await createClient();
 
-  // Get the current session
   const {
     data: { session },
   } = await supabase.auth.getSession();
@@ -31,18 +30,16 @@ export async function GET(
   }
 
   try {
-    // Call your backend with the auth token
     const response = await fetch(
-      `${BACKEND_URL}/connections/${platform}/connect`,
+      `${BACKEND_URL}/integrations/${platform}/connect`,
       {
         headers: {
           Authorization: `Bearer ${session.access_token}`,
         },
-        redirect: "manual", // Don't follow redirects automatically
+        redirect: "manual",
       }
     );
 
-    // The backend will return a redirect to X's OAuth page
     const redirectUrl = response.headers.get("location");
 
     if (!redirectUrl) {
@@ -52,7 +49,6 @@ export async function GET(
       );
     }
 
-    // Redirect the user to X's OAuth page
     return NextResponse.redirect(redirectUrl);
   } catch (error) {
     console.error("Error initiating connection:", error);

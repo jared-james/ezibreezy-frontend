@@ -25,16 +25,13 @@ export default function ConnectAccountModal({
   }
 
   const handleConnectClick = () => {
-    // 1. Store which platform we're connecting
     try {
       window.sessionStorage.setItem("connecting_platform", platformId);
     } catch (e) {
       console.error("Could not save to sessionStorage", e);
     }
 
-    // 2. Redirect through our Next.js API route (not directly to backend)
-    // This route will handle authentication and forward to the backend
-    window.location.href = `/api/connections/${platformId}/connect`;
+    window.location.href = `/api/integrations/${platformId}/connect`;
   };
 
   return (
