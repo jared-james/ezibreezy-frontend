@@ -5,9 +5,11 @@
 import { useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { Send, Paperclip, Loader2 } from "lucide-react";
-import { type Clipping, generateClippings } from "@/lib/api/ideas";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
+import { Clipping } from "@/lib/types/editorial";
+import { generateClippings } from "@/lib/api/ideas";
 
 interface AIBriefingProps {
   onNewBriefingGenerated: (clippings: Clipping[]) => void;
@@ -23,9 +25,13 @@ export default function AIBriefing({
     onSuccess: (data) => {
       onNewBriefingGenerated(data);
     },
-    onError: (error) => {
+    onError: (error: any) => {
       console.error("Error generating ideas:", error);
-      alert("Failed to generate ideas. Please check the console.");
+      toast.error(
+        `Failed to generate ideas: ${
+          error?.response?.data?.message || "Please try again later."
+        }`
+      );
     },
   });
 

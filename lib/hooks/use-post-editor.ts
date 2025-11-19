@@ -1,6 +1,6 @@
 // lib/hooks/use-post-editor.ts
 
-import { useState, useMemo, useCallback } from "react";
+import { useState, useMemo, useCallback, useEffect, useRef } from "react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { uploadMedia } from "@/lib/api/media";
@@ -70,6 +70,27 @@ export function usePostEditor(initialDraft?: Partial<EditorState>) {
     ...initialDraft,
   });
 
+  const initialStateRef = useRef(state);
+
+  const isDirty = useMemo(() => {
+    return JSON.stringify(state) !== JSON.stringify(initialStateRef.current);
+  }, [state]);
+
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (isDirty) {
+        e.preventDefault();
+        e.returnValue = "";
+      }
+    };
+
+    window.addEventListener("beforeunload", handleBeforeUnload);
+
+    return () => {
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+    };
+  }, [isDirty]);
+
   const { data: connections = [] } = useQuery({
     queryKey: ["connections"],
     queryFn: getConnections,
@@ -77,7 +98,14 @@ export function usePostEditor(initialDraft?: Partial<EditorState>) {
 
   const postMutation = useMutation({
     mutationFn: (payload: CreatePostPayload) => createPost(payload),
-    onError: () => {},
+    onError: (error: any) => {
+      console.error("Failed to create post:", error);
+      toast.error(
+        `Failed to publish post: ${
+          error?.response?.data?.message || "An unknown error occurred."
+        }`
+      );
+    },
   });
 
   const uploadMediaMutation = useMutation({
@@ -182,7 +210,7 @@ export function usePostEditor(initialDraft?: Partial<EditorState>) {
         mediaPreviews: threadMedia
           .map((m) => m.preview)
           .filter(Boolean) as string[],
-        mediaFiles: threadMedia.map((m) => m.file), // Pass real files back to UI
+        mediaFiles: threadMedia.map((m) => m.file),
         isUploading: threadMedia.some((m) => m.isUploading),
       };
     });

@@ -1,12 +1,6 @@
 // lib/api/ideas.ts
-import apiClient from "./index"; // Import the configured client
-
-// Define the types/interfaces related to this feature
-export interface Clipping {
-  title: string;
-  body: string;
-  hashtags?: string[]; // Made optional to match backend
-}
+import apiClient from "./index";
+import type { Clipping } from "@/lib/types/editorial";
 
 interface BriefingResponse {
   prompt: string;
