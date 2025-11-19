@@ -13,6 +13,7 @@ import {
   X,
   Loader2,
   Instagram,
+  AlertTriangle,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import ConnectAccountModal from "@/components/connect-account-modal";
@@ -22,6 +23,7 @@ import {
   type Connection,
   disconnectAccount,
 } from "@/lib/api/integrations";
+import { cn } from "@/lib/utils";
 
 type PlatformDefinition = {
   id: "x" | "linkedin" | "youtube" | "instagram";
@@ -150,9 +152,10 @@ export default function IntegrationsPage() {
               return (
                 <div
                   key={platform.id}
-                  className="border border-border bg-surface p-5"
+                  className="border border-border bg-surface"
                 >
-                  <div className="flex flex-col md:flex-row md:items-start md:justify-between">
+                  {/* Platform Header */}
+                  <div className="p-5 flex flex-col md:flex-row md:items-start md:justify-between">
                     <div className="flex items-start gap-4">
                       <div className="flex h-10 w-10 items-center justify-center border border-border bg-background">
                         <Icon className="h-5 w-5 text-foreground" />
@@ -174,40 +177,73 @@ export default function IntegrationsPage() {
                     </div>
                   </div>
 
+                  {/* Connected Accounts List - Applying ListView Aesthetic */}
                   {connectedAccounts.length > 0 && (
-                    <div className="mt-4 border-t border-dashed border-border pt-4">
-                      <p className="eyebrow mb-3">Connected Accounts</p>
-                      <div className="space-y-3">
-                        {connectedAccounts.map((account) => (
-                          <div
-                            key={account.id}
-                            className="flex items-center justify-between border border-border bg-surface hover:border-border-hover p-3 transition-colors"
-                          >
-                            <div className="flex items-center gap-3">
-                              <img
-                                src={
-                                  account.avatarUrl || "/placeholder-pfp.png"
-                                }
-                                alt={account.platformUsername}
-                                className="h-8 w-8 rounded-full border border-border bg-muted"
-                              />
-                              <span className="font-serif text-sm font-bold text-foreground">
-                                @{account.platformUsername}
-                              </span>
-                            </div>
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              className="border-error/30 bg-error/5 text-error transition-all hover:border-error hover:bg-error hover:text-error-foreground"
-                              onClick={() =>
-                                handleDisconnect(platform.id, account.id)
-                              }
+                    <div className="border-t border-border">
+                      <div className="divide-y divide-border">
+                        {connectedAccounts.map((account) => {
+                          const requiresReauth = (account as any)
+                            .requiresReauth;
+                          const authErrorMessage = (account as any)
+                            .authErrorMessage;
+
+                          return (
+                            <div
+                              key={account.id}
+                              className={cn(
+                                "flex flex-col sm:flex-row items-center justify-between gap-4 p-4 transition-colors hover:bg-muted/20",
+                                requiresReauth && "bg-error/5 hover:bg-error/10"
+                              )}
                             >
-                              <X className="mr-1 h-4 w-4" />
-                              Disconnect
-                            </Button>
-                          </div>
-                        ))}
+                              <div className="flex items-start gap-3 flex-1 min-w-0">
+                                <img
+                                  src={
+                                    account.avatarUrl || "/placeholder-pfp.png"
+                                  }
+                                  alt={account.platformUsername}
+                                  className="h-8 w-8 rounded-full border border-border bg-muted shrink-0 mt-0.5"
+                                />
+                                <div className="min-w-0 flex-1">
+                                  <span className="font-serif text-sm font-bold text-foreground truncate block">
+                                    {account.name ||
+                                      `@${account.platformUsername}`}
+                                  </span>
+                                  <span className="font-serif text-xs text-muted-foreground block truncate">
+                                    @{account.platformUsername}
+                                  </span>
+
+                                  {requiresReauth && (
+                                    <div className="flex items-center gap-2 mt-2 p-2 bg-error-hover/20 border border-error/50 rounded-sm">
+                                      <AlertTriangle className="w-4 h-4 text-error shrink-0" />
+                                      <p className="font-serif text-xs text-error">
+                                        Re-authentication required. Token
+                                        expired or invalid.
+                                        {authErrorMessage && (
+                                          <span className="font-medium ml-1 italic">
+                                            ({authErrorMessage})
+                                          </span>
+                                        )}
+                                      </p>
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+                              <div className="shrink-0">
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  className="border-error/30 bg-error/5 text-error transition-all hover:border-error hover:bg-error hover:text-error-foreground"
+                                  onClick={() =>
+                                    handleDisconnect(platform.id, account.id)
+                                  }
+                                >
+                                  <X className="mr-1 h-4 w-4" />
+                                  Disconnect
+                                </Button>
+                              </div>
+                            </div>
+                          );
+                        })}
                       </div>
                     </div>
                   )}
