@@ -1,3 +1,5 @@
+// app/(app)/editorial/components/media-upload.tsx
+
 "use client";
 
 import { useCallback, useState } from "react";
@@ -5,20 +7,20 @@ import {
   Upload,
   X,
   Loader2,
-  Image as ImageIcon,
-  Film,
   Plus,
+  AlertCircle,
+  GripHorizontal,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
 
 interface MediaUploadProps {
-  // Now accepts arrays
   mediaFiles: File[];
   mediaPreviews: string[];
-  // We can track uploading generically or per item,
-  // but for UI simplicity we'll use the global loading state passed down
   isUploading: boolean;
   onMediaChange: (files: File[], previews: string[]) => void;
+  onRemoveMedia: (fileToRemove: File) => void;
+  activePlatforms?: Set<string>;
 }
 
 export default function MediaUpload({
@@ -26,158 +28,212 @@ export default function MediaUpload({
   mediaPreviews,
   isUploading,
   onMediaChange,
+  onRemoveMedia,
+  activePlatforms,
 }: MediaUploadProps) {
-  const [isDragging, setIsDragging] = useState(false);
+  const [isDraggingFiles, setIsDraggingFiles] = useState(false);
+  const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
+
+  const isXActive = activePlatforms?.has("x");
+  const MAX_FILES = 10;
+  const MAX_X_FILES = 4;
+
+  // --- File Upload Logic ---
 
   const handleFiles = useCallback(
     (newFiles: File[]) => {
-      // Filter for valid types
       const validFiles = newFiles.filter(
         (f) => f.type.startsWith("image/") || f.type.startsWith("video/")
       );
 
       if (validFiles.length === 0) return;
 
-      // Combine current + new, cap at 4
-      const totalFiles = [...mediaFiles, ...validFiles].slice(0, 4);
-
-      // Generate previews for ONLY the new files and append to existing previews
+      const totalFiles = [...mediaFiles, ...validFiles].slice(0, MAX_FILES);
       const newPreviews = validFiles.map((f) => URL.createObjectURL(f));
-      const totalPreviews = [...mediaPreviews, ...newPreviews].slice(0, 4);
+
+      // Filter out original previews corresponding to removed files before concatenating
+      const existingPreviews = mediaFiles.map((_, i) => mediaPreviews[i]);
+
+      const totalPreviews = [...existingPreviews, ...newPreviews].slice(
+        0,
+        MAX_FILES
+      );
 
       onMediaChange(totalFiles, totalPreviews);
     },
     [mediaFiles, mediaPreviews, onMediaChange]
   );
 
-  const handleDragOver = useCallback((e: React.DragEvent) => {
+  const handleFileDragOver = useCallback((e: React.DragEvent) => {
     e.preventDefault();
-    setIsDragging(true);
+    setIsDraggingFiles(true);
   }, []);
 
-  const handleDragLeave = useCallback((e: React.DragEvent) => {
+  const handleFileDragLeave = useCallback((e: React.DragEvent) => {
     e.preventDefault();
-    setIsDragging(false);
+    setIsDraggingFiles(false);
   }, []);
 
-  const handleDrop = useCallback(
+  const handleFileDrop = useCallback(
     (e: React.DragEvent) => {
       e.preventDefault();
-      setIsDragging(false);
+      setIsDraggingFiles(false);
+
+      // If we are internally sorting, ignore this drop logic
+      if (draggedIndex !== null) return;
+
       const droppedFiles = Array.from(e.dataTransfer.files);
-      handleFiles(droppedFiles);
+      if (droppedFiles.length > 0) {
+        handleFiles(droppedFiles);
+      }
     },
-    [handleFiles]
+    [handleFiles, draggedIndex]
   );
 
   const handleFileSelect = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
       const selectedFiles = e.target.files ? Array.from(e.target.files) : [];
       handleFiles(selectedFiles);
-      // Reset input so same file can be selected again if needed
       e.target.value = "";
     },
     [handleFiles]
   );
 
+  // --- Reordering / Sorting Logic ---
+
+  const handleSortDragStart = (e: React.DragEvent, index: number) => {
+    e.stopPropagation();
+    setDraggedIndex(index);
+    e.dataTransfer.effectAllowed = "move";
+    e.dataTransfer.setData("text/plain", index.toString());
+  };
+
+  const handleSortDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    e.dataTransfer.dropEffect = "move";
+  };
+
+  const handleSortDrop = (e: React.DragEvent, dropIndex: number) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    if (draggedIndex === null || draggedIndex === dropIndex) {
+      setDraggedIndex(null);
+      return;
+    }
+
+    const newFiles = [...mediaFiles];
+    const newPreviews = [...mediaPreviews];
+
+    // Remove from old index
+    const [movedFile] = newFiles.splice(draggedIndex, 1);
+    const [movedPreview] = newPreviews.splice(draggedIndex, 1);
+
+    // Insert at new index
+    newFiles.splice(dropIndex, 0, movedFile);
+    newPreviews.splice(dropIndex, 0, movedPreview);
+
+    onMediaChange(newFiles, newPreviews);
+    setDraggedIndex(null);
+  };
+
   const handleRemove = useCallback(
     (indexToRemove: number) => {
-      const newFiles = mediaFiles.filter((_, i) => i !== indexToRemove);
-      const newPreviews = mediaPreviews.filter((_, i) => i !== indexToRemove);
-      onMediaChange(newFiles, newPreviews);
+      // Find the file object to remove and call the external handler
+      const fileToRemove = mediaFiles[indexToRemove];
+      if (fileToRemove) {
+        onRemoveMedia(fileToRemove);
+      }
     },
-    [mediaFiles, mediaPreviews, onMediaChange]
+    [mediaFiles, onRemoveMedia]
   );
 
   const hasMedia = mediaPreviews.length > 0;
-  const isFull = mediaPreviews.length >= 4;
+  const isFull = mediaPreviews.length >= MAX_FILES;
 
-  // Render the preview grid
   if (hasMedia) {
     return (
       <div className="space-y-3">
-        {/* Grid Container */}
-        <div
-          className={cn(
-            "grid gap-2 overflow-hidden rounded-lg border border-[--border] bg-[--surface]",
-            mediaPreviews.length === 1 ? "grid-cols-1" : "grid-cols-2"
-          )}
-        >
+        <div className="grid grid-cols-5 gap-2">
           {mediaPreviews.map((preview, index) => {
             const isVideo = mediaFiles[index]?.type.startsWith("video/");
+            const isExcludedFromX = isXActive && index >= MAX_X_FILES;
+            const isBeingDragged = draggedIndex === index;
 
             return (
               <div
                 key={preview}
+                draggable={!isUploading}
+                onDragStart={(e) => handleSortDragStart(e, index)}
+                onDragOver={handleSortDragOver}
+                onDrop={(e) => handleSortDrop(e, index)}
                 className={cn(
-                  "relative group aspect-square bg-black/5",
-                  // If 3 items, make the first one span 2 rows (big left image)
-                  mediaPreviews.length === 3 && index === 0
-                    ? "row-span-2 h-full"
-                    : ""
+                  "relative group aspect-square bg-black/5 rounded-md overflow-hidden border border-[--border] cursor-move transition-all duration-200",
+                  isExcludedFromX ? "opacity-60 grayscale" : "",
+                  isBeingDragged
+                    ? "opacity-0"
+                    : "opacity-100 hover:ring-2 hover:ring-[--foreground]"
                 )}
               >
                 {isVideo ? (
                   <video
                     src={preview}
-                    className="w-full h-full object-cover"
-                    controls={false} // Hide controls in thumbnail
+                    className="w-full h-full object-cover pointer-events-none"
+                    // Add this line to prevent media from playing in the preview box
+                    onCanPlay={(e) => e.currentTarget.pause()}
                   />
                 ) : (
                   <img
                     src={preview}
                     alt={`Preview ${index}`}
-                    className="w-full h-full object-cover"
+                    className="w-full h-full object-cover pointer-events-none"
                   />
                 )}
 
-                {/* Upload Overlay */}
+                {/* Drag Handle Indicator (Visual cue) */}
+                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none bg-black/40 text-white p-1 rounded">
+                  <GripHorizontal className="w-5 h-5" />
+                </div>
+
                 {isUploading && (
-                  <div className="absolute inset-0 bg-black/50 flex items-center justify-center z-10">
-                    <Loader2 className="w-6 h-6 text-white animate-spin" />
+                  <div className="absolute inset-0 bg-black/50 flex items-center justify-center z-10 cursor-wait">
+                    <Loader2 className="w-4 h-4 text-white animate-spin" />
+                  </div>
+                )}
+
+                {isExcludedFromX && (
+                  <div className="absolute inset-0 bg-black/20 flex items-end justify-center p-1 pointer-events-none">
+                    <div className="bg-red-500/90 text-white text-[9px] px-1.5 py-0.5 rounded-full flex items-center gap-1 w-full justify-center">
+                      <AlertCircle className="w-2.5 h-2.5" />
+                      <span className="font-bold">No X</span>
+                    </div>
                   </div>
                 )}
 
                 {/* Remove Button */}
                 <button
                   type="button"
-                  onClick={() => handleRemove(index)}
+                  onClick={(e) => {
+                    e.stopPropagation(); // Prevent drag start
+                    handleRemove(index);
+                  }}
                   disabled={isUploading}
-                  className="absolute top-1.5 right-1.5 p-1 bg-black/60 hover:bg-black text-white rounded-full transition-colors z-20"
+                  className="absolute top-1 right-1 p-0.5 bg-black/60 hover:bg-red-600 text-white rounded-full transition-colors z-20 opacity-0 group-hover:opacity-100 cursor-pointer"
                 >
-                  <X className="w-3.5 h-3.5" />
+                  <X className="w-3 h-3" />
                 </button>
 
-                {/* Type Indicator */}
-                <div className="absolute bottom-1.5 left-1.5 px-1.5 py-0.5 bg-black/60 rounded text-[10px] font-medium text-white flex items-center gap-1 pointer-events-none">
-                  {isVideo ? (
-                    <Film className="w-3 h-3" />
-                  ) : (
-                    <ImageIcon className="w-3 h-3" />
-                  )}
+                {/* Index Indicator */}
+                <div className="absolute top-1 left-1 px-1.5 py-0.5 bg-black/60 rounded text-[9px] font-medium text-white flex items-center gap-1 pointer-events-none">
                   {index + 1}
                 </div>
               </div>
             );
           })}
 
-          {/* Add Button (Visual placeholder if not full, though usually we use the dropzone below) */}
-        </div>
-
-        {/* Add More / Drop Zone (Only if not full) */}
-        {!isFull && (
-          <div
-            onDragOver={handleDragOver}
-            onDragLeave={handleDragLeave}
-            onDrop={handleDrop}
-            className={cn(
-              "border-2 border-dashed rounded-lg transition-colors h-24 flex items-center justify-center",
-              isDragging
-                ? "border-[--foreground] bg-[--surface-hover]"
-                : "border-[--border] hover:border-[--foreground]/50"
-            )}
-          >
-            <label className="cursor-pointer w-full h-full flex items-center justify-center gap-2">
+          {!isFull && (
+            <label className="relative aspect-square border-2 border-dashed border-[--border] hover:border-[--foreground] hover:bg-[--surface-hover] rounded-md cursor-pointer flex flex-col items-center justify-center gap-1 text-[--muted-foreground] hover:text-[--foreground] transition-colors">
               <input
                 type="file"
                 accept="image/*,video/*"
@@ -185,33 +241,35 @@ export default function MediaUpload({
                 onChange={handleFileSelect}
                 className="hidden"
               />
-              <div className="flex items-center gap-2 text-[--muted-foreground]">
-                <Plus className="w-5 h-5" />
-                <span className="font-serif text-sm">
-                  Add media ({4 - mediaFiles.length} remaining)
-                </span>
-              </div>
+              <Plus className="w-5 h-5" />
+              <span className="text-[9px] uppercase font-bold">Add</span>
             </label>
-          </div>
+          )}
+        </div>
+
+        {isXActive && mediaPreviews.length > MAX_X_FILES && (
+          <p className="text-xs text-[--muted-foreground] flex items-center gap-1.5">
+            <AlertCircle className="w-3.5 h-3.5" />
+            Drag media to the first {MAX_X_FILES} spots to publish them on X.
+          </p>
         )}
       </div>
     );
   }
 
-  // Empty State
   return (
     <div
-      onDragOver={handleDragOver}
-      onDragLeave={handleDragLeave}
-      onDrop={handleDrop}
+      onDragOver={handleFileDragOver}
+      onDragLeave={handleFileDragLeave}
+      onDrop={handleFileDrop}
       className={cn(
-        "border-2 border-dashed rounded transition-colors",
-        isDragging
-          ? "border-[--foreground] bg-[--surface]"
+        "border-2 border-dashed rounded-lg transition-colors p-6",
+        isDraggingFiles
+          ? "border-[--foreground] bg-[--surface-hover]"
           : "border-[--border] hover:border-[--foreground]/50"
       )}
     >
-      <label className="block cursor-pointer p-8">
+      <label className="block cursor-pointer">
         <input
           type="file"
           accept="image/*,video/*"
@@ -222,9 +280,11 @@ export default function MediaUpload({
         <div className="text-center">
           <Upload className="w-8 h-8 mx-auto mb-3 text-[--muted]" />
           <p className="font-serif text-sm text-[--foreground] mb-1">
-            Drag and drop or click to upload
+            Drag & drop or click to upload
           </p>
-          <p className="text-xs text-[--muted]">Up to 4 images or videos</p>
+          <p className="text-xs text-[--muted]">
+            Up to {MAX_FILES} items (Main Post)
+          </p>
         </div>
       </label>
     </div>

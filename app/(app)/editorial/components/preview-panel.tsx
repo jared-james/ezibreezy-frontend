@@ -1,21 +1,25 @@
+// app/(app)/editorial/components/preview-panel.tsx
+
 "use client";
 
 import { useState, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Twitter, Instagram, LayoutGrid } from "lucide-react"; // Removed unused X
+import { Twitter, Instagram, LayoutGrid } from "lucide-react";
 import { getConnections } from "@/lib/api/integrations";
 import XPreview from "./x-preview";
 import InstagramPreview from "./instagram-preview";
 import { cn } from "@/lib/utils";
+import type { ThreadMessage } from "@/lib/types/editorial";
+import type { ThreadMessageAugmented } from "@/app/(app)/ideas/components/edit-modal/distribution-panel"; // Import Augmented type
 
 interface PreviewPanelProps {
   postType: "text" | "image" | "video";
   selectedAccounts: Record<string, string[]>;
   mainCaption: string;
   platformCaptions: Record<string, string>;
-  // Updated to support array
-  mediaPreview: string[] | string | null;
-  firstComment: string;
+  // Main post mediaPreviews (not mediaIds)
+  mediaPreview: string[];
+  threadMessages: ThreadMessageAugmented[]; // Updated prop to Augmented type
   collaborators: string;
   location: string;
 }
@@ -36,7 +40,7 @@ export default function PreviewPanel({
   mainCaption,
   platformCaptions,
   mediaPreview,
-  firstComment,
+  threadMessages,
   collaborators,
   location,
 }: PreviewPanelProps) {
@@ -119,7 +123,7 @@ export default function PreviewPanel({
           <XPreview
             caption={currentCaption}
             mediaPreview={mediaPreview}
-            firstComment={firstComment}
+            threadMessages={threadMessages}
             platformUsername={activeAccount.platformUsername}
             displayName={activeAccount.name}
             avatarUrl={activeAccount.avatarUrl}
@@ -127,8 +131,7 @@ export default function PreviewPanel({
           />
         );
       case "instagram":
-        // Instagram preview needs an update to handle arrays if you want carousel support there too.
-        // For now, passing the first image if it's an array, or null.
+        // Instagram preview only shows the first image and ignores thread messages
         const singleMedia = Array.isArray(mediaPreview)
           ? mediaPreview[0]
           : mediaPreview;

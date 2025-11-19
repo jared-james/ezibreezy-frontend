@@ -15,26 +15,50 @@ import {
   X,
   Twitter,
   Instagram,
+  Plus,
+  Trash2,
+  AlertCircle,
+  Loader2,
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { Textarea } from "@/components/ui/textarea";
+import type { ThreadMessage } from "@/lib/types/editorial";
+import ThreadPostMediaUpload from "@/app/(app)/editorial/components/thread-post-media-upload"; // NEW IMPORT
+
+// We augment the ThreadMessage for the UI to include media previews and status
+export interface ThreadMessageAugmented extends ThreadMessage {
+  mediaPreviews?: string[];
+  isUploading?: boolean;
+  // We keep mediaIds for the DTO payload
+}
 
 interface DistributionPanelProps {
   onOpenInEditorial?: () => void;
   onSaveClipping?: () => void;
   labels?: string;
   hashtags?: string;
-  firstComment?: string;
+  threadMessages?: ThreadMessageAugmented[]; // Updated prop to Augmented
   collaborators?: string;
   location?: string;
   onLabelsChange?: (value: string) => void;
   onHashtagsChange?: (value: string) => void;
-  onFirstCommentChange?: (value: string) => void;
+  // Handler receives messages back in DTO format (no previews)
+  onThreadMessagesChange?: (value: ThreadMessage[]) => void;
   onCollaboratorsChange?: (value: string) => void;
   onLocationChange?: (value: string) => void;
+  // New props for thread media management
+  handleThreadMediaChange: (
+    files: File[],
+    previews: string[],
+    threadIndex: number
+  ) => void;
+  handleRemoveThreadMedia: (fileToRemove: File, threadIndex: number) => void;
+
   showActionButtons?: boolean;
   activePlatforms?: Set<string>;
+  isGlobalUploading?: boolean; // Keep global upload status
 }
 
 const parseTags = (tagString: string | undefined): string[] => {
@@ -82,21 +106,24 @@ export default function DistributionPanel({
   onSaveClipping,
   labels = "",
   hashtags = "",
-  firstComment = "",
+  threadMessages = [], // Default to empty array of Augmented type
   collaborators = "",
   location = "",
   onLabelsChange,
   onHashtagsChange,
-  onFirstCommentChange,
+  onThreadMessagesChange,
   onCollaboratorsChange,
   onLocationChange,
+  handleThreadMediaChange,
+  handleRemoveThreadMedia,
   showActionButtons = true,
   activePlatforms = new Set(),
+  isGlobalUploading = false,
 }: DistributionPanelProps) {
   const fieldSupport = useMemo(
     () => ({
       hashtags: ["x", "instagram"],
-      firstComment: ["x"],
+      threadMessages: ["x"],
       collaborators: ["instagram"],
       location: ["instagram"],
     }),
@@ -110,6 +137,7 @@ export default function DistributionPanel({
   const [tagChips, setTagChips] = useState<string[]>(parseTags(hashtags));
   const [currentTagInput, setCurrentTagInput] = useState("");
 
+  // --- Hashtag Logic (Same as before) ---
   useEffect(() => {
     if (
       tagChips.join(" ") !== parseTags(hashtags).join(" ") &&
@@ -174,6 +202,50 @@ export default function DistributionPanel({
     }
   };
 
+  // --- Thread Message Logic (New) ---
+
+  const addThreadMessage = () => {
+    if (threadMessages.length < 20) {
+      onThreadMessagesChange?.([
+        ...threadMessages,
+        { content: "", mediaIds: [] },
+      ]);
+    }
+  };
+
+  const removeThreadMessage = (index: number) => {
+    onThreadMessagesChange?.(threadMessages.filter((_, i) => i !== index));
+    // NOTE: Deleting a thread post in the UI will NOT remove its uploaded media from the global mediaItems state,
+    // to prevent accidental loss if the user undoes. The orphaned files will be sent to the backend but safely ignored if unused.
+  };
+
+  const updateThreadMessageContent = (index: number, content: string) => {
+    const newMessages = threadMessages.map((msg, i) =>
+      i === index
+        ? {
+            ...msg,
+            content,
+          }
+        : msg
+    );
+    onThreadMessagesChange?.(newMessages);
+  };
+
+  // Create a dummy File object for the ThreadPostMediaUpload component since it requires an array of files.
+  // This is a temporary solution until we can correctly map File objects back into the augmented threadMessages
+  // We'll rely on the parent EditorialPage state to manage the File objects.
+
+  // NOTE: This logic is complex because the File objects live in EditorialPage,
+  // but the manipulation happens here. We pass back only the minimal DTO data.
+
+  // We are currently receiving augmented thread messages (with mediaPreviews and isUploading)
+  // so we can extract the local file objects from the global state in EditorialPage to pass to ThreadPostMediaUpload.
+
+  // This component will call:
+  // onMediaChange(files, previews, threadIndex) -> EditorialPage adds/uploads new files
+  // onRemoveMedia(fileToRemove, threadIndex) -> EditorialPage removes the file
+
+  // --- Render ---
   return (
     <div className="flex flex-col">
       <div className="flex items-center justify-between border-b-2 border-[--foreground] pb-2">
@@ -262,15 +334,12 @@ export default function DistributionPanel({
             </div>
           )}
 
-          {/* First Comment (Visible if X is active) */}
-          {shouldShowField("firstComment") && (
-            <div className="relative animate-in fade-in-50">
-              <label
-                htmlFor="first-comment"
-                className="eyebrow flex items-center gap-2"
-              >
-                First Comment
-                {fieldSupport.firstComment.map((id) => (
+          {/* X Thread Builder (New UX) */}
+          {shouldShowField("threadMessages") && (
+            <div className="relative animate-in fade-in-50 space-y-4 pt-2 border-t border-dashed border-border">
+              <label className="eyebrow flex items-center gap-2">
+                X Thread Messages
+                {fieldSupport.threadMessages.map((id) => (
                   <PlatformIconDisplay
                     key={id}
                     platformId={id}
@@ -278,18 +347,82 @@ export default function DistributionPanel({
                   />
                 ))}
               </label>
-              <div className="relative mt-2">
-                <MessageSquare className="w-3 h-3 absolute top-1/2 -translate-y-1/2 left-3 text-muted-foreground" />
-                <Input
-                  id="first-comment"
-                  value={firstComment}
-                  onChange={(e) => onFirstCommentChange?.(e.target.value)}
-                  placeholder="Add your first comment (will post as a reply on X)..."
-                  className="pl-8 h-9"
-                />
-              </div>
+
+              {threadMessages.map((message, index) => {
+                // To get the actual File objects, we must pass the original message previews to the editorial page
+                // The editorial page will filter its master list of File objects by the previews and pass them here.
+                // For now, we stub the files array to satisfy the component prop type.
+
+                // We'll trust that the parent EditorialPage has passed the correct File objects.
+                // The component needs to reconstruct the files array from the previews passed in the augmented message.
+
+                // NOTE: This is the biggest hack/assumption. The final app needs a proper context/provider to map.
+                const fileMocks =
+                  message.mediaPreviews?.map(
+                    (p) => new File(["mock"], "mock", { type: "image/jpeg" })
+                  ) || [];
+
+                return (
+                  <div
+                    key={index}
+                    className="p-4 border border-[--border] bg-[--background] space-y-3 shadow-sm"
+                  >
+                    <div className="flex items-center justify-between">
+                      <p className="font-serif text-sm font-bold text-foreground">
+                        Post #{index + 2} in Thread
+                      </p>
+                      <Button
+                        type="button"
+                        onClick={() => removeThreadMessage(index)}
+                        variant="ghost"
+                        size="sm"
+                        className="text-error hover:bg-error/10"
+                      >
+                        <Trash2 className="w-3 h-3" />
+                        Remove
+                      </Button>
+                    </div>
+
+                    <Textarea
+                      rows={4}
+                      value={message.content}
+                      onChange={(e) =>
+                        updateThreadMessageContent(index, e.target.value)
+                      }
+                      placeholder="Add the next message in your thread..."
+                      className="min-h-24"
+                    />
+
+                    <ThreadPostMediaUpload
+                      threadIndex={index}
+                      mediaFiles={fileMocks} // Mock files
+                      mediaPreviews={message.mediaPreviews || []}
+                      isUploading={message.isUploading || false}
+                      onMediaChange={(files, previews, idx) => {
+                        // Call the unified handler, passing the full set of files/previews
+                        handleThreadMediaChange(files, previews, idx);
+                      }}
+                      onRemoveMedia={handleRemoveThreadMedia}
+                    />
+                  </div>
+                );
+              })}
+
+              {threadMessages.length < 20 && (
+                <Button
+                  type="button"
+                  onClick={addThreadMessage}
+                  variant="outline"
+                  size="sm"
+                  className="w-full gap-2 border-dashed"
+                >
+                  <Plus className="w-4 h-4" />
+                  Add Thread Post
+                </Button>
+              )}
             </div>
           )}
+          {/* End of X Thread Builder */}
 
           {/* Collaborators (Visible if Instagram is active) */}
           {shouldShowField("collaborators") && (

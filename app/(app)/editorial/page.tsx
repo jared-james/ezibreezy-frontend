@@ -1,6 +1,8 @@
+// app/(app)/editorial/page.tsx
+
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import {
   FileText,
@@ -19,13 +21,14 @@ import ChannelSelector, {
 import CaptionEditor from "../ideas/components/edit-modal/caption-editor";
 import DistributionPanel from "../ideas/components/edit-modal/distribution-panel";
 import PreviewPanel from "../editorial/components/preview-panel";
-import MediaUpload from "../editorial/components/media-upload";
+import MediaUpload from "./components/media-upload"; // Keeping original name for simplicity, but function changed
 import { getConnections, Connection } from "@/lib/api/integrations";
 import { createPost, CreatePostPayload } from "@/lib/api/publishing";
 import { uploadMedia } from "@/lib/api/media";
 import { toast } from "sonner";
 import { createClient } from "@/lib/supabase/client";
 import ConfirmationModal from "./components/confirmation-modal";
+import type { ThreadMessage } from "@/lib/types/editorial";
 
 const platformDefinitions = {
   x: { name: "Twitter/X", icon: Twitter },
@@ -42,7 +45,13 @@ interface MediaItem {
   preview: string;
   id: string | null;
   isUploading: boolean;
+  // New field: null for main post, index (0, 1, 2...) for thread posts
+  threadIndex: number | null;
 }
+
+// Helper to remove media items by file reference
+const filterMediaItems = (mediaItems: MediaItem[], fileToRemove: File) =>
+  mediaItems.filter((item) => item.file !== fileToRemove);
 
 const initialState = {
   isScheduling: false,
@@ -51,10 +60,10 @@ const initialState = {
   selectedAccounts: {} as SelectedAccounts,
   mainCaption: "",
   platformCaptions: {} as Record<string, string>,
-  mediaItems: [] as MediaItem[],
+  mediaItems: [] as MediaItem[], // Combined pool of all media
   labels: "",
   hashtags: "",
-  firstComment: "",
+  threadMessages: [] as ThreadMessage[],
   collaborators: "",
   location: "",
 };
@@ -71,17 +80,22 @@ export default function EditorialPage() {
     mediaItems,
     labels,
     hashtags,
-    firstComment,
+    threadMessages,
     collaborators,
     location,
   } = state;
 
+  const mainPostMedia = useMemo(
+    () => mediaItems.filter((m) => m.threadIndex === null),
+    [mediaItems]
+  );
+
   const postType: "text" | "image" | "video" = useMemo(() => {
-    if (mediaItems.length === 0) return "text";
-    if (mediaItems.some((m) => m.file.type.startsWith("video/")))
+    if (mainPostMedia.length === 0) return "text";
+    if (mainPostMedia.some((m) => m.file.type.startsWith("video/")))
       return "video";
     return "image";
-  }, [mediaItems]);
+  }, [mainPostMedia]);
 
   const updateState = (updates: Partial<typeof initialState>) => {
     setState((prevState) => ({ ...prevState, ...updates }));
@@ -97,6 +111,57 @@ export default function EditorialPage() {
   const { draft, clearDraft } = useEditorialStore();
   const [user, setUser] = useState<any>(null);
 
+  // --- MUTATIONS ---
+  const postMutation = useMutation({
+    mutationFn: (payload: CreatePostPayload) => createPost(payload),
+    onError: (error: any) => {
+      toast.error(`A post failed: ${error.message || "Unknown error"}`);
+    },
+  });
+
+  const uploadMediaMutation = useMutation({
+    mutationFn: (variables: {
+      file: File;
+      integrationId: string;
+      threadIndex: number | null;
+    }) => uploadMedia(variables.file, variables.integrationId),
+    onSuccess: (data, variables) => {
+      setState((prev) => ({
+        ...prev,
+        mediaItems: prev.mediaItems.map((item) =>
+          item.file === variables.file
+            ? { ...item, id: data.mediaId, isUploading: false }
+            : item
+        ),
+        // FIX: Ensure threadMessages update logic is contained here and uses 'prev'
+        threadMessages:
+          variables.threadIndex !== null
+            ? prev.threadMessages.map((msg, i) =>
+                i === variables.threadIndex
+                  ? {
+                      ...msg,
+                      mediaIds: [...(msg.mediaIds || []), data.mediaId],
+                    }
+                  : msg
+              )
+            : prev.threadMessages,
+      }));
+    },
+    onError: (error: any, variables) => {
+      toast.error(
+        `Upload failed for ${variables.file.name}: ${
+          error.message || "Unknown error"
+        }`
+      );
+      setState((prev) => ({
+        ...prev,
+        mediaItems: filterMediaItems(prev.mediaItems, variables.file),
+      }));
+    },
+  });
+  // --- END MUTATIONS ---
+
+  // ... (unchanged connections/user fetching logic)
   useEffect(() => {
     const supabase = createClient();
     const fetchUser = async () => {
@@ -138,22 +203,15 @@ export default function EditorialPage() {
     () => new Set(Object.keys(selectedAccounts)),
     [selectedAccounts]
   );
+  // ... (unchanged handleMainCaptionChange logic)
 
-  // --- NEW LOGIC STARTS HERE ---
   const handleMainCaptionChange = (newCaption: string) => {
     const oldMainCaption = state.mainCaption;
-
-    // Copy existing platform captions
     const updatedPlatformCaptions = { ...state.platformCaptions };
 
-    // Iterate over currently selected platforms
     Object.keys(state.selectedAccounts).forEach((platformId) => {
       const currentPlatformCaption = updatedPlatformCaptions[platformId];
 
-      // Logic:
-      // 1. If platform caption is empty/undefined -> Update it
-      // 2. If platform caption matches the OLD main caption (meaning they were synced) -> Update it
-      // 3. Otherwise (user customized it), leave it alone.
       if (
         !currentPlatformCaption ||
         currentPlatformCaption === oldMainCaption
@@ -167,9 +225,9 @@ export default function EditorialPage() {
       platformCaptions: updatedPlatformCaptions,
     });
   };
-  // --- NEW LOGIC ENDS HERE ---
 
   useEffect(() => {
+    // ... (unchanged draft recovery logic, assuming draft only contains single media)
     if (draft) {
       const recoveredMediaItems: MediaItem[] = [];
       if (draft.media?.file && draft.media?.preview) {
@@ -178,6 +236,7 @@ export default function EditorialPage() {
           preview: draft.media.preview,
           id: null,
           isUploading: false,
+          threadIndex: null, // Main post media
         });
       }
 
@@ -188,7 +247,7 @@ export default function EditorialPage() {
         mediaItems: recoveredMediaItems,
         labels: draft.distribution?.labels || "",
         hashtags: draft.distribution?.hashtags || "",
-        firstComment: draft.distribution?.firstComment || "",
+        threadMessages: draft.distribution?.threadMessages || [],
         collaborators: draft.distribution?.collaborators || "",
         location: draft.distribution?.location || "",
         isScheduling: draft.schedule?.isScheduled || false,
@@ -199,68 +258,132 @@ export default function EditorialPage() {
     }
   }, [draft, clearDraft]);
 
-  const uploadMediaMutation = useMutation({
-    mutationFn: (variables: { file: File; integrationId: string }) =>
-      uploadMedia(variables.file, variables.integrationId),
-    onSuccess: (data, variables) => {
-      setState((prev) => ({
-        ...prev,
-        mediaItems: prev.mediaItems.map((item) =>
-          item.file === variables.file
-            ? { ...item, id: data.mediaId, isUploading: false }
-            : item
-        ),
-      }));
-    },
-    onError: (error, variables) => {
-      toast.error(`Upload failed for ${variables.file.name}: ${error.message}`);
-      setState((prev) => ({
-        ...prev,
-        mediaItems: prev.mediaItems.filter(
-          (item) => item.file !== variables.file
-        ),
-      }));
-    },
-  });
+  // Unified media change handler
+  const handleMediaChange = useCallback(
+    (
+      files: File[],
+      previews: string[],
+      threadIndex: number | null = null,
+      fileToReplace?: File | null // Used for drag-and-drop replacement/removal logic
+    ) => {
+      const allSelectedIds = Object.values(selectedAccounts).flat();
+      const uploadIntegrationId = allSelectedIds[0];
 
-  const postMutation = useMutation({
-    mutationFn: (payload: CreatePostPayload) => createPost(payload),
-    onError: (error) => {
-      toast.error(`A post failed: ${error.message}`);
-    },
-  });
-
-  const handleMediaChange = (files: File[], previews: string[]) => {
-    const xIntegrationId = selectedAccounts["x"]?.[0];
-
-    if (files.length > 0 && !xIntegrationId) {
-      toast.error("Please select a Twitter/X account before uploading.");
-      return;
-    }
-
-    const newMediaItems: MediaItem[] = files.map((file, index) => {
-      const existing = mediaItems.find((m) => m.file === file);
-      if (existing) return existing;
-
-      return {
-        file,
-        preview: previews[index],
-        id: null,
-        isUploading: true,
-      };
-    });
-
-    updateState({ mediaItems: newMediaItems });
-
-    newMediaItems.forEach((item) => {
-      if (!item.id && item.isUploading && xIntegrationId) {
-        uploadMediaMutation.mutate({
-          file: item.file,
-          integrationId: xIntegrationId,
-        });
+      if (files.length > 0 && !uploadIntegrationId) {
+        toast.error("Please select at least one account before uploading.");
+        return;
       }
-    });
-  };
+
+      const newMediaItems: MediaItem[] = [];
+      const newFilesForUpload: MediaItem[] = [];
+
+      const existingMedia = mediaItems.filter(
+        (m) => m.threadIndex === threadIndex
+      );
+      const otherMedia = mediaItems.filter(
+        (m) => m.threadIndex !== threadIndex
+      );
+
+      // 1. Determine the new list of media items for this post/threadIndex
+      files.forEach((file, index) => {
+        const existing = existingMedia.find((m) => m.file === file);
+
+        if (existing) {
+          newMediaItems.push(existing);
+        } else {
+          const newItem: MediaItem = {
+            file,
+            preview: previews[index],
+            id: null,
+            isUploading: true,
+            threadIndex,
+          };
+          newMediaItems.push(newItem);
+          newFilesForUpload.push(newItem);
+        }
+      });
+
+      // 2. Set the complete new mediaItems state
+      updateState({
+        mediaItems: [...otherMedia, ...newMediaItems],
+      });
+
+      // 3. Start uploads for new files
+      newFilesForUpload.forEach((item) => {
+        if (!item.id && item.isUploading && uploadIntegrationId) {
+          uploadMediaMutation.mutate({
+            file: item.file,
+            integrationId: uploadIntegrationId,
+            threadIndex: item.threadIndex,
+          });
+        }
+      });
+
+      // 4. Update threadMessages state with mediaPreviews (for immediate UI update in preview)
+      if (threadIndex !== null) {
+        setState((prev) => ({
+          // FIX: Use functional update here
+          ...prev,
+          threadMessages: prev.threadMessages.map((msg, i) =>
+            i === threadIndex
+              ? {
+                  ...msg,
+                  // Use the *new* file previews for immediate local preview
+                  mediaPreviews: newMediaItems
+                    .map((m) => m.preview)
+                    .filter(Boolean) as string[],
+                }
+              : msg
+          ),
+        }));
+      }
+    },
+    [selectedAccounts, mediaItems, uploadMediaMutation] // Removed updateState and state.threadMessages from deps, relying on setState functional update for threadMessages
+  );
+
+  // Custom remove handler for thread media
+  const handleRemoveThreadMedia = useCallback(
+    (fileToRemove: File, threadIndex: number) => {
+      const mediaItem = mediaItems.find(
+        (m) => m.file === fileToRemove && m.threadIndex === threadIndex
+      );
+      if (!mediaItem) return;
+
+      // 1. Filter out the item from the main mediaItems pool
+      const newMediaItems = filterMediaItems(mediaItems, fileToRemove);
+      updateState({ mediaItems: newMediaItems });
+
+      // 2. Update the threadMessage's mediaIds (for publishing) and mediaPreviews (for preview)
+      setState((prev) => ({
+        // FIX: Use functional update here
+        ...prev,
+        threadMessages: prev.threadMessages.map((msg, i) => {
+          if (i === threadIndex) {
+            return {
+              ...msg,
+              mediaIds:
+                msg.mediaIds?.filter((id) => id !== mediaItem.id) || undefined,
+              mediaPreviews:
+                msg.mediaPreviews?.filter(
+                  (preview) => preview !== mediaItem.preview
+                ) || undefined,
+            };
+          }
+          return msg;
+        }),
+      }));
+    },
+    [mediaItems, updateState] // Removed state.threadMessages from deps
+  );
+
+  // Custom remove handler for main post media
+  const handleRemoveMainMedia = useCallback(
+    (fileToRemove: File) => {
+      const newMediaItems = filterMediaItems(mediaItems, fileToRemove);
+      updateState({ mediaItems: newMediaItems });
+    },
+    [mediaItems, updateState]
+  );
 
   const handlePublish = async () => {
     if (!user) return toast.error("You must be logged in to post.");
@@ -273,13 +396,29 @@ export default function EditorialPage() {
       return toast.error("Please wait for media to finish uploading.");
     }
 
-    const uploadedIds = mediaItems.map((m) => m.id).filter(Boolean) as string[];
+    // Consolidated Media IDs
+    const mainPostUploadedIds = mediaItems
+      .filter((m) => m.threadIndex === null && m.id !== null)
+      .map((m) => m.id) as string[];
 
     if (
-      (postType === "image" || postType === "video") &&
-      uploadedIds.length === 0
+      mainPostMedia.length > 0 &&
+      mainPostUploadedIds.length !== mainPostMedia.length
     ) {
-      return toast.error("Media failed to upload properly.");
+      return toast.error(
+        "One or more main post media files failed to upload properly."
+      );
+    }
+
+    // Check all thread media as well
+    const threadMediaItems = mediaItems.filter((m) => m.threadIndex !== null);
+    const threadMediaUploadedCount = threadMediaItems.filter(
+      (m) => m.id !== null
+    ).length;
+    if (threadMediaUploadedCount !== threadMediaItems.length) {
+      return toast.error(
+        "One or more thread media files failed to upload properly."
+      );
     }
 
     let scheduledAt: string | undefined = undefined;
@@ -295,21 +434,50 @@ export default function EditorialPage() {
     const settings = {
       labels,
       hashtags,
-      firstComment,
       collaborators,
       location,
     };
 
+    // Filter and prepare thread messages for the payload
+    const finalThreadMessagesForPublish = threadMessages
+      .map((msg) => ({
+        content: msg.content.trim(),
+        mediaIds: msg.mediaIds?.filter(Boolean) || undefined, // Use uploaded IDs
+      }))
+      .filter(
+        (msg) =>
+          msg.content.length > 0 || (msg.mediaIds && msg.mediaIds.length > 0)
+      );
+
     const postPromises = Object.entries(selectedAccounts).flatMap(
       ([platformId, integrationIds]) =>
         integrationIds.map((integrationId) => {
+          let platformMediaIds = mainPostUploadedIds;
+          let platformThreadMessages = finalThreadMessagesForPublish;
+
+          // Special handling for X:
+          if (platformId === "x") {
+            // Main post uses the uploaded media items assigned to the main post
+            platformMediaIds = mainPostUploadedIds.slice(0, 4);
+          } else {
+            // For non-X platforms, clear thread messages
+            platformThreadMessages = [];
+            // Non-X platforms use all media uploaded to the main post
+            // (limits are assumed to be handled by the MediaUpload component on the main post)
+          }
+
           const payload: CreatePostPayload = {
             userId: user.id,
             integrationId,
             content: platformCaptions[platformId] || mainCaption,
             settings,
             scheduledAt,
-            mediaIds: uploadedIds.length > 0 ? uploadedIds : undefined,
+            mediaIds:
+              platformMediaIds.length > 0 ? platformMediaIds : undefined,
+            threadMessages:
+              platformThreadMessages.length > 0
+                ? platformThreadMessages
+                : undefined,
           };
           return postMutation.mutateAsync(payload);
         })
@@ -319,11 +487,13 @@ export default function EditorialPage() {
       await Promise.all(postPromises);
       setConfirmationStatus(isScheduling ? "scheduled" : "sent");
       setConfirmationCount(postPromises.length);
+      handleCloseConfirmation(); // Reset state after successful publish
     } catch (error) {
       console.error("One or more posts failed to publish.", error);
     }
   };
 
+  // ... (handleCloseConfirmation, togglePlatform, handleAccountSelect unchanged)
   const handleCloseConfirmation = () => {
     setConfirmationStatus(null);
     setConfirmationCount(0);
@@ -342,7 +512,6 @@ export default function EditorialPage() {
       delete newCaptions[platformId];
     } else {
       newSelected[platformId] = [platform.accounts[0].id];
-      // Initialize with current main caption so it starts synced
       newCaptions[platformId] = mainCaption;
     }
     updateState({
@@ -366,9 +535,25 @@ export default function EditorialPage() {
     updateState({ selectedAccounts: newSelected });
   };
 
-  const currentFiles = mediaItems.map((m) => m.file);
-  const currentPreviews = mediaItems.map((m) => m.preview);
+  const mainPostFiles = mainPostMedia.map((m) => m.file);
+  const mainPostPreviews = mainPostMedia.map((m) => m.preview);
   const isGlobalUploading = mediaItems.some((m) => m.isUploading);
+
+  // Media Previews for the main post
+  const mainPostMediaPreviews = mainPostMedia.map((m) => m.preview);
+
+  // Media Previews for the thread messages (for XPreview)
+  const threadMessagesWithPreviews = threadMessages.map((msg, index) => {
+    const threadMedia = mediaItems.filter((m) => m.threadIndex === index);
+    return {
+      ...msg,
+      // Pass the local preview URLs for XPreview
+      mediaPreviews: threadMedia
+        .map((m) => m.preview)
+        .filter(Boolean) as string[],
+      isUploading: threadMedia.some((m) => m.isUploading),
+    };
+  });
 
   return (
     <>
@@ -402,7 +587,6 @@ export default function EditorialPage() {
 
               <CaptionEditor
                 mainCaption={mainCaption}
-                // CHANGED: Passing the new smart handler
                 onMainCaptionChange={handleMainCaptionChange}
                 platformCaptions={platformCaptions}
                 onPlatformCaptionChange={(platformId, caption) =>
@@ -418,11 +602,16 @@ export default function EditorialPage() {
                 onAccountSelect={handleAccountSelect}
                 postType={postType}
                 mediaUploadSlot={
+                  // Main post media upload uses its dedicated handler
                   <MediaUpload
-                    mediaFiles={currentFiles}
-                    mediaPreviews={currentPreviews}
-                    isUploading={isGlobalUploading}
-                    onMediaChange={handleMediaChange}
+                    mediaFiles={mainPostFiles}
+                    mediaPreviews={mainPostPreviews}
+                    isUploading={mainPostMedia.some((m) => m.isUploading)}
+                    onMediaChange={(files, previews) =>
+                      handleMediaChange(files, previews, null)
+                    }
+                    onRemoveMedia={handleRemoveMainMedia}
+                    activePlatforms={activePlatforms}
                   />
                 }
               />
@@ -435,28 +624,39 @@ export default function EditorialPage() {
               selectedAccounts={selectedAccounts}
               mainCaption={mainCaption}
               platformCaptions={platformCaptions}
-              mediaPreview={currentPreviews}
-              firstComment={firstComment}
+              mediaPreview={mainPostMediaPreviews} // Main post media only
+              threadMessages={threadMessagesWithPreviews} // Thread messages with full preview data
               collaborators={collaborators}
               location={location}
             />
 
-            {/* ... rest of component remains the same ... */}
             <DistributionPanel
               labels={labels}
               hashtags={hashtags}
-              firstComment={firstComment}
+              threadMessages={threadMessagesWithPreviews} // Pass the augmented thread messages
               collaborators={collaborators}
               location={location}
               onLabelsChange={(val) => updateState({ labels: val })}
               onHashtagsChange={(val) => updateState({ hashtags: val })}
-              onFirstCommentChange={(val) => updateState({ firstComment: val })}
+              onThreadMessagesChange={(val) =>
+                updateState({
+                  threadMessages: val.map((m) => ({
+                    content: m.content,
+                    mediaIds: m.mediaIds,
+                  })),
+                })
+              } // Convert back to DTO format
               onCollaboratorsChange={(val) =>
                 updateState({ collaborators: val })
               }
               onLocationChange={(val) => updateState({ location: val })}
+              handleThreadMediaChange={(files, previews, index) =>
+                handleMediaChange(files, previews, index)
+              } // Pass the unified handler
+              handleRemoveThreadMedia={handleRemoveThreadMedia} // Pass the specific removal handler
               showActionButtons={false}
               activePlatforms={activePlatforms}
+              isGlobalUploading={isGlobalUploading}
             />
 
             <div className="flex flex-col">

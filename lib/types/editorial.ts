@@ -31,12 +31,20 @@ export interface MediaFile {
 }
 
 /**
+ * Thread message structure for multi-post threads
+ */
+export interface ThreadMessage {
+  content: string;
+  mediaIds?: string[];
+}
+
+/**
  * Distribution metadata
  */
 export interface DistributionMetadata {
   labels?: string;
   hashtags?: string;
-  firstComment?: string;
+  threadMessages?: ThreadMessage[];
   collaborators?: string;
   location?: string;
 }
@@ -64,7 +72,7 @@ export interface EditorialDraft {
   activePlatforms: string[]; // Array of platform IDs
   selectedAccounts: SelectedAccounts;
 
-  // Media
+  // Media (only for main post in this flow)
   media?: MediaFile;
 
   // Distribution

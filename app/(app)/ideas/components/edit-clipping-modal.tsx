@@ -15,7 +15,7 @@ import {
 import type { Clipping as GeneratedClipping } from "@/lib/api/ideas";
 import type { Clipping } from "@/lib/types/editorial";
 import { useEditorialStore } from "@/lib/store/editorial-store";
-import type { EditorialDraft } from "@/lib/types/editorial";
+import type { EditorialDraft, ThreadMessage } from "@/lib/types/editorial"; // Import ThreadMessage
 import ModalHeader from "./edit-modal/modal-header";
 import PostTypeSelector from "./edit-modal/post-type-selector";
 import ChannelSelector, { type Platform } from "./edit-modal/channel-selector";
@@ -97,7 +97,8 @@ export default function EditClippingModal({
   const [mediaPreview, setMediaPreview] = useState<string | null>(null);
   const [labels, setLabels] = useState("");
   const [hashtags, setHashtags] = useState("");
-  const [firstComment, setFirstComment] = useState("");
+  // Replaced firstComment with threadMessages state
+  const [threadMessages, setThreadMessages] = useState<ThreadMessage[]>([]);
   const [collaborators, setCollaborators] = useState("");
   const [location, setLocation] = useState("");
 
@@ -122,7 +123,7 @@ export default function EditClippingModal({
       distribution: {
         labels,
         hashtags,
-        firstComment,
+        threadMessages, // Use new field
         collaborators,
         location,
       },
@@ -270,15 +271,16 @@ export default function EditClippingModal({
                   onSaveClipping={handleSaveClipping}
                   labels={labels}
                   hashtags={hashtags}
-                  firstComment={firstComment}
+                  threadMessages={threadMessages} // Use new field
                   collaborators={collaborators}
                   location={location}
                   onLabelsChange={setLabels}
                   onHashtagsChange={setHashtags}
-                  onFirstCommentChange={setFirstComment}
+                  onThreadMessagesChange={setThreadMessages} // New handler
                   onCollaboratorsChange={setCollaborators}
                   onLocationChange={setLocation}
                   activePlatforms={activePlatforms}
+                  // Removed firstComment prop from here as well
                 />
               </div>
             </div>

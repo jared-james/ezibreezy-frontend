@@ -1,10 +1,14 @@
 // lib/api/publishing.ts
 import apiClient from "./index";
 
+export interface ThreadMessagePayload {
+  content: string;
+  mediaIds?: string[];
+}
+
 export interface PostSettings {
   labels?: string;
   hashtags?: string;
-  firstComment?: string;
   collaborators?: string;
   location?: string;
 }
@@ -16,6 +20,7 @@ export interface CreatePostPayload {
   settings?: PostSettings;
   scheduledAt?: string;
   mediaIds?: string[];
+  threadMessages?: ThreadMessagePayload[];
 }
 
 export interface CreatePostResponse {
