@@ -5,6 +5,7 @@
 import { useState, useMemo, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Twitter, Instagram, LayoutGrid } from "lucide-react";
+import Image from "next/image";
 import { getConnections } from "@/lib/api/integrations";
 import XPreview from "./x-preview";
 import InstagramPreview from "./instagram-preview";
@@ -84,7 +85,13 @@ export default function PreviewPanel({
           <LayoutGrid className="w-4 h-4 text-[--muted]" />
         </div>
         <div className="flex flex-col items-center justify-center min-h-[400px] border border-[--border] bg-[--surface] text-center p-8 mt-4">
-          <LayoutGrid className="w-12 h-12 text-[--muted-foreground] mb-3" />
+          <Image
+            src="/select_a_channel.webp"
+            alt="Select a channel"
+            width={160}
+            height={160}
+            className="mb-3"
+          />
           <h3 className="font-serif text-lg font-bold">Select a Channel</h3>
           <p className="font-serif text-sm text-[--muted-foreground] max-w-xs mt-2">
             Select an account on the left to see a live preview of your post

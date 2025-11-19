@@ -108,7 +108,7 @@ function Calendar({
         range_start: cn("bg-accent", defaultClassNames.range_start),
         range_middle: cn("rounded-none", defaultClassNames.range_middle),
         range_end: cn("bg-accent", defaultClassNames.range_end),
-        today: cn("bg-accent text-accent-foreground", defaultClassNames.today),
+        today: cn("bg-transparent text-foreground", defaultClassNames.today),
         outside: cn(
           "text-muted-foreground aria-selected:text-muted-foreground",
           defaultClassNames.outside
@@ -168,7 +168,6 @@ function Calendar({
   );
 }
 
-// --- THIS COMPONENT IS NOW CORRECTED ---
 function CalendarDayButton({
   className,
   day,
@@ -198,15 +197,30 @@ function CalendarDayButton({
       data-range-end={modifiers.range_end}
       data-range-middle={modifiers.range_middle}
       className={cn(
-        // Base styles for the button
-        "flex aspect-square size-auto w-full min-w-(--cell-size) flex-col gap-1 p-0 leading-none font-normal",
-        // Focus state
+        "relative flex aspect-square size-auto w-full min-w-(--cell-size) flex-col gap-1 p-0 leading-none font-normal",
         "group-data-[focused=true]/day:border-ring group-data-[focused=true]/day:ring-ring/50 group-data-[focused=true]/day:relative group-data-[focused=true]/day:z-10 group-data-[focused=true]/day:ring-[3px]",
-        // Selected state: uses primary color and disables hover effect
-        "data-[selected-single=true]:bg-primary data-[selected-single=true]:text-primary-foreground data-[selected-single=true]:hover:bg-primary",
-        "data-[range-start=true]:bg-primary data-[range-start=true]:text-primary-foreground",
-        "data-[range-end=true]:bg-primary data-[range-end=true]:text-primary-foreground",
-        // Make all buttons square
+
+        // single-day selection → ink splat bg
+        "data-[selected-single=true]:bg-[url('/cal-splat.webp')]",
+        "data-[selected-single=true]:bg-no-repeat",
+        "data-[selected-single=true]:bg-center",
+        "data-[selected-single=true]:bg-size-[100%_100%]",
+        "data-[selected-single=true]:text-primary-foreground",
+
+        // range start / end → same ink splat (or keep if you only want single-day)
+
+        "data-[range-start=true]:bg-[url('/cal-splat.webp')]",
+        "data-[range-start=true]:bg-no-repeat",
+        "data-[range-start=true]:bg-center",
+        "data-[range-start=true]:bg-size-[140%_140%]",
+        "data-[range-start=true]:text-primary-foreground",
+
+        "data-[range-end=true]:bg-[url('/cal-splat.webp')]",
+        "data-[range-end=true]:bg-no-repeat",
+        "data-[range-end=true]:bg-center",
+        "data-[range-end=true]:bg-size-[140%_140%]",
+        "data-[range-end=true]:text-primary-foreground",
+
         "rounded-none",
         defaultClassNames.day,
         className
