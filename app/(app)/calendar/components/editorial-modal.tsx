@@ -22,6 +22,12 @@ export default function EditorialModal({
   title = "Create New Post",
 }: EditorialModalProps) {
   const setDraft = useEditorialStore((state) => state.setDraft);
+  const reset = useEditorialStore((state) => state.reset);
+
+  const handleClose = () => {
+    reset();
+    onClose();
+  };
 
   useEffect(() => {
     if (isOpen && initialDraft) {
@@ -42,7 +48,7 @@ export default function EditorialModal({
             </h2>
           </div>
           <button
-            onClick={onClose}
+            onClick={handleClose}
             className="btn btn-icon hover:bg-surface-hover"
           >
             <X className="h-5 w-5" />
@@ -50,7 +56,7 @@ export default function EditorialModal({
         </div>
 
         <div className="flex-1 overflow-y-auto p-6">
-          <EditorialCore onPostSuccess={onClose} />
+          <EditorialCore onPostSuccess={handleClose} />
         </div>
       </div>
     </div>

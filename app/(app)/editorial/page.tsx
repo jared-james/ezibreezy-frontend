@@ -1,4 +1,4 @@
-// app/(app)/editorial/page.tsx
+// FILE: app\(app)\editorial\page.tsx
 
 "use client";
 
@@ -12,13 +12,18 @@ export default function EditorialPage() {
     (state) => state.initializeFromDraft
   );
   const setState = useEditorialStore((state) => state.setState);
+  const reset = useEditorialStore((state) => state.reset);
 
   useEffect(() => {
     if (draft) {
       initializeFromDraft(draft);
       setState({ draft: null });
     }
-  }, [draft, initializeFromDraft, setState]);
+
+    return () => {
+      reset();
+    };
+  }, [draft, initializeFromDraft, setState, reset]);
 
   return (
     <div className="mx-auto flex h-full w-full max-w-7xl flex-col p-4 md:p-6">
