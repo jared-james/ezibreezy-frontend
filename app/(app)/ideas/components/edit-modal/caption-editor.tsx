@@ -90,6 +90,39 @@ const CaptionTextarea = ({
   </div>
 );
 
+// Thread Textarea wrapper with hashtag button
+const ThreadTextarea = ({
+  value,
+  onChange,
+  placeholder,
+  threadIndex,
+  onHashtagClick,
+}: {
+  value: string;
+  onChange: (event: React.ChangeEvent<HTMLTextAreaElement>) => void;
+  placeholder: string;
+  threadIndex: number;
+  onHashtagClick: (threadIndex: number) => void;
+}) => (
+  <div className="relative">
+    <Textarea
+      rows={4}
+      value={value}
+      onChange={onChange}
+      placeholder={placeholder}
+      className="min-h-24 pr-10" // Added padding-right to make space for the button
+    />
+    <button
+      type="button"
+      onClick={() => onHashtagClick(threadIndex)}
+      title="Insert Hashtags"
+      className="absolute bottom-3 right-3 text-muted-foreground hover:text-brand-primary transition-colors"
+    >
+      <Hash className="h-4 w-4" />
+    </button>
+  </div>
+);
+
 export default function CaptionEditor({
   mainCaption,
   onMainCaptionChange,
@@ -109,6 +142,7 @@ export default function CaptionEditor({
   // ADDED: State for hashtag modal
   const [isHashtagModalOpen, setIsHashtagModalOpen] = useState(false);
   const [targetPlatformId, setTargetPlatformId] = useState<string | null>(null);
+  const [targetThreadIndex, setTargetThreadIndex] = useState<number | null>(null);
 
   const mainPlaceholder =
     postType === "video"
@@ -149,8 +183,20 @@ export default function CaptionEditor({
       // Determine the caption to update
       const hashtagsWithPadding = `\n\n${hashtagString.trim()}`;
 
-      if (targetPlatformId === "main") {
+      if (targetThreadIndex !== null) {
+        // Insert into thread message
+        if (onThreadMessagesChange) {
+          const newMessages = threadMessages.map((msg, i) =>
+            i === targetThreadIndex
+              ? { ...msg, content: msg.content.trimEnd() + hashtagsWithPadding }
+              : msg
+          );
+          onThreadMessagesChange(newMessages);
+        }
+        setTargetThreadIndex(null);
+      } else if (targetPlatformId === "main") {
         onMainCaptionChange(mainCaption.trimEnd() + hashtagsWithPadding);
+        setTargetPlatformId(null);
       } else if (targetPlatformId) {
         const currentCaption =
           platformCaptions[targetPlatformId] || mainCaption;
@@ -158,9 +204,8 @@ export default function CaptionEditor({
           targetPlatformId,
           currentCaption.trimEnd() + hashtagsWithPadding
         );
+        setTargetPlatformId(null);
       }
-
-      setTargetPlatformId(null);
     },
     [
       mainCaption,
@@ -168,12 +213,23 @@ export default function CaptionEditor({
       onMainCaptionChange,
       onPlatformCaptionChange,
       targetPlatformId,
+      targetThreadIndex,
+      threadMessages,
+      onThreadMessagesChange,
     ]
   );
 
   // ADDED: Function to open modal and set target platform
   const openHashtagModal = useCallback((platformId: string) => {
     setTargetPlatformId(platformId);
+    setTargetThreadIndex(null);
+    setIsHashtagModalOpen(true);
+  }, []);
+
+  // ADDED: Function to open modal for thread messages
+  const openThreadHashtagModal = useCallback((threadIndex: number) => {
+    setTargetThreadIndex(threadIndex);
+    setTargetPlatformId(null);
     setIsHashtagModalOpen(true);
   }, []);
 
@@ -300,8 +356,7 @@ export default function CaptionEditor({
                             </Button>
                           </div>
 
-                          <Textarea
-                            rows={4}
+                          <ThreadTextarea
                             value={message.content}
                             onChange={(event) =>
                               updateThreadMessageContent(
@@ -310,7 +365,8 @@ export default function CaptionEditor({
                               )
                             }
                             placeholder="What's happening next?"
-                            className="min-h-24"
+                            threadIndex={index}
+                            onHashtagClick={openThreadHashtagModal}
                           />
 
                           {handleThreadMediaChange &&
@@ -355,9 +411,11 @@ export default function CaptionEditor({
       <HashtagSelectorModal
         isOpen={isHashtagModalOpen}
         onClose={() => setIsHashtagModalOpen(false)}
-        // MODIFIED: Pass the mainCaption (or platform-specific caption) to ensure the modal syncs the correct tag list
+        // MODIFIED: Pass the appropriate caption based on context (main, platform, or thread)
         initialHashtags={
-          targetPlatformId === "main"
+          targetThreadIndex !== null
+            ? threadMessages[targetThreadIndex]?.content || ""
+            : targetPlatformId === "main"
             ? mainCaption
             : platformCaptions[targetPlatformId || ""] || ""
         }
