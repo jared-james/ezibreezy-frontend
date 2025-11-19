@@ -1,11 +1,15 @@
-// app/(app)/ideas/components/edit-modal/caption-editor.tsx
-
 "use client";
 
-import { Smile, Twitter, Instagram } from "lucide-react";
+import { Smile, Twitter, Instagram, Plus, Trash2 } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
+import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { Platform } from "@/lib/types/editorial";
+import {
+  Platform,
+  ThreadMessage,
+  ThreadMessageAugmented,
+} from "@/lib/types/editorial";
+import ThreadPostMediaUpload from "@/app/(app)/editorial/components/thread-post-media-upload";
 
 type SelectedAccounts = Record<string, string[]>;
 
@@ -19,6 +23,15 @@ interface CaptionEditorProps {
   onAccountSelect: (platformId: string, accountId: string) => void;
   postType: "text" | "image" | "video";
   mediaUploadSlot?: React.ReactNode;
+  threadMessages?: ThreadMessageAugmented[];
+  onThreadMessagesChange?: (messages: ThreadMessage[]) => void;
+  handleThreadMediaChange?: (
+    files: File[],
+    previews: string[],
+    threadIndex: number
+  ) => void;
+  handleRemoveThreadMedia?: (fileToRemove: File, threadIndex: number) => void;
+  isGlobalUploading?: boolean;
 }
 
 const PlatformIcon = ({ platformId }: { platformId: string }) => {
@@ -44,6 +57,11 @@ export default function CaptionEditor({
   onAccountSelect,
   postType,
   mediaUploadSlot,
+  threadMessages = [],
+  onThreadMessagesChange,
+  handleThreadMediaChange,
+  handleRemoveThreadMedia,
+  isGlobalUploading = false,
 }: CaptionEditorProps) {
   const mainPlaceholder =
     postType === "video"
@@ -51,6 +69,30 @@ export default function CaptionEditor({
       : postType === "image"
       ? "Describe the visual, context, and what you want people to feel..."
       : "Draft the main caption you want to adapt across platforms...";
+
+  const addThreadMessage = () => {
+    if (threadMessages.length < 20 && onThreadMessagesChange) {
+      onThreadMessagesChange([
+        ...threadMessages,
+        { content: "", mediaIds: [] },
+      ]);
+    }
+  };
+
+  const removeThreadMessage = (index: number) => {
+    if (onThreadMessagesChange) {
+      onThreadMessagesChange(threadMessages.filter((_, i) => i !== index));
+    }
+  };
+
+  const updateThreadMessageContent = (index: number, content: string) => {
+    if (onThreadMessagesChange) {
+      const newMessages = threadMessages.map((msg, i) =>
+        i === index ? { ...msg, content } : msg
+      );
+      onThreadMessagesChange(newMessages);
+    }
+  };
 
   return (
     <>
@@ -82,6 +124,8 @@ export default function CaptionEditor({
       {Object.keys(selectedAccounts).map((platformId) => {
         const platform = platforms.find((p) => p.id === platformId);
         if (!platform) return null;
+
+        const isX = platformId === "x";
 
         return (
           <div key={platformId} className="mt-6">
@@ -128,16 +172,92 @@ export default function CaptionEditor({
                 <Smile className="h-4 w-4" />
               </button>
             </label>
-            <Textarea
-              id={`caption-${platformId}`}
-              rows={10}
-              value={platformCaptions[platformId] || ""}
-              onChange={(event) =>
-                onPlatformCaptionChange(platformId, event.target.value)
-              }
-              placeholder={`${platform.name} specific caption...`}
-              className="min-h-32"
-            />
+
+            <div className="space-y-4">
+              <Textarea
+                id={`caption-${platformId}`}
+                rows={10}
+                value={platformCaptions[platformId] || ""}
+                onChange={(event) =>
+                  onPlatformCaptionChange(platformId, event.target.value)
+                }
+                placeholder={`${platform.name} specific caption...`}
+                className="min-h-32"
+              />
+
+              {isX && (
+                <>
+                  {threadMessages.map((message, index) => {
+                    const mediaFiles = message.mediaFiles || [];
+
+                    return (
+                      <div
+                        key={index}
+                        className="relative pl-6 before:absolute before:left-0 before:top-0 before:h-full before:w-px before:bg-border ml-2"
+                      >
+                        <div className="space-y-3">
+                          <div className="flex items-center justify-between">
+                            <p className="eyebrow text-[0.65rem]">
+                              Thread Post {index + 2}
+                            </p>
+                            <Button
+                              type="button"
+                              onClick={() => removeThreadMessage(index)}
+                              variant="ghost"
+                              size="sm"
+                              className="h-6 px-2 text-muted-foreground hover:text-error"
+                            >
+                              <Trash2 className="h-3 w-3" />
+                            </Button>
+                          </div>
+
+                          <Textarea
+                            rows={4}
+                            value={message.content}
+                            onChange={(event) =>
+                              updateThreadMessageContent(
+                                index,
+                                event.target.value
+                              )
+                            }
+                            placeholder="What's happening next?"
+                            className="min-h-24"
+                          />
+
+                          {handleThreadMediaChange &&
+                            handleRemoveThreadMedia && (
+                              <ThreadPostMediaUpload
+                                threadIndex={index}
+                                mediaFiles={mediaFiles}
+                                mediaPreviews={message.mediaPreviews || []}
+                                isUploading={message.isUploading || false}
+                                onMediaChange={handleThreadMediaChange}
+                                onRemoveMedia={handleRemoveThreadMedia}
+                              />
+                            )}
+                        </div>
+                      </div>
+                    );
+                  })}
+
+                  {threadMessages.length < 20 && (
+                    <div className="flex justify-end">
+                      <Button
+                        type="button"
+                        onClick={addThreadMessage}
+                        variant="ghost"
+                        size="sm"
+                        className="gap-1 text-xs text-muted-foreground hover:text-foreground"
+                        disabled={isGlobalUploading}
+                      >
+                        <Plus className="h-3 w-3" />
+                        Add to thread
+                      </Button>
+                    </div>
+                  )}
+                </>
+              )}
+            </div>
           </div>
         );
       })}

@@ -1,5 +1,3 @@
-// app/(app)/ideas/components/edit-modal/distribution-panel.tsx
-
 "use client";
 
 import { useMemo } from "react";
@@ -14,18 +12,11 @@ import {
   X,
   Twitter,
   Instagram,
-  Plus,
-  Trash2,
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { Textarea } from "@/components/ui/textarea";
-import ThreadPostMediaUpload from "@/app/(app)/editorial/components/thread-post-media-upload";
-import type {
-  ThreadMessage,
-  ThreadMessageAugmented,
-} from "@/lib/types/editorial";
+import type { ThreadMessageAugmented } from "@/lib/types/editorial";
 import { useTagInput } from "@/lib/hooks/use-tag-input";
 
 interface DistributionPanelProps {
@@ -38,18 +29,10 @@ interface DistributionPanelProps {
   location?: string;
   onLabelsChange?: (value: string) => void;
   onHashtagsChange?: (value: string) => void;
-  onThreadMessagesChange?: (value: ThreadMessage[]) => void;
   onCollaboratorsChange?: (value: string) => void;
   onLocationChange?: (value: string) => void;
-  handleThreadMediaChange: (
-    files: File[],
-    previews: string[],
-    threadIndex: number
-  ) => void;
-  handleRemoveThreadMedia: (fileToRemove: File, threadIndex: number) => void;
   showActionButtons?: boolean;
   activePlatforms?: Set<string>;
-  isGlobalUploading?: boolean;
 }
 
 interface PlatformIconDisplayProps {
@@ -88,19 +71,14 @@ export default function DistributionPanel({
   onSaveClipping,
   labels = "",
   hashtags = "",
-  threadMessages = [],
   collaborators = "",
   location = "",
   onLabelsChange,
   onHashtagsChange,
-  onThreadMessagesChange,
   onCollaboratorsChange,
   onLocationChange,
-  handleThreadMediaChange,
-  handleRemoveThreadMedia,
   showActionButtons = true,
   activePlatforms = new Set(),
-  isGlobalUploading = false,
 }: DistributionPanelProps) {
   const {
     tagChips,
@@ -117,7 +95,6 @@ export default function DistributionPanel({
   const fieldSupport = useMemo(
     () => ({
       hashtags: ["x", "instagram"],
-      threadMessages: ["x"],
       collaborators: ["instagram"],
       location: ["instagram"],
     }),
@@ -126,31 +103,6 @@ export default function DistributionPanel({
 
   const shouldShowField = (field: keyof typeof fieldSupport) =>
     fieldSupport[field].some((id) => activePlatforms.has(id));
-
-  const addThreadMessage = () => {
-    if (threadMessages.length < 20) {
-      onThreadMessagesChange?.([
-        ...threadMessages,
-        { content: "", mediaIds: [] },
-      ]);
-    }
-  };
-
-  const removeThreadMessage = (index: number) => {
-    onThreadMessagesChange?.(threadMessages.filter((_, i) => i !== index));
-  };
-
-  const updateThreadMessageContent = (index: number, content: string) => {
-    const newMessages = threadMessages.map((msg, i) =>
-      i === index
-        ? {
-            ...msg,
-            content,
-          }
-        : msg
-    );
-    onThreadMessagesChange?.(newMessages);
-  };
 
   return (
     <div className="flex flex-col">
@@ -161,7 +113,7 @@ export default function DistributionPanel({
         <Send className="h-4 w-4 text-[--muted]" />
       </div>
 
-      <div className="mt-4 space-y-6 border border-border bg-surface p-5">
+      <div className="mt-4 space-y-6 border border-border  p-5">
         <div className="space-y-4">
           <div className="relative">
             <label htmlFor="labels" className="eyebrow">
@@ -231,82 +183,6 @@ export default function DistributionPanel({
                   autoComplete="off"
                 />
               </div>
-            </div>
-          )}
-
-          {shouldShowField("threadMessages") && (
-            <div className="relative space-y-4 border-t border-border border-dashed pt-2 animate-in fade-in-50">
-              <label className="eyebrow flex items-center gap-2">
-                X Thread Messages
-                {fieldSupport.threadMessages.map((id) => (
-                  <PlatformIconDisplay
-                    key={id}
-                    platformId={id}
-                    isActive={activePlatforms.has(id)}
-                  />
-                ))}
-              </label>
-
-              {threadMessages.map((message, index) => {
-                // Use the real file objects from the state if available
-                const mediaFiles = message.mediaFiles || [];
-
-                return (
-                  <div
-                    key={index}
-                    className="space-y-3 border border-border bg-background p-4 shadow-sm"
-                  >
-                    <div className="flex items-center justify-between">
-                      <p className="font-serif text-sm font-bold text-foreground">
-                        Post #{index + 2} in Thread
-                      </p>
-                      <Button
-                        type="button"
-                        onClick={() => removeThreadMessage(index)}
-                        variant="ghost"
-                        size="sm"
-                        className="text-error hover:bg-error/10"
-                      >
-                        <Trash2 className="h-3 w-3" />
-                        Remove
-                      </Button>
-                    </div>
-
-                    <Textarea
-                      rows={4}
-                      value={message.content}
-                      onChange={(event) =>
-                        updateThreadMessageContent(index, event.target.value)
-                      }
-                      placeholder="Add the next message in your thread..."
-                      className="min-h-24"
-                    />
-
-                    <ThreadPostMediaUpload
-                      threadIndex={index}
-                      mediaFiles={mediaFiles}
-                      mediaPreviews={message.mediaPreviews || []}
-                      isUploading={message.isUploading || false}
-                      onMediaChange={handleThreadMediaChange}
-                      onRemoveMedia={handleRemoveThreadMedia}
-                    />
-                  </div>
-                );
-              })}
-
-              {threadMessages.length < 20 && (
-                <Button
-                  type="button"
-                  onClick={addThreadMessage}
-                  variant="outline"
-                  size="sm"
-                  className="w-full gap-2 border-dashed"
-                  disabled={isGlobalUploading}
-                >
-                  <Plus className="h-4 w-4" />
-                  Add Thread Post
-                </Button>
-              )}
             </div>
           )}
 

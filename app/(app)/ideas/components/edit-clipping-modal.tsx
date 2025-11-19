@@ -1,5 +1,3 @@
-// app/(app)/ideas/components/edit-clipping-modal.tsx
-
 "use client";
 
 import { useMemo, useState } from "react";
@@ -276,6 +274,10 @@ export default function EditClippingModal({
                     platforms={availablePlatforms}
                     onAccountSelect={handleAccountSelect}
                     postType={postType}
+                    threadMessages={threadMessages as ThreadMessageAugmented[]}
+                    onThreadMessagesChange={setThreadMessages}
+                    handleThreadMediaChange={handleThreadMediaChangeNoop}
+                    handleRemoveThreadMedia={handleRemoveThreadMediaNoop}
                   />
                 </div>
               </div>
@@ -286,18 +288,13 @@ export default function EditClippingModal({
                   onSaveClipping={handleSaveClipping}
                   labels={labels}
                   hashtags={hashtags}
-                  threadMessages={threadMessages as ThreadMessageAugmented[]}
                   collaborators={collaborators}
                   location={location}
                   onLabelsChange={setLabels}
                   onHashtagsChange={setHashtags}
-                  onThreadMessagesChange={setThreadMessages}
                   onCollaboratorsChange={setCollaborators}
                   onLocationChange={setLocation}
                   activePlatforms={activePlatforms}
-                  handleThreadMediaChange={handleThreadMediaChangeNoop}
-                  handleRemoveThreadMedia={handleRemoveThreadMediaNoop}
-                  isGlobalUploading={false}
                 />
               </div>
             </div>

@@ -108,7 +108,7 @@ export default function XPreview({
   const hasThread = threadMessages.length > 0;
 
   return (
-    <div className="mx-auto w-full max-w-sm bg-surface">
+    <div className="mx-auto w-full max-w-sm ">
       <div className="relative p-4">
         {hasThread && (
           <div
@@ -187,7 +187,7 @@ export default function XPreview({
 
             <div className="flex items-start gap-3">
               <div
-                className="flex shrink-0 flex-col items-center"
+                className="relative z-10 flex shrink-0 flex-col items-center"
                 style={{ width: 40 }}
               >
                 <ProfileAvatar

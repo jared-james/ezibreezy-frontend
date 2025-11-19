@@ -1,5 +1,3 @@
-// app/(app)/editorial/page.tsx
-
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
@@ -304,6 +302,13 @@ export default function EditorialPage() {
                 platforms={availablePlatforms}
                 onAccountSelect={handleAccountSelect}
                 postType={postType}
+                threadMessages={threadMessages}
+                onThreadMessagesChange={setThreadMessages}
+                handleThreadMediaChange={(files, previews, index) =>
+                  handleMediaChange(files, previews, index)
+                }
+                handleRemoveThreadMedia={handleRemoveMedia}
+                isGlobalUploading={isGlobalUploading}
                 mediaUploadSlot={
                   <MediaUpload
                     mediaFiles={mainPostMediaFiles}
@@ -337,23 +342,16 @@ export default function EditorialPage() {
             <DistributionPanel
               labels={labels}
               hashtags={hashtags}
-              threadMessages={threadMessages}
               collaborators={collaborators}
               location={location}
               onLabelsChange={(value) => updateState({ labels: value })}
               onHashtagsChange={(value) => updateState({ hashtags: value })}
-              onThreadMessagesChange={setThreadMessages}
               onCollaboratorsChange={(value) =>
                 updateState({ collaborators: value })
               }
               onLocationChange={(value) => updateState({ location: value })}
-              handleThreadMediaChange={(files, previews, index) =>
-                handleMediaChange(files, previews, index)
-              }
-              handleRemoveThreadMedia={handleRemoveMedia}
               showActionButtons={false}
               activePlatforms={activePlatforms}
-              isGlobalUploading={isGlobalUploading}
             />
 
             <div className="flex flex-col">

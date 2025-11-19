@@ -1,5 +1,3 @@
-// app/(app)/editorial/components/thread-post-media-upload.tsx
-
 "use client";
 
 import { useCallback } from "react";
@@ -79,8 +77,6 @@ export default function ThreadPostMediaUpload({
 
   return (
     <div className="space-y-2">
-      <p className="eyebrow text-xs">Media (Max 4)</p>
-
       <div
         className={cn("grid gap-2", hasMedia ? "grid-cols-4" : "grid-cols-1")}
       >
@@ -128,7 +124,12 @@ export default function ThreadPostMediaUpload({
         })}
 
         {!isFull && (
-          <label className="relative aspect-square border-2 border-dashed border-[--border] hover:border-[--foreground] hover:bg-[--surface-hover] rounded-md cursor-pointer flex flex-col items-center justify-center gap-1 text-[--muted-foreground] hover:text-[--foreground] transition-colors">
+          <label
+            className={cn(
+              "relative border-2 border-dashed border-[--border] hover:border-[--foreground] hover:bg-[--surface-hover] rounded-md cursor-pointer flex flex-col items-center justify-center gap-1 text-[--muted-foreground] hover:text-[--foreground] transition-colors",
+              hasMedia ? "aspect-square" : "h-20"
+            )}
+          >
             <input
               type="file"
               accept="image/*,video/*"
