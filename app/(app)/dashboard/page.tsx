@@ -8,9 +8,7 @@ export default async function Dashboard() {
     <div className="max-w-7xl mx-auto">
       {/* Header */}
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">
-          Welcome back!
-        </h1>
+        <h1 className="text-3xl font-bold text-gray-900 mb-2">Welcome back!</h1>
         <p className="text-gray-600">
           Here's what's happening with your content today.
         </p>
@@ -75,9 +73,7 @@ export default async function Dashboard() {
         {/* Performance overview */}
         <div className="bg-white p-6 rounded-xl shadow border border-gray-200">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-semibold text-gray-900">
-              Performance
-            </h2>
+            <h2 className="text-lg font-semibold text-gray-900">Performance</h2>
             <Link
               href="/analytics"
               className="text-sm text-blue-600 hover:text-blue-700 font-medium"

@@ -1,3 +1,5 @@
+// app/(app)/ideas/components/edit-modal/distribution-panel.tsx
+
 "use client";
 
 import { useMemo } from "react";
@@ -13,26 +15,16 @@ import {
   Twitter,
   Instagram,
 } from "lucide-react";
+import { useEditorialStore } from "@/lib/store/editorial-store";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import type { ThreadMessageAugmented } from "@/lib/types/editorial";
 import { useTagInput } from "@/lib/hooks/use-tag-input";
 
 interface DistributionPanelProps {
   onOpenInEditorial?: () => void;
   onSaveClipping?: () => void;
-  labels?: string;
-  hashtags?: string;
-  threadMessages?: ThreadMessageAugmented[];
-  collaborators?: string;
-  location?: string;
-  onLabelsChange?: (value: string) => void;
-  onHashtagsChange?: (value: string) => void;
-  onCollaboratorsChange?: (value: string) => void;
-  onLocationChange?: (value: string) => void;
   showActionButtons?: boolean;
-  activePlatforms?: Set<string>;
 }
 
 interface PlatformIconDisplayProps {
@@ -69,17 +61,26 @@ const PlatformIconDisplay = ({
 export default function DistributionPanel({
   onOpenInEditorial,
   onSaveClipping,
-  labels = "",
-  hashtags = "",
-  collaborators = "",
-  location = "",
-  onLabelsChange,
-  onHashtagsChange,
-  onCollaboratorsChange,
-  onLocationChange,
   showActionButtons = true,
-  activePlatforms = new Set(),
 }: DistributionPanelProps) {
+  const labels = useEditorialStore((state) => state.labels);
+  const hashtags = useEditorialStore((state) => state.hashtags);
+  const collaborators = useEditorialStore((state) => state.collaborators);
+  const location = useEditorialStore((state) => state.location);
+  const selectedAccounts = useEditorialStore((state) => state.selectedAccounts);
+  const setState = useEditorialStore((state) => state.setState);
+
+  const activePlatforms = useMemo(
+    () => new Set(Object.keys(selectedAccounts)),
+    [selectedAccounts]
+  );
+
+  const onLabelsChange = (value: string) => setState({ labels: value });
+  const onHashtagsChange = (value: string) => setState({ hashtags: value });
+  const onCollaboratorsChange = (value: string) =>
+    setState({ collaborators: value });
+  const onLocationChange = (value: string) => setState({ location: value });
+
   const {
     tagChips,
     currentTagInput,
@@ -89,7 +90,7 @@ export default function DistributionPanel({
     inputPlaceholder,
   } = useTagInput({
     initialHashtags: hashtags,
-    onHashtagsChange: onHashtagsChange || (() => {}),
+    onHashtagsChange: onHashtagsChange,
   });
 
   const fieldSupport = useMemo(
@@ -124,7 +125,7 @@ export default function DistributionPanel({
               <Input
                 id="labels"
                 value={labels}
-                onChange={(event) => onLabelsChange?.(event.target.value)}
+                onChange={(event) => onLabelsChange(event.target.value)}
                 placeholder="Promotion, News, Evergreen..."
                 className="h-9 pl-8"
               />
@@ -207,7 +208,7 @@ export default function DistributionPanel({
                   id="collaborators"
                   value={collaborators}
                   onChange={(event) =>
-                    onCollaboratorsChange?.(event.target.value)
+                    onCollaboratorsChange(event.target.value)
                   }
                   placeholder="@username"
                   className="h-9 pl-8"
@@ -236,7 +237,7 @@ export default function DistributionPanel({
                 <Input
                   id="location"
                   value={location}
-                  onChange={(event) => onLocationChange?.(event.target.value)}
+                  onChange={(event) => onLocationChange(event.target.value)}
                   placeholder="New York, NY"
                   className="h-9 pl-8"
                 />

@@ -2,14 +2,13 @@
 import apiClient from "./index";
 import type { Clipping } from "@/lib/types/editorial";
 
+export type { Clipping };
+
 interface BriefingResponse {
   prompt: string;
   clippings: Clipping[];
 }
 
-/**
- * Generates new idea clippings based on a user prompt.
- */
 export const generateClippings = async (
   prompt: string
 ): Promise<Clipping[]> => {
@@ -21,12 +20,3 @@ export const generateClippings = async (
   );
   return response.data.clippings;
 };
-
-/**
- * Saves a clipping to the user's idea archive.
- * (This is an example of another function you might add here)
- */
-// export const saveClipping = async (clipping: Clipping) => {
-//   const response = await apiClient.post('/ideas/save', clipping);
-//   return response.data;
-// }

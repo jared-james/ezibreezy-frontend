@@ -1,42 +1,95 @@
 // lib/store/editorial-store.ts
 
-import { create } from "zustand";
-import type { EditorialDraft } from "@/lib/types/editorial";
+"use client";
 
-interface EditorialStore {
-  draft: EditorialDraft | null;
-  setDraft: (draft: EditorialDraft) => void;
-  clearDraft: () => void;
-  hasDraft: () => boolean;
+import { create } from "zustand";
+import type { SelectedAccounts, ThreadMessage } from "@/lib/types/editorial";
+import { type EditorialDraft } from "@/lib/types/editorial";
+
+export interface MediaItem {
+  file: File;
+  preview: string;
+  id: string | null;
+  isUploading: boolean;
+  threadIndex: number | null;
 }
 
-/**
- * Zustand store for managing editorial draft data
- * Used for transferring data from Ideas page to Editorial page
- */
-export const useEditorialStore = create<EditorialStore>((set, get) => ({
+export interface EditorialState {
+  isScheduling: boolean;
+  scheduleDate: string;
+  scheduleTime: string;
+  selectedAccounts: SelectedAccounts;
+  mainCaption: string;
+  platformCaptions: Record<string, string>;
+  mediaItems: MediaItem[];
+  labels: string;
+  hashtags: string;
+  threadMessages: ThreadMessage[];
+  collaborators: string;
+  location: string;
+  isInitialized: boolean;
+  draft: EditorialDraft | null;
+}
+
+export interface EditorialActions {
+  setState: (updates: Partial<EditorialState>) => void;
+  setThreadMessages: (messages: ThreadMessage[]) => void;
+  initializeFromDraft: (draft: EditorialDraft) => void;
+  reset: () => void;
+  setDraft: (draft: EditorialDraft) => void;
+}
+
+const getTodayString = () => new Date().toISOString().split("T")[0];
+
+export const initialState: EditorialState = {
+  isScheduling: false,
+  scheduleDate: getTodayString(),
+  scheduleTime: "12:00",
+  selectedAccounts: {},
+  mainCaption: "",
+  platformCaptions: {},
+  mediaItems: [],
+  labels: "",
+  hashtags: "",
+  threadMessages: [],
+  collaborators: "",
+  location: "",
+  isInitialized: false,
   draft: null,
+};
 
-  /**
-   * Set the editorial draft data
-   * Called when user clicks "Open in Editorial" from Ideas modal
-   */
-  setDraft: (draft: EditorialDraft) => {
-    set({ draft });
-  },
+export const useEditorialStore = create<EditorialState & EditorialActions>(
+  (set, get) => ({
+    ...initialState,
 
-  /**
-   * Clear the draft data
-   * Called after Editorial page has consumed the data
-   */
-  clearDraft: () => {
-    set({ draft: null });
-  },
+    setState: (updates) => set((state) => ({ ...state, ...updates })),
 
-  /**
-   * Check if there's a draft available
-   */
-  hasDraft: () => {
-    return get().draft !== null;
-  },
-}));
+    setThreadMessages: (messages) => set({ threadMessages: messages }),
+
+    initializeFromDraft: (draft) => {
+      if (!get().isInitialized) {
+        const updates: Partial<EditorialState> = {
+          mainCaption: draft.mainCaption,
+          platformCaptions: draft.platformCaptions,
+          selectedAccounts: draft.selectedAccounts,
+          labels: draft.distribution?.labels || "",
+          hashtags: draft.distribution?.hashtags || "",
+          threadMessages: draft.distribution?.threadMessages || [],
+          collaborators: draft.distribution?.collaborators || "",
+          location: draft.distribution?.location || "",
+          isScheduling: draft.schedule?.isScheduled || false,
+          scheduleDate: draft.schedule?.date,
+          scheduleTime: draft.schedule?.time,
+          isInitialized: true,
+        };
+        set(updates);
+      }
+    },
+
+    reset: () => set({ ...initialState, draft: null, isInitialized: false }),
+
+    setDraft: (draft: EditorialDraft) => {
+      set({ draft });
+    },
+  })
+);

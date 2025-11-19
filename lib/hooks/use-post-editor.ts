@@ -1,61 +1,23 @@
 // lib/hooks/use-post-editor.ts
 
-import { useState, useMemo, useCallback, useEffect, useRef } from "react";
+import { useMemo, useEffect, useCallback } from "react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
+import {
+  useEditorialStore,
+  initialState as editorInitialState,
+  MediaItem,
+} from "@/lib/store/editorial-store";
 import { uploadMedia } from "@/lib/api/media";
 import { getConnections, type Connection } from "@/lib/api/integrations";
 import type {
-  ThreadMessage,
-  SelectedAccounts,
   Platform,
+  ThreadMessage,
   ThreadMessageAugmented,
+  EditorialDraft,
 } from "@/lib/types/editorial";
 import { Twitter, Linkedin, Youtube, Instagram } from "lucide-react";
 import { createPost, type CreatePostPayload } from "@/lib/api/publishing";
-
-interface MediaItem {
-  file: File;
-  preview: string;
-  id: string | null;
-  isUploading: boolean;
-  threadIndex: number | null;
-}
-
-export interface EditorState {
-  isScheduling: boolean;
-  scheduleDate: string;
-  scheduleTime: string;
-  selectedAccounts: SelectedAccounts;
-  mainCaption: string;
-  platformCaptions: Record<string, string>;
-  mediaItems: MediaItem[];
-  labels: string;
-  hashtags: string;
-  threadMessages: ThreadMessage[];
-  collaborators: string;
-  location: string;
-}
-
-const getTodayString = () => new Date().toISOString().split("T")[0];
-
-const initialState: EditorState = {
-  isScheduling: false,
-  scheduleDate: getTodayString(),
-  scheduleTime: "12:00",
-  selectedAccounts: {},
-  mainCaption: "",
-  platformCaptions: {},
-  mediaItems: [],
-  labels: "",
-  hashtags: "",
-  threadMessages: [],
-  collaborators: "",
-  location: "",
-};
-
-const filterMediaItems = (mediaItems: MediaItem[], fileToRemove: File) =>
-  mediaItems.filter((item) => item.file !== fileToRemove);
 
 const platformDefinitions = {
   x: { name: "Twitter/X", icon: Twitter },
@@ -64,32 +26,15 @@ const platformDefinitions = {
   instagram: { name: "Instagram", icon: Instagram },
 };
 
-export function usePostEditor(initialDraft?: Partial<EditorState>) {
-  const [state, setState] = useState<EditorState>({
-    ...initialState,
-    ...initialDraft,
-  });
+const filterMediaItems = (mediaItems: MediaItem[], fileToRemove: File) =>
+  mediaItems.filter((item) => item.file !== fileToRemove);
 
-  const initialStateRef = useRef(state);
-
-  const isDirty = useMemo(() => {
-    return JSON.stringify(state) !== JSON.stringify(initialStateRef.current);
-  }, [state]);
-
-  useEffect(() => {
-    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
-      if (isDirty) {
-        e.preventDefault();
-        e.returnValue = "";
-      }
-    };
-
-    window.addEventListener("beforeunload", handleBeforeUnload);
-
-    return () => {
-      window.removeEventListener("beforeunload", handleBeforeUnload);
-    };
-  }, [isDirty]);
+export function usePostEditor() {
+  const setState = useEditorialStore((state) => state.setState);
+  const setThreadMessages = useEditorialStore((state) => state.setThreadMessages);
+  const mediaItems = useEditorialStore((state) => state.mediaItems);
+  const selectedAccounts = useEditorialStore((state) => state.selectedAccounts);
+  const threadMessages = useEditorialStore((state) => state.threadMessages);
 
   const { data: connections = [] } = useQuery({
     queryKey: ["connections"],
@@ -115,16 +60,16 @@ export function usePostEditor(initialDraft?: Partial<EditorState>) {
       threadIndex: number | null;
     }) => uploadMedia(variables.file, variables.integrationId),
     onSuccess: (data, variables) => {
-      setState((prev) => ({
-        ...prev,
-        mediaItems: prev.mediaItems.map((item) =>
+      const currentStoreState = useEditorialStore.getState();
+      setState({
+        mediaItems: currentStoreState.mediaItems.map((item) =>
           item.file === variables.file
             ? { ...item, id: data.mediaId, isUploading: false }
             : item
         ),
         threadMessages:
           variables.threadIndex !== null
-            ? prev.threadMessages.map((msg, i) =>
+            ? currentStoreState.threadMessages.map((msg, i) =>
                 i === variables.threadIndex
                   ? {
                       ...msg,
@@ -132,8 +77,8 @@ export function usePostEditor(initialDraft?: Partial<EditorState>) {
                     }
                   : msg
               )
-            : prev.threadMessages,
-      }));
+            : currentStoreState.threadMessages,
+      });
     },
     onError: (error: any, variables) => {
       toast.error(
@@ -141,18 +86,14 @@ export function usePostEditor(initialDraft?: Partial<EditorState>) {
           error?.message || "Unknown error"
         }`
       );
-      setState((prev) => ({
-        ...prev,
-        mediaItems: filterMediaItems(prev.mediaItems, variables.file),
-      }));
+      setState({
+        mediaItems: filterMediaItems(
+          useEditorialStore.getState().mediaItems,
+          variables.file
+        ),
+      });
     },
   });
-
-  const updateState = useCallback((updates: Partial<EditorState>) => {
-    setState((prevState) => ({ ...prevState, ...updates }));
-  }, []);
-
-  const { mediaItems } = state;
 
   const mainPostMedia = useMemo(
     () => mediaItems.filter((m) => m.threadIndex === null),
@@ -193,8 +134,8 @@ export function usePostEditor(initialDraft?: Partial<EditorState>) {
   }, [connections]);
 
   const activePlatforms = useMemo(
-    () => new Set(Object.keys(state.selectedAccounts)),
-    [state.selectedAccounts]
+    () => new Set(Object.keys(selectedAccounts)),
+    [selectedAccounts]
   );
 
   const mainPostMediaPreviews = useMemo(
@@ -203,7 +144,7 @@ export function usePostEditor(initialDraft?: Partial<EditorState>) {
   );
 
   const threadMessagesWithPreviews: ThreadMessageAugmented[] = useMemo(() => {
-    return state.threadMessages.map((msg, index) => {
+    return threadMessages.map((msg, index) => {
       const threadMedia = mediaItems.filter((m) => m.threadIndex === index);
       return {
         ...msg,
@@ -214,11 +155,13 @@ export function usePostEditor(initialDraft?: Partial<EditorState>) {
         isUploading: threadMedia.some((m) => m.isUploading),
       };
     });
-  }, [state.threadMessages, mediaItems]);
+  }, [threadMessages, mediaItems]);
 
   const handleMediaChange = useCallback(
     (files: File[], previews: string[], threadIndex: number | null = null) => {
-      const allSelectedIds = Object.values(state.selectedAccounts).flat();
+      const allSelectedIds = Object.values(
+        useEditorialStore.getState().selectedAccounts
+      ).flat();
       const uploadIntegrationId = allSelectedIds[0];
 
       if (files.length > 0 && !uploadIntegrationId) {
@@ -226,10 +169,11 @@ export function usePostEditor(initialDraft?: Partial<EditorState>) {
         return;
       }
 
-      const existingMedia = mediaItems.filter(
+      const currentMediaItems = useEditorialStore.getState().mediaItems;
+      const existingMedia = currentMediaItems.filter(
         (m) => m.threadIndex === threadIndex
       );
-      const otherMedia = mediaItems.filter(
+      const otherMedia = currentMediaItems.filter(
         (m) => m.threadIndex !== threadIndex
       );
 
@@ -238,7 +182,6 @@ export function usePostEditor(initialDraft?: Partial<EditorState>) {
 
       files.forEach((file, index) => {
         const existing = existingMedia.find((m) => m.file === file);
-
         if (existing) {
           newMediaItems.push(existing);
         } else {
@@ -254,10 +197,9 @@ export function usePostEditor(initialDraft?: Partial<EditorState>) {
         }
       });
 
-      setState((prev) => ({
-        ...prev,
+      setState({
         mediaItems: [...otherMedia, ...newMediaItems],
-      }));
+      });
 
       newFilesForUpload.forEach((item) => {
         if (!item.id && item.isUploading && uploadIntegrationId) {
@@ -269,58 +211,42 @@ export function usePostEditor(initialDraft?: Partial<EditorState>) {
         }
       });
     },
-    [state.selectedAccounts, mediaItems, uploadMediaMutation]
+    [setState, uploadMediaMutation]
   );
 
   const handleRemoveMedia = useCallback(
     (fileToRemove: File, threadIndex: number | null = null) => {
+      const { mediaItems, threadMessages } = useEditorialStore.getState();
       const mediaItem = mediaItems.find(
         (m) => m.file === fileToRemove && m.threadIndex === threadIndex
       );
       if (!mediaItem) return;
 
-      setState((prev) => {
-        const newMediaItems = filterMediaItems(prev.mediaItems, fileToRemove);
+      const newMediaItems = filterMediaItems(mediaItems, fileToRemove);
 
-        let newThreadMessages = prev.threadMessages;
-        if (threadIndex !== null) {
-          newThreadMessages = prev.threadMessages.map((msg, i) => {
-            if (i === threadIndex) {
-              return {
-                ...msg,
-                mediaIds:
-                  msg.mediaIds?.filter((id) => id !== mediaItem.id) ||
-                  undefined,
-              };
-            }
-            return msg;
-          });
-        }
+      let newThreadMessages = threadMessages;
+      if (threadIndex !== null) {
+        newThreadMessages = threadMessages.map((msg, i) => {
+          if (i === threadIndex) {
+            return {
+              ...msg,
+              mediaIds:
+                msg.mediaIds?.filter((id) => id !== mediaItem.id) || undefined,
+            };
+          }
+          return msg;
+        });
+      }
 
-        return {
-          ...prev,
-          mediaItems: newMediaItems,
-          threadMessages: newThreadMessages,
-        };
+      setState({
+        mediaItems: newMediaItems,
+        threadMessages: newThreadMessages,
       });
     },
-    [mediaItems]
-  );
-
-  const setThreadMessages = useCallback(
-    (newMessages: ThreadMessageAugmented[]) => {
-      updateState({
-        threadMessages: newMessages.map((m) => ({
-          content: m.content,
-          mediaIds: m.mediaIds,
-        })),
-      });
-    },
-    [updateState]
+    [setState]
   );
 
   return {
-    state,
     mainPostMediaFiles: mainPostMedia.map((m) => m.file),
     mainPostMediaPreviews,
     postType,
@@ -328,7 +254,7 @@ export function usePostEditor(initialDraft?: Partial<EditorState>) {
     availablePlatforms,
     activePlatforms,
     threadMessages: threadMessagesWithPreviews,
-    updateState,
+    updateState: setState,
     handleMediaChange,
     handleRemoveMedia,
     setThreadMessages,

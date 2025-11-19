@@ -1,5 +1,4 @@
 // app/(app)/analytics/page.tsx
-// Analytics dashboard - performance metrics and insights
 
 "use client";
 

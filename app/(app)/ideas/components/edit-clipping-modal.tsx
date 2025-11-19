@@ -2,14 +2,13 @@
 
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Twitter, Instagram, Linkedin, Youtube } from "lucide-react";
 import type { Clipping as GeneratedClipping } from "@/lib/api/ideas";
 import {
   type Clipping as EditorialClipping,
   type EditorialDraft,
-  type ThreadMessage,
   type ThreadMessageAugmented,
   type Platform,
 } from "@/lib/types/editorial";
@@ -36,8 +35,6 @@ const platformDefinitions = {
   instagram: { name: "Instagram", icon: Instagram },
 };
 
-type SelectedAccounts = Record<string, string[]>;
-
 export default function EditClippingModal({
   isOpen,
   onClose,
@@ -48,9 +45,26 @@ export default function EditClippingModal({
     queryFn: getConnections,
   });
 
+  const setState = useEditorialStore((state) => state.setState);
+  const reset = useEditorialStore((state) => state.reset);
+  const setDraft = useEditorialStore((state) => state.setDraft);
+  const mainCaption = useEditorialStore((state) => state.mainCaption);
+  const platformCaptions = useEditorialStore((state) => state.platformCaptions);
+  const selectedAccounts = useEditorialStore((state) => state.selectedAccounts);
+  const threadMessages = useEditorialStore((state) => state.threadMessages);
+  const labels = useEditorialStore((state) => state.labels);
+  const hashtags = useEditorialStore((state) => state.hashtags);
+  const collaborators = useEditorialStore((state) => state.collaborators);
+  const location = useEditorialStore((state) => state.location);
+
+  const [postType, setPostType] = useState<"text" | "image" | "video">("text");
+  const [mediaFile, setMediaFile] = useState<File | null>(null);
+  const [mediaPreview, setMediaPreview] = useState<string | null>(null);
+
+  const router = useRouter();
+
   const availablePlatforms = useMemo((): Platform[] => {
     if (!connections) return [];
-
     const connectionsByPlatform = connections.reduce((acc, connection) => {
       acc[connection.platform] = acc[connection.platform] || [];
       acc[connection.platform].push(connection);
@@ -67,43 +81,37 @@ export default function EditClippingModal({
             name: `@${connection.platformUsername}`,
             img: connection.avatarUrl || "/placeholder-pfp.png",
           })) || [];
-
         return { ...definition, id: platformId, accounts };
       })
       .filter((platform) => platform.accounts.length > 0);
   }, [connections]);
 
-  const initialPlatform = availablePlatforms.find(
-    (platform) => platform.accounts.length > 0
+  const activePlatforms = useMemo(
+    () => new Set(Object.keys(selectedAccounts)),
+    [selectedAccounts]
   );
 
-  const [postType, setPostType] = useState<"text" | "image" | "video">("text");
+  useEffect(() => {
+    if (isOpen) {
+      const initialPlatform = availablePlatforms.find(
+        (p) => p.accounts.length > 0
+      );
+      const initialSelected = initialPlatform
+        ? { [initialPlatform.id]: [initialPlatform.accounts[0].id] }
+        : {};
 
-  const [selectedAccounts, setSelectedAccounts] = useState<SelectedAccounts>(
-    initialPlatform
-      ? { [initialPlatform.id]: [initialPlatform.accounts[0].id] }
-      : {}
-  );
-
-  const [mainCaption, setMainCaption] = useState(idea.body);
-  const [platformCaptions, setPlatformCaptions] = useState<
-    Record<string, string>
-  >({});
-
-  const [activePlatforms, setActivePlatforms] = useState<Set<string>>(
-    new Set(initialPlatform ? [initialPlatform.id] : [])
-  );
-
-  const [mediaFile, setMediaFile] = useState<File | null>(null);
-  const [mediaPreview, setMediaPreview] = useState<string | null>(null);
-  const [labels, setLabels] = useState("");
-  const [hashtags, setHashtags] = useState("");
-  const [threadMessages, setThreadMessages] = useState<ThreadMessage[]>([]);
-  const [collaborators, setCollaborators] = useState("");
-  const [location, setLocation] = useState("");
-
-  const router = useRouter();
-  const { setDraft } = useEditorialStore();
+      setState({
+        mainCaption: idea.body,
+        selectedAccounts: initialSelected,
+      });
+    } else {
+      reset();
+      setPostType("text");
+      setMediaFile(null);
+      setMediaPreview(null);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isOpen, idea.body]);
 
   const handleOpenInEditorial = () => {
     const draft: EditorialDraft = {
@@ -140,78 +148,48 @@ export default function EditClippingModal({
     console.log("Save clipping functionality to be implemented");
   };
 
-  const handleMediaChange = (file: File | null, preview: string | null) => {
-    setMediaFile(file);
-    setMediaPreview(preview);
-  };
-
   const togglePlatform = (platformId: string) => {
     const isCurrentlyActive = activePlatforms.has(platformId);
+    const newSelected = { ...selectedAccounts };
+    const newCaptions = { ...platformCaptions };
 
     if (isCurrentlyActive) {
-      setActivePlatforms((previous) => {
-        const updated = new Set(previous);
-        updated.delete(platformId);
-        return updated;
-      });
-
-      setSelectedAccounts((previous) => {
-        const { [platformId]: _, ...rest } = previous;
-        return rest;
-      });
-
-      setPlatformCaptions((previous) => {
-        const { [platformId]: _, ...rest } = previous;
-        return rest;
-      });
-
-      return;
+      delete newSelected[platformId];
+      delete newCaptions[platformId];
+    } else {
+      const platform = availablePlatforms.find((p) => p.id === platformId);
+      if (!platform || platform.accounts.length === 0) return;
+      newSelected[platformId] = [platform.accounts[0].id];
+      newCaptions[platformId] = mainCaption;
     }
 
-    const platform = availablePlatforms.find((p) => p.id === platformId);
-    if (!platform || platform.accounts.length === 0) return;
-
-    setActivePlatforms((previous) => new Set(previous).add(platformId));
-
-    setSelectedAccounts((previous) => ({
-      ...previous,
-      [platformId]: [platform.accounts[0].id],
-    }));
-
-    setPlatformCaptions((previous) => ({
-      ...previous,
-      [platformId]: mainCaption,
-    }));
+    setState({
+      selectedAccounts: newSelected,
+      platformCaptions: newCaptions,
+    });
   };
 
   const handleAccountSelect = (platformId: string, accountId: string) => {
-    setSelectedAccounts((previous) => {
-      const currentSelection = previous[platformId] || [];
-      const isSelected = currentSelection.includes(accountId);
+    const currentSelection = selectedAccounts[platformId] || [];
+    const newSelection = currentSelection.includes(accountId)
+      ? currentSelection.filter((id) => id !== accountId)
+      : [...currentSelection, accountId];
+    const newSelected = { ...selectedAccounts };
+    const newCaptions = { ...platformCaptions };
 
-      const newSelection = isSelected
-        ? currentSelection.filter((id) => id !== accountId)
-        : [...currentSelection, accountId];
-
-      if (newSelection.length === 0) {
-        const { [platformId]: _, ...rest } = previous;
-
-        setPlatformCaptions((previousCaptions) => {
-          const { [platformId]: __, ...restCaptions } = previousCaptions;
-          return restCaptions;
-        });
-
-        return rest;
+    if (newSelection.length === 0) {
+      delete newSelected[platformId];
+      delete newCaptions[platformId];
+    } else {
+      newSelected[platformId] = newSelection;
+      if (currentSelection.length === 0) {
+        newCaptions[platformId] = mainCaption;
       }
+    }
 
-      if (currentSelection.length === 0 && newSelection.length === 1) {
-        setPlatformCaptions((previousCaptions) => ({
-          ...previousCaptions,
-          [platformId]: mainCaption,
-        }));
-      }
-
-      return { ...previous, [platformId]: newSelection };
+    setState({
+      selectedAccounts: newSelected,
+      platformCaptions: newCaptions,
     });
   };
 
@@ -259,25 +237,34 @@ export default function EditClippingModal({
                     postType={postType}
                     mediaFile={mediaFile}
                     mediaPreview={mediaPreview}
-                    onMediaChange={handleMediaChange}
+                    onMediaChange={(file, preview) => {
+                      setMediaFile(file);
+                      setMediaPreview(preview);
+                    }}
                   />
 
                   <CaptionEditor
                     mainCaption={mainCaption}
-                    onMainCaptionChange={setMainCaption}
+                    onMainCaptionChange={(caption) =>
+                      setState({ mainCaption: caption })
+                    }
                     platformCaptions={platformCaptions}
                     onPlatformCaptionChange={(platformId, caption) =>
-                      setPlatformCaptions((previous) => ({
-                        ...previous,
-                        [platformId]: caption,
-                      }))
+                      setState({
+                        platformCaptions: {
+                          ...platformCaptions,
+                          [platformId]: caption,
+                        },
+                      })
                     }
                     selectedAccounts={selectedAccounts}
                     platforms={availablePlatforms}
                     onAccountSelect={handleAccountSelect}
                     postType={postType}
                     threadMessages={threadMessages as ThreadMessageAugmented[]}
-                    onThreadMessagesChange={setThreadMessages}
+                    onThreadMessagesChange={(msgs) =>
+                      setState({ threadMessages: msgs })
+                    }
                     handleThreadMediaChange={handleThreadMediaChangeNoop}
                     handleRemoveThreadMedia={handleRemoveThreadMediaNoop}
                   />
@@ -288,15 +275,7 @@ export default function EditClippingModal({
                 <DistributionPanel
                   onOpenInEditorial={handleOpenInEditorial}
                   onSaveClipping={handleSaveClipping}
-                  labels={labels}
-                  hashtags={hashtags}
-                  collaborators={collaborators}
-                  location={location}
-                  onLabelsChange={setLabels}
-                  onHashtagsChange={setHashtags}
-                  onCollaboratorsChange={setCollaborators}
-                  onLocationChange={setLocation}
-                  activePlatforms={activePlatforms}
+                  showActionButtons={true}
                 />
               </div>
             </div>

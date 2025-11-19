@@ -2,7 +2,7 @@
 
 "use client";
 
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Twitter, Instagram, LayoutGrid } from "lucide-react";
 import Image from "next/image";
@@ -11,17 +11,8 @@ import XPreview from "./x-preview";
 import InstagramPreview from "./instagram-preview";
 import { cn } from "@/lib/utils";
 import type { ThreadMessageAugmented } from "@/lib/types/editorial";
-
-interface PreviewPanelProps {
-  postType: "text" | "image" | "video";
-  selectedAccounts: Record<string, string[]>;
-  mainCaption: string;
-  platformCaptions: Record<string, string>;
-  mediaPreview: string[];
-  threadMessages: ThreadMessageAugmented[];
-  collaborators: string;
-  location: string;
-}
+import { useEditorialStore } from "@/lib/store/editorial-store";
+import { usePostEditor } from "@/lib/hooks/use-post-editor";
 
 const platformIcons = {
   x: Twitter,
@@ -33,16 +24,15 @@ const platformNames = {
   instagram: "Instagram",
 };
 
-export default function PreviewPanel({
-  postType,
-  selectedAccounts,
-  mainCaption,
-  platformCaptions,
-  mediaPreview,
-  threadMessages,
-  collaborators,
-  location,
-}: PreviewPanelProps) {
+export default function PreviewPanel() {
+  const selectedAccounts = useEditorialStore((state) => state.selectedAccounts);
+  const mainCaption = useEditorialStore((state) => state.mainCaption);
+  const platformCaptions = useEditorialStore((state) => state.platformCaptions);
+  const collaborators = useEditorialStore((state) => state.collaborators);
+  const location = useEditorialStore((state) => state.location);
+
+  const { postType, mainPostMediaPreviews, threadMessages } = usePostEditor();
+
   const { data: connections = [] } = useQuery({
     queryKey: ["connections"],
     queryFn: getConnections,
@@ -55,25 +45,23 @@ export default function PreviewPanel({
 
   const [activeTab, setActiveTab] = useState<string>("empty");
 
-  useEffect(() => {
-    if (activePlatforms.length === 0) {
-      setActiveTab("empty");
-      return;
+  // Compute the valid active tab (either the current selection if valid, or default)
+  const validActiveTab = useMemo(() => {
+    if (activePlatforms.length === 0) return "empty";
+    if (activeTab !== "empty" && activePlatforms.includes(activeTab)) {
+      return activeTab;
     }
-
-    if (activeTab === "empty" || !activePlatforms.includes(activeTab)) {
-      setActiveTab(activePlatforms[0]);
-    }
+    return activePlatforms[0];
   }, [activePlatforms, activeTab]);
 
   const activeAccount = useMemo(() => {
-    if (activeTab === "empty") return null;
+    if (validActiveTab === "empty") return null;
 
-    const integrationId = selectedAccounts[activeTab]?.[0];
+    const integrationId = selectedAccounts[validActiveTab]?.[0];
     if (!integrationId) return null;
 
     return connections.find((conn) => conn.id === integrationId) || null;
-  }, [activeTab, selectedAccounts, connections]);
+  }, [validActiveTab, selectedAccounts, connections]);
 
   if (activePlatforms.length === 0) {
     return (
@@ -111,7 +99,7 @@ export default function PreviewPanel({
     };
   });
 
-  const currentCaption = platformCaptions[activeTab] || mainCaption;
+  const currentCaption = platformCaptions[validActiveTab] || mainCaption;
 
   const renderPreview = () => {
     if (!activeAccount) {
@@ -122,12 +110,12 @@ export default function PreviewPanel({
       );
     }
 
-    switch (activeTab) {
+    switch (validActiveTab) {
       case "x":
         return (
           <XPreview
             caption={currentCaption}
-            mediaPreview={mediaPreview}
+            mediaPreview={mainPostMediaPreviews}
             threadMessages={threadMessages}
             platformUsername={activeAccount.platformUsername}
             displayName={activeAccount.name}
@@ -136,9 +124,9 @@ export default function PreviewPanel({
           />
         );
       case "instagram": {
-        const singleMedia = Array.isArray(mediaPreview)
-          ? mediaPreview[0]
-          : mediaPreview;
+        const singleMedia = Array.isArray(mainPostMediaPreviews)
+          ? mainPostMediaPreviews[0]
+          : mainPostMediaPreviews;
 
         return (
           <InstagramPreview
@@ -155,7 +143,7 @@ export default function PreviewPanel({
       default:
         return (
           <div className="text-center p-8 text-[--muted-foreground]">
-            No preview available for {activeTab}.
+            No preview available for {validActiveTab}.
           </div>
         );
     }
@@ -178,7 +166,7 @@ export default function PreviewPanel({
               onClick={() => setActiveTab(tab.id)}
               className={cn(
                 "flex items-center gap-2 px-3 py-1.5 text-sm font-serif transition-colors",
-                activeTab === tab.id
+                validActiveTab === tab.id
                   ? "bg-[--foreground] text-[--background] font-bold"
                   : "text-[--muted] hover:bg-[--surface-hover]"
               )}
