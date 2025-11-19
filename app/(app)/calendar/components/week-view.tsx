@@ -142,13 +142,12 @@ export default function WeekView({
                       type="button"
                       onClick={() => onEditPost(post)}
                       key={post.id}
-                      className="absolute left-1 right-1 z-10 flex cursor-pointer items-center gap-1.5 rounded bg-brand-primary/90 p-1 text-left text-xs text-brand-primary-foreground shadow-sm transition-all hover:bg-brand-primary"
+                      className="group/item absolute left-1 right-1 flex items-center gap-1.5 rounded border border-transparent bg-surface p-1 text-left text-xs text-foreground hover:border-brand-primary"
                       style={{ top: `${topPosition}px` }}
-                      title={`${format(postDate, "h:mm a")} - ${post.content}`}
                     >
-                      <Icon className="h-3 w-3 shrink-0" />
+                      <Icon className="h-3 w-3 shrink-0 text-muted-foreground" />
 
-                      <span className="font-serif font-bold opacity-70">
+                      <span className="font-serif font-bold text-muted-foreground">
                         {format(postDate, "h:mma")}
                       </span>
 

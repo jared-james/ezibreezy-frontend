@@ -1,3 +1,5 @@
+// app/(app)/calendar/components/list-view.tsx
+
 "use client";
 
 import { Twitter, Instagram, Linkedin, Clock, X, Loader2 } from "lucide-react";
@@ -23,6 +25,11 @@ const platformIcons: Record<string, React.ElementType> = {
 export default function ListView({ posts, onEditPost }: ListViewProps) {
   const queryClient = useQueryClient();
   const [deletingId, setDeletingId] = useState<string | null>(null);
+
+  // Sort posts by scheduled date (latest first)
+  const sortedPosts = [...posts].sort((a, b) => {
+    return new Date(b.scheduledAt).getTime() - new Date(a.scheduledAt).getTime();
+  });
 
   const deleteMutation = useMutation({
     mutationFn: deletePost,
@@ -52,24 +59,23 @@ export default function ListView({ posts, onEditPost }: ListViewProps) {
   };
 
   return (
-    <div className="border border-border bg-surface p-6">
-      <div className="mx-auto max-w-4xl">
-        {posts.length === 0 ? (
-          <p className="py-8 text-center font-serif text-muted-foreground">
-            No posts scheduled for this period.
-          </p>
-        ) : (
-          <div className="space-y-4">
-            {posts.map((post) => {
-              const Icon = platformIcons[post.platform] || Clock;
-              const postDate = new Date(post.scheduledAt);
-              const isDeleting = deletingId === post.id;
+    <div className="mx-auto max-w-4xl">
+      {sortedPosts.length === 0 ? (
+        <p className="py-8 text-center font-serif text-muted-foreground">
+          No posts scheduled for this period.
+        </p>
+      ) : (
+        <div className="divide-y divide-border">
+          {sortedPosts.map((post) => {
+            const Icon = platformIcons[post.platform] || Clock;
+            const postDate = new Date(post.scheduledAt);
+            const isDeleting = deletingId === post.id;
 
-              return (
-                <div
-                  key={post.id}
-                  className="flex items-center gap-4 border border-border bg-surface-hover p-4 transition-colors hover:border-border-hover"
-                >
+            return (
+              <div
+                key={post.id}
+                className="flex items-center gap-4 py-4 transition-colors hover:bg-muted/20"
+              >
                   <div className="flex flex-col items-center">
                     <span className="font-serif text-sm font-bold uppercase tracking-wider text-muted-foreground">
                       {format(postDate, "MMM")}
@@ -125,9 +131,8 @@ export default function ListView({ posts, onEditPost }: ListViewProps) {
                 </div>
               );
             })}
-          </div>
-        )}
-      </div>
+        </div>
+      )}
     </div>
   );
 }

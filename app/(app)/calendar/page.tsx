@@ -198,7 +198,7 @@ export default function CalendarPage() {
                 key={view}
                 onClick={() => setActiveView(view)}
                 className={cn(
-                  "px-2 py-1 text-xs font-bold uppercase tracking-widest transition-all border-b-2 border-solid",
+                  "px-2 py-1 text-xs font-serif font-bold uppercase tracking-widest transition-all border-b-2 border-solid",
                   activeView === view
                     ? "text-foreground border-brand-primary border-dotted"
                     : "text-muted-foreground border-transparent hover:text-foreground hover:border-border"
