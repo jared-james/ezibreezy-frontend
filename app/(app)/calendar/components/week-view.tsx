@@ -12,20 +12,23 @@ import {
   getHours,
   getMinutes,
 } from "date-fns";
-import { Twitter, Instagram, Linkedin } from "lucide-react";
+import { Twitter, Instagram, Linkedin, Clock, Plus } from "lucide-react";
 import type { ScheduledPost } from "../types";
 import { cn } from "@/lib/utils";
-import Link from "next/link";
+import Link from "next/link"; // Remove Link import, use button instead
+import { Button } from "@/components/ui/button"; // NEW IMPORT
 
 interface WeekViewProps {
   currentDate: Date;
   posts: ScheduledPost[];
+  onEditPost: (post: ScheduledPost) => void; // NEW PROP
+  onNewPost: (date: Date) => void; // NEW PROP
 }
 
-const platformIcons = {
+const platformIcons: Record<string, React.ElementType> = {
   x: Twitter,
-  instagram: Instagram,
   linkedin: Linkedin,
+  instagram: Instagram,
 };
 
 // FIX: Pad the hour to ensure it's always two digits (e.g., '01:00')
@@ -34,7 +37,12 @@ const timeSlots = Array.from(
   (_, i) => `${String(i).padStart(2, "0")}:00`
 );
 
-export default function WeekView({ currentDate, posts }: WeekViewProps) {
+export default function WeekView({
+  currentDate,
+  posts,
+  onEditPost, // NEW PROP
+  onNewPost, // NEW PROP
+}: WeekViewProps) {
   const weekDays = useMemo(() => {
     const start = startOfWeek(currentDate, { weekStartsOn: 0 }); // Sunday
     const end = endOfWeek(currentDate, { weekStartsOn: 0 });
@@ -72,7 +80,7 @@ export default function WeekView({ currentDate, posts }: WeekViewProps) {
             >
               <div
                 className={cn(
-                  "flex h-20 flex-col items-center justify-center border-b border-[--border]",
+                  "flex h-20 flex-col items-center justify-center border-b border-[--border] relative group", // Added relative group
                   isToday && "bg-[--surface-hover]"
                 )}
               >
@@ -89,6 +97,15 @@ export default function WeekView({ currentDate, posts }: WeekViewProps) {
                 >
                   {format(day, "d")}
                 </span>
+                {/* NEW: Add a plus button for adding new posts to this day */}
+                <Button
+                  size="icon"
+                  variant="outline"
+                  onClick={() => onNewPost(day)}
+                  className="absolute top-1 right-1 h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
+                >
+                  <Plus className="h-4 w-4" />
+                </Button>
               </div>
               <div className="relative">
                 {timeSlots.map((_, timeIndex) => (
@@ -101,18 +118,28 @@ export default function WeekView({ currentDate, posts }: WeekViewProps) {
                   const postDate = new Date(post.scheduledAt);
                   const topPosition =
                     getHours(postDate) * 64 + (getMinutes(postDate) / 60) * 64;
-                  const Icon = platformIcons[post.platforms[0]];
+                  const Icon = platformIcons[post.platform] || Clock;
 
                   return (
-                    <Link
-                      href={`/editorial?draft=${post.id}`}
+                    // MODIFIED: Changed from Link to Button-like element
+                    <button
+                      type="button"
+                      onClick={() => onEditPost(post)} // Use onEditPost handler
                       key={post.id}
-                      className="absolute left-1 right-1 z-10 flex items-center gap-1.5 rounded bg-brand-primary p-1 text-xs text-brand-primary-foreground shadow-lg transition-all hover:ring-2 hover:ring-brand-primary-hover"
+                      className="absolute left-1 right-1 z-10 flex items-center gap-1.5 rounded bg-brand-primary/90 p-1 text-xs text-brand-primary-foreground shadow-sm transition-all hover:bg-brand-primary text-left cursor-pointer"
                       style={{ top: `${topPosition}px` }}
+                      title={`${format(postDate, "h:mm a")} - ${post.content}`}
                     >
                       <Icon className="h-3 w-3 shrink-0" />
-                      <span className="truncate font-serif">{post.title}</span>
-                    </Link>
+                      {/* NEW: Add the time for consistency */}
+                      <span className="font-serif font-bold text-[--brand-primary-foreground] opacity-70">
+                        {format(postDate, "h:mma")}
+                      </span>
+                      {/* MODIFIED: Use post.content */}
+                      <span className="truncate font-serif">
+                        {post.content}
+                      </span>
+                    </button>
                   );
                 })}
               </div>

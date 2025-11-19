@@ -11,7 +11,7 @@ import {
   getDay,
   format,
 } from "date-fns";
-import { Twitter, Instagram, Linkedin, Plus } from "lucide-react";
+import { Twitter, Instagram, Linkedin, Plus, Clock } from "lucide-react";
 import type { ScheduledPost } from "../types";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -21,12 +21,13 @@ interface MonthViewProps {
   posts: ScheduledPost[];
   onEditPost: (post: ScheduledPost) => void;
   onNewPost: (date: Date) => void;
+  onOpenDayView: (date: Date, posts: ScheduledPost[]) => void;
 }
 
-const platformIcons = {
+const platformIcons: Record<string, React.ElementType> = {
   x: Twitter,
-  instagram: Instagram,
   linkedin: Linkedin,
+  instagram: Instagram,
 };
 
 const VISIBLE_POST_LIMIT = 2;
@@ -36,6 +37,7 @@ export default function MonthView({
   posts,
   onEditPost,
   onNewPost,
+  onOpenDayView,
 }: MonthViewProps) {
   const monthDays = useMemo(() => {
     const start = startOfMonth(currentDate);
@@ -64,7 +66,8 @@ export default function MonthView({
         {Array.from({ length: startingDayOfWeek }).map((_, i) => (
           <div
             key={`empty-${i}`}
-            className="h-32 border-b border-r border-[--border] bg-[--background] p-2"
+            // MODIFIED: Increased height from h-32 to h-40
+            className="h-40 border-b border-r border-[--border] bg-[--background] p-2"
           />
         ))}
 
@@ -84,7 +87,8 @@ export default function MonthView({
           return (
             <div
               key={day.toString()}
-              className="group relative h-32 border-b border-r border-[--border] p-2 transition-colors hover:bg-[--surface-hover] overflow-y-auto"
+              // MODIFIED: Increased height from h-32 to h-40
+              className="group relative h-40 border-b border-r border-[--border] p-2 transition-colors hover:bg-[--surface-hover] overflow-y-auto"
             >
               <div className="flex justify-between items-start">
                 <div
@@ -110,7 +114,7 @@ export default function MonthView({
 
               <div className="mt-1 space-y-1">
                 {visiblePosts.map((post) => {
-                  const Icon = platformIcons[post.platforms[0]] || Twitter;
+                  const Icon = platformIcons[post.platform] || Clock;
                   return (
                     <button
                       type="button"
@@ -122,14 +126,16 @@ export default function MonthView({
                       <span className="font-serif font-bold text-[--muted-foreground]">
                         {format(new Date(post.scheduledAt), "h:mma")}
                       </span>
-                      <span className="truncate font-serif">{post.title}</span>
+                      <span className="truncate font-serif">
+                        {post.content}
+                      </span>
                     </button>
                   );
                 })}
                 {hiddenPostsCount > 0 && (
                   <button
                     type="button"
-                    // In a real app, this would open a day-specific view/modal
+                    onClick={() => onOpenDayView(day, postsForDay)}
                     className="w-full rounded bg-[--surface-hover] p-1 text-center font-serif text-xs font-bold text-[--muted-foreground] cursor-pointer"
                   >
                     + {hiddenPostsCount} more

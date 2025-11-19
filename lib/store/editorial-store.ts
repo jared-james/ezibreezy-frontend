@@ -5,14 +5,20 @@
 import { create } from "zustand";
 import type { SelectedAccounts, ThreadMessage } from "@/lib/types/editorial";
 import { type EditorialDraft } from "@/lib/types/editorial";
+import { FullPostDetails } from "@/lib/api/publishing";
+import { format } from "date-fns";
+
+// REMOVED: import { File } from 'buffer';
 
 export interface MediaItem {
-  file: File;
+  file: File | null;
   preview: string;
   id: string | null;
   isUploading: boolean;
   threadIndex: number | null;
 }
+
+// ... (rest of the file remains the same)
 
 export interface EditorialState {
   isScheduling: boolean;
@@ -36,6 +42,8 @@ export interface EditorialActions {
   setState: (updates: Partial<EditorialState>) => void;
   setThreadMessages: (messages: ThreadMessage[]) => void;
   initializeFromDraft: (draft: EditorialDraft) => void;
+  // NEW: Action to initialize the store from the full backend DTO
+  initializeFromFullPost: (fullPost: FullPostDetails) => void;
   reset: () => void;
   setDraft: (draft: EditorialDraft) => void;
 }
@@ -87,6 +95,93 @@ export const useEditorialStore = create<EditorialState & EditorialActions>(
         };
         set(updates);
       }
+    },
+
+    // NEW: Implementation for loading the full post data
+    initializeFromFullPost: (fullPost) => {
+      // 1. Rebuild MediaItems from the allMedia map
+      const newMediaItems: MediaItem[] = [];
+
+      const mediaMap = fullPost.allMedia || {};
+
+      // Main Post Media
+      fullPost.mediaIds.forEach((mediaId) => {
+        const mediaRecord = mediaMap[mediaId];
+        if (mediaRecord) {
+          newMediaItems.push({
+            id: mediaId,
+            file: null, // File is not fetched from DB, leave null
+            preview: mediaRecord.url, // Use the stored URL as a 'preview'
+            isUploading: false,
+            threadIndex: null,
+          });
+        }
+      });
+
+      // Thread Messages and their Media
+      const threadMessages: ThreadMessage[] = fullPost.threadMessages.map(
+        (msg, index) => {
+          // Add thread media to the list
+          msg.mediaIds.forEach((mediaId) => {
+            const mediaRecord = mediaMap[mediaId];
+            if (mediaRecord) {
+              newMediaItems.push({
+                id: mediaId,
+                file: null,
+                preview: mediaRecord.url,
+                isUploading: false,
+                threadIndex: index,
+              });
+            }
+          });
+          return {
+            content: msg.content,
+            mediaIds: msg.mediaIds,
+          };
+        }
+      );
+
+      // 2. Rebuild selectedAccounts (single integration on the post)
+      const selectedAccounts: SelectedAccounts = {
+        [fullPost.integration.platform]: [fullPost.integrationId],
+      };
+
+      // 3. Rebuild settings (labels, collaborators, location, etc.)
+      const settings = fullPost.settings || {};
+
+      // 4. Update the state
+      const updates: Partial<EditorialState> = {
+        mainCaption: fullPost.content,
+        // Since it's an edit flow, we use the main caption for all by default for simplicity
+        platformCaptions:
+          fullPost.integration.platform === "x"
+            ? {}
+            : { [fullPost.integration.platform]: fullPost.content },
+
+        selectedAccounts,
+        mediaItems: newMediaItems,
+        threadMessages,
+
+        // Settings/Distribution
+        labels: settings.labels || "",
+        collaborators: settings.collaborators || "",
+        location: settings.location || "",
+        recycleInterval: fullPost.recycleInterval || null,
+        aiGenerated: settings.aiGenerated || false,
+
+        // Schedule
+        isScheduling: fullPost.status === "scheduled",
+        scheduleDate: fullPost.scheduledAt
+          ? format(new Date(fullPost.scheduledAt), "yyyy-MM-dd")
+          : getTodayString(),
+        scheduleTime: fullPost.scheduledAt
+          ? format(new Date(fullPost.scheduledAt), "HH:mm")
+          : "12:00",
+
+        isInitialized: true,
+      };
+
+      set(updates);
     },
 
     reset: () => set({ ...initialState, draft: null, isInitialized: false }),

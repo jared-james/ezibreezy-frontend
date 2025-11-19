@@ -1,97 +1,150 @@
 // app/(app)/calendar/page.tsx
 "use client";
 
-import { useState, useMemo } from "react";
-import { ChevronLeft, ChevronRight, Plus } from "lucide-react";
-import { addDays, subDays, format } from "date-fns";
+import { useState, useMemo, useEffect } from "react"; // ADDED useEffect
+import { ChevronLeft, ChevronRight, Plus, Loader2 } from "lucide-react";
+import { addDays, format } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import MonthView from "./components/month-view";
 import WeekView from "./components/week-view";
 import ListView from "./components/list-view";
 import EditorialModal from "./components/editorial-modal";
+import DayViewModal from "./components/day-view-modal";
+import { useEditorialStore } from "@/lib/store/editorial-store"; // IMPORTED
 import type { EditorialState } from "@/lib/store/editorial-store";
 import { ScheduledPost } from "./types";
-
-// --- PLACEHOLDER DATA ---
-const placeholderPosts: ScheduledPost[] = [
-  {
-    id: "post-1",
-    title: "The future of AI in marketing strategies",
-    scheduledAt: new Date().toISOString(),
-    platforms: ["x", "linkedin"],
-  },
-  {
-    id: "post-2",
-    title: "New feature launch: The Editorial Desk",
-    scheduledAt: addDays(new Date(), 2).toISOString(),
-    platforms: ["instagram"],
-  },
-  {
-    id: "post-3",
-    title: "Weekly thoughts on building in public",
-    scheduledAt: subDays(new Date(), 5).toISOString(),
-    platforms: ["x"],
-  },
-];
-// -----------------------
+import { useQuery, useQueryClient } from "@tanstack/react-query"; // IMPORTED useQueryClient
+import {
+  getScheduledPosts,
+  getPostDetails,
+  FullPostDetails,
+} from "@/lib/api/publishing"; // IMPORTED getPostDetails, FullPostDetails
+import { toast } from "sonner";
 
 type CalendarView = "Month" | "Week" | "List";
 
 export default function CalendarPage() {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [activeView, setActiveView] = useState<CalendarView>("Month");
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isEditorialModalOpen, setIsEditorialModalOpen] = useState(false);
+  const [isDayViewModalOpen, setIsDayViewModalOpen] = useState(false);
+  const [selectedDayPosts, setSelectedDayPosts] = useState<ScheduledPost[]>([]);
+  const [selectedDay, setSelectedDay] = useState<Date | null>(null);
+
+  const initializeFromFullPost = useEditorialStore(
+    (state) => state.initializeFromFullPost
+  ); // NEW ACTION
+  const [postIdToEdit, setPostIdToEdit] = useState<string | null>(null); // NEW STATE
+
   const [modalContent, setModalContent] = useState<{
     type: "edit" | "new";
     data: ScheduledPost | Date;
   } | null>(null);
 
+  // Query to fetch the list of scheduled/sent posts
+  const {
+    data: scheduledPosts = [],
+    isLoading: isLoadingList,
+    isError: isErrorList,
+    error: errorList,
+    refetch,
+  } = useQuery<ScheduledPost[]>({
+    queryKey: ["scheduledPosts"],
+    queryFn: getScheduledPosts,
+    staleTime: 60000,
+  });
+
+  // Query to fetch a SINGLE full post for editing (Conditional Fetch)
+  const {
+    data: fullPostData,
+    isLoading: isLoadingFullPost,
+    isError: isErrorFullPost,
+    error: errorFullPost,
+    isFetching: isFetchingFullPost,
+  } = useQuery<FullPostDetails>({
+    queryKey: ["fullPostDetails", postIdToEdit],
+    queryFn: () => getPostDetails(postIdToEdit!),
+    enabled: !!postIdToEdit, // Only run when a post ID is set
+    staleTime: Infinity,
+  });
+
+  // Effect to handle opening the modal once full data is fetched
+  useEffect(() => {
+    if (fullPostData && !isFetchingFullPost) {
+      // Initialize the store with the full, rich data
+      initializeFromFullPost(fullPostData);
+      // Open the modal now that the store is populated
+      setIsEditorialModalOpen(true);
+      // Clear the ID so it doesn't try to refetch
+      setPostIdToEdit(null);
+    }
+
+    if (isErrorFullPost) {
+      toast.error(`Failed to load post for editing: ${errorFullPost.message}`);
+      setPostIdToEdit(null);
+    }
+    // Only depend on fullPostData and isFetchingFullPost to trigger modal open
+  }, [
+    fullPostData,
+    isFetchingFullPost,
+    initializeFromFullPost,
+    isErrorFullPost,
+    errorFullPost,
+  ]);
+
+  // Handler for opening the day view modal from MonthView
+  const handleOpenDayView = (date: Date, posts: ScheduledPost[]) => {
+    setSelectedDay(date);
+    setSelectedDayPosts(posts);
+    setIsDayViewModalOpen(true);
+  };
+
+  const handleCloseDayView = () => {
+    setIsDayViewModalOpen(false);
+    setSelectedDay(null);
+    setSelectedDayPosts([]);
+    refetch();
+  };
+
+  // MODIFIED: This now only sets the ID and triggers the fetch
   const handleEditPost = (post: ScheduledPost) => {
-    setModalContent({ type: "edit", data: post });
-    setIsModalOpen(true);
+    // If the post is already sent, it cannot be edited (only cloned)
+    if (post.status === "sent") {
+      toast.info(
+        "Sent posts cannot be edited. A copy will be created for scheduling."
+      );
+      // Fall through to edit flow, letting the user modify the content
+    }
+
+    // Set the ID to trigger the fetching query
+    setPostIdToEdit(post.id);
+    // Close day view immediately so the backdrop is available for the editorial modal
+    setIsDayViewModalOpen(false);
   };
 
   const handleNewPost = (date: Date) => {
     setModalContent({ type: "new", data: date });
-    setIsModalOpen(true);
+    setIsEditorialModalOpen(true);
+    setIsDayViewModalOpen(false);
   };
 
-  const handleCloseModal = () => {
-    setIsModalOpen(false);
+  const handleCloseEditorialModal = () => {
+    setIsEditorialModalOpen(false);
+    // Note: We no longer rely on modalContent for initialDraft, so clearing it is fine
     setModalContent(null);
-    // Here you would also trigger a refetch of the calendar data
+    refetch();
   };
 
-  const { modalTitle, initialDraft } = useMemo(() => {
-    if (!modalContent) return { modalTitle: "Create Post", initialDraft: {} };
+  // Memo for Modal Title (now only handles 'new' or loading state)
+  const modalTitle = useMemo(() => {
+    if (isLoadingFullPost || isFetchingFullPost) return "Loading Post...";
+    if (fullPostData) return `Edit Scheduled Post`;
+    return "Create New Post";
+  }, [isLoadingFullPost, isFetchingFullPost, fullPostData]);
 
-    if (modalContent.type === "edit") {
-      const post = modalContent.data as ScheduledPost;
-      const postDate = new Date(post.scheduledAt);
-      return {
-        modalTitle: "Edit Scheduled Post",
-        initialDraft: {
-          mainCaption: post.title, // Assuming title maps to mainCaption for now
-          isScheduling: true,
-          scheduleDate: format(postDate, "yyyy-MM-dd"),
-          scheduleTime: format(postDate, "HH:mm"),
-          // In a real app, you would fetch the full post data here
-        } as Partial<EditorialState>,
-      };
-    } else {
-      // 'new'
-      const date = modalContent.data as Date;
-      return {
-        modalTitle: "Create New Post",
-        initialDraft: {
-          isScheduling: true,
-          scheduleDate: format(date, "yyyy-MM-dd"),
-          scheduleTime: "12:00",
-        } as Partial<EditorialState>,
-      };
-    }
-  }, [modalContent]);
+  // Pass an empty draft since the store is now populated by initializeFromFullPost
+  const initialDraft = useMemo(() => ({} as Partial<EditorialState>), []);
 
   const navigateDate = (direction: "prev" | "next") => {
     const amount = direction === "next" ? 1 : -1;
@@ -113,9 +166,29 @@ export default function CalendarPage() {
     return `Week of ${format(currentDate, "MMM d")}`;
   };
 
+  if (isLoadingList || isLoadingFullPost) {
+    // Check both loading states
+    return (
+      <div className="flex h-full w-full items-center justify-center p-8">
+        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+      </div>
+    );
+  }
+
+  if (isErrorList) {
+    toast.error(`Error loading schedule: ${errorList.message}`);
+    return (
+      <div className="flex h-full w-full items-center justify-center p-8">
+        <p className="font-serif text-error">
+          Error loading scheduled posts. Please check your connections.
+        </p>
+      </div>
+    );
+  }
+
   return (
     <>
-      <div className="mx-auto flex h-full w-full max-w-7xl flex-col p-4 md:p-6">
+      <div className="flex h-full w-full flex-col p-4 md:p-6">
         <div className="mb-8 border-b-4 border-double border-[--foreground] pb-6">
           <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
             <div>
@@ -178,23 +251,38 @@ export default function CalendarPage() {
           {activeView === "Month" && (
             <MonthView
               currentDate={currentDate}
-              posts={placeholderPosts}
+              posts={scheduledPosts}
+              onEditPost={handleEditPost}
+              onNewPost={handleNewPost}
+              onOpenDayView={handleOpenDayView}
+            />
+          )}
+          {activeView === "Week" && (
+            <WeekView
+              currentDate={currentDate}
+              posts={scheduledPosts}
               onEditPost={handleEditPost}
               onNewPost={handleNewPost}
             />
           )}
-          {activeView === "Week" && (
-            <WeekView currentDate={currentDate} posts={placeholderPosts} />
-          )}
-          {activeView === "List" && <ListView posts={placeholderPosts} />}
+          {activeView === "List" && <ListView posts={scheduledPosts} />}
         </div>
       </div>
 
       <EditorialModal
-        isOpen={isModalOpen}
-        onClose={handleCloseModal}
+        isOpen={isEditorialModalOpen}
+        onClose={handleCloseEditorialModal}
         title={modalTitle}
         initialDraft={initialDraft}
+      />
+
+      <DayViewModal
+        isOpen={isDayViewModalOpen}
+        onClose={handleCloseDayView}
+        date={selectedDay}
+        posts={scheduledPosts}
+        onEditPost={handleEditPost}
+        onNewPost={handleNewPost}
       />
     </>
   );
