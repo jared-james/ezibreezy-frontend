@@ -3,6 +3,7 @@
 import { Heart, MessageCircle, Send, Bookmark, ImageIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import Image from "next/image";
+import { renderCaptionWithHashtags } from "./render-caption";
 
 interface InstagramPreviewProps {
   caption: string;
@@ -118,7 +119,7 @@ export default function InstagramPreview({
 
         <div className="text-sm">
           <span className="font-semibold mr-1">{primaryName}</span>
-          <span className="whitespace-pre-wrap">{caption}</span>
+          <span className="whitespace-pre-wrap">{renderCaptionWithHashtags(caption)}</span>
         </div>
 
         {collaborators && (

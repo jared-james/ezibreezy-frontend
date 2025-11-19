@@ -13,12 +13,12 @@ export default function EditorialPage() {
   );
   const setState = useEditorialStore((state) => state.setState);
 
-  // useEffect(() => {
-  //   if (draft) {
-  //     initializeFromDraft(draft);
-  //     setState({ draft: null });
-  //   }
-  // }, [draft, initializeFromDraft, setState]);
+  useEffect(() => {
+    if (draft) {
+      initializeFromDraft(draft);
+      setState({ draft: null });
+    }
+  }, [draft, initializeFromDraft, setState]);
 
   return (
     <div className="mx-auto flex h-full w-full max-w-7xl flex-col p-4 md:p-6">

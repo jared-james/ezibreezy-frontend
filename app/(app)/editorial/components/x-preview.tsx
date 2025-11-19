@@ -3,6 +3,7 @@
 import { MessageSquare, Repeat2, ImageIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { ThreadMessageAugmented } from "@/lib/types/editorial";
+import { renderCaptionWithHashtags } from "./render-caption";
 
 interface XPreviewProps {
   caption: string;
@@ -144,7 +145,7 @@ export default function XPreview({
             </div>
 
             <p className="mt-1 whitespace-pre-wrap wrap-break-word text-[0.95rem] leading-normal text-foreground">
-              {caption}
+              {renderCaptionWithHashtags(caption)}
             </p>
 
             {mainPostImages.length > 0 ? (
@@ -211,7 +212,7 @@ export default function XPreview({
                 </div>
 
                 <p className="mt-1 whitespace-pre-wrap wrap-break-word text-[0.95rem] leading-normal text-foreground">
-                  {message.content}
+                  {renderCaptionWithHashtags(message.content)}
                 </p>
 
                 {(message.mediaPreviews?.length || 0) > 0 && (
