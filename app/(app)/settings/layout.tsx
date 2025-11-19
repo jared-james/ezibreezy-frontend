@@ -23,7 +23,7 @@ export default function SettingsLayout({
   const pathname = usePathname();
 
   return (
-    <div className="h-full flex flex-col w-full max-w-7xl mx-auto p-4 md:p-6">
+    <div className="h-full flex flex-col w-full max-w-7xl mx-auto">
       {/* Header */}
       <div className="mb-8 border-b-4 border-double border-[--foreground] pb-6">
         <p className="eyebrow mb-2">Administration</p>

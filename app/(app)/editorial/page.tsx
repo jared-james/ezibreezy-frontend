@@ -28,7 +28,7 @@ export default function EditorialPage() {
   }, [draft, initializeFromDraft, setState, reset]);
 
   return (
-    <div className="mx-auto flex h-full w-full max-w-7xl flex-col p-4 md:p-6">
+    <div className="mx-auto flex h-full w-full max-w-7xl flex-col">
       <div className="mb-8 border-b-4 border-[--foreground] border-double pb-6">
         <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
           <div>

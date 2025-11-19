@@ -33,7 +33,7 @@ export default function IdeasPage() {
   const [showDevModal, setShowDevModal] = useState(false);
 
   return (
-    <div className="mx-auto flex h-full w-full max-w-7xl flex-col p-4 md:p-6">
+    <div className="mx-auto flex h-full w-full max-w-7xl flex-col">
       <PageHeading />
 
       <div className="mb-4 flex justify-end">
