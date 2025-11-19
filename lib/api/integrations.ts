@@ -5,6 +5,7 @@ export interface Connection {
   id: string;
   platform: "x" | "linkedin" | "youtube" | "instagram";
   platformUsername: string;
+  name: string | null;
   avatarUrl: string | null;
   platformUserId: string;
 }

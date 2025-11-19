@@ -1,5 +1,3 @@
-// app/(app)/editorial/page.tsx
-
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
@@ -15,13 +13,13 @@ import {
   Instagram,
 } from "lucide-react";
 import { useEditorialStore } from "@/lib/store/editorial-store";
-import PostTypeSelector from "../ideas/components/edit-modal/post-type-selector";
 import ChannelSelector, {
   type Platform,
 } from "../ideas/components/edit-modal/channel-selector";
 import CaptionEditor from "../ideas/components/edit-modal/caption-editor";
-import MediaPanel from "../ideas/components/edit-modal/media-panel";
 import DistributionPanel from "../ideas/components/edit-modal/distribution-panel";
+import PreviewPanel from "../editorial/components/preview-panel";
+import MediaUpload from "../editorial/components/media-upload";
 import { getConnections, Connection } from "@/lib/api/integrations";
 import { createPost, CreatePostPayload } from "@/lib/api/publishing";
 import { uploadMedia } from "@/lib/api/media";
@@ -39,17 +37,21 @@ const platformDefinitions = {
 type SelectedAccounts = Record<string, string[]>;
 const getTodayString = () => new Date().toISOString().split("T")[0];
 
+interface MediaItem {
+  file: File;
+  preview: string;
+  id: string | null;
+  isUploading: boolean;
+}
+
 const initialState = {
-  postType: "text" as "text" | "image" | "video",
   isScheduling: false,
   scheduleDate: getTodayString(),
   scheduleTime: "12:00",
   selectedAccounts: {} as SelectedAccounts,
   mainCaption: "",
   platformCaptions: {} as Record<string, string>,
-  mediaFile: null as File | null,
-  mediaPreview: null as string | null,
-  uploadedMediaId: null as string | null,
+  mediaItems: [] as MediaItem[],
   labels: "",
   hashtags: "",
   firstComment: "",
@@ -60,22 +62,26 @@ const initialState = {
 export default function EditorialPage() {
   const [state, setState] = useState(initialState);
   const {
-    postType,
     isScheduling,
     scheduleDate,
     scheduleTime,
     selectedAccounts,
     mainCaption,
     platformCaptions,
-    mediaFile,
-    mediaPreview,
-    uploadedMediaId,
+    mediaItems,
     labels,
     hashtags,
     firstComment,
     collaborators,
     location,
   } = state;
+
+  const postType: "text" | "image" | "video" = useMemo(() => {
+    if (mediaItems.length === 0) return "text";
+    if (mediaItems.some((m) => m.file.type.startsWith("video/")))
+      return "video";
+    return "image";
+  }, [mediaItems]);
 
   const updateState = (updates: Partial<typeof initialState>) => {
     setState((prevState) => ({ ...prevState, ...updates }));
@@ -133,15 +139,53 @@ export default function EditorialPage() {
     [selectedAccounts]
   );
 
+  // --- NEW LOGIC STARTS HERE ---
+  const handleMainCaptionChange = (newCaption: string) => {
+    const oldMainCaption = state.mainCaption;
+
+    // Copy existing platform captions
+    const updatedPlatformCaptions = { ...state.platformCaptions };
+
+    // Iterate over currently selected platforms
+    Object.keys(state.selectedAccounts).forEach((platformId) => {
+      const currentPlatformCaption = updatedPlatformCaptions[platformId];
+
+      // Logic:
+      // 1. If platform caption is empty/undefined -> Update it
+      // 2. If platform caption matches the OLD main caption (meaning they were synced) -> Update it
+      // 3. Otherwise (user customized it), leave it alone.
+      if (
+        !currentPlatformCaption ||
+        currentPlatformCaption === oldMainCaption
+      ) {
+        updatedPlatformCaptions[platformId] = newCaption;
+      }
+    });
+
+    updateState({
+      mainCaption: newCaption,
+      platformCaptions: updatedPlatformCaptions,
+    });
+  };
+  // --- NEW LOGIC ENDS HERE ---
+
   useEffect(() => {
     if (draft) {
+      const recoveredMediaItems: MediaItem[] = [];
+      if (draft.media?.file && draft.media?.preview) {
+        recoveredMediaItems.push({
+          file: draft.media.file,
+          preview: draft.media.preview,
+          id: null,
+          isUploading: false,
+        });
+      }
+
       updateState({
-        postType: draft.postType,
         mainCaption: draft.mainCaption,
         platformCaptions: draft.platformCaptions,
         selectedAccounts: draft.selectedAccounts,
-        mediaFile: draft.media?.file || null,
-        mediaPreview: draft.media?.preview || null,
+        mediaItems: recoveredMediaItems,
         labels: draft.distribution?.labels || "",
         hashtags: draft.distribution?.hashtags || "",
         firstComment: draft.distribution?.firstComment || "",
@@ -158,17 +202,24 @@ export default function EditorialPage() {
   const uploadMediaMutation = useMutation({
     mutationFn: (variables: { file: File; integrationId: string }) =>
       uploadMedia(variables.file, variables.integrationId),
-    onSuccess: (data) => {
-      toast.success("Image uploaded successfully!");
-      updateState({ uploadedMediaId: data.mediaId });
+    onSuccess: (data, variables) => {
+      setState((prev) => ({
+        ...prev,
+        mediaItems: prev.mediaItems.map((item) =>
+          item.file === variables.file
+            ? { ...item, id: data.mediaId, isUploading: false }
+            : item
+        ),
+      }));
     },
-    onError: (error) => {
-      toast.error(`Image upload failed: ${error.message}`);
-      updateState({
-        mediaFile: null,
-        mediaPreview: null,
-        uploadedMediaId: null,
-      });
+    onError: (error, variables) => {
+      toast.error(`Upload failed for ${variables.file.name}: ${error.message}`);
+      setState((prev) => ({
+        ...prev,
+        mediaItems: prev.mediaItems.filter(
+          (item) => item.file !== variables.file
+        ),
+      }));
     },
   });
 
@@ -179,6 +230,38 @@ export default function EditorialPage() {
     },
   });
 
+  const handleMediaChange = (files: File[], previews: string[]) => {
+    const xIntegrationId = selectedAccounts["x"]?.[0];
+
+    if (files.length > 0 && !xIntegrationId) {
+      toast.error("Please select a Twitter/X account before uploading.");
+      return;
+    }
+
+    const newMediaItems: MediaItem[] = files.map((file, index) => {
+      const existing = mediaItems.find((m) => m.file === file);
+      if (existing) return existing;
+
+      return {
+        file,
+        preview: previews[index],
+        id: null,
+        isUploading: true,
+      };
+    });
+
+    updateState({ mediaItems: newMediaItems });
+
+    newMediaItems.forEach((item) => {
+      if (!item.id && item.isUploading && xIntegrationId) {
+        uploadMediaMutation.mutate({
+          file: item.file,
+          integrationId: xIntegrationId,
+        });
+      }
+    });
+  };
+
   const handlePublish = async () => {
     if (!user) return toast.error("You must be logged in to post.");
 
@@ -186,10 +269,17 @@ export default function EditorialPage() {
     if (integrationsToPost.length === 0)
       return toast.error("Please select at least one account.");
 
-    if ((postType === "image" || postType === "video") && !uploadedMediaId) {
-      return toast.error(
-        "Please wait for the media to finish uploading before publishing."
-      );
+    if (mediaItems.some((m) => m.isUploading)) {
+      return toast.error("Please wait for media to finish uploading.");
+    }
+
+    const uploadedIds = mediaItems.map((m) => m.id).filter(Boolean) as string[];
+
+    if (
+      (postType === "image" || postType === "video") &&
+      uploadedIds.length === 0
+    ) {
+      return toast.error("Media failed to upload properly.");
     }
 
     let scheduledAt: string | undefined = undefined;
@@ -219,7 +309,7 @@ export default function EditorialPage() {
             content: platformCaptions[platformId] || mainCaption,
             settings,
             scheduledAt,
-            mediaIds: uploadedMediaId ? [uploadedMediaId] : undefined,
+            mediaIds: uploadedIds.length > 0 ? uploadedIds : undefined,
           };
           return postMutation.mutateAsync(payload);
         })
@@ -252,6 +342,7 @@ export default function EditorialPage() {
       delete newCaptions[platformId];
     } else {
       newSelected[platformId] = [platform.accounts[0].id];
+      // Initialize with current main caption so it starts synced
       newCaptions[platformId] = mainCaption;
     }
     updateState({
@@ -274,6 +365,10 @@ export default function EditorialPage() {
     }
     updateState({ selectedAccounts: newSelected });
   };
+
+  const currentFiles = mediaItems.map((m) => m.file);
+  const currentPreviews = mediaItems.map((m) => m.preview);
+  const isGlobalUploading = mediaItems.some((m) => m.isUploading);
 
   return (
     <>
@@ -299,11 +394,6 @@ export default function EditorialPage() {
             </div>
 
             <div className="space-y-6">
-              <PostTypeSelector
-                postType={postType}
-                onPostTypeChange={(type) => updateState({ postType: type })}
-              />
-
               <ChannelSelector
                 platforms={availablePlatforms}
                 activePlatforms={activePlatforms}
@@ -312,9 +402,8 @@ export default function EditorialPage() {
 
               <CaptionEditor
                 mainCaption={mainCaption}
-                onMainCaptionChange={(caption) =>
-                  updateState({ mainCaption: caption })
-                }
+                // CHANGED: Passing the new smart handler
+                onMainCaptionChange={handleMainCaptionChange}
                 platformCaptions={platformCaptions}
                 onPlatformCaptionChange={(platformId, caption) =>
                   updateState({
@@ -328,37 +417,31 @@ export default function EditorialPage() {
                 platforms={availablePlatforms}
                 onAccountSelect={handleAccountSelect}
                 postType={postType}
+                mediaUploadSlot={
+                  <MediaUpload
+                    mediaFiles={currentFiles}
+                    mediaPreviews={currentPreviews}
+                    isUploading={isGlobalUploading}
+                    onMediaChange={handleMediaChange}
+                  />
+                }
               />
             </div>
           </div>
 
           <div className="lg:col-span-5 space-y-6">
-            <MediaPanel
+            <PreviewPanel
               postType={postType}
-              mediaFile={mediaFile}
-              mediaPreview={mediaPreview}
-              isUploading={uploadMediaMutation.isPending}
-              onMediaChange={(file, preview) => {
-                updateState({ mediaFile: file, mediaPreview: preview });
-                if (file) {
-                  const xIntegrationId = selectedAccounts["x"]?.[0];
-                  if (!xIntegrationId) {
-                    toast.error(
-                      "Please select a Twitter/X account before uploading an image."
-                    );
-                    updateState({ mediaFile: null, mediaPreview: null });
-                    return;
-                  }
-                  uploadMediaMutation.mutate({
-                    file,
-                    integrationId: xIntegrationId,
-                  });
-                } else {
-                  updateState({ uploadedMediaId: null });
-                }
-              }}
+              selectedAccounts={selectedAccounts}
+              mainCaption={mainCaption}
+              platformCaptions={platformCaptions}
+              mediaPreview={currentPreviews}
+              firstComment={firstComment}
+              collaborators={collaborators}
+              location={location}
             />
 
+            {/* ... rest of component remains the same ... */}
             <DistributionPanel
               labels={labels}
               hashtags={hashtags}
@@ -448,9 +531,7 @@ export default function EditorialPage() {
                 <div className="pt-4 border-t border-dashed border-[--border]">
                   <button
                     onClick={handlePublish}
-                    disabled={
-                      postMutation.isPending || uploadMediaMutation.isPending
-                    }
+                    disabled={postMutation.isPending || isGlobalUploading}
                     className="w-full py-3 px-4 bg-[--foreground] text-[--background] font-serif font-bold uppercase tracking-wider text-xs flex items-center justify-center gap-2 hover:opacity-80 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     {postMutation.isPending ? (

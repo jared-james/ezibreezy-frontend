@@ -2,9 +2,10 @@
 
 "use client";
 
-import { Smile } from "lucide-react";
+import { Smile, Twitter, Instagram } from "lucide-react";
 import type { Platform } from "./channel-selector";
 import { Textarea } from "@/components/ui/textarea";
+import { cn } from "@/lib/utils";
 
 type SelectedAccounts = Record<string, string[]>;
 
@@ -17,7 +18,19 @@ interface CaptionEditorProps {
   platforms: Platform[];
   onAccountSelect: (platformId: string, accountId: string) => void;
   postType: "text" | "image" | "video";
+  mediaUploadSlot?: React.ReactNode;
 }
+
+const PlatformIcon = ({ platformId }: { platformId: string }) => {
+  const Icon =
+    platformId === "x"
+      ? Twitter
+      : platformId === "instagram"
+      ? Instagram
+      : null;
+  if (!Icon) return null;
+  return <Icon className="w-4 h-4 text-brand-primary" />;
+};
 
 export default function CaptionEditor({
   mainCaption,
@@ -28,6 +41,7 @@ export default function CaptionEditor({
   platforms,
   onAccountSelect,
   postType,
+  mediaUploadSlot,
 }: CaptionEditorProps) {
   const mainPlaceholder =
     postType === "video"
@@ -38,6 +52,8 @@ export default function CaptionEditor({
 
   return (
     <>
+      {mediaUploadSlot && <div className="mb-6">{mediaUploadSlot}</div>}
+
       <div>
         <label
           htmlFor="caption"
@@ -69,6 +85,7 @@ export default function CaptionEditor({
               className="eyebrow mb-2 flex items-center gap-3"
             >
               <span className="flex items-center gap-2">
+                <PlatformIcon platformId={platformId} />
                 {platform.name} Caption
                 {platform.accounts.length > 0 && (
                   <span className="ml-2 flex items-center gap-1.5">
@@ -82,11 +99,12 @@ export default function CaptionEditor({
                           key={acc.id}
                           type="button"
                           onClick={() => onAccountSelect(platformId, acc.id)}
-                          className={`h-6 w-6 rounded-full border-2 transition-all ${
+                          className={cn(
+                            "h-6 w-6 rounded-full border-2 transition-all",
                             isSelected
                               ? "border-primary bg-primary"
                               : "border-border bg-white hover:border-primary/50"
-                          }`}
+                          )}
                           title={acc.name}
                         >
                           <span className="sr-only">{acc.name}</span>

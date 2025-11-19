@@ -2,7 +2,7 @@
 
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
   Twitter,
@@ -22,6 +22,9 @@ import ChannelSelector, { type Platform } from "./edit-modal/channel-selector";
 import CaptionEditor from "./edit-modal/caption-editor";
 import MediaPanel from "./edit-modal/media-panel";
 import DistributionPanel from "./edit-modal/distribution-panel";
+import { Connection, getConnections } from "@/lib/api/integrations";
+import { useQuery } from "@tanstack/react-query";
+// app/(app)/ideas/components/edit-clipping-modal.tsx
 
 interface EditClippingModalProps {
   isOpen: boolean;
@@ -29,26 +32,12 @@ interface EditClippingModalProps {
   idea: Clipping | GeneratedClipping;
 }
 
-const platforms: Platform[] = [
-  {
-    id: "x",
-    name: "Twitter/X",
-    icon: Twitter,
-    accounts: [
-      { id: "tw1", name: "@thebreezyco", img: "/placeholder-pfp.png" },
-      { id: "tw2", name: "@personal", img: "/placeholder-pfp.png" },
-      { id: "tw3", name: "@sidehustle", img: "/placeholder-pfp.png" },
-    ],
-  },
-  {
-    id: "instagram",
-    name: "Instagram",
-    icon: Instagram,
-    accounts: [
-      { id: "ig1", name: "breezy_times", img: "/placeholder-pfp.png" },
-    ],
-  },
-];
+const platformDefinitions = {
+  x: { name: "Twitter/X", icon: Twitter },
+  linkedin: { name: "LinkedIn", icon: Linkedin },
+  youtube: { name: "YouTube", icon: Youtube },
+  instagram: { name: "Instagram", icon: Instagram },
+};
 
 type SelectedAccounts = Record<string, string[]>;
 
@@ -57,17 +46,53 @@ export default function EditClippingModal({
   onClose,
   idea,
 }: EditClippingModalProps) {
-  const [postType, setPostType] = useState<"text" | "image" | "video">("text");
-  const [selectedAccounts, setSelectedAccounts] = useState<SelectedAccounts>({
-    twitter: ["tw1"],
+  const { data: connections = [] } = useQuery({
+    queryKey: ["connections"],
+    queryFn: getConnections,
   });
+
+  const availablePlatforms = useMemo((): Platform[] => {
+    if (!connections) return [];
+    const connectionsByPlatform = connections.reduce((acc, conn) => {
+      acc[conn.platform] = acc[conn.platform] || [];
+      acc[conn.platform].push(conn);
+      return acc;
+    }, {} as Record<string, Connection[]>);
+
+    return Object.keys(platformDefinitions)
+      .map((platformId) => {
+        const def =
+          platformDefinitions[platformId as keyof typeof platformDefinitions];
+        const accounts =
+          connectionsByPlatform[platformId]?.map((conn) => ({
+            id: conn.id,
+            name: `@${conn.platformUsername}`,
+            img: conn.avatarUrl || "/placeholder-pfp.png",
+          })) || [];
+        return { ...def, id: platformId, accounts };
+      })
+      .filter((platform) => platform.accounts.length > 0);
+  }, [connections]);
+
+  const initialPlatform = availablePlatforms.find((p) => p.accounts.length > 0);
+
+  const [postType, setPostType] = useState<"text" | "image" | "video">("text");
+
+  const [selectedAccounts, setSelectedAccounts] = useState<SelectedAccounts>(
+    initialPlatform
+      ? { [initialPlatform.id]: [initialPlatform.accounts[0].id] }
+      : {}
+  );
+
   const [mainCaption, setMainCaption] = useState(idea.body);
   const [platformCaptions, setPlatformCaptions] = useState<
     Record<string, string>
   >({});
+
   const [activePlatforms, setActivePlatforms] = useState<Set<string>>(
-    new Set(["twitter"])
+    new Set(initialPlatform ? [initialPlatform.id] : [])
   );
+
   const [mediaFile, setMediaFile] = useState<File | null>(null);
   const [mediaPreview, setMediaPreview] = useState<string | null>(null);
   const [labels, setLabels] = useState("");
@@ -139,8 +164,8 @@ export default function EditClippingModal({
         return rest;
       });
     } else {
-      const platform = platforms.find((p) => p.id === platformId);
-      if (!platform) return;
+      const platform = availablePlatforms.find((p) => p.id === platformId);
+      if (!platform || platform.accounts.length === 0) return;
 
       setActivePlatforms((prev) => new Set(prev).add(platformId));
 
@@ -209,9 +234,16 @@ export default function EditClippingModal({
                   />
 
                   <ChannelSelector
-                    platforms={platforms}
+                    platforms={availablePlatforms}
                     activePlatforms={activePlatforms}
                     onTogglePlatform={togglePlatform}
+                  />
+
+                  <MediaPanel
+                    postType={postType}
+                    mediaFile={mediaFile}
+                    mediaPreview={mediaPreview}
+                    onMediaChange={handleMediaChange}
                   />
 
                   <CaptionEditor
@@ -225,20 +257,14 @@ export default function EditClippingModal({
                       }))
                     }
                     selectedAccounts={selectedAccounts}
-                    platforms={platforms}
+                    platforms={availablePlatforms}
                     onAccountSelect={handleAccountSelect}
                     postType={postType}
                   />
                 </div>
               </div>
 
-              <div className="lg:col-span-5 space-y-6">
-                <MediaPanel
-                  postType={postType}
-                  mediaFile={mediaFile}
-                  mediaPreview={mediaPreview}
-                  onMediaChange={handleMediaChange}
-                />
+              <div className="lg:col-span-5 space-y-6 flex flex-col">
                 <DistributionPanel
                   onOpenInEditorial={handleOpenInEditorial}
                   onSaveClipping={handleSaveClipping}
