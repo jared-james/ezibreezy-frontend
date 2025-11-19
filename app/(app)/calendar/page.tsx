@@ -1,4 +1,5 @@
 // app/(app)/calendar/page.tsx
+
 "use client";
 
 import { useState, useMemo, useEffect } from "react";
@@ -42,7 +43,6 @@ export default function CalendarPage() {
     data: ScheduledPost | Date;
   } | null>(null);
 
-  // Query to fetch the list of scheduled/sent posts
   const {
     data: scheduledPosts = [],
     isLoading: isLoadingList,
@@ -55,7 +55,6 @@ export default function CalendarPage() {
     staleTime: 60000,
   });
 
-  // Query to fetch a SINGLE full post for editing (Conditional Fetch)
   const {
     data: fullPostData,
     isLoading: isLoadingFullPost,
@@ -69,7 +68,6 @@ export default function CalendarPage() {
     staleTime: Infinity,
   });
 
-  // Effect to handle opening the modal once full data is fetched
   useEffect(() => {
     if (fullPostData && !isFetchingFullPost) {
       initializeFromFullPost(fullPostData);
@@ -89,7 +87,6 @@ export default function CalendarPage() {
     errorFullPost,
   ]);
 
-  // Handler for opening the day view modal from MonthView
   const handleOpenDayView = (date: Date, posts: ScheduledPost[]) => {
     setSelectedDay(date);
     setSelectedDayPosts(posts);
@@ -126,14 +123,12 @@ export default function CalendarPage() {
     refetch();
   };
 
-  // Memo for Modal Title (now only handles 'new' or loading state)
   const modalTitle = useMemo(() => {
     if (isLoadingFullPost || isFetchingFullPost) return "Loading Post...";
     if (fullPostData) return `Edit Scheduled Post`;
     return "Create New Post";
   }, [isLoadingFullPost, isFetchingFullPost, fullPostData]);
 
-  // Pass an empty draft since the store is now populated by initializeFromFullPost
   const initialDraft = useMemo(() => ({} as Partial<EditorialState>), []);
 
   const navigateDate = (direction: "prev" | "next") => {
@@ -156,6 +151,17 @@ export default function CalendarPage() {
     return `Week of ${format(currentDate, "MMM d")}`;
   };
 
+  const CreatePostButton = (
+    <Button
+      variant="primary"
+      className="gap-2 shrink-0"
+      onClick={() => handleNewPost(new Date())}
+    >
+      <Plus className="h-4 w-4" />
+      Create Post
+    </Button>
+  );
+
   if (isLoadingList) {
     return (
       <div className="flex h-full w-full items-center justify-center p-8">
@@ -177,7 +183,7 @@ export default function CalendarPage() {
 
   return (
     <>
-      <div className="flex h-full w-full flex-col p-4 md:p-6">
+      <div className="flex h-full w-full flex-col">
         <div className="mb-8 border-b-4 border-double border-[--foreground] pb-6">
           <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
             <div>
@@ -186,14 +192,6 @@ export default function CalendarPage() {
                 Content Calendar
               </h1>
             </div>
-            <Button
-              variant="primary"
-              className="gap-2"
-              onClick={() => handleNewPost(new Date())}
-            >
-              <Plus className="h-4 w-4" />
-              Create Post
-            </Button>
           </div>
         </div>
 
@@ -218,21 +216,22 @@ export default function CalendarPage() {
             </Button>
           </div>
 
-          <div className="flex items-center gap-2 border border-border bg-surface p-1">
+          <div className="flex items-center gap-4">
             {(["Month", "Week", "List"] as CalendarView[]).map((view) => (
               <button
                 key={view}
                 onClick={() => setActiveView(view)}
                 className={cn(
-                  "px-3 py-1 text-xs font-bold uppercase tracking-wider transition-colors",
+                  "px-2 py-1 text-xs font-bold uppercase tracking-widest transition-all border-b-2 border-solid",
                   activeView === view
-                    ? "bg-foreground text-background"
-                    : "text-muted-foreground hover:bg-surface-hover hover:text-foreground"
+                    ? "text-foreground border-brand-primary border-dotted"
+                    : "text-muted-foreground border-b-transparent hover:text-foreground hover:border-b-border/70"
                 )}
               >
                 {view}
               </button>
             ))}
+            {CreatePostButton}
           </div>
         </div>
 
@@ -255,10 +254,7 @@ export default function CalendarPage() {
             />
           )}
           {activeView === "List" && (
-            <ListView
-              posts={scheduledPosts}
-              onEditPost={handleEditPost} // ADDED PROP
-            />
+            <ListView posts={scheduledPosts} onEditPost={handleEditPost} />
           )}
         </div>
       </div>
