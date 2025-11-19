@@ -1,8 +1,9 @@
 // components/connect-account-modal.tsx
 
 "use client";
-import { X, AlertCircle } from "lucide-react";
+import { X, AlertCircle, Loader2 } from "lucide-react";
 import { Button } from "./ui/button";
+import { useState } from "react";
 
 interface ConnectAccountModalProps {
   isOpen: boolean;
@@ -19,9 +20,12 @@ export default function ConnectAccountModal({
   platformIcon: Icon,
   platformId,
 }: ConnectAccountModalProps) {
+  const [isConnecting, setIsConnecting] = useState(false);
+
   if (!isOpen) return null;
 
   const handleConnectClick = () => {
+    setIsConnecting(true);
     try {
       window.sessionStorage.setItem("connecting_platform", platformId);
     } catch (e) {
@@ -33,10 +37,11 @@ export default function ConnectAccountModal({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
       <div className="relative w-full max-w-lg bg-surface border border-foreground shadow-2xl">
-        {/* Close button */}
+        {/* Close button - disabled during loading */}
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 text-muted-foreground hover:text-foreground transition-colors"
+          disabled={isConnecting}
+          className="absolute top-4 right-4 text-muted-foreground hover:text-foreground transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           aria-label="Close"
         >
           <X className="w-5 h-5" />
@@ -55,7 +60,9 @@ export default function ConnectAccountModal({
 
           {/* Title */}
           <h2 className="text-center font-serif text-3xl font-bold uppercase tracking-tight text-foreground mb-6">
-            Connect to {platformName}
+            {isConnecting
+              ? `Opening ${platformName}...`
+              : `Connect to ${platformName}`}
           </h2>
 
           {/* Body - Simplified */}
@@ -66,9 +73,9 @@ export default function ConnectAccountModal({
             {/* Important notice - thin border */}
             <div className="border-l-2 border-foreground bg-surface-hover p-4">
               <div className="flex gap-3">
-                <AlertCircle className="w-5 h-5 text-foreground flex-shrink-0 mt-0.5" />
+                <AlertCircle className="w-5 h-5 text-foreground shrink-0 mt-0.5" />
                 <div className="space-y-2 text-sm leading-relaxed">
-                  <p className="font-semibold">Account Selection</p>
+                  <p className="font-semibold">Account selection</p>
                   <p>
                     {platformName} will open and use your currently signed-in
                     account. Make sure you're logged into the profile you want
@@ -84,16 +91,25 @@ export default function ConnectAccountModal({
             <Button
               variant="outline"
               onClick={onClose}
-              className="min-w-[7rem] font-serif uppercase tracking-[0.12em]"
+              disabled={isConnecting}
+              className="min-w-28 font-serif uppercase tracking-[0.12em]"
             >
               Cancel
             </Button>
             <Button
               variant="primary"
               onClick={handleConnectClick}
-              className="min-w-[12rem] font-serif uppercase tracking-[0.12em]"
+              disabled={isConnecting}
+              className="min-w-48 font-serif uppercase tracking-[0.12em]"
             >
-              Continue to {platformName}
+              {isConnecting ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  Connecting...
+                </>
+              ) : (
+                `Continue to ${platformName}`
+              )}
             </Button>
           </div>
         </div>
