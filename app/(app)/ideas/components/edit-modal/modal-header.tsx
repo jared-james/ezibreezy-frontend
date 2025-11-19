@@ -11,7 +11,7 @@ interface ModalHeaderProps {
 
 export default function ModalHeader({ idea, onClose }: ModalHeaderProps) {
   return (
-    <div className="z-10 flex flex-shrink-0 items-center justify-between border-b-4 border-foreground border-double bg-surface p-6">
+    <div className="z-10 flex shrink-0 items-center justify-between border-b-4 border-foreground border-double bg-surface p-6">
       <div>
         <p className="eyebrow mb-1">Edit Clipping</p>
         <h2 className="font-serif text-2xl font-bold uppercase tracking-tight text-foreground md:text-3xl">

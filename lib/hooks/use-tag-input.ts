@@ -1,6 +1,7 @@
 // lib/hooks/use-tag-input.ts
 
-import { useState, useEffect, useCallback, useMemo } from "react";
+import { useState, useEffect, useCallback } from "react";
+import type React from "react";
 
 /**
  * Parses a hashtag string into an array of clean tag strings.
@@ -18,9 +19,6 @@ interface UseTagInputProps {
   onHashtagsChange: (value: string) => void;
 }
 
-/**
- * Custom hook to manage hashtag input as individual chips/tokens.
- */
 export function useTagInput({
   initialHashtags,
   onHashtagsChange,
@@ -30,10 +28,7 @@ export function useTagInput({
   );
   const [currentTagInput, setCurrentTagInput] = useState("");
 
-  // Sync internal state when external prop changes (e.g., initial load or draft switch)
   useEffect(() => {
-    // Only update if the string representation of the chips is different from the prop,
-    // and the user is not actively typing (currentTagInput is empty).
     const currentChipsString = tagChips.map((t) => `#${t}`).join(" ");
     if (
       initialHashtags !== currentChipsString &&
@@ -41,9 +36,8 @@ export function useTagInput({
     ) {
       setTagChips(parseTags(initialHashtags));
     }
-  }, [initialHashtags]);
+  }, [initialHashtags, tagChips, currentTagInput]);
 
-  // Helper to format chips back to the string needed by the parent component/state
   const formatChipsToString = useCallback(
     (chips: string[]) => chips.map((t) => `#${t}`).join(" "),
     []
@@ -85,7 +79,6 @@ export function useTagInput({
         currentTagInput.length === 0 &&
         tagChips.length > 0
       ) {
-        // Remove the last tag when backspace is hit and the input is empty
         removeTag(tagChips[tagChips.length - 1]);
       }
     },

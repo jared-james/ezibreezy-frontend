@@ -248,10 +248,8 @@ export default function DistributionPanel({
               </label>
 
               {threadMessages.map((message, index) => {
-                const fileMocks =
-                  message.mediaPreviews?.map(
-                    () => new File(["mock"], "mock", { type: "image/jpeg" })
-                  ) || [];
+                // Use the real file objects from the state if available
+                const mediaFiles = message.mediaFiles || [];
 
                 return (
                   <div
@@ -286,7 +284,7 @@ export default function DistributionPanel({
 
                     <ThreadPostMediaUpload
                       threadIndex={index}
-                      mediaFiles={fileMocks}
+                      mediaFiles={mediaFiles}
                       mediaPreviews={message.mediaPreviews || []}
                       isUploading={message.isUploading || false}
                       onMediaChange={handleThreadMediaChange}

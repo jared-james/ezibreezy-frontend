@@ -166,7 +166,7 @@ export default function IntegrationsPage() {
                         </p>
                       </div>
                     </div>
-                    <div className="mt-4 flex-shrink-0 md:mt-0 md:ml-4">
+                    <div className="mt-4 shrink-0 md:mt-0 md:ml-4">
                       <Button onClick={() => openConnectModal(platform)}>
                         <LinkIcon className="h-4 w-4" />
                         Connect New Account

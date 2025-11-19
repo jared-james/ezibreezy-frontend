@@ -43,6 +43,7 @@ export interface ThreadMessage {
  */
 export interface ThreadMessageAugmented extends ThreadMessage {
   mediaPreviews?: string[];
+  mediaFiles?: File[]; // Added this field
   isUploading?: boolean;
 }
 

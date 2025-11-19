@@ -104,7 +104,7 @@ export default function XPreview({
   const primaryName = displayName || accountName || "Account";
   const handle = accountName ? `@${accountName}` : "";
 
-  const mainPostImages = mediaPreview;
+  const mainPostImages = mediaPreview.slice(0, 4);
   const hasThread = threadMessages.length > 0;
 
   return (
