@@ -11,7 +11,14 @@ import {
   getDay,
   format,
 } from "date-fns";
-import { Twitter, Instagram, Linkedin, Plus, Clock } from "lucide-react";
+import {
+  Twitter,
+  Instagram,
+  Linkedin,
+  Plus,
+  Clock,
+  MoreHorizontal,
+} from "lucide-react";
 import type { ScheduledPost } from "../types";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -30,7 +37,7 @@ const platformIcons: Record<string, React.ElementType> = {
   instagram: Instagram,
 };
 
-const VISIBLE_POST_LIMIT = 2;
+// REMOVED: VISIBLE_POST_LIMIT constant
 
 export default function MonthView({
   currentDate,
@@ -66,7 +73,6 @@ export default function MonthView({
         {Array.from({ length: startingDayOfWeek }).map((_, i) => (
           <div
             key={`empty-${i}`}
-            // MODIFIED: Increased height from h-32 to h-40
             className="h-40 border-b border-r border-[--border] bg-[--background] p-2"
           />
         ))}
@@ -81,13 +87,13 @@ export default function MonthView({
                 new Date(b.scheduledAt).getTime()
             );
 
-          const visiblePosts = postsForDay.slice(0, VISIBLE_POST_LIMIT);
-          const hiddenPostsCount = postsForDay.length - VISIBLE_POST_LIMIT;
+          // MODIFIED: Use ALL posts, no slicing needed
+          const visiblePosts = postsForDay;
+          // MODIFIED: Removed hiddenPostsCount calculation
 
           return (
             <div
               key={day.toString()}
-              // MODIFIED: Increased height from h-32 to h-40
               className="group relative h-40 border-b border-r border-[--border] p-2 transition-colors hover:bg-[--surface-hover] overflow-y-auto"
             >
               <div className="flex justify-between items-start">
@@ -103,11 +109,12 @@ export default function MonthView({
                 </div>
               </div>
 
+              {/* NOTE: Keeping this here is fine, but it will only appear on hover now */}
               <Button
                 size="icon"
                 variant="outline"
                 onClick={() => onNewPost(day)}
-                className="absolute top-1 right-1 h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
+                className="absolute top-1 right-1 h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity z-10"
               >
                 <Plus className="h-4 w-4" />
               </Button>
@@ -132,16 +139,9 @@ export default function MonthView({
                     </button>
                   );
                 })}
-                {hiddenPostsCount > 0 && (
-                  <button
-                    type="button"
-                    onClick={() => onOpenDayView(day, postsForDay)}
-                    className="w-full rounded bg-[--surface-hover] p-1 text-center font-serif text-xs font-bold text-[--muted-foreground] cursor-pointer"
-                  >
-                    + {hiddenPostsCount} more
-                  </button>
-                )}
               </div>
+
+              {/* REMOVED: The hiddenPostsCount badge/button */}
             </div>
           );
         })}

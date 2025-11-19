@@ -1,7 +1,7 @@
 // app/(app)/calendar/page.tsx
 "use client";
 
-import { useState, useMemo, useEffect } from "react"; // ADDED useEffect
+import { useState, useMemo, useEffect } from "react";
 import { ChevronLeft, ChevronRight, Plus, Loader2 } from "lucide-react";
 import { addDays, format } from "date-fns";
 import { Button } from "@/components/ui/button";
@@ -11,15 +11,15 @@ import WeekView from "./components/week-view";
 import ListView from "./components/list-view";
 import EditorialModal from "./components/editorial-modal";
 import DayViewModal from "./components/day-view-modal";
-import { useEditorialStore } from "@/lib/store/editorial-store"; // IMPORTED
+import { useEditorialStore } from "@/lib/store/editorial-store";
 import type { EditorialState } from "@/lib/store/editorial-store";
 import { ScheduledPost } from "./types";
-import { useQuery, useQueryClient } from "@tanstack/react-query"; // IMPORTED useQueryClient
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   getScheduledPosts,
   getPostDetails,
   FullPostDetails,
-} from "@/lib/api/publishing"; // IMPORTED getPostDetails, FullPostDetails
+} from "@/lib/api/publishing";
 import { toast } from "sonner";
 
 type CalendarView = "Month" | "Week" | "List";
@@ -34,8 +34,8 @@ export default function CalendarPage() {
 
   const initializeFromFullPost = useEditorialStore(
     (state) => state.initializeFromFullPost
-  ); // NEW ACTION
-  const [postIdToEdit, setPostIdToEdit] = useState<string | null>(null); // NEW STATE
+  );
+  const [postIdToEdit, setPostIdToEdit] = useState<string | null>(null);
 
   const [modalContent, setModalContent] = useState<{
     type: "edit" | "new";
@@ -65,26 +65,22 @@ export default function CalendarPage() {
   } = useQuery<FullPostDetails>({
     queryKey: ["fullPostDetails", postIdToEdit],
     queryFn: () => getPostDetails(postIdToEdit!),
-    enabled: !!postIdToEdit, // Only run when a post ID is set
+    enabled: !!postIdToEdit,
     staleTime: Infinity,
   });
 
   // Effect to handle opening the modal once full data is fetched
   useEffect(() => {
     if (fullPostData && !isFetchingFullPost) {
-      // Initialize the store with the full, rich data
       initializeFromFullPost(fullPostData);
-      // Open the modal now that the store is populated
       setIsEditorialModalOpen(true);
-      // Clear the ID so it doesn't try to refetch
       setPostIdToEdit(null);
     }
 
     if (isErrorFullPost) {
-      toast.error(`Failed to load post for editing: ${errorFullPost.message}`);
+      toast.error(`Failed to load post for editing: ${errorFullPost?.message}`);
       setPostIdToEdit(null);
     }
-    // Only depend on fullPostData and isFetchingFullPost to trigger modal open
   }, [
     fullPostData,
     isFetchingFullPost,
@@ -107,19 +103,14 @@ export default function CalendarPage() {
     refetch();
   };
 
-  // MODIFIED: This now only sets the ID and triggers the fetch
   const handleEditPost = (post: ScheduledPost) => {
-    // If the post is already sent, it cannot be edited (only cloned)
     if (post.status === "sent") {
       toast.info(
         "Sent posts cannot be edited. A copy will be created for scheduling."
       );
-      // Fall through to edit flow, letting the user modify the content
     }
 
-    // Set the ID to trigger the fetching query
     setPostIdToEdit(post.id);
-    // Close day view immediately so the backdrop is available for the editorial modal
     setIsDayViewModalOpen(false);
   };
 
@@ -131,7 +122,6 @@ export default function CalendarPage() {
 
   const handleCloseEditorialModal = () => {
     setIsEditorialModalOpen(false);
-    // Note: We no longer rely on modalContent for initialDraft, so clearing it is fine
     setModalContent(null);
     refetch();
   };
@@ -166,8 +156,7 @@ export default function CalendarPage() {
     return `Week of ${format(currentDate, "MMM d")}`;
   };
 
-  if (isLoadingList || isLoadingFullPost) {
-    // Check both loading states
+  if (isLoadingList) {
     return (
       <div className="flex h-full w-full items-center justify-center p-8">
         <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
@@ -265,7 +254,12 @@ export default function CalendarPage() {
               onNewPost={handleNewPost}
             />
           )}
-          {activeView === "List" && <ListView posts={scheduledPosts} />}
+          {activeView === "List" && (
+            <ListView
+              posts={scheduledPosts}
+              onEditPost={handleEditPost} // ADDED PROP
+            />
+          )}
         </div>
       </div>
 

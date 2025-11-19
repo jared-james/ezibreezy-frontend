@@ -5,7 +5,7 @@
 import { Twitter, Instagram, Linkedin, Clock, X, Loader2 } from "lucide-react";
 import { format } from "date-fns";
 import type { ScheduledPost } from "../types";
-import Link from "next/link";
+import Link from "next/link"; // KEEP: for now, for consistency with the link in the button
 import { Button } from "@/components/ui/button";
 import { deletePost } from "@/lib/api/publishing";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -14,16 +14,17 @@ import { useState } from "react";
 
 interface ListViewProps {
   posts: ScheduledPost[];
+  onEditPost: (post: ScheduledPost) => void; // NEW PROP
 }
 
-// MODIFIED: platformIcons to map real platform ID to icon
 const platformIcons: Record<string, React.ElementType> = {
   x: Twitter,
   linkedin: Linkedin,
   instagram: Instagram,
 };
 
-export default function ListView({ posts }: ListViewProps) {
+export default function ListView({ posts, onEditPost }: ListViewProps) {
+  // ACCEPT NEW PROP
   const queryClient = useQueryClient();
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
@@ -61,7 +62,6 @@ export default function ListView({ posts }: ListViewProps) {
 
   return (
     <div className="border border-[--border] bg-[--surface] p-6">
-      {/* NEW WRAPPER: Added max-w-4xl and mx-auto */}
       <div className="mx-auto max-w-4xl">
         {posts.length === 0 ? (
           <p className="py-8 text-center font-serif text-[--muted-foreground]">
@@ -107,11 +107,15 @@ export default function ListView({ posts }: ListViewProps) {
                   </div>
 
                   <div className="flex items-center gap-2">
-                    <Link href={`/editorial?draft=${post.id}`}>
-                      <Button variant="outline" size="sm">
-                        Edit
-                      </Button>
-                    </Link>
+                    {/* MODIFIED: Changed from <Link> to a <Button> that calls onEditPost */}
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => onEditPost(post)}
+                    >
+                      Edit
+                    </Button>
+                    {/* END MODIFIED */}
                     <Button
                       variant="ghost"
                       size="sm"
@@ -132,7 +136,6 @@ export default function ListView({ posts }: ListViewProps) {
           </div>
         )}
       </div>
-      {/* END NEW WRAPPER */}
     </div>
   );
 }
