@@ -1,7 +1,10 @@
+// app/(app)/editorial/page.tsx
+
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
-import { FileText, CheckSquare, Calendar, Loader2 } from "lucide-react";
+import { FileText, CheckSquare, Loader2 } from "lucide-react";
+
 import { useEditorialStore } from "@/lib/store/editorial-store";
 import ChannelSelector from "../ideas/components/edit-modal/channel-selector";
 import CaptionEditor from "../ideas/components/edit-modal/caption-editor";
@@ -13,6 +16,9 @@ import { toast } from "sonner";
 import { createClient } from "@/lib/supabase/client";
 import ConfirmationModal from "./components/confirmation-modal";
 import type { CreatePostPayload } from "@/lib/api/publishing";
+import ScheduleCard from "./components/schedule-card";
+
+import { Button } from "@/components/ui/button";
 
 const getTodayString = () => new Date().toISOString().split("T")[0];
 
@@ -269,6 +275,7 @@ export default function EditorialPage() {
         </div>
 
         <div className="grid min-h-0 flex-1 grid-cols-1 gap-8 lg:grid-cols-12">
+          {/* Left Column: Editor */}
           <div className="flex flex-col gap-4 lg:col-span-7">
             <div className="flex items-center justify-between border-b-2 border-[--foreground] pb-2">
               <h2 className="font-serif text-xl font-bold text-[--foreground]">
@@ -327,6 +334,7 @@ export default function EditorialPage() {
             </div>
           </div>
 
+          {/* Right Column: Preview & Distribution */}
           <div className="space-y-6 lg:col-span-5">
             <PreviewPanel
               postType={postType}
@@ -354,91 +362,20 @@ export default function EditorialPage() {
               activePlatforms={activePlatforms}
             />
 
-            <div className="flex flex-col">
-              <div className="flex items-center justify-between border-b-2 border-[--foreground] pb-2">
-                <h3 className="font-serif text-xl font-bold text-[--foreground]">
-                  Schedule
-                </h3>
-                <Calendar className="h-4 w-4 text-[--muted]" />
-              </div>
-
-              <div className="mt-4 space-y-6 border border-[--border] bg-[--surface] p-5">
-                <div className="space-y-2">
-                  <label className="flex cursor-pointer items-center gap-3 p-2 hover:bg-[--surface-hover]">
-                    <input
-                      type="radio"
-                      name="timing"
-                      checked={!isScheduling}
-                      onChange={() => updateState({ isScheduling: false })}
-                      className="accent-[--foreground]"
-                    />
-                    <span className="font-serif text-sm">
-                      Immediate Release
-                    </span>
-                  </label>
-                  <label className="flex cursor-pointer items-center gap-3 p-2 hover:bg-[--surface-hover]">
-                    <input
-                      type="radio"
-                      name="timing"
-                      checked={isScheduling}
-                      onChange={() => updateState({ isScheduling: true })}
-                      className="accent-[--foreground]"
-                    />
-                    <span className="font-serif text-sm">
-                      Schedule for Later
-                    </span>
-                  </label>
-                </div>
-
-                {isScheduling && (
-                  <div className="animate-in fade-in-50 space-y-3 border border-[--border] bg-[--background] p-3">
-                    <div>
-                      <label htmlFor="date" className="eyebrow">
-                        Date
-                      </label>
-                      <input
-                        type="date"
-                        id="date"
-                        value={scheduleDate}
-                        onChange={(event) =>
-                          updateState({ scheduleDate: event.target.value })
-                        }
-                        className="mt-1 w-full border border-[--border] p-2 font-serif"
-                      />
-                    </div>
-                    <div>
-                      <label htmlFor="time" className="eyebrow">
-                        Time
-                      </label>
-                      <input
-                        type="time"
-                        id="time"
-                        value={scheduleTime}
-                        onChange={(event) =>
-                          updateState({ scheduleTime: event.target.value })
-                        }
-                        className="mt-1 w-full border border-[--border] p-2 font-serif"
-                      />
-                    </div>
-                  </div>
-                )}
-
-                <div className="border-t border-[--border] border-dashed pt-4">
-                  <button
-                    onClick={handlePublish}
-                    disabled={postMutation.isPending || isGlobalUploading}
-                    className="flex w-full items-center justify-center gap-2 bg-[--foreground] py-3 px-4 font-serif text-xs font-bold uppercase tracking-wider text-[--background] transition-opacity hover:opacity-80 disabled:cursor-not-allowed disabled:opacity-50"
-                  >
-                    {postMutation.isPending ? (
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                    ) : (
-                      <CheckSquare className="h-4 w-4" />
-                    )}
-                    {isScheduling ? "Schedule Post" : "Send to Press"}
-                  </button>
-                </div>
-              </div>
-            </div>
+            {/* SCHEDULE SECTION */}
+            <ScheduleCard
+              isScheduling={isScheduling}
+              scheduleDate={scheduleDate}
+              scheduleTime={scheduleTime}
+              onSchedulingChange={(value) =>
+                updateState({ isScheduling: value })
+              }
+              onDateChange={(date) => updateState({ scheduleDate: date })}
+              onTimeChange={(time) => updateState({ scheduleTime: time })}
+              onPublish={handlePublish}
+              isPublishing={postMutation.isPending}
+              isUploading={isGlobalUploading}
+            />
           </div>
         </div>
       </div>

@@ -1,3 +1,5 @@
+// app/(app)/editorial/components/thread-post-media-upload.tsx
+
 "use client";
 
 import { useCallback } from "react";

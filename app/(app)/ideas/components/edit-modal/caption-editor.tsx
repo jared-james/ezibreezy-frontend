@@ -1,3 +1,5 @@
+// app/(app)/ideas/components/edit-modal/caption-editor.tsx
+
 "use client";
 
 import { Smile, Twitter, Instagram, Plus, Trash2 } from "lucide-react";

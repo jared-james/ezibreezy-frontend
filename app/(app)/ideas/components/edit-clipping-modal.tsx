@@ -1,3 +1,5 @@
+// app/(app)/ideas/components/edit-clipping-modal.tsx
+
 "use client";
 
 import { useMemo, useState } from "react";
