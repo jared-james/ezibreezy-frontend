@@ -11,18 +11,15 @@ interface ModalHeaderProps {
 
 export default function ModalHeader({ idea, onClose }: ModalHeaderProps) {
   return (
-    <div className="z-10 bg-white border-b-4 border-double border-[--foreground] p-6 flex items-center justify-between flex-shrink-0">
+    <div className="z-10 flex flex-shrink-0 items-center justify-between border-b-4 border-foreground border-double bg-surface p-6">
       <div>
         <p className="eyebrow mb-1">Edit Clipping</p>
-        <h2 className="font-serif text-2xl md:text-3xl font-bold uppercase tracking-tight text-[--foreground]">
+        <h2 className="font-serif text-2xl font-bold uppercase tracking-tight text-foreground md:text-3xl">
           {idea.title}
         </h2>
       </div>
-      <button
-        onClick={onClose}
-        className="btn btn-icon hover:bg-[--surface-hover]"
-      >
-        <X className="w-5 h-5" />
+      <button onClick={onClose} className="btn btn-icon hover:bg-surface-hover">
+        <X className="h-5 w-5" />
       </button>
     </div>
   );

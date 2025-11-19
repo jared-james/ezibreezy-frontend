@@ -12,7 +12,6 @@ import {
   GripHorizontal,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { Button } from "@/components/ui/button";
 
 interface MediaUploadProps {
   mediaFiles: File[];
@@ -38,8 +37,6 @@ export default function MediaUpload({
   const MAX_FILES = 10;
   const MAX_X_FILES = 4;
 
-  // --- File Upload Logic ---
-
   const handleFiles = useCallback(
     (newFiles: File[]) => {
       const validFiles = newFiles.filter(
@@ -51,7 +48,6 @@ export default function MediaUpload({
       const totalFiles = [...mediaFiles, ...validFiles].slice(0, MAX_FILES);
       const newPreviews = validFiles.map((f) => URL.createObjectURL(f));
 
-      // Filter out original previews corresponding to removed files before concatenating
       const existingPreviews = mediaFiles.map((_, i) => mediaPreviews[i]);
 
       const totalPreviews = [...existingPreviews, ...newPreviews].slice(
@@ -79,7 +75,6 @@ export default function MediaUpload({
       e.preventDefault();
       setIsDraggingFiles(false);
 
-      // If we are internally sorting, ignore this drop logic
       if (draggedIndex !== null) return;
 
       const droppedFiles = Array.from(e.dataTransfer.files);
@@ -98,8 +93,6 @@ export default function MediaUpload({
     },
     [handleFiles]
   );
-
-  // --- Reordering / Sorting Logic ---
 
   const handleSortDragStart = (e: React.DragEvent, index: number) => {
     e.stopPropagation();
@@ -126,11 +119,9 @@ export default function MediaUpload({
     const newFiles = [...mediaFiles];
     const newPreviews = [...mediaPreviews];
 
-    // Remove from old index
     const [movedFile] = newFiles.splice(draggedIndex, 1);
     const [movedPreview] = newPreviews.splice(draggedIndex, 1);
 
-    // Insert at new index
     newFiles.splice(dropIndex, 0, movedFile);
     newPreviews.splice(dropIndex, 0, movedPreview);
 
@@ -140,7 +131,6 @@ export default function MediaUpload({
 
   const handleRemove = useCallback(
     (indexToRemove: number) => {
-      // Find the file object to remove and call the external handler
       const fileToRemove = mediaFiles[indexToRemove];
       if (fileToRemove) {
         onRemoveMedia(fileToRemove);
@@ -180,7 +170,6 @@ export default function MediaUpload({
                   <video
                     src={preview}
                     className="w-full h-full object-cover pointer-events-none"
-                    // Add this line to prevent media from playing in the preview box
                     onCanPlay={(e) => e.currentTarget.pause()}
                   />
                 ) : (
@@ -191,7 +180,6 @@ export default function MediaUpload({
                   />
                 )}
 
-                {/* Drag Handle Indicator (Visual cue) */}
                 <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none bg-black/40 text-white p-1 rounded">
                   <GripHorizontal className="w-5 h-5" />
                 </div>
@@ -211,7 +199,6 @@ export default function MediaUpload({
                   </div>
                 )}
 
-                {/* Remove Button */}
                 <button
                   type="button"
                   onClick={(e) => {
@@ -224,7 +211,6 @@ export default function MediaUpload({
                   <X className="w-3 h-3" />
                 </button>
 
-                {/* Index Indicator */}
                 <div className="absolute top-1 left-1 px-1.5 py-0.5 bg-black/60 rounded text-[9px] font-medium text-white flex items-center gap-1 pointer-events-none">
                   {index + 1}
                 </div>

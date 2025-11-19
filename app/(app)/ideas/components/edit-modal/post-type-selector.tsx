@@ -25,7 +25,7 @@ export default function PostTypeSelector({
           size="sm"
           className="gap-1.5"
         >
-          <Type className="w-4 h-4" />
+          <Type className="h-4 w-4" />
           Text
         </Button>
 
@@ -35,7 +35,7 @@ export default function PostTypeSelector({
           size="sm"
           className="gap-1.5"
         >
-          <ImageIcon className="w-4 h-4" />
+          <ImageIcon className="h-4 w-4" />
           Image
         </Button>
 
@@ -45,7 +45,7 @@ export default function PostTypeSelector({
           size="sm"
           className="gap-1.5"
         >
-          <Video className="w-4 h-4" />
+          <Video className="h-4 w-4" />
           Video
         </Button>
       </div>

@@ -2,24 +2,22 @@
 
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Twitter, Instagram, LayoutGrid } from "lucide-react";
 import { getConnections } from "@/lib/api/integrations";
 import XPreview from "./x-preview";
 import InstagramPreview from "./instagram-preview";
 import { cn } from "@/lib/utils";
-import type { ThreadMessage } from "@/lib/types/editorial";
-import type { ThreadMessageAugmented } from "@/app/(app)/ideas/components/edit-modal/distribution-panel"; // Import Augmented type
+import type { ThreadMessageAugmented } from "@/lib/types/editorial";
 
 interface PreviewPanelProps {
   postType: "text" | "image" | "video";
   selectedAccounts: Record<string, string[]>;
   mainCaption: string;
   platformCaptions: Record<string, string>;
-  // Main post mediaPreviews (not mediaIds)
   mediaPreview: string[];
-  threadMessages: ThreadMessageAugmented[]; // Updated prop to Augmented type
+  threadMessages: ThreadMessageAugmented[];
   collaborators: string;
   location: string;
 }
@@ -56,21 +54,21 @@ export default function PreviewPanel({
 
   const [activeTab, setActiveTab] = useState<string>("empty");
 
-  useMemo(() => {
-    if (activePlatforms.length > 0) {
-      if (activeTab === "empty" || !activePlatforms.includes(activeTab)) {
-        setActiveTab(activePlatforms[0]);
-      }
-    } else {
+  useEffect(() => {
+    if (activePlatforms.length === 0) {
       setActiveTab("empty");
+      return;
+    }
+
+    if (activeTab === "empty" || !activePlatforms.includes(activeTab)) {
+      setActiveTab(activePlatforms[0]);
     }
   }, [activePlatforms, activeTab]);
 
   const activeAccount = useMemo(() => {
-    const platformId = activeTab;
-    if (platformId === "empty") return null;
+    if (activeTab === "empty") return null;
 
-    const integrationId = selectedAccounts[platformId]?.[0];
+    const integrationId = selectedAccounts[activeTab]?.[0];
     if (!integrationId) return null;
 
     return connections.find((conn) => conn.id === integrationId) || null;
@@ -130,8 +128,7 @@ export default function PreviewPanel({
             postType={postType}
           />
         );
-      case "instagram":
-        // Instagram preview only shows the first image and ignores thread messages
+      case "instagram": {
         const singleMedia = Array.isArray(mediaPreview)
           ? mediaPreview[0]
           : mediaPreview;
@@ -147,6 +144,7 @@ export default function PreviewPanel({
             location={location}
           />
         );
+      }
       default:
         return (
           <div className="text-center p-8 text-[--muted-foreground]">

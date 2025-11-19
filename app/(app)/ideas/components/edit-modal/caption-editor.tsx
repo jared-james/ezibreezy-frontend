@@ -3,9 +3,9 @@
 "use client";
 
 import { Smile, Twitter, Instagram } from "lucide-react";
-import type { Platform } from "./channel-selector";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
+import { Platform } from "@/lib/types/editorial";
 
 type SelectedAccounts = Record<string, string[]>;
 
@@ -28,8 +28,10 @@ const PlatformIcon = ({ platformId }: { platformId: string }) => {
       : platformId === "instagram"
       ? Instagram
       : null;
+
   if (!Icon) return null;
-  return <Icon className="w-4 h-4 text-brand-primary" />;
+
+  return <Icon className="h-4 w-4 text-brand-primary" />;
 };
 
 export default function CaptionEditor({
@@ -60,7 +62,10 @@ export default function CaptionEditor({
           className="eyebrow mb-2 flex items-center justify-between"
         >
           Main Caption
-          <button type="button" className="text-muted hover:text-foreground">
+          <button
+            type="button"
+            className="text-muted-foreground hover:text-foreground"
+          >
             <Smile className="h-4 w-4" />
           </button>
         </label>
@@ -68,7 +73,7 @@ export default function CaptionEditor({
           id="caption"
           rows={10}
           value={mainCaption}
-          onChange={(e) => onMainCaptionChange(e.target.value)}
+          onChange={(event) => onMainCaptionChange(event.target.value)}
           placeholder={mainPlaceholder}
           className="min-h-32"
         />
@@ -89,25 +94,27 @@ export default function CaptionEditor({
                 {platform.name} Caption
                 {platform.accounts.length > 0 && (
                   <span className="ml-2 flex items-center gap-1.5">
-                    {platform.accounts.map((acc) => {
+                    {platform.accounts.map((account) => {
                       const isSelected = selectedAccounts[platformId]?.includes(
-                        acc.id
+                        account.id
                       );
 
                       return (
                         <button
-                          key={acc.id}
+                          key={account.id}
                           type="button"
-                          onClick={() => onAccountSelect(platformId, acc.id)}
+                          onClick={() =>
+                            onAccountSelect(platformId, account.id)
+                          }
                           className={cn(
                             "h-6 w-6 rounded-full border-2 transition-all",
                             isSelected
                               ? "border-primary bg-primary"
-                              : "border-border bg-white hover:border-primary/50"
+                              : "border-border bg-surface hover:border-primary/50"
                           )}
-                          title={acc.name}
+                          title={account.name}
                         >
-                          <span className="sr-only">{acc.name}</span>
+                          <span className="sr-only">{account.name}</span>
                         </button>
                       );
                     })}
@@ -116,7 +123,7 @@ export default function CaptionEditor({
               </span>
               <button
                 type="button"
-                className="ml-auto text-muted hover:text-foreground"
+                className="ml-auto text-muted-foreground hover:text-foreground"
               >
                 <Smile className="h-4 w-4" />
               </button>
@@ -125,8 +132,8 @@ export default function CaptionEditor({
               id={`caption-${platformId}`}
               rows={10}
               value={platformCaptions[platformId] || ""}
-              onChange={(e) =>
-                onPlatformCaptionChange(platformId, e.target.value)
+              onChange={(event) =>
+                onPlatformCaptionChange(platformId, event.target.value)
               }
               placeholder={`${platform.name} specific caption...`}
               className="min-h-32"

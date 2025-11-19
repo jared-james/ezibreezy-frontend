@@ -2,27 +2,25 @@
 
 import { MessageSquare, Repeat2, ImageIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
-import type { ThreadMessage } from "@/lib/types/editorial";
-import type { ThreadMessageAugmented } from "@/app/(app)/ideas/components/edit-modal/distribution-panel"; // Import Augmented type
+import { ThreadMessageAugmented } from "@/lib/types/editorial";
 
 interface XPreviewProps {
   caption: string;
-  mediaPreview: string[]; // Main post mediaPreviews (not mediaIds)
-  threadMessages: ThreadMessageAugmented[]; // Updated prop to Augmented type
+  mediaPreview: string[];
+  threadMessages: ThreadMessageAugmented[];
   platformUsername: string;
   displayName: string | null;
   avatarUrl: string | null;
   postType?: "text" | "image" | "video";
 }
 
-// Helper component for rendering media grid within a tweet
 const MediaGrid = ({ images }: { images: string[] }) => {
   if (images.length === 0) return null;
 
   return (
     <div
       className={cn(
-        "mt-3 overflow-hidden rounded-xl border border-[--border] bg-gray-100 dark:bg-gray-800",
+        "mt-3 overflow-hidden rounded-xl border border-border bg-muted",
         images.length === 1 ? "max-h-[350px]" : "h-64 grid grid-cols-2 gap-0.5"
       )}
     >
@@ -35,13 +33,13 @@ const MediaGrid = ({ images }: { images: string[] }) => {
             key={index}
             className={cn(
               "relative overflow-hidden",
-              isFirstOfThree ? "row-span-2" : ""
+              isFirstOfThree && "row-span-2"
             )}
           >
             <img
               src={src}
               alt={`Media ${index + 1}`}
-              className="w-full h-full object-cover hover:opacity-95 transition-opacity"
+              className="w-full h-full object-cover transition-opacity hover:opacity-95"
             />
           </div>
         );
@@ -50,7 +48,6 @@ const MediaGrid = ({ images }: { images: string[] }) => {
   );
 };
 
-// Helper component for the user's avatar in the thread
 const ProfileAvatar = ({
   size,
   avatarUrl,
@@ -65,16 +62,15 @@ const ProfileAvatar = ({
       <img
         src={avatarUrl}
         alt={primaryName}
-        className="rounded-full border border-[--border] shrink-0 object-cover bg-[--surface]"
+        className="shrink-0 rounded-full border border-border bg-surface object-cover"
         style={{ width: size, height: size }}
       />
     );
   }
+
   return (
     <div
-      className={cn(
-        "rounded-full bg-[--muted] border border-[--border] shrink-0"
-      )}
+      className="shrink-0 rounded-full border border-border bg-muted"
       style={{ width: size, height: size }}
       role="img"
       aria-label="Profile image placeholder"
@@ -82,7 +78,19 @@ const ProfileAvatar = ({
   );
 };
 
-// Main XPreview Component
+const XPostFooter = ({
+  icon: Icon,
+  value,
+}: {
+  icon: React.ElementType;
+  value: number;
+}) => (
+  <div className="flex cursor-pointer items-center gap-1 text-xs text-muted-foreground transition-colors hover:text-brand-primary">
+    <Icon className="h-4 w-4" />
+    <span className="mt-px">{value}</span>
+  </div>
+);
+
 export default function XPreview({
   caption,
   mediaPreview,
@@ -96,27 +104,23 @@ export default function XPreview({
   const primaryName = displayName || accountName || "Account";
   const handle = accountName ? `@${accountName}` : "";
 
-  // Main post media is passed as mediaPreview (max 4 already handled by EditorialPage)
   const mainPostImages = mediaPreview;
   const hasThread = threadMessages.length > 0;
 
   return (
-    <div className="w-full bg-[--surface] max-w-sm mx-auto">
-      {/* Container for Main Post and Thread Line */}
-      <div className="p-4 relative">
+    <div className="mx-auto w-full max-w-sm bg-surface">
+      <div className="relative p-4">
         {hasThread && (
-          // Thread connecting line (Starts below the main post's avatar)
           <div
-            className="absolute left-[35.5px] top-[62px] w-px bg-gray-200 z-0"
-            style={{ bottom: "20px" }} // Extends down to just above the last thread post's avatar
+            className="absolute left-[35.5px] top-[62px] z-0 w-px bg-border"
+            style={{ bottom: "20px" }}
             aria-hidden="true"
           />
         )}
 
-        {/* --- MAIN POST --- */}
-        <div className="flex items-start gap-3 relative z-10">
+        <div className="relative z-10 flex items-start gap-3">
           <div
-            className="flex flex-col items-center shrink-0"
+            className="flex shrink-0 flex-col items-center"
             style={{ width: 40 }}
           >
             <ProfileAvatar
@@ -126,20 +130,20 @@ export default function XPreview({
             />
           </div>
 
-          <div className="flex-1 min-w-0">
+          <div className="min-w-0 flex-1">
             <div className="flex items-center gap-1 text-sm">
-              <span className="font-bold text-[--foreground] truncate">
+              <span className="truncate font-bold text-foreground">
                 {primaryName}
               </span>
               {handle && (
-                <span className="text-[--muted-foreground] truncate shrink">
+                <span className="shrink text-muted-foreground truncate">
                   {handle}
                 </span>
               )}
-              <span className="text-[--muted-foreground] shrink-0">· Now</span>
+              <span className="shrink-0 text-muted-foreground">· Now</span>
             </div>
 
-            <p className="mt-1 text-[--foreground] whitespace-pre-wrap break-words text-[0.95rem] leading-normal">
+            <p className="mt-1 whitespace-pre-wrap wrap-break-word text-[0.95rem] leading-normal text-foreground">
               {caption}
             </p>
 
@@ -148,14 +152,14 @@ export default function XPreview({
             ) : (
               (caption.length === 0 || caption.trim() === "") &&
               postType !== "text" && (
-                <div className="mt-3 flex items-center gap-2 p-2 bg-[--background] rounded-md text-sm text-[--muted-foreground]">
-                  <ImageIcon className="w-4 h-4" />
+                <div className="mt-3 flex items-center gap-2 rounded-md bg-background p-2 text-sm text-muted-foreground">
+                  <ImageIcon className="h-4 w-4" />
                   No media attached.
                 </div>
               )
             )}
 
-            <div className="flex justify-between mt-3 px-2">
+            <div className="mt-3 flex justify-between px-2">
               <XPostFooter icon={MessageSquare} value={0} />
               <XPostFooter icon={Repeat2} value={0} />
             </div>
@@ -163,7 +167,6 @@ export default function XPreview({
         </div>
       </div>
 
-      {/* --- THREAD MESSAGES --- */}
       {threadMessages.map((message, index) => {
         const isLastMessage = index === threadMessages.length - 1;
 
@@ -171,22 +174,20 @@ export default function XPreview({
           <div
             key={index}
             className={cn(
-              "px-4 relative z-10",
+              "relative z-10 px-4",
               isLastMessage ? "pb-4" : "pb-3"
             )}
           >
-            {/* Thread connecting line (Only draws if it's NOT the last message) */}
             {!isLastMessage && (
               <div
-                className="absolute left-[35.5px] top-0 w-px bg-gray-200 z-0"
-                style={{ height: "100%" }}
+                className="absolute left-[35.5px] top-0 z-0 h-full w-px bg-border"
                 aria-hidden="true"
               />
             )}
 
             <div className="flex items-start gap-3">
               <div
-                className="flex flex-col items-center shrink-0"
+                className="flex shrink-0 flex-col items-center"
                 style={{ width: 40 }}
               >
                 <ProfileAvatar
@@ -196,30 +197,28 @@ export default function XPreview({
                 />
               </div>
 
-              <div className="flex-1 min-w-0">
+              <div className="min-w-0 flex-1">
                 <div className="flex items-center gap-1 text-sm">
-                  <span className="font-bold text-[--foreground] truncate">
+                  <span className="truncate font-bold text-foreground">
                     {primaryName}
                   </span>
                   {handle && (
-                    <span className="text-[--muted-foreground] truncate shrink">
+                    <span className="shrink text-muted-foreground truncate">
                       {handle}
                     </span>
                   )}
-                  <span className="text-[--muted-foreground] shrink-0">
-                    · Now
-                  </span>
+                  <span className="shrink-0 text-muted-foreground">· Now</span>
                 </div>
-                <p className="mt-1 text-[--foreground] whitespace-pre-wrap break-words text-[0.95rem] leading-normal">
+
+                <p className="mt-1 whitespace-pre-wrap wrap-break-word text-[0.95rem] leading-normal text-foreground">
                   {message.content}
                 </p>
 
-                {/* Use the mediaPreviews from the augmented message */}
                 {(message.mediaPreviews?.length || 0) > 0 && (
                   <MediaGrid images={message.mediaPreviews || []} />
                 )}
 
-                <div className="flex justify-between mt-3 px-2">
+                <div className="mt-3 flex justify-between px-2">
                   <XPostFooter icon={MessageSquare} value={0} />
                   <XPostFooter icon={Repeat2} value={0} />
                 </div>
@@ -231,17 +230,3 @@ export default function XPreview({
     </div>
   );
 }
-
-// Redefining XPostFooter outside the main component for cleaner code
-const XPostFooter = ({
-  icon: Icon,
-  value,
-}: {
-  icon: React.ElementType;
-  value: number;
-}) => (
-  <div className="flex items-center gap-1 text-xs text-[--muted-foreground] hover:text-[--brand-primary] transition-colors cursor-pointer">
-    <Icon className="w-4 h-4" />
-    <span className="mt-[1px]">{value}</span>
-  </div>
-);

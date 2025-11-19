@@ -13,6 +13,7 @@ import EditClippingModal from "./components/edit-clipping-modal";
 import type { Clipping as GeneratedClipping } from "@/lib/api/ideas";
 import type { Clipping } from "@/lib/types/editorial";
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 
 const mockClipping: Clipping = {
   id: "mock-1",
@@ -24,63 +25,68 @@ const mockClipping: Clipping = {
   user_id: "mock-user",
 };
 
+type MainTab = "ai" | "manual" | "archive";
+
 export default function IdeasPage() {
-  const [mainTab, setMainTab] = useState<"ai" | "manual" | "archive">("ai");
+  const [mainTab, setMainTab] = useState<MainTab>("ai");
   const [latestBriefing, setLatestBriefing] = useState<GeneratedClipping[]>([]);
   const [showDevModal, setShowDevModal] = useState(false);
 
   return (
-    <div className="h-full flex flex-col w-full max-w-7xl mx-auto p-4 md:p-6">
+    <div className="mx-auto flex h-full w-full max-w-7xl flex-col p-4 md:p-6">
       <PageHeading />
 
       <div className="mb-4 flex justify-end">
         <Button
           onClick={() => setShowDevModal(true)}
           size="sm"
-          className="gap-2 bg-purple-100 border border-purple-300 text-purple-700 hover:bg-purple-200"
+          className="gap-2 border border-purple-300 bg-purple-100 text-purple-700 hover:bg-purple-200"
         >
-          <Settings className="w-4 h-4" />
+          <Settings className="h-4 w-4" />
           Test Modal
         </Button>
       </div>
 
-      <div className="flex items-center border-b border-border mb-8">
+      <div className="mb-8 flex items-center border-b border-border">
         <button
           type="button"
           onClick={() => setMainTab("ai")}
-          className={`flex items-center gap-3 p-4 text-lg font-serif border-b-4 -mb-[2px] ${
+          className={cn(
+            "flex -mb-0.5 items-center gap-3 border-b-4 p-4 font-serif text-lg",
             mainTab === "ai"
-              ? "font-bold border-brand-accent text-foreground"
+              ? "border-brand-accent font-bold text-foreground"
               : "border-transparent text-foreground/50 hover:text-foreground"
-          }`}
+          )}
         >
-          <Lightbulb className="w-5 h-5" />
+          <Lightbulb className="h-5 w-5" />
           AI Briefing
         </button>
 
         <button
           type="button"
           onClick={() => setMainTab("manual")}
-          className={`flex items-center gap-3 p-4 text-lg font-serif border-b-4 -mb-[2px] ${
+          className={cn(
+            "flex -mb-0.5 items-center gap-3 border-b-4 p-4 font-serif text-lg",
             mainTab === "manual"
-              ? "font-bold border-brand-accent text-foreground"
+              ? "border-brand-accent font-bold text-foreground"
               : "border-transparent text-foreground/50 hover:text-foreground"
-          }`}
+          )}
         >
-          <PenSquare className="w-5 h-5" />
+          <PenSquare className="h-5 w-5" />
           New Clipping
         </button>
 
         <button
           type="button"
           onClick={() => setMainTab("archive")}
-          className={`flex items-center gap-3 p-4 text-lg font-serif border-b-4 -mb-[2px] ${
+          className={cn(
+            "flex -mb-0.5 items-center gap-3 border-b-4 p-4 font-serif text-lg",
             mainTab === "archive"
-              ? "font-bold border-brand-accent text-foreground"
+              ? "border-brand-accent font-bold text-foreground"
               : "border-transparent text-foreground/50 hover:text-foreground"
-          }`}
+          )}
         >
-          <Archive className="w-5 h-5" />
+          <Archive className="h-5 w-5" />
           Idea Clippings
         </button>
       </div>

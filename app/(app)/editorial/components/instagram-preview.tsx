@@ -2,6 +2,7 @@
 
 import { Heart, MessageCircle, Send, Bookmark, ImageIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
+import Image from "next/image";
 
 interface InstagramPreviewProps {
   caption: string;
@@ -12,6 +13,39 @@ interface InstagramPreviewProps {
   collaborators: string;
   location: string;
 }
+
+const ProfileAvatar = ({
+  size,
+  avatarUrl,
+  primaryName,
+}: {
+  size: number;
+  avatarUrl: string | null;
+  primaryName: string;
+}) => {
+  if (avatarUrl) {
+    return (
+      <Image
+        src={avatarUrl}
+        alt={`${primaryName} profile picture`}
+        width={size}
+        height={size}
+        className="rounded-full border border-[--border] shrink-0 object-cover"
+      />
+    );
+  }
+
+  return (
+    <div
+      className={cn(
+        "rounded-full bg-[--muted] border border-[--border] shrink-0"
+      )}
+      style={{ width: size, height: size }}
+      role="img"
+      aria-label="Profile image placeholder"
+    />
+  );
+};
 
 export default function InstagramPreview({
   caption,
@@ -25,41 +59,23 @@ export default function InstagramPreview({
   const accountName = platformUsername.replace(/^@/, "");
   const primaryName = displayName || accountName || "Account";
 
-  const ProfileAvatar = ({ size }: { size: number }) => {
-    if (avatarUrl) {
-      return (
-        <img
-          src={avatarUrl}
-          alt={primaryName}
-          className="rounded-full border border-[--border] shrink-0 object-cover"
-          style={{ width: size, height: size }}
-        />
-      );
-    }
-
-    return (
-      <div
-        className={cn(
-          "rounded-full bg-[--muted] border border-[--border] shrink-0"
-        )}
-        style={{ width: size, height: size }}
-        role="img"
-        aria-label="Profile image placeholder"
-      />
-    );
-  };
-
   return (
     <div className="w-full bg-[--surface] border border-[--border] shadow-lg max-w-sm mx-auto">
       <div className="flex items-center justify-between p-3 border-b border-[--border]">
         <div className="flex items-center gap-3">
-          <ProfileAvatar size={32} />
+          <ProfileAvatar
+            size={32}
+            avatarUrl={avatarUrl}
+            primaryName={primaryName}
+          />
           <div>
             <span className="font-semibold text-sm text-[--foreground]">
               {primaryName}
             </span>
             {location && (
-              <p className="text-xs text-[--muted-foreground] leading-none">{location}</p>
+              <p className="text-xs text-[--muted-foreground] leading-none">
+                {location}
+              </p>
             )}
           </div>
         </div>
@@ -75,7 +91,7 @@ export default function InstagramPreview({
         )}
       >
         {mediaPreview ? (
-          <img
+          <img // NOTE: Keeping <img> for media preview as it's a dynamic Blob URL or Data URL
             src={mediaPreview}
             alt="Media Preview"
             className="w-full h-full object-cover"
@@ -112,7 +128,9 @@ export default function InstagramPreview({
         )}
 
         <p className="text-xs text-[--muted-foreground]">View all 0 comments</p>
-        <p className="text-[0.65rem] uppercase text-[--muted-foreground]">Now</p>
+        <p className="text-[0.65rem] uppercase text-[--muted-foreground]">
+          Now
+        </p>
       </div>
 
       <div className="p-3 text-xs text-[--muted-foreground] text-center italic border-t border-[--border]">

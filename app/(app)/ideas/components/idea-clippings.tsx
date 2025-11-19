@@ -5,8 +5,8 @@
 import { useState } from "react";
 import Link from "next/link";
 import { Tag, X } from "lucide-react";
+import { cn } from "@/lib/utils";
 
-// Mock data
 const savedIdea = {
   status: "Saved",
   title: "Exploring the Local Impact of Urban Farming",
@@ -58,46 +58,50 @@ export default function IdeaClippings() {
 
   return (
     <div>
-      <div className="flex items-center justify-end border-b-2 border-[--foreground] pb-3 mb-8">
-        <div className="flex items-center gap-2 border border-[--border] p-1 bg-[--surface]">
+      <div className="mb-8 flex items-center justify-end border-b-2 border-foreground pb-3">
+        <div className="flex items-center gap-2 border border-border bg-surface p-1">
           {ideaLifecycleFilters.map((tab) => (
             <button
               key={tab}
               onClick={() => setActiveFilterTab(tab)}
-              className={`py-1 px-3 text-xs uppercase tracking-wider font-bold ${
+              className={cn(
+                "px-3 py-1 text-xs font-bold uppercase tracking-wider",
                 activeFilterTab === tab
-                  ? "bg-[--foreground] text-[--background]"
-                  : "text-[--muted] hover:bg-[--surface-hover]"
-              }`}
+                  ? "bg-foreground text-background"
+                  : "text-muted hover:bg-surface-hover"
+              )}
             >
               {tab}
             </button>
           ))}
         </div>
       </div>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        <div className="bg-[--card] border border-[--border] p-5 group flex flex-col justify-between hover:border-[--foreground] transition-colors">
+
+      <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+        <div className="group flex flex-col justify-between border border-border bg-card p-5 transition-colors hover:border-foreground">
           <div>
-            <div className="flex items-center justify-between mb-4">
-              <span className="text-[0.65rem] font-bold uppercase tracking-widest text-[--foreground] bg-[--surface] py-1 px-2 border border-[--border]">
+            <div className="mb-4 flex items-center justify-between">
+              <span className="border border-border bg-surface px-2 py-1 text-[0.65rem] font-bold uppercase tracking-widest text-foreground">
                 {savedIdea.status}
               </span>
-              <span className="text-xs font-serif text-[--muted-foreground] italic">
+              <span className="font-serif text-xs italic text-muted-foreground">
                 {savedIdea.date}
               </span>
             </div>
-            <h3 className="font-serif text-xl font-bold text-[--foreground] mb-2">
+
+            <h3 className="mb-2 font-serif text-xl font-bold text-foreground">
               {savedIdea.title}
             </h3>
-            <p className="font-serif text-sm text-[--muted] leading-relaxed mb-4 line-clamp-4">
+            <p className="mb-4 line-clamp-4 font-serif text-sm leading-relaxed text-muted-foreground">
               {savedIdea.description}
             </p>
-            <div className="flex flex-wrap items-center gap-2 mb-4">
-              <Tag className="w-3 h-3 text-[--muted-foreground]" />
+
+            <div className="mb-4 flex flex-wrap items-center gap-2">
+              <Tag className="h-3 w-3 text-muted-foreground" />
               {savedIdea.tags.map((tag) => (
                 <span
                   key={tag}
-                  className="text-[0.7rem] uppercase tracking-wider text-[--muted]"
+                  className="text-[0.7rem] uppercase tracking-wider text-muted-foreground"
                 >
                   {tag}
                 </span>
@@ -105,8 +109,8 @@ export default function IdeaClippings() {
             </div>
           </div>
 
-          <div className="pt-4 border-t-2 border-dashed border-[--border]">
-            <p className="eyebrow text-sm mb-3">Format for Platform</p>
+          <div className="border-t-2 border-dashed border-border pt-4">
+            <p className="eyebrow mb-3 text-sm">Format for Platform</p>
             <div className="flex flex-wrap items-center gap-3">
               {ideaPlatforms.map((platform) => (
                 <button
@@ -117,13 +121,14 @@ export default function IdeaClippings() {
                     )
                   }
                   title={platform.name}
-                  className={`flex items-center justify-center w-9 h-9 rounded-full border-2 transition-colors ${
+                  className={cn(
+                    "flex h-9 w-9 items-center justify-center rounded-full border-2 transition-colors",
                     formattingPlatform === platform.id
-                      ? "bg-[--foreground] text-[--background] border-[--foreground]"
-                      : "bg-white border-[--border] hover:border-[--muted]"
-                  }`}
+                      ? "border-foreground bg-foreground text-background"
+                      : "border-border bg-surface hover:border-muted"
+                  )}
                 >
-                  <span className="font-serif font-bold text-xs">
+                  <span className="font-serif text-xs font-bold">
                     {platform.initial}
                   </span>
                 </button>
@@ -131,22 +136,22 @@ export default function IdeaClippings() {
             </div>
 
             {formattingPlatform === "x" && (
-              <div className="mt-4 bg-white p-4 border border-[--border] animate-in fade-in-50">
-                <div className="flex items-center justify-between mb-2">
-                  <h4 className="font-serif font-bold text-sm">Format for X</h4>
+              <div className="mt-4 animate-in fade-in-50 border border-border bg-surface p-4">
+                <div className="mb-2 flex items-center justify-between">
+                  <h4 className="font-serif text-sm font-bold">Format for X</h4>
                   <button
                     onClick={() => setFormattingPlatform(null)}
-                    className="text-[--muted] hover:text-[--foreground]"
+                    className="text-muted-foreground hover:text-foreground"
                   >
-                    <X className="w-4 h-4" />
+                    <X className="h-4 w-4" />
                   </button>
                 </div>
                 <textarea
                   rows={10}
-                  className="w-full text-sm font-mono bg-[--surface] p-3 border border-[--border] focus:border-[--foreground] focus:ring-1 focus:ring-[--foreground] transition-colors"
+                  className="w-full border border-border bg-surface p-3 font-mono text-sm transition-colors focus:border-foreground focus:ring-1 focus:ring-foreground"
                   defaultValue={getXFormattedText()}
                 />
-                <div className="flex justify-end mt-3">
+                <div className="mt-3 flex justify-end">
                   <Link href="/editorial" className="btn btn-sm">
                     Develop in Editorial →
                   </Link>

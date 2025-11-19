@@ -19,7 +19,7 @@ import ConnectAccountModal from "@/components/connect-account-modal";
 import { toast } from "sonner";
 import {
   getConnections,
-  Connection,
+  type Connection,
   disconnectAccount,
 } from "@/lib/api/integrations";
 
@@ -77,10 +77,6 @@ export default function IntegrationsPage() {
   });
 
   useEffect(() => {
-    console.log("Query state:", { isLoading, error, connections });
-  }, [isLoading, error, connections]);
-
-  useEffect(() => {
     const connected = searchParams.get("connected");
     const errorParam = searchParams.get("error");
 
@@ -92,9 +88,15 @@ export default function IntegrationsPage() {
 
     if (errorParam) {
       toast.error("Connection failed. Please try again.");
+      queryClient.invalidateQueries({ queryKey: ["connections"] });
       router.replace("/settings/integrations", { scroll: false });
     }
   }, [searchParams, router, queryClient]);
+
+  const errorMessage =
+    error instanceof Error
+      ? error.message
+      : "Something went wrong loading your connections. Please try again.";
 
   const openConnectModal = (platform: PlatformDefinition) => {
     setSelectedPlatform(platform);
@@ -106,20 +108,20 @@ export default function IntegrationsPage() {
       await disconnectAccount(platformId, accountId);
       toast.success("Account disconnected.");
       queryClient.invalidateQueries({ queryKey: ["connections"] });
-    } catch (error) {
+    } catch (err) {
       toast.error("Failed to disconnect account.");
-      console.error("Disconnect error:", error);
+      console.error("Disconnect error:", err);
     }
   };
 
   return (
     <>
       <div>
-        <div className="border-b-2 border-foreground pb-3 mb-6">
+        <div className="mb-6 border-b-2 border-foreground pb-3">
           <h2 className="font-serif text-2xl font-bold text-foreground">
             Integrations & Connections
           </h2>
-          <p className="font-serif text-muted mt-1">
+          <p className="font-serif text-sm text-muted-foreground mt-1">
             Connect your social media accounts to publish content directly from
             EziBreezy.
           </p>
@@ -127,15 +129,13 @@ export default function IntegrationsPage() {
 
         {isLoading && (
           <div className="flex items-center justify-center p-12">
-            <Loader2 className="w-8 h-8 animate-spin text-muted" />
+            <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
           </div>
         )}
 
-        {error && (
-          <div className="border border-error bg-red-50 p-4 text-center">
-            <p className="font-serif text-sm text-error">
-              Failed to load connections: {error.message}
-            </p>
+        {error && !isLoading && (
+          <div className="border border-error bg-error/5 p-4 text-center">
+            <p className="font-serif text-sm text-error">{errorMessage}</p>
           </div>
         )}
 
@@ -150,38 +150,38 @@ export default function IntegrationsPage() {
               return (
                 <div
                   key={platform.id}
-                  className="border border-border bg-background p-5"
+                  className="border border-border bg-surface p-5"
                 >
                   <div className="flex flex-col md:flex-row md:items-start md:justify-between">
                     <div className="flex items-start gap-4">
-                      <div className="w-10 h-10 flex items-center justify-center border border-border bg-surface">
-                        <Icon className="w-5 h-5 text-foreground" />
+                      <div className="flex h-10 w-10 items-center justify-center border border-border bg-background">
+                        <Icon className="h-5 w-5 text-foreground" />
                       </div>
                       <div>
-                        <h3 className="font-serif font-bold text-lg text-foreground">
+                        <h3 className="font-serif text-lg font-bold text-foreground">
                           {platform.name}
                         </h3>
-                        <p className="font-serif text-sm text-muted">
+                        <p className="font-serif text-sm text-muted-foreground">
                           {platform.description}
                         </p>
                       </div>
                     </div>
-                    <div className="mt-4 md:mt-0 md:ml-4 flex-shrink-0">
+                    <div className="mt-4 flex-shrink-0 md:mt-0 md:ml-4">
                       <Button onClick={() => openConnectModal(platform)}>
-                        <LinkIcon className="w-4 h-4" />
+                        <LinkIcon className="h-4 w-4" />
                         Connect New Account
                       </Button>
                     </div>
                   </div>
 
                   {connectedAccounts.length > 0 && (
-                    <div className="mt-4 pt-4 border-t border-dashed border-border">
+                    <div className="mt-4 border-t border-dashed border-border pt-4">
                       <p className="eyebrow mb-3">Connected Accounts</p>
                       <div className="space-y-3">
                         {connectedAccounts.map((account) => (
                           <div
                             key={account.id}
-                            className="flex items-center justify-between p-3 bg-surface border border-border hover:border-border-hover transition-colors"
+                            className="flex items-center justify-between border border-border bg-surface hover:border-border-hover p-3 transition-colors"
                           >
                             <div className="flex items-center gap-3">
                               <img
@@ -189,21 +189,21 @@ export default function IntegrationsPage() {
                                   account.avatarUrl || "/placeholder-pfp.png"
                                 }
                                 alt={account.platformUsername}
-                                className="w-8 h-8 rounded-full bg-muted border border-border"
+                                className="h-8 w-8 rounded-full border border-border bg-muted"
                               />
                               <span className="font-serif text-sm font-bold text-foreground">
-                                @{account.platformUsername}{" "}
+                                @{account.platformUsername}
                               </span>
                             </div>
                             <Button
                               variant="outline"
                               size="sm"
-                              className="border-error/30 bg-error/5 text-error hover:bg-error hover:text-error-foreground hover:border-error transition-all"
+                              className="border-error/30 bg-error/5 text-error transition-all hover:border-error hover:bg-error hover:text-error-foreground"
                               onClick={() =>
                                 handleDisconnect(platform.id, account.id)
                               }
                             >
-                              <X className="w-4 h-4 mr-1" />
+                              <X className="mr-1 h-4 w-4" />
                               Disconnect
                             </Button>
                           </div>

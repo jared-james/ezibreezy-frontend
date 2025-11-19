@@ -31,11 +31,19 @@ export interface MediaFile {
 }
 
 /**
- * Thread message structure for multi-post threads
+ * Thread message structure (for DTO payload)
  */
 export interface ThreadMessage {
   content: string;
   mediaIds?: string[];
+}
+
+/**
+ * Thread message structure (Augmented for local UI/Preview)
+ */
+export interface ThreadMessageAugmented extends ThreadMessage {
+  mediaPreviews?: string[];
+  isUploading?: boolean;
 }
 
 /**

@@ -3,9 +3,8 @@
 "use client";
 
 import { useCallback } from "react";
-import { Upload, X, Loader2, Plus, AlertCircle, Image } from "lucide-react";
+import { X, Loader2, Plus } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { Button } from "@/components/ui/button";
 
 interface ThreadPostMediaUploadProps {
   threadIndex: number;
@@ -20,6 +19,8 @@ interface ThreadPostMediaUploadProps {
   onRemoveMedia: (fileToRemove: File, threadIndex: number) => void;
 }
 
+const MAX_FILES = 4;
+
 export default function ThreadPostMediaUpload({
   threadIndex,
   mediaFiles,
@@ -28,22 +29,24 @@ export default function ThreadPostMediaUpload({
   onMediaChange,
   onRemoveMedia,
 }: ThreadPostMediaUploadProps) {
-  const MAX_FILES = 4;
   const hasMedia = mediaPreviews.length > 0;
   const isFull = mediaPreviews.length >= MAX_FILES;
 
   const handleFiles = useCallback(
     (newFiles: File[]) => {
       const validFiles = newFiles.filter(
-        (f) => f.type.startsWith("image/") || f.type.startsWith("video/")
+        (file) =>
+          file.type.startsWith("image/") || file.type.startsWith("video/")
       );
 
       if (validFiles.length === 0) return;
 
       const totalFiles = [...mediaFiles, ...validFiles].slice(0, MAX_FILES);
-      const newPreviews = validFiles.map((f) => URL.createObjectURL(f));
+      const newPreviews = validFiles.map((file) => URL.createObjectURL(file));
 
-      const existingPreviews = mediaFiles.map((_, i) => mediaPreviews[i]);
+      const existingPreviews = mediaFiles.map(
+        (_, index) => mediaPreviews[index]
+      );
 
       const totalPreviews = [...existingPreviews, ...newPreviews].slice(
         0,
@@ -81,22 +84,19 @@ export default function ThreadPostMediaUpload({
       <div
         className={cn("grid gap-2", hasMedia ? "grid-cols-4" : "grid-cols-1")}
       >
-        {/* Existing Media Previews */}
         {mediaPreviews.map((preview, index) => {
           const isVideo = mediaFiles[index]?.type.startsWith("video/");
 
           return (
             <div
               key={preview}
-              className={cn(
-                "relative group aspect-square bg-black/5 rounded-md overflow-hidden border border-[--border]"
-              )}
+              className="relative group aspect-square bg-black/5 rounded-md overflow-hidden border border-[--border]"
             >
               {isVideo ? (
                 <video
                   src={preview}
                   className="w-full h-full object-cover pointer-events-none"
-                  onCanPlay={(e) => e.currentTarget.pause()}
+                  onCanPlay={(event) => event.currentTarget.pause()}
                 />
               ) : (
                 <img
@@ -112,15 +112,14 @@ export default function ThreadPostMediaUpload({
                 </div>
               )}
 
-              {/* Remove Button */}
               <button
                 type="button"
-                onClick={(e) => {
-                  e.stopPropagation();
+                onClick={(event) => {
+                  event.stopPropagation();
                   handleRemove(index);
                 }}
                 disabled={isUploading}
-                className="absolute top-1 right-1 p-0.5 bg-black/60 hover:bg-red-600 text-white rounded-full transition-colors z-20 opacity-0 group-hover:opacity-100 cursor-pointer"
+                className="absolute top-1 right-1 p-0.5 bg-black/60 hover:bg-red-600 text-white rounded-full transition-colors z-20 opacity-0 group-hover:opacity-100 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
               >
                 <X className="w-3 h-3" />
               </button>
@@ -128,7 +127,6 @@ export default function ThreadPostMediaUpload({
           );
         })}
 
-        {/* Upload Slot */}
         {!isFull && (
           <label className="relative aspect-square border-2 border-dashed border-[--border] hover:border-[--foreground] hover:bg-[--surface-hover] rounded-md cursor-pointer flex flex-col items-center justify-center gap-1 text-[--muted-foreground] hover:text-[--foreground] transition-colors">
             <input

@@ -5,7 +5,7 @@
 import { useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { Send, Paperclip, Loader2 } from "lucide-react";
-import { Clipping, generateClippings } from "@/lib/api/ideas";
+import { type Clipping, generateClippings } from "@/lib/api/ideas";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 
@@ -19,7 +19,7 @@ export default function AIBriefing({
   const [prompt, setPrompt] = useState("");
 
   const mutation = useMutation({
-    mutationFn: (newPrompt: string) => generateClippings(newPrompt),
+    mutationFn: generateClippings,
     onSuccess: (data) => {
       onNewBriefingGenerated(data);
     },
@@ -35,7 +35,7 @@ export default function AIBriefing({
   };
 
   return (
-    <div className="bg-surface border border-border p-6">
+    <div className="border border-border bg-surface p-6">
       <p className="eyebrow mb-2 text-foreground">Step 1: Write your Memo</p>
 
       <div className="space-y-4">
@@ -44,12 +44,12 @@ export default function AIBriefing({
           placeholder="Brief the AI on your recent activities, a topic of interest, or a half-formed thought..."
           className="min-h-32"
           value={prompt}
-          onChange={(e) => setPrompt(e.target.value)}
+          onChange={(event) => setPrompt(event.target.value)}
           disabled={mutation.isPending}
         />
 
-        <div className="w-full border-2 border-dashed border-border flex flex-col items-center justify-center text-center p-4 hover:border-foreground transition-colors bg-surface cursor-pointer">
-          <Paperclip className="w-6 h-6 text-muted-foreground mb-2" />
+        <div className="flex w-full cursor-pointer flex-col items-center justify-center border-2 border-dashed border-border bg-surface p-4 text-center transition-colors hover:border-foreground">
+          <Paperclip className="mb-2 h-6 w-6 text-muted-foreground" />
           <p className="font-serif text-sm text-foreground/70">
             Attach documents or images for context
           </p>
@@ -60,13 +60,13 @@ export default function AIBriefing({
             onClick={handleSubmit}
             disabled={mutation.isPending || !prompt.trim()}
             variant="primary"
-            className="w-48 px-8 gap-2"
+            className="flex w-48 items-center justify-center gap-2 px-8"
           >
             {mutation.isPending ? (
-              <Loader2 className="w-4 h-4 animate-spin" />
+              <Loader2 className="h-4 w-4 animate-spin" />
             ) : (
               <>
-                <Send className="w-4 h-4" />
+                <Send className="h-4 w-4" />
                 Generate Ideas
               </>
             )}

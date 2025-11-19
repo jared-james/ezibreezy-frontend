@@ -4,32 +4,29 @@
 
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import {
-  Twitter,
-  Instagram,
-  Linkedin,
-  Facebook,
-  Youtube,
-  Video,
-} from "lucide-react";
+import { Twitter, Instagram, Linkedin, Youtube } from "lucide-react";
 import type { Clipping as GeneratedClipping } from "@/lib/api/ideas";
-import type { Clipping } from "@/lib/types/editorial";
+import {
+  type Clipping as EditorialClipping,
+  type EditorialDraft,
+  type ThreadMessage,
+  type ThreadMessageAugmented,
+  type Platform,
+} from "@/lib/types/editorial";
 import { useEditorialStore } from "@/lib/store/editorial-store";
-import type { EditorialDraft, ThreadMessage } from "@/lib/types/editorial"; // Import ThreadMessage
 import ModalHeader from "./edit-modal/modal-header";
 import PostTypeSelector from "./edit-modal/post-type-selector";
-import ChannelSelector, { type Platform } from "./edit-modal/channel-selector";
+import ChannelSelector from "./edit-modal/channel-selector";
 import CaptionEditor from "./edit-modal/caption-editor";
 import MediaPanel from "./edit-modal/media-panel";
 import DistributionPanel from "./edit-modal/distribution-panel";
-import { Connection, getConnections } from "@/lib/api/integrations";
+import { type Connection, getConnections } from "@/lib/api/integrations";
 import { useQuery } from "@tanstack/react-query";
-// app/(app)/ideas/components/edit-clipping-modal.tsx
 
 interface EditClippingModalProps {
   isOpen: boolean;
   onClose: () => void;
-  idea: Clipping | GeneratedClipping;
+  idea: EditorialClipping | GeneratedClipping;
 }
 
 const platformDefinitions = {
@@ -53,28 +50,32 @@ export default function EditClippingModal({
 
   const availablePlatforms = useMemo((): Platform[] => {
     if (!connections) return [];
-    const connectionsByPlatform = connections.reduce((acc, conn) => {
-      acc[conn.platform] = acc[conn.platform] || [];
-      acc[conn.platform].push(conn);
+
+    const connectionsByPlatform = connections.reduce((acc, connection) => {
+      acc[connection.platform] = acc[connection.platform] || [];
+      acc[connection.platform].push(connection);
       return acc;
     }, {} as Record<string, Connection[]>);
 
     return Object.keys(platformDefinitions)
       .map((platformId) => {
-        const def =
+        const definition =
           platformDefinitions[platformId as keyof typeof platformDefinitions];
         const accounts =
-          connectionsByPlatform[platformId]?.map((conn) => ({
-            id: conn.id,
-            name: `@${conn.platformUsername}`,
-            img: conn.avatarUrl || "/placeholder-pfp.png",
+          connectionsByPlatform[platformId]?.map((connection) => ({
+            id: connection.id,
+            name: `@${connection.platformUsername}`,
+            img: connection.avatarUrl || "/placeholder-pfp.png",
           })) || [];
-        return { ...def, id: platformId, accounts };
+
+        return { ...definition, id: platformId, accounts };
       })
       .filter((platform) => platform.accounts.length > 0);
   }, [connections]);
 
-  const initialPlatform = availablePlatforms.find((p) => p.accounts.length > 0);
+  const initialPlatform = availablePlatforms.find(
+    (platform) => platform.accounts.length > 0
+  );
 
   const [postType, setPostType] = useState<"text" | "image" | "video">("text");
 
@@ -97,7 +98,6 @@ export default function EditClippingModal({
   const [mediaPreview, setMediaPreview] = useState<string | null>(null);
   const [labels, setLabels] = useState("");
   const [hashtags, setHashtags] = useState("");
-  // Replaced firstComment with threadMessages state
   const [threadMessages, setThreadMessages] = useState<ThreadMessage[]>([]);
   const [collaborators, setCollaborators] = useState("");
   const [location, setLocation] = useState("");
@@ -123,7 +123,7 @@ export default function EditClippingModal({
       distribution: {
         labels,
         hashtags,
-        threadMessages, // Use new field
+        threadMessages,
         collaborators,
         location,
       },
@@ -132,9 +132,7 @@ export default function EditClippingModal({
     };
 
     setDraft(draft);
-
     router.push("/editorial");
-
     onClose();
   };
 
@@ -151,41 +149,44 @@ export default function EditClippingModal({
     const isCurrentlyActive = activePlatforms.has(platformId);
 
     if (isCurrentlyActive) {
-      setActivePlatforms((prev) => {
-        const newSet = new Set(prev);
-        newSet.delete(platformId);
-        return newSet;
+      setActivePlatforms((previous) => {
+        const updated = new Set(previous);
+        updated.delete(platformId);
+        return updated;
       });
-      setSelectedAccounts((prev) => {
-        const { [platformId]: _, ...rest } = prev;
+
+      setSelectedAccounts((previous) => {
+        const { [platformId]: _, ...rest } = previous;
         return rest;
       });
-      setPlatformCaptions((prev) => {
-        const { [platformId]: _, ...rest } = prev;
+
+      setPlatformCaptions((previous) => {
+        const { [platformId]: _, ...rest } = previous;
         return rest;
       });
-    } else {
-      const platform = availablePlatforms.find((p) => p.id === platformId);
-      if (!platform || platform.accounts.length === 0) return;
 
-      setActivePlatforms((prev) => new Set(prev).add(platformId));
-
-      if (platform.accounts.length > 0) {
-        setSelectedAccounts((prev) => ({
-          ...prev,
-          [platformId]: [platform.accounts[0].id],
-        }));
-        setPlatformCaptions((prev) => ({
-          ...prev,
-          [platformId]: mainCaption,
-        }));
-      }
+      return;
     }
+
+    const platform = availablePlatforms.find((p) => p.id === platformId);
+    if (!platform || platform.accounts.length === 0) return;
+
+    setActivePlatforms((previous) => new Set(previous).add(platformId));
+
+    setSelectedAccounts((previous) => ({
+      ...previous,
+      [platformId]: [platform.accounts[0].id],
+    }));
+
+    setPlatformCaptions((previous) => ({
+      ...previous,
+      [platformId]: mainCaption,
+    }));
   };
 
   const handleAccountSelect = (platformId: string, accountId: string) => {
-    setSelectedAccounts((prev) => {
-      const currentSelection = prev[platformId] || [];
+    setSelectedAccounts((previous) => {
+      const currentSelection = previous[platformId] || [];
       const isSelected = currentSelection.includes(accountId);
 
       const newSelection = isSelected
@@ -193,37 +194,51 @@ export default function EditClippingModal({
         : [...currentSelection, accountId];
 
       if (newSelection.length === 0) {
-        const { [platformId]: _, ...rest } = prev;
-        setPlatformCaptions((prevCaptions) => {
-          const { [platformId]: __, ...restCaptions } = prevCaptions;
+        const { [platformId]: _, ...rest } = previous;
+
+        setPlatformCaptions((previousCaptions) => {
+          const { [platformId]: __, ...restCaptions } = previousCaptions;
           return restCaptions;
         });
+
         return rest;
       }
 
       if (currentSelection.length === 0 && newSelection.length === 1) {
-        setPlatformCaptions((prevCaptions) => ({
-          ...prevCaptions,
+        setPlatformCaptions((previousCaptions) => ({
+          ...previousCaptions,
           [platformId]: mainCaption,
         }));
       }
 
-      return { ...prev, [platformId]: newSelection };
+      return { ...previous, [platformId]: newSelection };
     });
   };
 
   if (!isOpen) return null;
 
+  const handleThreadMediaChangeNoop = (..._args: unknown[]) => {
+    console.warn(
+      "Thread media editing is only supported in the main Editorial Desk."
+    );
+  };
+
+  const handleRemoveThreadMediaNoop = (..._args: unknown[]) => {
+    console.warn(
+      "Thread media editing is only supported in the main Editorial Desk."
+    );
+  };
+
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 overflow-hidden">
-      <div className="bg-white border-4 border-[--foreground] w-full max-w-6xl h-[90vh] flex flex-col shadow-2xl overflow-hidden">
-        <div className="overflow-y-auto flex-1">
+    <div className="fixed inset-0 z-50 flex items-center justify-center overflow-hidden bg-black/50">
+      <div className="flex h-[90vh] w-full max-w-6xl flex-col overflow-hidden border-4 border-foreground bg-surface shadow-2xl">
+        <div className="flex-1 overflow-y-auto">
           <ModalHeader idea={idea} onClose={onClose} />
-          <div className="p-6 overflow-y-auto flex-1">
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-              <div className="lg:col-span-7 flex flex-col gap-4">
-                <div className="flex items-center justify-between border-b-2 border-[--foreground] pb-2">
-                  <h3 className="font-serif text-xl font-bold text-[--foreground]">
+          <div className="flex-1 overflow-y-auto p-6">
+            <div className="grid grid-cols-1 gap-8 lg:grid-cols-12">
+              <div className="flex flex-col gap-4 lg:col-span-7">
+                <div className="flex items-center justify-between border-b-2 border-foreground pb-2">
+                  <h3 className="font-serif text-xl font-bold text-foreground">
                     The Draft
                   </h3>
                 </div>
@@ -252,8 +267,8 @@ export default function EditClippingModal({
                     onMainCaptionChange={setMainCaption}
                     platformCaptions={platformCaptions}
                     onPlatformCaptionChange={(platformId, caption) =>
-                      setPlatformCaptions((prev) => ({
-                        ...prev,
+                      setPlatformCaptions((previous) => ({
+                        ...previous,
                         [platformId]: caption,
                       }))
                     }
@@ -265,22 +280,24 @@ export default function EditClippingModal({
                 </div>
               </div>
 
-              <div className="lg:col-span-5 space-y-6 flex flex-col">
+              <div className="flex flex-col space-y-6 lg:col-span-5">
                 <DistributionPanel
                   onOpenInEditorial={handleOpenInEditorial}
                   onSaveClipping={handleSaveClipping}
                   labels={labels}
                   hashtags={hashtags}
-                  threadMessages={threadMessages} // Use new field
+                  threadMessages={threadMessages as ThreadMessageAugmented[]}
                   collaborators={collaborators}
                   location={location}
                   onLabelsChange={setLabels}
                   onHashtagsChange={setHashtags}
-                  onThreadMessagesChange={setThreadMessages} // New handler
+                  onThreadMessagesChange={setThreadMessages}
                   onCollaboratorsChange={setCollaborators}
                   onLocationChange={setLocation}
                   activePlatforms={activePlatforms}
-                  // Removed firstComment prop from here as well
+                  handleThreadMediaChange={handleThreadMediaChangeNoop}
+                  handleRemoveThreadMedia={handleRemoveThreadMediaNoop}
+                  isGlobalUploading={false}
                 />
               </div>
             </div>
