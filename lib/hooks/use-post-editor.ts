@@ -161,11 +161,20 @@ export function usePostEditor() {
 
   const handleMediaChange = useCallback(
     (files: File[], previews: string[], threadIndex: number | null = null) => {
-      const allSelectedIds = Object.values(
-        useEditorialStore.getState().selectedAccounts
-      ).flat();
-      const uploadIntegrationId = allSelectedIds[0];
+      // 1. Get the latest state directly to ensure we have the most current selection
+      const currentSelectedAccounts =
+        useEditorialStore.getState().selectedAccounts;
 
+      // 2. Initialize with 'let' so we can reassign it if needed
+      let uploadIntegrationId = currentSelectedAccounts["x"]?.[0];
+
+      // 3. Fallback: If no X account, use the first available account
+      if (!uploadIntegrationId) {
+        const allIds = Object.values(currentSelectedAccounts).flat();
+        uploadIntegrationId = allIds[0];
+      }
+
+      // 4. Validation
       if (files.length > 0 && !uploadIntegrationId) {
         toast.error("Please select at least one account before uploading.");
         return;

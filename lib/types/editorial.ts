@@ -43,7 +43,7 @@ export interface ThreadMessage {
  */
 export interface ThreadMessageAugmented extends ThreadMessage {
   mediaPreviews?: string[];
-  mediaFiles?: File[]; // Added this field
+  mediaFiles?: File[];
   isUploading?: boolean;
 }
 
@@ -92,6 +92,10 @@ export interface EditorialDraft {
   // Source metadata
   sourceId?: string; // ID of the original clipping/idea
   sourceTitle?: string; // Title of the original clipping
+
+  // NEW FIELDS
+  recycleInterval?: number | null;
+  aiGenerated?: boolean;
 }
 
 /**

@@ -1,3 +1,5 @@
+// app/(app)/editorial/page.tsx
+
 // FILE: app\(app)\editorial\page.tsx
 
 "use client";

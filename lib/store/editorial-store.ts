@@ -28,6 +28,8 @@ export interface EditorialState {
   location: string;
   isInitialized: boolean;
   draft: EditorialDraft | null;
+  recycleInterval: number | null;
+  aiGenerated: boolean;
 }
 
 export interface EditorialActions {
@@ -54,6 +56,8 @@ export const initialState: EditorialState = {
   location: "",
   isInitialized: false,
   draft: null,
+  recycleInterval: null,
+  aiGenerated: false,
 };
 
 export const useEditorialStore = create<EditorialState & EditorialActions>(
@@ -78,6 +82,8 @@ export const useEditorialStore = create<EditorialState & EditorialActions>(
           scheduleDate: draft.schedule?.date,
           scheduleTime: draft.schedule?.time,
           isInitialized: true,
+          recycleInterval: draft.recycleInterval || null,
+          aiGenerated: draft.aiGenerated || false,
         };
         set(updates);
       }

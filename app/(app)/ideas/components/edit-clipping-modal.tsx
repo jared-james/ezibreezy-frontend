@@ -55,6 +55,10 @@ export default function EditClippingModal({
   const labels = useEditorialStore((state) => state.labels);
   const collaborators = useEditorialStore((state) => state.collaborators);
   const location = useEditorialStore((state) => state.location);
+  // NEW FIELDS FROM STORE
+  const aiGenerated = useEditorialStore((state) => state.aiGenerated);
+  const recycleInterval = useEditorialStore((state) => state.recycleInterval);
+  // END NEW FIELDS
 
   const [postType, setPostType] = useState<"text" | "image" | "video">("text");
   const [mediaFile, setMediaFile] = useState<File | null>(null);
@@ -99,9 +103,22 @@ export default function EditClippingModal({
         ? { [initialPlatform.id]: [initialPlatform.accounts[0].id] }
         : {};
 
+      // Determine if the content is AI generated (from latest briefing flow)
+      const isAiGenerated =
+        "body" in idea && idea.hashtags?.includes("#ezibreezy");
+
       setState({
         mainCaption: idea.body,
         selectedAccounts: initialSelected,
+        aiGenerated: isAiGenerated,
+        recycleInterval: null, // Reset recycle interval in modal
+        threadMessages: [], // Reset threads in modal to prevent accidental thread creation when moving from one idea to next
+        platformCaptions: {},
+        labels: "",
+        collaborators: "",
+        location: "",
+        scheduleDate: new Date().toISOString().split("T")[0],
+        scheduleTime: "12:00",
       });
     } else {
       reset();
@@ -110,7 +127,7 @@ export default function EditClippingModal({
       setMediaPreview(null);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isOpen, idea.body]);
+  }, [isOpen, idea.title, idea.body, availablePlatforms]);
 
   const handleOpenInEditorial = () => {
     const draft: EditorialDraft = {
@@ -133,8 +150,16 @@ export default function EditClippingModal({
         collaborators,
         location,
       },
+      schedule: {
+        isScheduled: useEditorialStore.getState().isScheduling,
+        date: useEditorialStore.getState().scheduleDate,
+        time: useEditorialStore.getState().scheduleTime,
+      },
       sourceId: "id" in idea ? idea.id : undefined,
       sourceTitle: idea.title,
+      // NEW FIELDS
+      aiGenerated,
+      recycleInterval,
     };
 
     setDraft(draft);

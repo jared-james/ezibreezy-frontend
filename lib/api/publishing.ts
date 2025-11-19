@@ -21,6 +21,8 @@ export interface CreatePostPayload {
   scheduledAt?: string;
   mediaIds?: string[];
   threadMessages?: ThreadMessagePayload[];
+  recycleInterval?: number;
+  aiGenerated?: boolean;
 }
 
 export interface CreatePostResponse {

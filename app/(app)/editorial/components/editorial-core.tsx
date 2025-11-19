@@ -47,6 +47,8 @@ export default function EditorialCore({ onPostSuccess }: EditorialCoreProps) {
   const storeThreadMessages = useEditorialStore(
     (state) => state.threadMessages
   );
+  const recycleInterval = useEditorialStore((state) => state.recycleInterval);
+  const aiGenerated = useEditorialStore((state) => state.aiGenerated);
 
   const {
     mainPostMediaFiles,
@@ -191,6 +193,7 @@ export default function EditorialCore({ onPostSuccess }: EditorialCoreProps) {
             platformMediaIds = mainPostUploadedIds.slice(0, 4);
           } else {
             platformThreadMessages = [];
+            platformMediaIds = platformMediaIds.slice(0, 1);
           }
 
           const payload: CreatePostPayload = {
@@ -205,6 +208,8 @@ export default function EditorialCore({ onPostSuccess }: EditorialCoreProps) {
               platformThreadMessages.length > 0
                 ? platformThreadMessages
                 : undefined,
+            recycleInterval: recycleInterval || undefined,
+            aiGenerated: aiGenerated || undefined,
           };
 
           return postMutation.mutateAsync(payload);
