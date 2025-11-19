@@ -169,7 +169,7 @@ export default function CalendarPage() {
           </div>
         </div>
 
-        <div className="mb-6 flex items-center justify-between">
+        <div className="mb-6 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
           <div className="flex items-center gap-4">
             <Button
               size="icon"
@@ -212,24 +212,28 @@ export default function CalendarPage() {
           </div>
         </div>
 
-        <div>
+        <div className="overflow-x-auto -mx-4 px-4 md:mx-0 md:px-0">
           {activeView === "Month" && (
-            <MonthView
-              currentDate={currentDate}
-              posts={scheduledPosts}
-              onEditPost={handleEditPost}
-              onNewPost={handleNewPost}
-              onOpenDayView={() => {}}
-            />
+            <div className="min-w-[800px]">
+              <MonthView
+                currentDate={currentDate}
+                posts={scheduledPosts}
+                onEditPost={handleEditPost}
+                onNewPost={handleNewPost}
+                onOpenDayView={() => {}}
+              />
+            </div>
           )}
 
           {activeView === "Week" && (
-            <WeekView
-              currentDate={currentDate}
-              posts={scheduledPosts}
-              onEditPost={handleEditPost}
-              onNewPost={handleNewPost}
-            />
+            <div className="min-w-[900px]">
+              <WeekView
+                currentDate={currentDate}
+                posts={scheduledPosts}
+                onEditPost={handleEditPost}
+                onNewPost={handleNewPost}
+              />
+            </div>
           )}
 
           {activeView === "List" && (
