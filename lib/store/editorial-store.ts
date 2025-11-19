@@ -23,7 +23,6 @@ export interface EditorialState {
   platformCaptions: Record<string, string>;
   mediaItems: MediaItem[];
   labels: string;
-  hashtags: string;
   threadMessages: ThreadMessage[];
   collaborators: string;
   location: string;
@@ -50,7 +49,6 @@ export const initialState: EditorialState = {
   platformCaptions: {},
   mediaItems: [],
   labels: "",
-  hashtags: "",
   threadMessages: [],
   collaborators: "",
   location: "",
@@ -73,7 +71,6 @@ export const useEditorialStore = create<EditorialState & EditorialActions>(
           platformCaptions: draft.platformCaptions,
           selectedAccounts: draft.selectedAccounts,
           labels: draft.distribution?.labels || "",
-          hashtags: draft.distribution?.hashtags || "",
           threadMessages: draft.distribution?.threadMessages || [],
           collaborators: draft.distribution?.collaborators || "",
           location: draft.distribution?.location || "",

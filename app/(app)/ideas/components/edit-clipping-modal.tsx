@@ -53,7 +53,6 @@ export default function EditClippingModal({
   const selectedAccounts = useEditorialStore((state) => state.selectedAccounts);
   const threadMessages = useEditorialStore((state) => state.threadMessages);
   const labels = useEditorialStore((state) => state.labels);
-  const hashtags = useEditorialStore((state) => state.hashtags);
   const collaborators = useEditorialStore((state) => state.collaborators);
   const location = useEditorialStore((state) => state.location);
 
@@ -130,7 +129,6 @@ export default function EditClippingModal({
           : undefined,
       distribution: {
         labels,
-        hashtags,
         threadMessages,
         collaborators,
         location,

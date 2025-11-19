@@ -2,7 +2,8 @@
 
 "use client";
 
-import { Smile, Twitter, Instagram, Plus, Trash2 } from "lucide-react";
+import { useState, useCallback } from "react"; // ADDED useState, useCallback
+import { Smile, Twitter, Instagram, Plus, Trash2, Hash } from "lucide-react"; // ADDED Hash
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -13,6 +14,9 @@ import {
 } from "@/lib/types/editorial";
 import ThreadPostMediaUpload from "@/app/(app)/editorial/components/thread-post-media-upload";
 
+// ADDED: Import the modal
+import HashtagSelectorModal from "./hashtag-selector-modal";
+
 type SelectedAccounts = Record<string, string[]>;
 
 interface CaptionEditorProps {
@@ -20,6 +24,7 @@ interface CaptionEditorProps {
   onMainCaptionChange: (caption: string) => void;
   platformCaptions: Record<string, string>;
   onPlatformCaptionChange: (platformId: string, caption: string) => void;
+  // ... other props remain the same
   selectedAccounts: SelectedAccounts;
   platforms: Platform[];
   onAccountSelect: (platformId: string, accountId: string) => void;
@@ -49,6 +54,42 @@ const PlatformIcon = ({ platformId }: { platformId: string }) => {
   return <Icon className="h-4 w-4 text-brand-primary" />;
 };
 
+// Custom Textarea wrapper to include the Hashtag button
+const CaptionTextarea = ({
+  id,
+  value,
+  onChange,
+  placeholder,
+  platformId,
+  onHashtagClick,
+}: {
+  id: string;
+  value: string;
+  onChange: (event: React.ChangeEvent<HTMLTextAreaElement>) => void;
+  placeholder: string;
+  platformId: string;
+  onHashtagClick: (platformId: string) => void;
+}) => (
+  <div className="relative">
+    <Textarea
+      id={id}
+      rows={10}
+      value={value}
+      onChange={onChange}
+      placeholder={placeholder}
+      className="min-h-32 pr-10" // Added padding-right to make space for the button
+    />
+    <button
+      type="button"
+      onClick={() => onHashtagClick(platformId)}
+      title="Insert Hashtags"
+      className="absolute bottom-3 right-3 text-muted-foreground hover:text-brand-primary transition-colors"
+    >
+      <Hash className="h-4 w-4" />
+    </button>
+  </div>
+);
+
 export default function CaptionEditor({
   mainCaption,
   onMainCaptionChange,
@@ -65,6 +106,10 @@ export default function CaptionEditor({
   handleRemoveThreadMedia,
   isGlobalUploading = false,
 }: CaptionEditorProps) {
+  // ADDED: State for hashtag modal
+  const [isHashtagModalOpen, setIsHashtagModalOpen] = useState(false);
+  const [targetPlatformId, setTargetPlatformId] = useState<string | null>(null);
+
   const mainPlaceholder =
     postType === "video"
       ? "Introduce the hook, context, and call to action for your video..."
@@ -96,6 +141,42 @@ export default function CaptionEditor({
     }
   };
 
+  // ADDED: Logic to insert hashtags into the appropriate caption
+  const handleInsertHashtags = useCallback(
+    (hashtagString: string) => {
+      if (!hashtagString) return;
+
+      // Determine the caption to update
+      const hashtagsWithPadding = `\n\n${hashtagString.trim()}`;
+
+      if (targetPlatformId === "main") {
+        onMainCaptionChange(mainCaption.trimEnd() + hashtagsWithPadding);
+      } else if (targetPlatformId) {
+        const currentCaption =
+          platformCaptions[targetPlatformId] || mainCaption;
+        onPlatformCaptionChange(
+          targetPlatformId,
+          currentCaption.trimEnd() + hashtagsWithPadding
+        );
+      }
+
+      setTargetPlatformId(null);
+    },
+    [
+      mainCaption,
+      platformCaptions,
+      onMainCaptionChange,
+      onPlatformCaptionChange,
+      targetPlatformId,
+    ]
+  );
+
+  // ADDED: Function to open modal and set target platform
+  const openHashtagModal = useCallback((platformId: string) => {
+    setTargetPlatformId(platformId);
+    setIsHashtagModalOpen(true);
+  }, []);
+
   return (
     <>
       {mediaUploadSlot && <div className="mb-6">{mediaUploadSlot}</div>}
@@ -113,14 +194,17 @@ export default function CaptionEditor({
             <Smile className="h-4 w-4" />
           </button>
         </label>
-        <Textarea
+
+        {/* MODIFIED: Use the custom CaptionTextarea wrapper */}
+        <CaptionTextarea
           id="caption"
-          rows={10}
           value={mainCaption}
           onChange={(event) => onMainCaptionChange(event.target.value)}
           placeholder={mainPlaceholder}
-          className="min-h-32"
+          platformId="main" // Special ID for main caption
+          onHashtagClick={openHashtagModal}
         />
+        {/* END MODIFIED */}
       </div>
 
       {Object.keys(selectedAccounts).map((platformId) => {
@@ -128,6 +212,7 @@ export default function CaptionEditor({
         if (!platform) return null;
 
         const isX = platformId === "x";
+        const currentCaption = platformCaptions[platformId] || "";
 
         return (
           <div key={platformId} className="mt-6">
@@ -176,16 +261,18 @@ export default function CaptionEditor({
             </label>
 
             <div className="space-y-4">
-              <Textarea
+              {/* MODIFIED: Use the custom CaptionTextarea wrapper for platform caption */}
+              <CaptionTextarea
                 id={`caption-${platformId}`}
-                rows={10}
-                value={platformCaptions[platformId] || ""}
+                value={currentCaption}
                 onChange={(event) =>
                   onPlatformCaptionChange(platformId, event.target.value)
                 }
                 placeholder={`${platform.name} specific caption...`}
-                className="min-h-32"
+                platformId={platformId}
+                onHashtagClick={openHashtagModal}
               />
+              {/* END MODIFIED */}
 
               {isX && (
                 <>
@@ -263,6 +350,19 @@ export default function CaptionEditor({
           </div>
         );
       })}
+
+      {/* ADDED: Hashtag Selector Modal */}
+      <HashtagSelectorModal
+        isOpen={isHashtagModalOpen}
+        onClose={() => setIsHashtagModalOpen(false)}
+        // MODIFIED: Pass the mainCaption (or platform-specific caption) to ensure the modal syncs the correct tag list
+        initialHashtags={
+          targetPlatformId === "main"
+            ? mainCaption
+            : platformCaptions[targetPlatformId || ""] || ""
+        }
+        onSave={handleInsertHashtags} // Use the new insert handler
+      />
     </>
   );
 }

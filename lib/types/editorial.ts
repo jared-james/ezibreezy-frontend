@@ -52,7 +52,6 @@ export interface ThreadMessageAugmented extends ThreadMessage {
  */
 export interface DistributionMetadata {
   labels?: string;
-  hashtags?: string;
   threadMessages?: ThreadMessage[];
   collaborators?: string;
   location?: string;

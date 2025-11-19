@@ -31,7 +31,9 @@ const filterMediaItems = (mediaItems: MediaItem[], fileToRemove: File) =>
 
 export function usePostEditor() {
   const setState = useEditorialStore((state) => state.setState);
-  const setThreadMessages = useEditorialStore((state) => state.setThreadMessages);
+  const setThreadMessages = useEditorialStore(
+    (state) => state.setThreadMessages
+  );
   const mediaItems = useEditorialStore((state) => state.mediaItems);
   const selectedAccounts = useEditorialStore((state) => state.selectedAccounts);
   const threadMessages = useEditorialStore((state) => state.threadMessages);

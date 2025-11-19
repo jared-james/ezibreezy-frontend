@@ -43,7 +43,6 @@ export default function EditorialCore({ onPostSuccess }: EditorialCoreProps) {
   const collaborators = useEditorialStore((state) => state.collaborators);
   const location = useEditorialStore((state) => state.location);
   const labels = useEditorialStore((state) => state.labels);
-  const hashtags = useEditorialStore((state) => state.hashtags);
   const mediaItems = useEditorialStore((state) => state.mediaItems);
   const storeThreadMessages = useEditorialStore(
     (state) => state.threadMessages
@@ -170,7 +169,7 @@ export default function EditorialCore({ onPostSuccess }: EditorialCoreProps) {
       scheduledAt = dateTime.toISOString();
     }
 
-    const settings = { labels, hashtags, collaborators, location };
+    const settings = { labels, collaborators, location };
 
     const finalThreadMessagesForPublish = storeThreadMessages
       .map((msg) => ({
