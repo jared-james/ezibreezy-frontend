@@ -1,8 +1,7 @@
 // components/connect-account-modal.tsx
 
 "use client";
-
-import { X } from "lucide-react";
+import { X, AlertCircle } from "lucide-react";
 import { Button } from "./ui/button";
 
 interface ConnectAccountModalProps {
@@ -20,9 +19,7 @@ export default function ConnectAccountModal({
   platformIcon: Icon,
   platformId,
 }: ConnectAccountModalProps) {
-  if (!isOpen) {
-    return null;
-  }
+  if (!isOpen) return null;
 
   const handleConnectClick = () => {
     try {
@@ -30,38 +27,71 @@ export default function ConnectAccountModal({
     } catch (e) {
       console.error("Could not save to sessionStorage", e);
     }
-
     window.location.href = `/api/integrations/${platformId}/connect`;
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
-      <div className="bg-surface border-4 border-foreground w-full max-w-lg shadow-2xl p-6 relative">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
+      <div className="relative w-full max-w-lg bg-surface border border-foreground shadow-2xl">
+        {/* Close button */}
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 text-muted hover:text-foreground"
+          className="absolute top-4 right-4 text-muted-foreground hover:text-foreground transition-colors"
+          aria-label="Close"
         >
           <X className="w-5 h-5" />
         </button>
-        <div className="text-center">
-          <div className="w-16 h-16 mx-auto flex items-center justify-center border border-border bg-background mb-4">
-            <Icon className="w-8 h-8 text-foreground" />
+
+        <div className="p-8">
+          {/* Icon - no border */}
+          <div className="flex justify-center mb-4">
+            <div className="flex h-16 w-16 items-center justify-center bg-background">
+              <Icon className="w-8 h-8 text-foreground" />
+            </div>
           </div>
-          <h2 className="font-serif text-2xl font-bold text-foreground">
+
+          {/* Eyebrow */}
+          <p className="eyebrow text-center mb-2">Integration</p>
+
+          {/* Title */}
+          <h2 className="text-center font-serif text-3xl font-bold uppercase tracking-tight text-foreground mb-6">
             Connect to {platformName}
           </h2>
-          <p className="font-serif text-muted mt-2 mb-6 max-w-sm mx-auto">
-            You will be redirected to {platformName} to authorize EziBreezy to
-            manage posts on your behalf.
-          </p>
-          <div className="flex justify-center gap-3">
-            <Button variant="outline" onClick={onClose} className="w-32">
+
+          {/* Body - Simplified */}
+          <div className="space-y-5 text-foreground mb-8">
+            {/* Main instruction */}
+            <p className="text-center font-serif text-base leading-relaxed"></p>
+
+            {/* Important notice - thin border */}
+            <div className="border-l-2 border-foreground bg-surface-hover p-4">
+              <div className="flex gap-3">
+                <AlertCircle className="w-5 h-5 text-foreground flex-shrink-0 mt-0.5" />
+                <div className="space-y-2 text-sm leading-relaxed">
+                  <p className="font-semibold">Account Selection</p>
+                  <p>
+                    {platformName} will open and use your currently signed-in
+                    account. Make sure you're logged into the profile you want
+                    to connect.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Buttons */}
+          <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-center">
+            <Button
+              variant="outline"
+              onClick={onClose}
+              className="min-w-[7rem] font-serif uppercase tracking-[0.12em]"
+            >
               Cancel
             </Button>
             <Button
               variant="primary"
               onClick={handleConnectClick}
-              className="w-48"
+              className="min-w-[12rem] font-serif uppercase tracking-[0.12em]"
             >
               Continue to {platformName}
             </Button>
