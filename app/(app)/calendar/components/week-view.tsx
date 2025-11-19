@@ -108,7 +108,7 @@ export default function WeekView({
                   size="icon"
                   variant="outline"
                   onClick={() => onNewPost(day)}
-                  className="absolute top-1 right-1 h-6 w-6 opacity-0 transition-opacity group-hover:opacity-100"
+                  className="absolute top-1 right-1 h-6 w-6 opacity-0 transition-opacity group-hover:opacity-100 hover:bg-brand-primary hover:text-brand-primary-foreground hover:border-brand-primary"
                 >
                   <Plus className="h-4 w-4" />
                 </Button>
@@ -142,7 +142,7 @@ export default function WeekView({
                       type="button"
                       onClick={() => onEditPost(post)}
                       key={post.id}
-                      className="group/item absolute left-1 right-1 flex items-center gap-1.5 rounded border border-transparent bg-surface p-1 text-left text-xs text-foreground hover:border-brand-primary"
+                      className="group/item absolute left-1 right-1 flex items-center gap-1.5 py-1.5 px-1 text-left text-xs text-foreground transition-colors hover:bg-brand-primary/5"
                       style={{ top: `${topPosition}px` }}
                     >
                       <Icon className="h-3 w-3 shrink-0 text-muted-foreground" />
