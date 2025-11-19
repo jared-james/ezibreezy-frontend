@@ -11,11 +11,10 @@ import MonthView from "./components/month-view";
 import WeekView from "./components/week-view";
 import ListView from "./components/list-view";
 import EditorialModal from "./components/editorial-modal";
-import DayViewModal from "./components/day-view-modal";
 import { useEditorialStore } from "@/lib/store/editorial-store";
 import type { EditorialState } from "@/lib/store/editorial-store";
 import { ScheduledPost } from "./types";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import {
   getScheduledPosts,
   getPostDetails,
@@ -29,19 +28,12 @@ export default function CalendarPage() {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [activeView, setActiveView] = useState<CalendarView>("Month");
   const [isEditorialModalOpen, setIsEditorialModalOpen] = useState(false);
-  const [isDayViewModalOpen, setIsDayViewModalOpen] = useState(false);
-  const [selectedDayPosts, setSelectedDayPosts] = useState<ScheduledPost[]>([]);
-  const [selectedDay, setSelectedDay] = useState<Date | null>(null);
 
   const initializeFromFullPost = useEditorialStore(
     (state) => state.initializeFromFullPost
   );
-  const [postIdToEdit, setPostIdToEdit] = useState<string | null>(null);
 
-  const [modalContent, setModalContent] = useState<{
-    type: "edit" | "new";
-    data: ScheduledPost | Date;
-  } | null>(null);
+  const [postIdToEdit, setPostIdToEdit] = useState<string | null>(null);
 
   const {
     data: scheduledPosts = [],
@@ -87,45 +79,27 @@ export default function CalendarPage() {
     errorFullPost,
   ]);
 
-  const handleOpenDayView = (date: Date, posts: ScheduledPost[]) => {
-    setSelectedDay(date);
-    setSelectedDayPosts(posts);
-    setIsDayViewModalOpen(true);
-  };
-
-  const handleCloseDayView = () => {
-    setIsDayViewModalOpen(false);
-    setSelectedDay(null);
-    setSelectedDayPosts([]);
-    refetch();
-  };
-
   const handleEditPost = (post: ScheduledPost) => {
     if (post.status === "sent") {
-      toast.info(
-        "Sent posts cannot be edited. A copy will be created for scheduling."
-      );
+      toast.info("Sent posts cannot be edited. A copy will be created.");
     }
 
     setPostIdToEdit(post.id);
-    setIsDayViewModalOpen(false);
   };
 
   const handleNewPost = (date: Date) => {
-    setModalContent({ type: "new", data: date });
     setIsEditorialModalOpen(true);
-    setIsDayViewModalOpen(false);
+    initializeFromFullPost({} as any);
   };
 
   const handleCloseEditorialModal = () => {
     setIsEditorialModalOpen(false);
-    setModalContent(null);
     refetch();
   };
 
   const modalTitle = useMemo(() => {
     if (isLoadingFullPost || isFetchingFullPost) return "Loading Post...";
-    if (fullPostData) return `Edit Scheduled Post`;
+    if (fullPostData) return "Edit Scheduled Post";
     return "Create New Post";
   }, [isLoadingFullPost, isFetchingFullPost, fullPostData]);
 
@@ -184,11 +158,11 @@ export default function CalendarPage() {
   return (
     <>
       <div className="flex h-full w-full flex-col">
-        <div className="mb-8 border-b-4 border-double border-[--foreground] pb-6">
+        <div className="mb-8 border-b-4 border-double border-foreground pb-6">
           <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
             <div>
               <p className="eyebrow mb-2">The Schedule</p>
-              <h1 className="font-serif text-4xl font-bold uppercase tracking-tight text-[--foreground] md:text-5xl">
+              <h1 className="font-serif text-4xl font-bold uppercase tracking-tight text-foreground md:text-5xl">
                 Content Calendar
               </h1>
             </div>
@@ -204,9 +178,11 @@ export default function CalendarPage() {
             >
               <ChevronLeft className="h-4 w-4" />
             </Button>
-            <h2 className="min-w-[200px] text-center font-serif text-xl font-bold text-[--foreground]">
+
+            <h2 className="min-w-[200px] text-center font-serif text-xl font-bold text-foreground">
               {getHeaderText()}
             </h2>
+
             <Button
               size="icon"
               variant="outline"
@@ -225,12 +201,13 @@ export default function CalendarPage() {
                   "px-2 py-1 text-xs font-bold uppercase tracking-widest transition-all border-b-2 border-solid",
                   activeView === view
                     ? "text-foreground border-brand-primary border-dotted"
-                    : "text-muted-foreground border-b-transparent hover:text-foreground hover:border-b-border/70"
+                    : "text-muted-foreground border-transparent hover:text-foreground hover:border-border"
                 )}
               >
                 {view}
               </button>
             ))}
+
             {CreatePostButton}
           </div>
         </div>
@@ -242,9 +219,10 @@ export default function CalendarPage() {
               posts={scheduledPosts}
               onEditPost={handleEditPost}
               onNewPost={handleNewPost}
-              onOpenDayView={handleOpenDayView}
+              onOpenDayView={() => {}}
             />
           )}
+
           {activeView === "Week" && (
             <WeekView
               currentDate={currentDate}
@@ -253,6 +231,7 @@ export default function CalendarPage() {
               onNewPost={handleNewPost}
             />
           )}
+
           {activeView === "List" && (
             <ListView posts={scheduledPosts} onEditPost={handleEditPost} />
           )}
@@ -264,15 +243,6 @@ export default function CalendarPage() {
         onClose={handleCloseEditorialModal}
         title={modalTitle}
         initialDraft={initialDraft}
-      />
-
-      <DayViewModal
-        isOpen={isDayViewModalOpen}
-        onClose={handleCloseDayView}
-        date={selectedDay}
-        posts={scheduledPosts}
-        onEditPost={handleEditPost}
-        onNewPost={handleNewPost}
       />
     </>
   );
