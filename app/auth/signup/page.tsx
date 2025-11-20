@@ -1,5 +1,3 @@
-// app/auth/signup/page.tsx
-
 "use client";
 
 import { createClient } from "@/lib/supabase/client";
@@ -8,6 +6,33 @@ import Link from "next/link";
 import Image from "next/image";
 
 export default function SignUp() {
+  const isProdDomain =
+    typeof window !== "undefined" &&
+    window.location.hostname === "easybreezy.com";
+
+  if (isProdDomain) {
+    return (
+      <div className="min-h-screen bg-[--background] flex items-center justify-center p-8">
+        <div className="max-w-md text-center space-y-6">
+          <h1 className="font-serif text-3xl uppercase tracking-wider">
+            Coming Soon
+          </h1>
+          <p className="font-serif text-lg text-[--muted] leading-relaxed">
+            We’re polishing things up behind the scenes. Sign-ups are not yet
+            open on the public site.
+          </p>
+          <p className="font-serif text-sm text-[--muted-foreground]">
+            If you’re part of the internal testing team, please use your staging
+            or development link.
+          </p>
+          <Link href="/" className="btn btn-outline w-full mt-4">
+            Return Home
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
