@@ -1,4 +1,4 @@
-// app/(app)/editorial/components/media-upload.tsx
+// components/post-editor/media-upload.tsx
 
 "use client";
 

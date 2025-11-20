@@ -1,4 +1,4 @@
-// app/(app)/editorial/components/schedule-card.tsx
+// components/post-editor/schedule-card.tsx
 
 "use client";
 

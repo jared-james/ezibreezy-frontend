@@ -1,4 +1,4 @@
-// app/(app)/editorial/components/editorial-core.tsx
+// components/post-editor/editorial-core.tsx
 
 "use client";
 
@@ -7,9 +7,9 @@ import { FileText } from "lucide-react";
 import { toast } from "sonner";
 import { createClient } from "@/lib/supabase/client";
 
-import ChannelSelector from "@/app/(app)/ideas/components/edit-modal/channel-selector";
-import CaptionEditor from "@/app/(app)/ideas/components/edit-modal/caption-editor";
-import DistributionPanel from "@/app/(app)/ideas/components/edit-modal/distribution-panel";
+import ChannelSelector from "./channel-selector";
+import CaptionEditor from "./caption-editor";
+import DistributionPanel from "./distribution-panel";
 import PreviewPanel from "./preview-panel";
 import MediaUpload from "./media-upload";
 import ScheduleCard from "./schedule-card";
@@ -40,26 +40,28 @@ export default function EditorialCore({
   >(null);
   const [confirmationCount, setConfirmationCount] = useState(0);
 
+  // Local state for preview data
+  const [localMainCaption, setLocalMainCaption] = useState("");
+  const [localPlatformCaptions, setLocalPlatformCaptions] = useState<Record<string, string>>({});
+  const [localLabels, setLocalLabels] = useState("");
+  const [localCollaborators, setLocalCollaborators] = useState("");
+  const [localLocation, setLocalLocation] = useState("");
+
   const resetEditor = useEditorialStore((state) => state.reset);
   const setState = useEditorialStore((state) => state.setState);
 
-  // Select only what we need from the store
+  // Read only what we need from the store
   const isScheduling = useEditorialStore((state) => state.isScheduling);
   const scheduleDate = useEditorialStore((state) => state.scheduleDate);
   const scheduleTime = useEditorialStore((state) => state.scheduleTime);
   const selectedAccounts = useEditorialStore((state) => state.selectedAccounts);
-  const mainCaption = useEditorialStore((state) => state.mainCaption);
-  const platformCaptions = useEditorialStore((state) => state.platformCaptions);
-  const collaborators = useEditorialStore((state) => state.collaborators);
-  const location = useEditorialStore((state) => state.location);
-  const labels = useEditorialStore((state) => state.labels);
   const mediaItems = useEditorialStore((state) => state.mediaItems);
   const storeThreadMessages = useEditorialStore(
     (state) => state.threadMessages
   );
   const recycleInterval = useEditorialStore((state) => state.recycleInterval);
   const aiGenerated = useEditorialStore((state) => state.aiGenerated);
-  const sourceDraftId = useEditorialStore((state) => state.sourceDraftId); // NEW: Get sourceDraftId
+  const sourceDraftId = useEditorialStore((state) => state.sourceDraftId);
 
   const {
     mainPostMediaFiles,
@@ -100,20 +102,20 @@ export default function EditorialCore({
     if (!platform || platform.accounts.length === 0) return;
 
     const newSelected = { ...selectedAccounts };
-    const newCaptions = { ...platformCaptions };
+    const newCaptions = { ...localPlatformCaptions };
 
     if (newSelected[platformId]) {
       delete newSelected[platformId];
       delete newCaptions[platformId];
     } else {
       newSelected[platformId] = [platform.accounts[0].id];
-      newCaptions[platformId] = mainCaption;
+      newCaptions[platformId] = localMainCaption;
     }
 
     setState({
       selectedAccounts: newSelected,
-      platformCaptions: newCaptions,
     });
+    setLocalPlatformCaptions(newCaptions);
   };
 
   const handleAccountSelect = (platformId: string, accountId: string) => {
@@ -133,6 +135,15 @@ export default function EditorialCore({
   };
 
   const handlePublish = async () => {
+    // Update store with final local state before publishing
+    setState({
+      mainCaption: localMainCaption,
+      platformCaptions: localPlatformCaptions,
+      labels: localLabels,
+      collaborators: localCollaborators,
+      location: localLocation,
+    });
+
     if (!user) return toast.error("You must be logged in to post.");
 
     const integrationsToPost = Object.values(selectedAccounts).flat();
@@ -182,12 +193,11 @@ export default function EditorialCore({
       scheduledAt = dateTime.toISOString();
     }
 
-    // FIX 1: Save the universal main caption in settings.canonicalContent
     const settings = {
-      labels,
-      collaborators,
-      location,
-      canonicalContent: mainCaption, // <-- NEW FIELD
+      labels: localLabels,
+      collaborators: localCollaborators,
+      location: localLocation,
+      canonicalContent: localMainCaption,
     };
 
     const finalThreadMessagesForPublish = storeThreadMessages
@@ -213,18 +223,18 @@ export default function EditorialCore({
             platformMediaIds = platformMediaIds.slice(0, 1);
           }
 
-          // FIX 2: Correctly decide the content to send to the database
-          const platformSpecificContent = platformCaptions[platformId];
+          // Use local state for content
+          const platformSpecificContent = localPlatformCaptions[platformId];
           const contentToSend =
             platformSpecificContent && platformSpecificContent.trim().length > 0
               ? platformSpecificContent
-              : mainCaption;
+              : localMainCaption;
 
           const payload: CreatePostPayload = {
             userId: user.id,
             integrationId,
-            content: contentToSend, // Send platform-specific or main
-            settings, // Includes canonicalContent
+            content: contentToSend,
+            settings,
             scheduledAt,
             mediaIds:
               platformMediaIds.length > 0 ? platformMediaIds : undefined,
@@ -270,19 +280,6 @@ export default function EditorialCore({
             />
 
             <CaptionEditor
-              mainCaption={mainCaption}
-              onMainCaptionChange={(caption) =>
-                setState({ mainCaption: caption })
-              }
-              platformCaptions={platformCaptions}
-              onPlatformCaptionChange={(platformId, caption) =>
-                setState({
-                  platformCaptions: {
-                    ...platformCaptions,
-                    [platformId]: caption,
-                  },
-                })
-              }
               selectedAccounts={selectedAccounts}
               platforms={availablePlatforms}
               onAccountSelect={handleAccountSelect}
@@ -294,6 +291,10 @@ export default function EditorialCore({
               }
               handleRemoveThreadMedia={handleRemoveMedia}
               isGlobalUploading={isGlobalUploading}
+              onLocalCaptionsChange={(mainCaption, platformCaptions) => {
+                setLocalMainCaption(mainCaption);
+                setLocalPlatformCaptions(platformCaptions);
+              }}
               mediaUploadSlot={
                 <MediaUpload
                   mediaFiles={mainPostMediaFiles}
@@ -313,12 +314,23 @@ export default function EditorialCore({
         </div>
 
         <div className="space-y-6 lg:col-span-5">
-          <PreviewPanel />
+          <PreviewPanel
+            selectedAccounts={selectedAccounts}
+            mainCaption={localMainCaption}
+            platformCaptions={localPlatformCaptions}
+            collaborators={localCollaborators}
+            location={localLocation}
+          />
           <DistributionPanel
             showActionButtons={mode === "clipping"}
             onSaveClipping={onSaveClipping}
             onOpenInEditorial={onOpenInEditorial}
             isSaving={isSavingClipping}
+            onLocalFieldsChange={(labels, collaborators, location) => {
+              setLocalLabels(labels);
+              setLocalCollaborators(collaborators);
+              setLocalLocation(location);
+            }}
           />
           {mode === "editorial" && (
             <ScheduleCard

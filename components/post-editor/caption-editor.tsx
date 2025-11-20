@@ -1,9 +1,9 @@
-// app/(app)/ideas/components/edit-modal/caption-editor.tsx
+// components/post-editor/caption-editor.tsx
 
 "use client";
 
-import { useState, useCallback } from "react"; // ADDED useState, useCallback
-import { Smile, Twitter, Instagram, Plus, Trash2, Hash } from "lucide-react"; // ADDED Hash
+import { useState, useCallback, useEffect } from "react";
+import { Smile, Twitter, Instagram, Plus, Trash2, Hash } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -12,19 +12,14 @@ import {
   ThreadMessage,
   ThreadMessageAugmented,
 } from "@/lib/types/editorial";
-import ThreadPostMediaUpload from "@/app/(app)/editorial/components/thread-post-media-upload";
+import ThreadPostMediaUpload from "./thread-post-media-upload";
+import { useEditorialStore } from "@/lib/store/editorial-store";
 
-// ADDED: Import the modal
 import HashtagSelectorModal from "./hashtag-selector-modal";
 
 type SelectedAccounts = Record<string, string[]>;
 
 interface CaptionEditorProps {
-  mainCaption: string;
-  onMainCaptionChange: (caption: string) => void;
-  platformCaptions: Record<string, string>;
-  onPlatformCaptionChange: (platformId: string, caption: string) => void;
-  // ... other props remain the same
   selectedAccounts: SelectedAccounts;
   platforms: Platform[];
   onAccountSelect: (platformId: string, accountId: string) => void;
@@ -39,6 +34,8 @@ interface CaptionEditorProps {
   ) => void;
   handleRemoveThreadMedia?: (fileToRemove: File, threadIndex: number) => void;
   isGlobalUploading?: boolean;
+  // NEW: Callbacks to pass local state up for preview
+  onLocalCaptionsChange?: (mainCaption: string, platformCaptions: Record<string, string>) => void;
 }
 
 const PlatformIcon = ({ platformId }: { platformId: string }) => {
@@ -77,7 +74,7 @@ const CaptionTextarea = ({
       value={value}
       onChange={onChange}
       placeholder={placeholder}
-      className="min-h-32 pr-10" // Added padding-right to make space for the button
+      className="min-h-32 pr-10"
     />
     <button
       type="button"
@@ -110,7 +107,7 @@ const ThreadTextarea = ({
       value={value}
       onChange={onChange}
       placeholder={placeholder}
-      className="min-h-24 pr-10" // Added padding-right to make space for the button
+      className="min-h-24 pr-10"
     />
     <button
       type="button"
@@ -124,10 +121,6 @@ const ThreadTextarea = ({
 );
 
 export default function CaptionEditor({
-  mainCaption,
-  onMainCaptionChange,
-  platformCaptions,
-  onPlatformCaptionChange,
   selectedAccounts,
   platforms,
   onAccountSelect,
@@ -138,8 +131,36 @@ export default function CaptionEditor({
   handleThreadMediaChange,
   handleRemoveThreadMedia,
   isGlobalUploading = false,
+  onLocalCaptionsChange,
 }: CaptionEditorProps) {
-  // ADDED: State for hashtag modal
+  // ===== READ INITIAL STATE FROM STORE (only on mount) =====
+  const mainCaption = useEditorialStore((state) => state.mainCaption);
+  const platformCaptions = useEditorialStore((state) => state.platformCaptions);
+
+  // ===== LOCAL STATE - NO STORE UPDATES DURING TYPING =====
+  const [localMainCaption, setLocalMainCaption] = useState(mainCaption);
+  const [localPlatformCaptions, setLocalPlatformCaptions] = useState(platformCaptions);
+  const [localThreadMessages, setLocalThreadMessages] = useState(threadMessages);
+
+  // Sync ONLY on external changes (e.g., when editing a different post)
+  useEffect(() => {
+    setLocalMainCaption(mainCaption);
+  }, [mainCaption]);
+
+  useEffect(() => {
+    setLocalPlatformCaptions(platformCaptions);
+  }, [platformCaptions]);
+
+  useEffect(() => {
+    setLocalThreadMessages(threadMessages);
+  }, [threadMessages]);
+
+  // Notify parent of local caption changes (for preview)
+  useEffect(() => {
+    onLocalCaptionsChange?.(localMainCaption, localPlatformCaptions);
+  }, [localMainCaption, localPlatformCaptions, onLocalCaptionsChange]);
+
+  // State for hashtag modal
   const [isHashtagModalOpen, setIsHashtagModalOpen] = useState(false);
   const [targetPlatformId, setTargetPlatformId] = useState<string | null>(null);
   const [targetThreadIndex, setTargetThreadIndex] = useState<number | null>(null);
@@ -152,81 +173,79 @@ export default function CaptionEditor({
       : "Draft the main caption you want to adapt across platforms...";
 
   const addThreadMessage = () => {
-    if (threadMessages.length < 20 && onThreadMessagesChange) {
-      onThreadMessagesChange([
-        ...threadMessages,
+    if (localThreadMessages.length < 20 && onThreadMessagesChange) {
+      const newMessages = [
+        ...localThreadMessages,
         { content: "", mediaIds: [] },
-      ]);
+      ];
+      setLocalThreadMessages(newMessages);
+      onThreadMessagesChange(newMessages);
     }
   };
 
   const removeThreadMessage = (index: number) => {
     if (onThreadMessagesChange) {
-      onThreadMessagesChange(threadMessages.filter((_, i) => i !== index));
-    }
-  };
-
-  const updateThreadMessageContent = (index: number, content: string) => {
-    if (onThreadMessagesChange) {
-      const newMessages = threadMessages.map((msg, i) =>
-        i === index ? { ...msg, content } : msg
-      );
+      const newMessages = localThreadMessages.filter((_, i) => i !== index);
+      setLocalThreadMessages(newMessages);
       onThreadMessagesChange(newMessages);
     }
   };
 
-  // ADDED: Logic to insert hashtags into the appropriate caption
+  const updateThreadMessageContent = (index: number, content: string) => {
+    const newMessages = localThreadMessages.map((msg, i) =>
+      i === index ? { ...msg, content } : msg
+    );
+    setLocalThreadMessages(newMessages);
+    onThreadMessagesChange?.(newMessages);
+  };
+
+  // Logic to insert hashtags into the appropriate caption
   const handleInsertHashtags = useCallback(
     (hashtagString: string) => {
       if (!hashtagString) return;
 
-      // Determine the caption to update
       const hashtagsWithPadding = `\n\n${hashtagString.trim()}`;
 
       if (targetThreadIndex !== null) {
-        // Insert into thread message
-        if (onThreadMessagesChange) {
-          const newMessages = threadMessages.map((msg, i) =>
-            i === targetThreadIndex
-              ? { ...msg, content: msg.content.trimEnd() + hashtagsWithPadding }
-              : msg
-          );
-          onThreadMessagesChange(newMessages);
-        }
+        const newMessages = localThreadMessages.map((msg, i) =>
+          i === targetThreadIndex
+            ? { ...msg, content: msg.content.trimEnd() + hashtagsWithPadding }
+            : msg
+        );
+        setLocalThreadMessages(newMessages);
+        onThreadMessagesChange?.(newMessages);
         setTargetThreadIndex(null);
       } else if (targetPlatformId === "main") {
-        onMainCaptionChange(mainCaption.trimEnd() + hashtagsWithPadding);
+        const newCaption = localMainCaption.trimEnd() + hashtagsWithPadding;
+        setLocalMainCaption(newCaption);
         setTargetPlatformId(null);
       } else if (targetPlatformId) {
         const currentCaption =
-          platformCaptions[targetPlatformId] || mainCaption;
-        onPlatformCaptionChange(
-          targetPlatformId,
-          currentCaption.trimEnd() + hashtagsWithPadding
-        );
+          localPlatformCaptions[targetPlatformId] || localMainCaption;
+        const newCaption = currentCaption.trimEnd() + hashtagsWithPadding;
+        setLocalPlatformCaptions((prev) => ({
+          ...prev,
+          [targetPlatformId]: newCaption,
+        }));
         setTargetPlatformId(null);
       }
     },
     [
-      mainCaption,
-      platformCaptions,
-      onMainCaptionChange,
-      onPlatformCaptionChange,
+      localMainCaption,
+      localPlatformCaptions,
+      localThreadMessages,
+      onThreadMessagesChange,
       targetPlatformId,
       targetThreadIndex,
-      threadMessages,
-      onThreadMessagesChange,
     ]
   );
 
-  // ADDED: Function to open modal and set target platform
   const openHashtagModal = useCallback((platformId: string) => {
     setTargetPlatformId(platformId);
     setTargetThreadIndex(null);
     setIsHashtagModalOpen(true);
   }, []);
 
-  // ADDED: Function to open modal for thread messages
   const openThreadHashtagModal = useCallback((threadIndex: number) => {
     setTargetThreadIndex(threadIndex);
     setTargetPlatformId(null);
@@ -251,16 +270,14 @@ export default function CaptionEditor({
           </button>
         </label>
 
-        {/* MODIFIED: Use the custom CaptionTextarea wrapper */}
         <CaptionTextarea
           id="caption"
-          value={mainCaption}
-          onChange={(event) => onMainCaptionChange(event.target.value)}
+          value={localMainCaption}
+          onChange={(event) => setLocalMainCaption(event.target.value)}
           placeholder={mainPlaceholder}
-          platformId="main" // Special ID for main caption
+          platformId="main"
           onHashtagClick={openHashtagModal}
         />
-        {/* END MODIFIED */}
       </div>
 
       {Object.keys(selectedAccounts).map((platformId) => {
@@ -268,7 +285,7 @@ export default function CaptionEditor({
         if (!platform) return null;
 
         const isX = platformId === "x";
-        const currentCaption = platformCaptions[platformId] || "";
+        const currentCaption = localPlatformCaptions[platformId] || "";
 
         return (
           <div key={platformId} className="mt-6">
@@ -317,22 +334,23 @@ export default function CaptionEditor({
             </label>
 
             <div className="space-y-4">
-              {/* MODIFIED: Use the custom CaptionTextarea wrapper for platform caption */}
               <CaptionTextarea
                 id={`caption-${platformId}`}
                 value={currentCaption}
                 onChange={(event) =>
-                  onPlatformCaptionChange(platformId, event.target.value)
+                  setLocalPlatformCaptions((prev) => ({
+                    ...prev,
+                    [platformId]: event.target.value,
+                  }))
                 }
                 placeholder={`${platform.name} specific caption...`}
                 platformId={platformId}
                 onHashtagClick={openHashtagModal}
               />
-              {/* END MODIFIED */}
 
               {isX && (
                 <>
-                  {threadMessages.map((message, index) => {
+                  {localThreadMessages.map((message, index) => {
                     const mediaFiles = message.mediaFiles || [];
 
                     return (
@@ -385,7 +403,7 @@ export default function CaptionEditor({
                     );
                   })}
 
-                  {threadMessages.length < 20 && (
+                  {localThreadMessages.length < 20 && (
                     <div className="flex justify-end">
                       <Button
                         type="button"
@@ -407,19 +425,17 @@ export default function CaptionEditor({
         );
       })}
 
-      {/* ADDED: Hashtag Selector Modal */}
       <HashtagSelectorModal
         isOpen={isHashtagModalOpen}
         onClose={() => setIsHashtagModalOpen(false)}
-        // MODIFIED: Pass the appropriate caption based on context (main, platform, or thread)
         initialHashtags={
           targetThreadIndex !== null
-            ? threadMessages[targetThreadIndex]?.content || ""
+            ? localThreadMessages[targetThreadIndex]?.content || ""
             : targetPlatformId === "main"
-            ? mainCaption
-            : platformCaptions[targetPlatformId || ""] || ""
+            ? localMainCaption
+            : localPlatformCaptions[targetPlatformId || ""] || ""
         }
-        onSave={handleInsertHashtags} // Use the new insert handler
+        onSave={handleInsertHashtags}
       />
     </>
   );

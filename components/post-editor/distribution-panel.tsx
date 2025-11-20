@@ -1,8 +1,8 @@
-// app/(app)/ideas/components/edit-modal/distribution-panel.tsx
+// components/post-editor/distribution-panel.tsx
 
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useState, useEffect } from "react";
 import {
   Send,
   Tag,
@@ -14,7 +14,7 @@ import {
   X,
   Twitter,
   Instagram,
-  Loader2, // ADDED
+  Loader2,
 } from "lucide-react";
 import { useEditorialStore } from "@/lib/store/editorial-store";
 import { Input } from "@/components/ui/input";
@@ -25,7 +25,8 @@ interface DistributionPanelProps {
   onOpenInEditorial?: () => void;
   onSaveClipping?: () => void;
   showActionButtons?: boolean;
-  isSaving?: boolean; // NEW PROP
+  isSaving?: boolean;
+  onLocalFieldsChange?: (labels: string, collaborators: string, location: string) => void;
 }
 
 interface PlatformIconDisplayProps {
@@ -72,23 +73,43 @@ export default function DistributionPanel({
   onOpenInEditorial,
   onSaveClipping,
   showActionButtons = true,
-  isSaving = false, // DEFAULT
+  isSaving = false,
+  onLocalFieldsChange,
 }: DistributionPanelProps) {
   const labels = useEditorialStore((state) => state.labels);
   const collaborators = useEditorialStore((state) => state.collaborators);
   const location = useEditorialStore((state) => state.location);
   const selectedAccounts = useEditorialStore((state) => state.selectedAccounts);
-  const setState = useEditorialStore((state) => state.setState);
+
+  // Local state - typing does NOT update the store
+  const [localLabels, setLocalLabels] = useState(labels);
+  const [localCollaborators, setLocalCollaborators] = useState(collaborators);
+  const [localLocation, setLocalLocation] = useState(location);
+
+  // Sync local state when store values change externally
+  useEffect(() => {
+    setLocalLabels(labels);
+  }, [labels]);
+
+  useEffect(() => {
+    setLocalCollaborators(collaborators);
+  }, [collaborators]);
+
+  useEffect(() => {
+    setLocalLocation(location);
+  }, [location]);
+
+  // Notify parent of local changes for preview updates
+  useEffect(() => {
+    if (onLocalFieldsChange) {
+      onLocalFieldsChange(localLabels, localCollaborators, localLocation);
+    }
+  }, [localLabels, localCollaborators, localLocation, onLocalFieldsChange]);
 
   const activePlatforms = useMemo(
     () => new Set(Object.keys(selectedAccounts)),
     [selectedAccounts]
   );
-
-  const onLabelsChange = (value: string) => setState({ labels: value });
-  const onCollaboratorsChange = (value: string) =>
-    setState({ collaborators: value });
-  const onLocationChange = (value: string) => setState({ location: value });
 
   const fieldSupport = useMemo(
     () => ({
@@ -122,8 +143,8 @@ export default function DistributionPanel({
                 <Tag className="absolute left-3 top-1/2 h-3 w-3 -translate-y-1/2 text-muted-foreground" />
                 <Input
                   id="labels"
-                  value={labels}
-                  onChange={(event) => onLabelsChange(event.target.value)}
+                  value={localLabels}
+                  onChange={(event) => setLocalLabels(event.target.value)}
                   placeholder="Promotion, News, Evergreen..."
                   className="h-9 pl-8"
                 />
@@ -149,10 +170,8 @@ export default function DistributionPanel({
                   <AtSign className="absolute left-3 top-1/2 h-3 w-3 -translate-y-1/2 text-muted-foreground" />
                   <Input
                     id="collaborators"
-                    value={collaborators}
-                    onChange={(event) =>
-                      onCollaboratorsChange(event.target.value)
-                    }
+                    value={localCollaborators}
+                    onChange={(event) => setLocalCollaborators(event.target.value)}
                     placeholder="@username"
                     className="h-9 pl-8"
                   />
@@ -179,8 +198,8 @@ export default function DistributionPanel({
                   <MapPin className="absolute left-3 top-1/2 h-3 w-3 -translate-y-1/2 text-muted-foreground" />
                   <Input
                     id="location"
-                    value={location}
-                    onChange={(event) => onLocationChange(event.target.value)}
+                    value={localLocation}
+                    onChange={(event) => setLocalLocation(event.target.value)}
                     placeholder="New York, NY"
                     className="h-9 pl-8"
                   />

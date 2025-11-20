@@ -1,4 +1,4 @@
-// app/(app)/editorial/components/render-caption.tsx
+// components/post-editor/render-caption.tsx
 
 import React from "react";
 

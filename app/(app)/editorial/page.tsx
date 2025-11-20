@@ -4,7 +4,7 @@
 
 import { useEffect } from "react";
 import { useEditorialStore } from "@/lib/store/editorial-store";
-import EditorialCore from "./components/editorial-core";
+import EditorialCore from "@/components/post-editor/editorial-core";
 
 export default function EditorialPage() {
   const draft = useEditorialStore((state) => state.draft);

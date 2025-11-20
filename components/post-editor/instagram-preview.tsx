@@ -1,5 +1,6 @@
-// app/(app)/editorial/components/instagram-preview.tsx
+// components/post-editor/instagram-preview.tsx
 
+import { memo } from "react";
 import { Heart, MessageCircle, Send, Bookmark, ImageIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import Image from "next/image";
@@ -48,7 +49,7 @@ const ProfileAvatar = ({
   );
 };
 
-export default function InstagramPreview({
+function InstagramPreview({
   caption,
   mediaPreview,
   platformUsername,
@@ -140,3 +141,5 @@ export default function InstagramPreview({
     </div>
   );
 }
+
+export default memo(InstagramPreview);

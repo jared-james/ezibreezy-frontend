@@ -1,5 +1,6 @@
-// app/(app)/editorial/components/x-preview.tsx
+// components/post-editor/x-preview.tsx
 
+import { memo } from "react";
 import { MessageSquare, Repeat2, ImageIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { ThreadMessageAugmented } from "@/lib/types/editorial";
@@ -92,7 +93,7 @@ const XPostFooter = ({
   </div>
 );
 
-export default function XPreview({
+function XPreview({
   caption,
   mediaPreview,
   threadMessages,
@@ -231,3 +232,5 @@ export default function XPreview({
     </div>
   );
 }
+
+export default memo(XPreview);

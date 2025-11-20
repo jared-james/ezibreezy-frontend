@@ -1,4 +1,4 @@
-// app/(app)/ideas/components/edit-modal/modal-header.tsx
+// components/post-editor/modal-header.tsx
 
 "use client";
 

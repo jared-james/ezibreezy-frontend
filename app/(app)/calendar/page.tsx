@@ -72,15 +72,15 @@ export default function CalendarPage() {
 
   useEffect(() => {
     if (fullPostData && !isFetchingFullPost && postIdToEdit) {
-      // ADDED postIdToEdit check
+      // Initialize the store with fetched data
       initializeFromFullPost(fullPostData);
-      setIsEditorialModalOpen(true);
       setPostIdToEdit(null);
     }
 
     if (isErrorFullPost) {
       toast.error(`Failed to load post for editing: ${errorFullPost?.message}`);
       setPostIdToEdit(null);
+      setIsEditorialModalOpen(false);
     }
   }, [
     fullPostData,
@@ -88,13 +88,16 @@ export default function CalendarPage() {
     initializeFromFullPost,
     isErrorFullPost,
     errorFullPost,
-    postIdToEdit, // Added dependency for safety
+    postIdToEdit,
   ]);
 
   const handleEditPost = (post: ScheduledPost) => {
     if (post.status === "sent") {
       toast.info("Sent posts cannot be edited. A copy will be created.");
     }
+    // Open modal immediately to show loading state
+    setIsEditorialModalOpen(true);
+    // Trigger data fetch
     setPostIdToEdit(post.id);
   };
 
@@ -262,7 +265,7 @@ export default function CalendarPage() {
         isOpen={isEditorialModalOpen}
         onClose={handleCloseEditorialModal}
         title={modalTitle}
-        // initialDraft={initialDraft} // REMOVED
+        isLoading={isLoadingFullPost || isFetchingFullPost}
       />
     </>
   );

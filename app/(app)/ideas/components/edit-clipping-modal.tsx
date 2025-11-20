@@ -13,8 +13,8 @@ import {
   type EditorialDraft,
 } from "@/lib/types/editorial";
 import { useEditorialStore } from "@/lib/store/editorial-store";
-import ModalHeader from "./edit-modal/modal-header";
-import EditorialCore from "@/app/(app)/editorial/components/editorial-core";
+import ModalHeader from "@/components/post-editor/modal-header";
+import EditorialCore from "@/components/post-editor/editorial-core";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useQuery } from "@tanstack/react-query";
 import { getClientDataForEditor } from "@/app/actions/data";

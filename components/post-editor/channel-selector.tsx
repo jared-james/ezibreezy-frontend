@@ -1,4 +1,4 @@
-// app/(app)/ideas/components/edit-modal/channel-selector.tsx
+// components/post-editor/channel-selector.tsx
 
 "use client";
 

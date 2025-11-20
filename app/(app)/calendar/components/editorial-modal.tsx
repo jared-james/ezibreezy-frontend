@@ -2,32 +2,29 @@
 
 "use client";
 
-import { X } from "lucide-react";
-import EditorialCore from "@/app/(app)/editorial/components/editorial-core";
+import { X, Loader2 } from "lucide-react";
+import EditorialCore from "@/components/post-editor/editorial-core";
 import { useEditorialStore } from "@/lib/store/editorial-store";
 
 interface EditorialModalProps {
   isOpen: boolean;
   onClose: () => void;
-  // REMOVED: initialDraft prop
   title?: string;
+  isLoading?: boolean;
 }
 
 export default function EditorialModal({
   isOpen,
   onClose,
-  // REMOVED: initialDraft prop from destructuring
   title = "Create New Post",
+  isLoading = false,
 }: EditorialModalProps) {
-  // Removed setDraft
   const reset = useEditorialStore((state) => state.reset);
 
   const handleClose = () => {
     reset();
     onClose();
   };
-
-  // REMOVED: useEffect for initialization
 
   if (!isOpen) return null;
 
@@ -50,7 +47,16 @@ export default function EditorialModal({
         </div>
 
         <div className="flex-1 overflow-y-auto p-6">
-          <EditorialCore mode="editorial" onPostSuccess={handleClose} />
+          {isLoading ? (
+            <div className="flex items-center justify-center min-h-[400px]">
+              <div className="flex flex-col items-center gap-4">
+                <Loader2 className="h-8 w-8 animate-spin text-brand-primary" />
+                <p className="text-sm text-muted-foreground">Loading post data...</p>
+              </div>
+            </div>
+          ) : (
+            <EditorialCore mode="editorial" onPostSuccess={handleClose} />
+          )}
         </div>
       </div>
     </div>

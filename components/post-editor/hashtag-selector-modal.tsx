@@ -1,4 +1,4 @@
-// app/(app)/ideas/components/edit-modal/hashtag-selector-modal.tsx
+// components/post-editor/hashtag-selector-modal.tsx
 
 "use client";
 

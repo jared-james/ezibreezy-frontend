@@ -1,8 +1,8 @@
-// app/(app)/editorial/components/preview-panel.tsx
+// components/post-editor/preview-panel.tsx
 
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, memo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Twitter, Instagram, LayoutGrid } from "lucide-react";
 import Image from "next/image";
@@ -11,7 +11,6 @@ import XPreview from "./x-preview";
 import InstagramPreview from "./instagram-preview";
 import { cn } from "@/lib/utils";
 import type { ThreadMessageAugmented } from "@/lib/types/editorial";
-import { useEditorialStore } from "@/lib/store/editorial-store";
 import { usePostEditor } from "@/lib/hooks/use-post-editor";
 
 const platformIcons = {
@@ -24,13 +23,22 @@ const platformNames = {
   instagram: "Instagram",
 };
 
-export default function PreviewPanel() {
-  const selectedAccounts = useEditorialStore((state) => state.selectedAccounts);
-  const mainCaption = useEditorialStore((state) => state.mainCaption);
-  const platformCaptions = useEditorialStore((state) => state.platformCaptions);
-  const collaborators = useEditorialStore((state) => state.collaborators);
-  const location = useEditorialStore((state) => state.location);
+interface PreviewPanelProps {
+  // Data passed from parent (local state, not store)
+  selectedAccounts: Record<string, string[]>;
+  mainCaption: string;
+  platformCaptions: Record<string, string>;
+  collaborators: string;
+  location: string;
+}
 
+function PreviewPanel({
+  selectedAccounts,
+  mainCaption,
+  platformCaptions,
+  collaborators,
+  location,
+}: PreviewPanelProps) {
   const { postType, mainPostMediaPreviews, threadMessages } = usePostEditor();
 
   const { data: connections = [] } = useQuery({
@@ -63,6 +71,23 @@ export default function PreviewPanel() {
     return connections.find((conn) => conn.id === integrationId) || null;
   }, [validActiveTab, selectedAccounts, connections]);
 
+  const tabList = useMemo(() =>
+    activePlatforms.map((id) => {
+      const Icon = platformIcons[id as keyof typeof platformIcons] || Twitter;
+      return {
+        id,
+        name: platformNames[id as keyof typeof platformNames] || id,
+        Icon,
+      };
+    }),
+    [activePlatforms]
+  );
+
+  const currentCaption = useMemo(
+    () => platformCaptions[validActiveTab] || mainCaption,
+    [platformCaptions, validActiveTab, mainCaption]
+  );
+
   if (activePlatforms.length === 0) {
     return (
       <div className="flex flex-col">
@@ -89,17 +114,6 @@ export default function PreviewPanel() {
       </div>
     );
   }
-
-  const tabList = activePlatforms.map((id) => {
-    const Icon = platformIcons[id as keyof typeof platformIcons] || Twitter;
-    return {
-      id,
-      name: platformNames[id as keyof typeof platformNames] || id,
-      Icon,
-    };
-  });
-
-  const currentCaption = platformCaptions[validActiveTab] || mainCaption;
 
   const renderPreview = () => {
     if (!activeAccount) {
@@ -184,3 +198,5 @@ export default function PreviewPanel() {
     </div>
   );
 }
+
+export default memo(PreviewPanel);
