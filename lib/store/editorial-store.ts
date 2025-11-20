@@ -69,11 +69,21 @@ export const useEditorialStore = create<EditorialState & EditorialActions>(
   (set, get) => ({
     ...initialState,
 
-    setState: (updates) => set((state) => ({ ...state, ...updates })),
+    setState: (updates) => {
+      console.log('[PERF] Store setState called with:', Object.keys(updates));
+      console.time('[PERF] Store setState duration');
+      set((state) => {
+        const newState = { ...state, ...updates };
+        console.timeEnd('[PERF] Store setState duration');
+        return newState;
+      });
+    },
 
     setThreadMessages: (messages) => set({ threadMessages: messages }),
 
     initializeFromDraft: (draft) => {
+      console.log('[PERF] initializeFromDraft called');
+      console.time('[PERF] initializeFromDraft duration');
       if (!get().isInitialized) {
         const updates: Partial<EditorialState> = {
           mainCaption: draft.mainCaption,
@@ -92,10 +102,15 @@ export const useEditorialStore = create<EditorialState & EditorialActions>(
           sourceDraftId: draft.sourceDraftId || null,
         };
         set(updates);
+        console.timeEnd('[PERF] initializeFromDraft duration');
+      } else {
+        console.log('[PERF] initializeFromDraft skipped - already initialized');
       }
     },
 
     initializeFromFullPost: (fullPost) => {
+      console.log('[PERF] initializeFromFullPost called');
+      console.time('[PERF] initializeFromFullPost duration');
       // Logic to determine if this post can be edited/rescheduled
       const isEditable =
         fullPost.status === "draft" || fullPost.status === "scheduled";
@@ -191,9 +206,13 @@ export const useEditorialStore = create<EditorialState & EditorialActions>(
       };
 
       set(updates);
+      console.timeEnd('[PERF] initializeFromFullPost duration');
     },
 
-    reset: () => set({ ...initialState, draft: null, isInitialized: false }),
+    reset: () => {
+      console.log('[PERF] Store reset called');
+      set({ ...initialState, draft: null, isInitialized: false });
+    },
 
     setDraft: (draft: EditorialDraft) => {
       set({ draft });

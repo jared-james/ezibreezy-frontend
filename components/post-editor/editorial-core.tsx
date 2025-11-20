@@ -34,6 +34,8 @@ export default function EditorialCore({
   isSavingClipping = false,
   onOpenInEditorial,
 }: EditorialCoreProps) {
+  console.log('[PERF] EditorialCore render');
+
   const [user, setUser] = useState<any>(null);
   const [confirmationStatus, setConfirmationStatus] = useState<
     "sent" | "scheduled" | null
@@ -292,8 +294,11 @@ export default function EditorialCore({
               handleRemoveThreadMedia={handleRemoveMedia}
               isGlobalUploading={isGlobalUploading}
               onLocalCaptionsChange={(mainCaption, platformCaptions) => {
+                console.log('[PERF] EditorialCore - onLocalCaptionsChange callback');
+                console.time('[PERF] setLocalMainCaption + setLocalPlatformCaptions');
                 setLocalMainCaption(mainCaption);
                 setLocalPlatformCaptions(platformCaptions);
+                console.timeEnd('[PERF] setLocalMainCaption + setLocalPlatformCaptions');
               }}
               mediaUploadSlot={
                 <MediaUpload

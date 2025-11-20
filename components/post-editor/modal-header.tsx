@@ -10,6 +10,8 @@ interface ModalHeaderProps {
 }
 
 export default function ModalHeader({ idea, onClose }: ModalHeaderProps) {
+  console.log('[PERF] ModalHeader render');
+
   return (
     <div className="z-10 flex shrink-0 items-center justify-between border-b-4 border-foreground border-double bg-surface p-6">
       <div>

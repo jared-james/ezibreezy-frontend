@@ -133,6 +133,8 @@ export default function CaptionEditor({
   isGlobalUploading = false,
   onLocalCaptionsChange,
 }: CaptionEditorProps) {
+  console.log('[PERF] CaptionEditor render');
+
   // ===== READ INITIAL STATE FROM STORE (only on mount) =====
   const mainCaption = useEditorialStore((state) => state.mainCaption);
   const platformCaptions = useEditorialStore((state) => state.platformCaptions);
@@ -157,7 +159,10 @@ export default function CaptionEditor({
 
   // Notify parent of local caption changes (for preview)
   useEffect(() => {
+    console.log('[PERF] onLocalCaptionsChange effect triggered');
+    console.time('[PERF] onLocalCaptionsChange callback');
     onLocalCaptionsChange?.(localMainCaption, localPlatformCaptions);
+    console.timeEnd('[PERF] onLocalCaptionsChange callback');
   }, [localMainCaption, localPlatformCaptions, onLocalCaptionsChange]);
 
   // State for hashtag modal
@@ -273,7 +278,12 @@ export default function CaptionEditor({
         <CaptionTextarea
           id="caption"
           value={localMainCaption}
-          onChange={(event) => setLocalMainCaption(event.target.value)}
+          onChange={(event) => {
+            console.log('[PERF] Main caption onChange - length:', event.target.value.length);
+            console.time('[PERF] setLocalMainCaption');
+            setLocalMainCaption(event.target.value);
+            console.timeEnd('[PERF] setLocalMainCaption');
+          }}
           placeholder={mainPlaceholder}
           platformId="main"
           onHashtagClick={openHashtagModal}
@@ -337,12 +347,15 @@ export default function CaptionEditor({
               <CaptionTextarea
                 id={`caption-${platformId}`}
                 value={currentCaption}
-                onChange={(event) =>
+                onChange={(event) => {
+                  console.log(`[PERF] ${platformId} caption onChange - length:`, event.target.value.length);
+                  console.time(`[PERF] setLocalPlatformCaptions-${platformId}`);
                   setLocalPlatformCaptions((prev) => ({
                     ...prev,
                     [platformId]: event.target.value,
-                  }))
-                }
+                  }));
+                  console.timeEnd(`[PERF] setLocalPlatformCaptions-${platformId}`);
+                }}
                 placeholder={`${platform.name} specific caption...`}
                 platformId={platformId}
                 onHashtagClick={openHashtagModal}
@@ -376,12 +389,15 @@ export default function CaptionEditor({
 
                           <ThreadTextarea
                             value={message.content}
-                            onChange={(event) =>
+                            onChange={(event) => {
+                              console.log(`[PERF] Thread ${index + 2} onChange - length:`, event.target.value.length);
+                              console.time(`[PERF] updateThreadMessage-${index}`);
                               updateThreadMessageContent(
                                 index,
                                 event.target.value
-                              )
-                            }
+                              );
+                              console.timeEnd(`[PERF] updateThreadMessage-${index}`);
+                            }}
                             placeholder="What's happening next?"
                             threadIndex={index}
                             onHashtagClick={openThreadHashtagModal}
