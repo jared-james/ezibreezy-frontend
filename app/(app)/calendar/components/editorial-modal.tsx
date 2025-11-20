@@ -56,7 +56,7 @@ export default function EditorialModal({
         </div>
 
         <div className="flex-1 overflow-y-auto p-6">
-          <EditorialCore onPostSuccess={handleClose} />
+          <EditorialCore mode="editorial" onPostSuccess={handleClose} />
         </div>
       </div>
     </div>

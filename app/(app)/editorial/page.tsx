@@ -1,7 +1,5 @@
 // app/(app)/editorial/page.tsx
 
-// FILE: app\(app)\editorial\page.tsx
-
 "use client";
 
 import { useEffect } from "react";
@@ -39,7 +37,7 @@ export default function EditorialPage() {
           </div>
         </div>
       </div>
-      <EditorialCore />
+      <EditorialCore mode="editorial" />
     </div>
   );
 }

@@ -21,9 +21,19 @@ import type { CreatePostPayload } from "@/lib/api/publishing";
 
 interface EditorialCoreProps {
   onPostSuccess?: () => void;
+  mode?: "editorial" | "clipping";
+  onSaveClipping?: () => void;
+  isSavingClipping?: boolean;
+  onOpenInEditorial?: () => void;
 }
 
-export default function EditorialCore({ onPostSuccess }: EditorialCoreProps) {
+export default function EditorialCore({
+  onPostSuccess,
+  mode = "editorial",
+  onSaveClipping,
+  isSavingClipping = false,
+  onOpenInEditorial,
+}: EditorialCoreProps) {
   const [user, setUser] = useState<any>(null);
   const [confirmationStatus, setConfirmationStatus] = useState<
     "sent" | "scheduled" | null
@@ -63,7 +73,7 @@ export default function EditorialCore({ onPostSuccess }: EditorialCoreProps) {
     handleRemoveMedia,
     setThreadMessages,
     postMutation,
-  } = usePostEditor();
+  } = usePostEditor({ mode });
 
   useEffect(() => {
     const supabase = createClient();
@@ -291,12 +301,19 @@ export default function EditorialCore({ onPostSuccess }: EditorialCoreProps) {
 
         <div className="space-y-6 lg:col-span-5">
           <PreviewPanel />
-          <DistributionPanel showActionButtons={false} />
-          <ScheduleCard
-            onPublish={handlePublish}
-            isPublishing={postMutation.isPending}
-            isUploading={isGlobalUploading}
+          <DistributionPanel
+            showActionButtons={mode === "clipping"}
+            onSaveClipping={onSaveClipping}
+            onOpenInEditorial={onOpenInEditorial}
+            isSaving={isSavingClipping}
           />
+          {mode === "editorial" && (
+            <ScheduleCard
+              onPublish={handlePublish}
+              isPublishing={postMutation.isPending}
+              isUploading={isGlobalUploading}
+            />
+          )}
         </div>
       </div>
       <div className="pb-64" />

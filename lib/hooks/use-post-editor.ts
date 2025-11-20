@@ -33,7 +33,12 @@ const filterMediaItems = (mediaItems: MediaItem[], fileToRemove: File) =>
   mediaItems.filter((item) => item.file !== fileToRemove);
 */
 
-export function usePostEditor() {
+interface UsePostEditorOptions {
+  mode?: "editorial" | "clipping";
+}
+
+export function usePostEditor(options: UsePostEditorOptions = {}) {
+  const { mode = "editorial" } = options;
   const setState = useEditorialStore((state) => state.setState);
   const setThreadMessages = useEditorialStore(
     (state) => state.setThreadMessages
@@ -239,17 +244,28 @@ export function usePostEditor() {
         mediaItems: [...otherMedia, ...newMediaItems],
       });
 
-      newFilesForUpload.forEach((item) => {
-        if (!item.id && item.isUploading && uploadIntegrationId) {
-          uploadMediaMutation.mutate({
-            file: item.file!,
-            integrationId: uploadIntegrationId,
-            threadIndex: item.threadIndex,
-          });
-        }
-      });
+      // In clipping mode, don't auto-upload media - defer until save
+      if (mode === "editorial") {
+        newFilesForUpload.forEach((item) => {
+          if (!item.id && item.isUploading && uploadIntegrationId) {
+            uploadMediaMutation.mutate({
+              file: item.file!,
+              integrationId: uploadIntegrationId,
+              threadIndex: item.threadIndex,
+            });
+          }
+        });
+      } else {
+        // In clipping mode, mark media as not uploading (will upload on save)
+        const updatedMediaItems = useEditorialStore.getState().mediaItems.map((item) =>
+          newFilesForUpload.some(newItem => newItem.file === item.file)
+            ? { ...item, isUploading: false }
+            : item
+        );
+        setState({ mediaItems: updatedMediaItems });
+      }
     },
-    [setState, uploadMediaMutation]
+    [setState, uploadMediaMutation, mode]
   );
 
   const handleRemoveMedia = useCallback(
