@@ -144,11 +144,11 @@ export default function EditorialCore({
       return toast.error("Please wait for media to finish uploading.");
     }
 
-    const mainPostUploadedIds = mediaItems
-      .filter((m) => m.threadIndex === null && m.id !== null)
-      .map((m) => m.id) as string[];
-
     const mainPostMedia = mediaItems.filter((m) => m.threadIndex === null);
+
+    const mainPostUploadedIds = mainPostMedia
+      .filter((m) => m.id !== null)
+      .map((m) => m.id) as string[];
 
     if (
       mainPostMedia.length > 0 &&
@@ -182,7 +182,13 @@ export default function EditorialCore({
       scheduledAt = dateTime.toISOString();
     }
 
-    const settings = { labels, collaborators, location };
+    // FIX 1: Save the universal main caption in settings.canonicalContent
+    const settings = {
+      labels,
+      collaborators,
+      location,
+      canonicalContent: mainCaption, // <-- NEW FIELD
+    };
 
     const finalThreadMessagesForPublish = storeThreadMessages
       .map((msg) => ({
@@ -207,11 +213,18 @@ export default function EditorialCore({
             platformMediaIds = platformMediaIds.slice(0, 1);
           }
 
+          // FIX 2: Correctly decide the content to send to the database
+          const platformSpecificContent = platformCaptions[platformId];
+          const contentToSend =
+            platformSpecificContent && platformSpecificContent.trim().length > 0
+              ? platformSpecificContent
+              : mainCaption;
+
           const payload: CreatePostPayload = {
             userId: user.id,
             integrationId,
-            content: platformCaptions[platformId] || mainCaption,
-            settings,
+            content: contentToSend, // Send platform-specific or main
+            settings, // Includes canonicalContent
             scheduledAt,
             mediaIds:
               platformMediaIds.length > 0 ? platformMediaIds : undefined,
@@ -221,7 +234,7 @@ export default function EditorialCore({
                 : undefined,
             recycleInterval: recycleInterval || undefined,
             aiGenerated: aiGenerated || undefined,
-            sourceDraftId: sourceDraftId || undefined, // NEW: Include sourceDraftId if present
+            sourceDraftId: sourceDraftId || undefined,
           };
 
           return postMutation.mutateAsync(payload);

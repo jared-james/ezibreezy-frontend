@@ -12,7 +12,6 @@ import WeekView from "./components/week-view";
 import ListView from "./components/list-view";
 import EditorialModal from "./components/editorial-modal";
 import { useEditorialStore } from "@/lib/store/editorial-store";
-import type { EditorialState } from "@/lib/store/editorial-store";
 import { ScheduledPost } from "./types";
 import { useQuery } from "@tanstack/react-query";
 import {
@@ -32,6 +31,7 @@ export default function CalendarPage() {
   const initializeFromFullPost = useEditorialStore(
     (state) => state.initializeFromFullPost
   );
+  const resetStore = useEditorialStore((state) => state.reset); // ADDED: For new post button
 
   const [postIdToEdit, setPostIdToEdit] = useState<string | null>(null);
 
@@ -67,11 +67,12 @@ export default function CalendarPage() {
     queryKey: ["fullPostDetails", postIdToEdit],
     queryFn: () => getPostDetails(postIdToEdit!),
     enabled: !!postIdToEdit,
-    staleTime: Infinity,
+    staleTime: 0, // FIX 1: Set to 0 to ensure the post is fetched fresh every time the ID is set
   });
 
   useEffect(() => {
-    if (fullPostData && !isFetchingFullPost) {
+    if (fullPostData && !isFetchingFullPost && postIdToEdit) {
+      // ADDED postIdToEdit check
       initializeFromFullPost(fullPostData);
       setIsEditorialModalOpen(true);
       setPostIdToEdit(null);
@@ -87,23 +88,25 @@ export default function CalendarPage() {
     initializeFromFullPost,
     isErrorFullPost,
     errorFullPost,
+    postIdToEdit, // Added dependency for safety
   ]);
 
   const handleEditPost = (post: ScheduledPost) => {
     if (post.status === "sent") {
       toast.info("Sent posts cannot be edited. A copy will be created.");
     }
-
     setPostIdToEdit(post.id);
   };
 
   const handleNewPost = (date: Date) => {
+    resetStore(); // Reset store for new creation
     setIsEditorialModalOpen(true);
-    initializeFromFullPost({} as any);
   };
 
   const handleCloseEditorialModal = () => {
     setIsEditorialModalOpen(false);
+    // Invalidate the full post query cache to ensure next edit fetches fresh data
+    // The main contentLibrary query is already invalidated by the modal's internal post success handler
     refetch();
   };
 
@@ -116,7 +119,7 @@ export default function CalendarPage() {
     return "Create New Post";
   }, [isLoadingFullPost, isFetchingFullPost, fullPostData]);
 
-  const initialDraft = useMemo(() => ({} as Partial<EditorialState>), []);
+  // REMOVED: const initialDraft = useMemo(() => ({} as Partial<EditorialState>), []);
 
   const navigateDate = (direction: "prev" | "next") => {
     const amount = direction === "next" ? 1 : -1;
@@ -259,7 +262,7 @@ export default function CalendarPage() {
         isOpen={isEditorialModalOpen}
         onClose={handleCloseEditorialModal}
         title={modalTitle}
-        initialDraft={initialDraft}
+        // initialDraft={initialDraft} // REMOVED
       />
     </>
   );

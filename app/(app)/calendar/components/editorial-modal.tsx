@@ -2,26 +2,24 @@
 
 "use client";
 
-import { useEffect } from "react";
 import { X } from "lucide-react";
 import EditorialCore from "@/app/(app)/editorial/components/editorial-core";
 import { useEditorialStore } from "@/lib/store/editorial-store";
-import type { EditorialDraft } from "@/lib/types/editorial";
 
 interface EditorialModalProps {
   isOpen: boolean;
   onClose: () => void;
-  initialDraft?: Partial<EditorialDraft>;
+  // REMOVED: initialDraft prop
   title?: string;
 }
 
 export default function EditorialModal({
   isOpen,
   onClose,
-  initialDraft,
+  // REMOVED: initialDraft prop from destructuring
   title = "Create New Post",
 }: EditorialModalProps) {
-  const setDraft = useEditorialStore((state) => state.setDraft);
+  // Removed setDraft
   const reset = useEditorialStore((state) => state.reset);
 
   const handleClose = () => {
@@ -29,11 +27,7 @@ export default function EditorialModal({
     onClose();
   };
 
-  useEffect(() => {
-    if (isOpen && initialDraft) {
-      setDraft(initialDraft as EditorialDraft);
-    }
-  }, [isOpen, initialDraft, setDraft]);
+  // REMOVED: useEffect for initialization
 
   if (!isOpen) return null;
 

@@ -1,4 +1,4 @@
-// lib/store/editorial-store.ts
+// lib\store\editorial-store.ts
 
 "use client";
 
@@ -32,7 +32,7 @@ export interface EditorialState {
   draft: EditorialDraft | null;
   recycleInterval: number | null;
   aiGenerated: boolean;
-  sourceDraftId: string | null; // NEW FIELD
+  sourceDraftId: string | null;
 }
 
 export interface EditorialActions {
@@ -62,7 +62,7 @@ export const initialState: EditorialState = {
   draft: null,
   recycleInterval: null,
   aiGenerated: false,
-  sourceDraftId: null, // INITIAL VALUE
+  sourceDraftId: null,
 };
 
 export const useEditorialStore = create<EditorialState & EditorialActions>(
@@ -89,13 +89,17 @@ export const useEditorialStore = create<EditorialState & EditorialActions>(
           isInitialized: true,
           recycleInterval: draft.recycleInterval || null,
           aiGenerated: draft.aiGenerated || false,
-          sourceDraftId: draft.sourceDraftId || null, // Capture sourceDraftId
+          sourceDraftId: draft.sourceDraftId || null,
         };
         set(updates);
       }
     },
 
     initializeFromFullPost: (fullPost) => {
+      // Logic to determine if this post can be edited/rescheduled
+      const isEditable =
+        fullPost.status === "draft" || fullPost.status === "scheduled";
+
       // 1. Rebuild MediaItems from the allMedia map
       const newMediaItems: MediaItem[] = [];
 
@@ -146,13 +150,21 @@ export const useEditorialStore = create<EditorialState & EditorialActions>(
       // 3. Rebuild settings (labels, collaborators, location, etc.)
       const settings = fullPost.settings || {};
 
+      // FIX 1: Get the canonical content from settings, falling back to fullPost.content
+      const canonicalContent = settings.canonicalContent || fullPost.content;
+
+      // FIX 2: Check if a platform-specific caption was saved
+      const postHasPlatformOverride = fullPost.content !== canonicalContent;
+
       // 4. Update the state
       const updates: Partial<EditorialState> = {
-        mainCaption: fullPost.content,
-        platformCaptions:
-          fullPost.integration.platform === "x"
-            ? {}
-            : { [fullPost.integration.platform]: fullPost.content },
+        // FIX 3: Use canonicalContent for the main caption
+        mainCaption: canonicalContent,
+
+        // FIX 4: Only set platformCaption if an override was actually saved to the DB
+        platformCaptions: postHasPlatformOverride
+          ? { [fullPost.integration.platform]: fullPost.content }
+          : {},
 
         selectedAccounts,
         mediaItems: newMediaItems,
@@ -175,7 +187,7 @@ export const useEditorialStore = create<EditorialState & EditorialActions>(
           : "12:00",
 
         isInitialized: true,
-        sourceDraftId: fullPost.status === "draft" ? fullPost.id : null, // CAPTURE ID IF IT'S A DRAFT
+        sourceDraftId: isEditable ? fullPost.id : null,
       };
 
       set(updates);
