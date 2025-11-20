@@ -3,6 +3,7 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
+import React, { useState } from "react";
 import {
   LayoutDashboard,
   Pencil,
@@ -46,9 +47,23 @@ export default function SidebarClient({
   const pathname = usePathname();
   const router = useRouter();
 
-  const handleLogout = async () => {
+  // State for log out confirmation
+  const [isConfirmingLogout, setIsConfirmingLogout] = useState(false);
+
+  // Function to execute the actual logout
+  const executeLogout = async () => {
     await logout();
     router.refresh();
+  };
+
+  // Function to start the confirmation process
+  const startLogoutConfirmation = () => {
+    setIsConfirmingLogout(true);
+  };
+
+  // Function to cancel the confirmation process
+  const cancelLogoutConfirmation = () => {
+    setIsConfirmingLogout(false);
   };
 
   const NavItem = ({
@@ -126,9 +141,8 @@ export default function SidebarClient({
       <div className="flex-1" />
 
       {/* User / Settings / Logout Panel */}
-      <div className="p-4 border-t-2 border-[--foreground] bg-surface-hover shrink-0">
-        {/* Simplified Organization Context (Visible only if single org, clickable if multi-org) */}
-        {/* Placeholder for future multi-org button - currently single org display */}
+      <div className="p-4 border-t-2 border-[--foreground] shrink-0">
+        {/* Simplified Organization Context */}
         <div className="flex items-center gap-3 px-3 pb-3">
           <Users className="w-4 h-4 text-[--muted-foreground]" />
           <p className="font-serif text-xs font-medium text-[--muted-foreground] truncate">
@@ -136,19 +150,50 @@ export default function SidebarClient({
           </p>
         </div>
 
-        {/* Settings and Logout */}
+        {/* Settings and Logout / Confirmation Panel */}
+        {/* The content below is structured to take up approximately the same vertical space in both states */}
         <div className="space-y-1 pt-1">
-          <NavItem
-            item={{ name: "Settings", href: "/settings", icon: Settings }}
-            className="rounded-sm"
-          />
-          <button
-            onClick={handleLogout}
-            className="flex w-full items-center gap-3 px-3 py-2 font-serif text-sm transition-colors text-error hover:bg-error/10 rounded-sm"
-          >
-            <LogOut className="w-4 h-4" />
-            <span className="mt-[1px]">Log Out</span>
-          </button>
+          {isConfirmingLogout ? (
+            // Confirmation UI - Compacted with smaller text and side-by-side buttons
+            <>
+              {/* Small 'Are you sure?' message taking less vertical space */}
+              <p className="font-serif text-xs text-center text-[--muted-foreground] px-3 pb-1">
+                Are you sure you want to log out?
+              </p>
+              {/* Two side-by-side buttons for confirm/cancel to fit the remaining space */}
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  className="flex-1 gap-1 font-serif uppercase tracking-[0.12em] py-2 text-xs" // py-2 matches the original list item height
+                  onClick={cancelLogoutConfirmation}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  className="flex-1 gap-1 font-serif uppercase tracking-[0.12em] bg-[--error] hover:bg-[--error-hover] text-[--error-foreground] border-[--error] hover:border-[--error-hover] py-2 text-xs" // py-2 matches the original list item height
+                  onClick={executeLogout}
+                >
+                  <LogOut className="w-3 h-3" />
+                  Confirm
+                </Button>
+              </div>
+            </>
+          ) : (
+            /* Settings and Logout (Normal State) */
+            <>
+              <NavItem
+                item={{ name: "Settings", href: "/settings", icon: Settings }}
+                className="rounded-sm"
+              />
+              <button
+                onClick={startLogoutConfirmation}
+                className="flex w-full items-center gap-3 px-3 py-2 font-serif text-sm transition-colors text-[--foreground] hover:bg-surface-hover rounded-sm"
+              >
+                <LogOut className="w-4 h-4" />
+                <span className="mt-[1px]">Log Out</span>
+              </button>
+            </>
+          )}
         </div>
       </div>
 

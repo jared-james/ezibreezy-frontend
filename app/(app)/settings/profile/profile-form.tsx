@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Loader2 } from "lucide-react";
 import { updateOrganizationName } from "@/app/actions/organization";
+import { updateDisplayName } from "@/app/actions/user"; // Import new action
 import { toast } from "sonner";
 
 interface ProfileFormProps {
@@ -23,7 +24,9 @@ export default function ProfileForm({
   organizationId,
 }: ProfileFormProps) {
   const [orgName, setOrgName] = useState(initialOrgName);
+  const [displayName, setDisplayName] = useState(initialDisplayName);
   const [isUpdatingOrg, setIsUpdatingOrg] = useState(false);
+  const [isUpdatingProfile, setIsUpdatingProfile] = useState(false);
 
   const handleOrgNameSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -40,6 +43,27 @@ export default function ProfileForm({
       setOrgName(initialOrgName);
     }
   };
+
+  const handleProfileSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!displayName.trim() || displayName === initialDisplayName) return;
+
+    setIsUpdatingProfile(true);
+    const result = await updateDisplayName(displayName);
+    setIsUpdatingProfile(false);
+
+    if (result.success) {
+      toast.success("Display name updated successfully.");
+    } else {
+      toast.error(`Failed to update name: ${result.error}`);
+      setDisplayName(initialDisplayName);
+    }
+  };
+
+  const isProfileDirty =
+    displayName.trim() !== initialDisplayName && displayName.trim().length > 0;
+  const isOrgDirty =
+    orgName.trim() !== initialOrgName && orgName.trim().length > 0;
 
   return (
     <form className="space-y-6">
@@ -64,11 +88,7 @@ export default function ProfileForm({
                 type="button"
                 variant="primary"
                 onClick={handleOrgNameSubmit}
-                disabled={
-                  isUpdatingOrg ||
-                  orgName.trim() === initialOrgName ||
-                  !orgName.trim()
-                }
+                disabled={isUpdatingOrg || !isOrgDirty}
               >
                 {isUpdatingOrg ? (
                   <Loader2 className="w-4 h-4 animate-spin" />
@@ -84,7 +104,7 @@ export default function ProfileForm({
         </div>
       </div>
 
-      {/* Personal Information (Showcasing Name/Email for context, but keeping fields disabled/static) */}
+      {/* Personal Information */}
       <div className="border-b border-border pb-6">
         <h3 className="font-serif text-lg font-bold text-foreground mb-4">
           Personal Information
@@ -92,12 +112,28 @@ export default function ProfileForm({
         <div className="space-y-4">
           <div>
             <label className="eyebrow mb-2">Full Name</label>
-            <Input
-              type="text"
-              defaultValue={initialDisplayName}
-              placeholder="John Doe"
-              disabled
-            />
+            <div className="flex gap-2 items-start pt-2">
+              <Input
+                type="text"
+                value={displayName}
+                onChange={(e) => setDisplayName(e.target.value)}
+                placeholder="John Doe"
+                className="flex-1"
+                disabled={isUpdatingProfile}
+              />
+              <Button
+                type="button"
+                variant="primary"
+                onClick={handleProfileSubmit}
+                disabled={isUpdatingProfile || !isProfileDirty}
+              >
+                {isUpdatingProfile ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  "Save"
+                )}
+              </Button>
+            </div>
           </div>
 
           <div>
@@ -110,13 +146,6 @@ export default function ProfileForm({
             />
           </div>
         </div>
-      </div>
-
-      {/* Save button - Optional here, but usually good practice to keep a main action if other fields were present */}
-      <div className="pt-4 flex justify-end">
-        <Button type="button" variant="default" disabled>
-          Save Profile Changes (Disabled)
-        </Button>
       </div>
     </form>
   );
