@@ -90,7 +90,8 @@ export interface EditorialDraft {
   schedule?: ScheduleSettings;
 
   // Source metadata
-  sourceId?: string; // ID of the original clipping/idea
+  sourceClippingId?: string; // ID of the original clipping/idea/draft
+  sourceDraftId?: string | null; // FIXED: Allow null to align with EditorialState and backend payload
   sourceTitle?: string; // Title of the original clipping
 
   // NEW FIELDS

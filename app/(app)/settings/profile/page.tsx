@@ -1,7 +1,7 @@
 // app/(app)/settings/profile/page.tsx
 // User profile settings - data collected during onboarding
 
-import { getUserAndOrganization } from "@/lib/auth/check";
+import { getUserAndOrganization } from "@/lib/auth";
 import ProfileForm from "./profile-form";
 
 export default async function ProfileSettingsPage() {

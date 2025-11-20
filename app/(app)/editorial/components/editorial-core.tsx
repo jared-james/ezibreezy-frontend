@@ -49,6 +49,7 @@ export default function EditorialCore({ onPostSuccess }: EditorialCoreProps) {
   );
   const recycleInterval = useEditorialStore((state) => state.recycleInterval);
   const aiGenerated = useEditorialStore((state) => state.aiGenerated);
+  const sourceDraftId = useEditorialStore((state) => state.sourceDraftId); // NEW: Get sourceDraftId
 
   const {
     mainPostMediaFiles,
@@ -210,6 +211,7 @@ export default function EditorialCore({ onPostSuccess }: EditorialCoreProps) {
                 : undefined,
             recycleInterval: recycleInterval || undefined,
             aiGenerated: aiGenerated || undefined,
+            sourceDraftId: sourceDraftId || undefined, // NEW: Include sourceDraftId if present
           };
 
           return postMutation.mutateAsync(payload);

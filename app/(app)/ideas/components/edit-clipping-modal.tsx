@@ -4,8 +4,11 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Twitter, Instagram, Linkedin, Youtube } from "lucide-react";
-import type { Clipping as GeneratedClipping } from "@/lib/api/ideas";
+import { Twitter, Instagram, Linkedin, Youtube, Loader2 } from "lucide-react";
+import {
+  type Clipping as GeneratedClipping,
+  saveClippingAsDraft,
+} from "@/lib/api/ideas";
 import {
   type Clipping as EditorialClipping,
   type EditorialDraft,
@@ -19,8 +22,11 @@ import ChannelSelector from "./edit-modal/channel-selector";
 import CaptionEditor from "./edit-modal/caption-editor";
 import MediaPanel from "./edit-modal/media-panel";
 import DistributionPanel from "./edit-modal/distribution-panel";
-import { type Connection, getConnections } from "@/lib/api/integrations";
-import { useQuery } from "@tanstack/react-query";
+import { type Connection } from "@/lib/api/integrations"; // Keep Connection interface
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { getClientDataForEditor } from "@/app/actions/data";
+import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
 
 interface EditClippingModalProps {
   isOpen: boolean;
@@ -40,10 +46,18 @@ export default function EditClippingModal({
   onClose,
   idea,
 }: EditClippingModalProps) {
-  const { data: connections = [] } = useQuery({
-    queryKey: ["connections"],
-    queryFn: getConnections,
+  const router = useRouter();
+  const queryClient = useQueryClient();
+
+  // Data for saving the clipping - COMBINED FETCH
+  const { data: clientData } = useQuery({
+    queryKey: ["clientEditorData"],
+    queryFn: getClientDataForEditor, // USE NEW SERVER ACTION
+    staleTime: 60000,
   });
+
+  const connections = clientData?.connections || [];
+  const userContext = clientData; // Use clientData for context
 
   const setState = useEditorialStore((state) => state.setState);
   const reset = useEditorialStore((state) => state.reset);
@@ -55,22 +69,39 @@ export default function EditClippingModal({
   const labels = useEditorialStore((state) => state.labels);
   const collaborators = useEditorialStore((state) => state.collaborators);
   const location = useEditorialStore((state) => state.location);
-  // NEW FIELDS FROM STORE
   const aiGenerated = useEditorialStore((state) => state.aiGenerated);
   const recycleInterval = useEditorialStore((state) => state.recycleInterval);
-  // END NEW FIELDS
 
   const [postType, setPostType] = useState<"text" | "image" | "video">("text");
   const [mediaFile, setMediaFile] = useState<File | null>(null);
   const [mediaPreview, setMediaPreview] = useState<string | null>(null);
 
-  const router = useRouter();
+  const saveMutation = useMutation({
+    mutationFn: saveClippingAsDraft,
+    onSuccess: (data) => {
+      toast.success(
+        `Idea "${
+          data.title || data.content.substring(0, 30)
+        }..." saved as a draft!`
+      );
+      queryClient.invalidateQueries({ queryKey: ["contentLibrary"] });
+      onClose();
+    },
+    onError: (error: any) => {
+      console.error("Error saving clipping:", error);
+      toast.error(
+        `Failed to save clipping: ${
+          error?.response?.data?.message || "An unknown error occurred."
+        }`
+      );
+    },
+  });
 
   const availablePlatforms = useMemo((): Platform[] => {
     if (!connections) return [];
     const connectionsByPlatform = connections.reduce((acc, connection) => {
       acc[connection.platform] = acc[connection.platform] || [];
-      acc[connection.platform].push(connection);
+      acc[connection.platform].push(connection as Connection);
       return acc;
     }, {} as Record<string, Connection[]>);
 
@@ -103,7 +134,6 @@ export default function EditClippingModal({
         ? { [initialPlatform.id]: [initialPlatform.accounts[0].id] }
         : {};
 
-      // Determine if the content is AI generated (from latest briefing flow)
       const isAiGenerated =
         "body" in idea && idea.hashtags?.includes("#ezibreezy");
 
@@ -111,14 +141,15 @@ export default function EditClippingModal({
         mainCaption: idea.body,
         selectedAccounts: initialSelected,
         aiGenerated: isAiGenerated,
-        recycleInterval: null, // Reset recycle interval in modal
-        threadMessages: [], // Reset threads in modal to prevent accidental thread creation when moving from one idea to next
+        recycleInterval: null,
+        threadMessages: [],
         platformCaptions: {},
         labels: "",
         collaborators: "",
         location: "",
         scheduleDate: new Date().toISOString().split("T")[0],
         scheduleTime: "12:00",
+        sourceDraftId: null,
       });
     } else {
       reset();
@@ -155,11 +186,11 @@ export default function EditClippingModal({
         date: useEditorialStore.getState().scheduleDate,
         time: useEditorialStore.getState().scheduleTime,
       },
-      sourceId: "id" in idea ? idea.id : undefined,
+      sourceClippingId: "id" in idea ? idea.id : undefined,
       sourceTitle: idea.title,
-      // NEW FIELDS
       aiGenerated,
       recycleInterval,
+      sourceDraftId: null,
     };
 
     setDraft(draft);
@@ -168,7 +199,22 @@ export default function EditClippingModal({
   };
 
   const handleSaveClipping = () => {
-    console.log("Save clipping functionality to be implemented");
+    if (!userContext?.userId || !userContext?.organizationId) {
+      return toast.error("User context data missing. Cannot save.");
+    }
+
+    const defaultIntegrationId = connections[0]?.id;
+    if (!defaultIntegrationId) {
+      return toast.error("No connected accounts found. Cannot save draft.");
+    }
+
+    saveMutation.mutate({
+      userId: userContext.userId,
+      organizationId: userContext.organizationId,
+      integrationId: defaultIntegrationId,
+      title: idea.title,
+      content: mainCaption,
+    });
   };
 
   const togglePlatform = (platformId: string) => {
@@ -299,6 +345,7 @@ export default function EditClippingModal({
                   onOpenInEditorial={handleOpenInEditorial}
                   onSaveClipping={handleSaveClipping}
                   showActionButtons={true}
+                  isSaving={saveMutation.isPending}
                 />
               </div>
             </div>

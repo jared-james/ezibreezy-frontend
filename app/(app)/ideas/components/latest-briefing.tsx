@@ -3,10 +3,24 @@
 "use client";
 
 import { useState } from "react";
-import { RefreshCw, PenLine, BookmarkPlus, Lightbulb } from "lucide-react";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import {
+  RefreshCw,
+  PenLine,
+  BookmarkPlus,
+  Lightbulb,
+  Loader2,
+} from "lucide-react";
 import EditClippingModal from "./edit-clipping-modal";
-import type { Clipping as GeneratedClipping } from "@/lib/api/ideas";
+import {
+  type Clipping as GeneratedClipping,
+  saveClippingAsDraft,
+} from "@/lib/api/ideas";
 import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
+import { getUserAndOrganization } from "@/lib/auth";
+import { getConnections } from "@/lib/api/integrations";
+import { useQuery } from "@tanstack/react-query";
 
 interface LatestBriefingProps {
   clippings: GeneratedClipping[];
@@ -16,6 +30,63 @@ export default function LatestBriefing({ clippings }: LatestBriefingProps) {
   const [selectedIdea, setSelectedIdea] = useState<GeneratedClipping | null>(
     null
   );
+  const queryClient = useQueryClient();
+
+  // Fetch user context for IDs
+  const { data: userContext } = useQuery({
+    queryKey: ["userContext"],
+    queryFn: getUserAndOrganization,
+    staleTime: Infinity,
+  });
+
+  // Fetch connections to get a default integration ID
+  const { data: connections = [] } = useQuery({
+    queryKey: ["connections"],
+    queryFn: getConnections,
+    staleTime: 60000,
+  });
+
+  const saveMutation = useMutation({
+    mutationFn: saveClippingAsDraft,
+    onSuccess: (data) => {
+      toast.success(
+        `Idea "${
+          data.title || data.content.substring(0, 30)
+        }..." saved as a draft!`
+      );
+      queryClient.invalidateQueries({ queryKey: ["contentLibrary"] }); // Invalidate content library query
+      queryClient.invalidateQueries({ queryKey: ["scheduledPosts"] }); // Invalidate old calendar query in case it's still running
+    },
+    onError: (error: any) => {
+      console.error("Error saving clipping:", error);
+      toast.error(
+        `Failed to save clipping: ${
+          error?.response?.data?.message || "An unknown error occurred."
+        }`
+      );
+    },
+  });
+
+  const handleSaveClipping = (idea: GeneratedClipping) => {
+    if (!userContext?.userId || !userContext?.organizationId) {
+      return toast.error("User context data missing. Cannot save.");
+    }
+
+    // Use the first available integration for the draft post's required link
+    // This assumes the user has at least one account connected, which is a good prerequisite for saving a draft post.
+    const defaultIntegrationId = connections[0]?.id;
+    if (!defaultIntegrationId) {
+      return toast.error("No connected accounts found. Cannot save draft.");
+    }
+
+    saveMutation.mutate({
+      userId: userContext.userId,
+      organizationId: userContext.organizationId,
+      integrationId: defaultIntegrationId,
+      title: idea.title,
+      content: idea.body,
+    });
+  };
 
   if (clippings.length === 0) {
     return (
@@ -63,6 +134,7 @@ export default function LatestBriefing({ clippings }: LatestBriefingProps) {
                     size="icon"
                     variant="outline"
                     title="Remix with AI"
+                    disabled={saveMutation.isPending}
                   >
                     <RefreshCw className="h-4 w-4" />
                   </Button>
@@ -72,6 +144,7 @@ export default function LatestBriefing({ clippings }: LatestBriefingProps) {
                     variant="outline"
                     title="Refine Manually"
                     onClick={() => setSelectedIdea(idea)}
+                    disabled={saveMutation.isPending}
                   >
                     <PenLine className="h-4 w-4" />
                   </Button>
@@ -81,8 +154,18 @@ export default function LatestBriefing({ clippings }: LatestBriefingProps) {
                   size="sm"
                   variant="primary"
                   className="gap-2"
+                  onClick={() => handleSaveClipping(idea)}
+                  disabled={
+                    saveMutation.isPending ||
+                    !userContext ||
+                    connections.length === 0
+                  }
                 >
-                  <BookmarkPlus className="h-4 w-4" />
+                  {saveMutation.isPending ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <BookmarkPlus className="h-4 w-4" />
+                  )}
                   <span>Save Clipping</span>
                 </Button>
               </div>

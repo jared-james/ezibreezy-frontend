@@ -2,7 +2,7 @@
 
 "use client";
 
-import { useMemo } from "react"; // REMOVED useState
+import { useMemo } from "react";
 import {
   Send,
   Tag,
@@ -14,18 +14,18 @@ import {
   X,
   Twitter,
   Instagram,
-  // REMOVED: Pencil icon
+  Loader2, // ADDED
 } from "lucide-react";
 import { useEditorialStore } from "@/lib/store/editorial-store";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-// REMOVED: import HashtagSelectorModal from "./hashtag-selector-modal";
 
 interface DistributionPanelProps {
   onOpenInEditorial?: () => void;
   onSaveClipping?: () => void;
   showActionButtons?: boolean;
+  isSaving?: boolean; // NEW PROP
 }
 
 interface PlatformIconDisplayProps {
@@ -72,9 +72,8 @@ export default function DistributionPanel({
   onOpenInEditorial,
   onSaveClipping,
   showActionButtons = true,
+  isSaving = false, // DEFAULT
 }: DistributionPanelProps) {
-  // REMOVED: [isHashtagModalOpen, setIsHashtagModalOpen] state
-
   const labels = useEditorialStore((state) => state.labels);
   const collaborators = useEditorialStore((state) => state.collaborators);
   const location = useEditorialStore((state) => state.location);
@@ -192,9 +191,17 @@ export default function DistributionPanel({
 
           {showActionButtons && (
             <div className="space-y-3 pt-4">
-              <Button onClick={onSaveClipping} className="w-full gap-2">
-                <BookmarkPlus className="h-4 w-4" />
-                Save Clipping
+              <Button
+                onClick={onSaveClipping}
+                className="w-full gap-2"
+                disabled={isSaving}
+              >
+                {isSaving ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <BookmarkPlus className="h-4 w-4" />
+                )}
+                <span>Save Clipping</span>
               </Button>
               <Button
                 onClick={onOpenInEditorial}

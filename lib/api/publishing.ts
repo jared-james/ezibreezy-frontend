@@ -23,6 +23,7 @@ export interface CreatePostPayload {
   threadMessages?: ThreadMessagePayload[];
   recycleInterval?: number;
   aiGenerated?: boolean;
+  sourceDraftId?: string; // NEW FIELD: ID of the draft post being published/scheduled
 }
 
 export interface CreatePostResponse {
@@ -39,6 +40,7 @@ export interface CalendarMediaItem {
 
 export interface ScheduledPostResponse {
   id: string;
+  title?: string | null; // NEW FIELD: Optional title for drafts/YouTube
   content: string;
   scheduledAt: string;
   status: "draft" | "scheduled" | "sent" | "failed" | "cancelled";
@@ -50,6 +52,7 @@ export interface ScheduledPostResponse {
 // NEW: Interface for the full post details from GET /publishing/post/:postId
 export interface FullPostDetails {
   id: string;
+  title: string | null; // NEW FIELD
   content: string;
   integrationId: string;
   organizationId: string;
@@ -60,7 +63,7 @@ export interface FullPostDetails {
   status: string;
   mediaIds: string[];
   threadMessages: {
-    id: string; // child post id (only used internally)
+    id: string;
     content: string;
     mediaIds: string[];
   }[];
@@ -71,7 +74,7 @@ export interface FullPostDetails {
     name: string | null;
   };
   allMedia: {
-    [mediaId: string]: { id: string; url: string; type: string }; // Map of all media records
+    [mediaId: string]: { id: string; url: string; type: string };
   };
 }
 
@@ -89,11 +92,11 @@ export const createPost = async (
 };
 
 /**
- * Fetches all scheduled posts for the user's organizations.
+ * Fetches all content (drafts, scheduled, sent posts) for the user's organizations.
  */
-export const getScheduledPosts = async (): Promise<ScheduledPostResponse[]> => {
+export const getContentLibrary = async (): Promise<ScheduledPostResponse[]> => {
   const response = await apiClient.get<ScheduledPostResponse[]>(
-    "/publishing/scheduled"
+    "/publishing/library" // UPDATED ENDPOINT
   );
   return response.data;
 };

@@ -1,8 +1,9 @@
 // lib/auth/check.ts
 
+"use server";
+
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
-import { getUserAndOrganization } from "@/lib/auth";
 
 export async function requireAuth() {
   const supabase = await createClient();
@@ -27,5 +28,3 @@ export async function getUser() {
 
   return user;
 }
-
-export { getUserAndOrganization };

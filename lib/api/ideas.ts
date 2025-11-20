@@ -9,6 +9,21 @@ interface BriefingResponse {
   clippings: Clipping[];
 }
 
+export interface SaveDraftPayload {
+  userId: string;
+  organizationId: string;
+  integrationId: string;
+  title?: string;
+  content: string;
+}
+
+export interface SaveDraftResponse {
+  id: string;
+  status: "draft";
+  title?: string;
+  content: string;
+}
+
 export const generateClippings = async (
   prompt: string
 ): Promise<Clipping[]> => {
@@ -19,4 +34,14 @@ export const generateClippings = async (
     }
   );
   return response.data.clippings;
+};
+
+export const saveClippingAsDraft = async (
+  payload: SaveDraftPayload
+): Promise<SaveDraftResponse> => {
+  const response = await apiClient.post<SaveDraftResponse>(
+    "/briefing/save-draft",
+    payload
+  );
+  return response.data;
 };

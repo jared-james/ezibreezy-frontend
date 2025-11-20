@@ -16,7 +16,7 @@ import type { EditorialState } from "@/lib/store/editorial-store";
 import { ScheduledPost } from "./types";
 import { useQuery } from "@tanstack/react-query";
 import {
-  getScheduledPosts,
+  getContentLibrary, // UPDATED: Renamed import
   getPostDetails,
   FullPostDetails,
 } from "@/lib/api/publishing";
@@ -36,16 +36,26 @@ export default function CalendarPage() {
   const [postIdToEdit, setPostIdToEdit] = useState<string | null>(null);
 
   const {
-    data: scheduledPosts = [],
+    data: allContent = [], // RENAMED: from scheduledPosts to allContent
     isLoading: isLoadingList,
     isError: isErrorList,
     error: errorList,
     refetch,
   } = useQuery<ScheduledPost[]>({
-    queryKey: ["scheduledPosts"],
-    queryFn: getScheduledPosts,
+    queryKey: ["contentLibrary"], // UPDATED: New query key
+    queryFn: getContentLibrary, // UPDATED: New function name
     staleTime: 60000,
   });
+
+  const scheduledPosts = useMemo(() => {
+    // Filter out 'draft' posts for the calendar view
+    return allContent.filter(
+      (post) =>
+        post.status !== "draft" &&
+        post.status !== "failed" &&
+        post.status !== "cancelled"
+    );
+  }, [allContent]);
 
   const {
     data: fullPostData,
@@ -99,7 +109,10 @@ export default function CalendarPage() {
 
   const modalTitle = useMemo(() => {
     if (isLoadingFullPost || isFetchingFullPost) return "Loading Post...";
-    if (fullPostData) return "Edit Scheduled Post";
+    if (fullPostData)
+      return fullPostData.status === "draft"
+        ? "Develop Idea"
+        : "Edit Scheduled Post"; // Adjusted title
     return "Create New Post";
   }, [isLoadingFullPost, isFetchingFullPost, fullPostData]);
 
@@ -217,7 +230,7 @@ export default function CalendarPage() {
             <div className="min-w-[800px]">
               <MonthView
                 currentDate={currentDate}
-                posts={scheduledPosts}
+                posts={scheduledPosts} // Use filtered posts
                 onEditPost={handleEditPost}
                 onNewPost={handleNewPost}
                 onOpenDayView={() => {}}
@@ -229,7 +242,7 @@ export default function CalendarPage() {
             <div className="min-w-[900px]">
               <WeekView
                 currentDate={currentDate}
-                posts={scheduledPosts}
+                posts={scheduledPosts} // Use filtered posts
                 onEditPost={handleEditPost}
                 onNewPost={handleNewPost}
               />
@@ -237,7 +250,7 @@ export default function CalendarPage() {
           )}
 
           {activeView === "List" && (
-            <ListView posts={scheduledPosts} onEditPost={handleEditPost} />
+            <ListView posts={scheduledPosts} onEditPost={handleEditPost} /> // Use filtered posts
           )}
         </div>
       </div>

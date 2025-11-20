@@ -8,8 +8,6 @@ import { type EditorialDraft } from "@/lib/types/editorial";
 import { FullPostDetails } from "@/lib/api/publishing";
 import { format } from "date-fns";
 
-// REMOVED: import { File } from 'buffer';
-
 export interface MediaItem {
   file: File | null;
   preview: string;
@@ -17,8 +15,6 @@ export interface MediaItem {
   isUploading: boolean;
   threadIndex: number | null;
 }
-
-// ... (rest of the file remains the same)
 
 export interface EditorialState {
   isScheduling: boolean;
@@ -36,13 +32,13 @@ export interface EditorialState {
   draft: EditorialDraft | null;
   recycleInterval: number | null;
   aiGenerated: boolean;
+  sourceDraftId: string | null; // NEW FIELD
 }
 
 export interface EditorialActions {
   setState: (updates: Partial<EditorialState>) => void;
   setThreadMessages: (messages: ThreadMessage[]) => void;
   initializeFromDraft: (draft: EditorialDraft) => void;
-  // NEW: Action to initialize the store from the full backend DTO
   initializeFromFullPost: (fullPost: FullPostDetails) => void;
   reset: () => void;
   setDraft: (draft: EditorialDraft) => void;
@@ -66,6 +62,7 @@ export const initialState: EditorialState = {
   draft: null,
   recycleInterval: null,
   aiGenerated: false,
+  sourceDraftId: null, // INITIAL VALUE
 };
 
 export const useEditorialStore = create<EditorialState & EditorialActions>(
@@ -92,12 +89,12 @@ export const useEditorialStore = create<EditorialState & EditorialActions>(
           isInitialized: true,
           recycleInterval: draft.recycleInterval || null,
           aiGenerated: draft.aiGenerated || false,
+          sourceDraftId: draft.sourceDraftId || null, // Capture sourceDraftId
         };
         set(updates);
       }
     },
 
-    // NEW: Implementation for loading the full post data
     initializeFromFullPost: (fullPost) => {
       // 1. Rebuild MediaItems from the allMedia map
       const newMediaItems: MediaItem[] = [];
@@ -110,8 +107,8 @@ export const useEditorialStore = create<EditorialState & EditorialActions>(
         if (mediaRecord) {
           newMediaItems.push({
             id: mediaId,
-            file: null, // File is not fetched from DB, leave null
-            preview: mediaRecord.url, // Use the stored URL as a 'preview'
+            file: null,
+            preview: mediaRecord.url,
             isUploading: false,
             threadIndex: null,
           });
@@ -152,7 +149,6 @@ export const useEditorialStore = create<EditorialState & EditorialActions>(
       // 4. Update the state
       const updates: Partial<EditorialState> = {
         mainCaption: fullPost.content,
-        // Since it's an edit flow, we use the main caption for all by default for simplicity
         platformCaptions:
           fullPost.integration.platform === "x"
             ? {}
@@ -179,6 +175,7 @@ export const useEditorialStore = create<EditorialState & EditorialActions>(
           : "12:00",
 
         isInitialized: true,
+        sourceDraftId: fullPost.status === "draft" ? fullPost.id : null, // CAPTURE ID IF IT'S A DRAFT
       };
 
       set(updates);
