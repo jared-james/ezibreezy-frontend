@@ -1,3 +1,5 @@
+// lib/store/editorial-store.ts
+
 // lib\store\editorial-store.ts
 
 "use client";
@@ -70,11 +72,8 @@ export const useEditorialStore = create<EditorialState & EditorialActions>(
     ...initialState,
 
     setState: (updates) => {
-      console.log('[PERF] Store setState called with:', Object.keys(updates));
-      console.time('[PERF] Store setState duration');
       set((state) => {
         const newState = { ...state, ...updates };
-        console.timeEnd('[PERF] Store setState duration');
         return newState;
       });
     },
@@ -82,8 +81,6 @@ export const useEditorialStore = create<EditorialState & EditorialActions>(
     setThreadMessages: (messages) => set({ threadMessages: messages }),
 
     initializeFromDraft: (draft) => {
-      console.log('[PERF] initializeFromDraft called');
-      console.time('[PERF] initializeFromDraft duration');
       if (!get().isInitialized) {
         const updates: Partial<EditorialState> = {
           mainCaption: draft.mainCaption,
@@ -102,25 +99,16 @@ export const useEditorialStore = create<EditorialState & EditorialActions>(
           sourceDraftId: draft.sourceDraftId || null,
         };
         set(updates);
-        console.timeEnd('[PERF] initializeFromDraft duration');
-      } else {
-        console.log('[PERF] initializeFromDraft skipped - already initialized');
       }
     },
 
     initializeFromFullPost: (fullPost) => {
-      console.log('[PERF] initializeFromFullPost called');
-      console.time('[PERF] initializeFromFullPost duration');
-      // Logic to determine if this post can be edited/rescheduled
       const isEditable =
         fullPost.status === "draft" || fullPost.status === "scheduled";
 
-      // 1. Rebuild MediaItems from the allMedia map
       const newMediaItems: MediaItem[] = [];
-
       const mediaMap = fullPost.allMedia || {};
 
-      // Main Post Media
       fullPost.mediaIds.forEach((mediaId) => {
         const mediaRecord = mediaMap[mediaId];
         if (mediaRecord) {
@@ -134,10 +122,8 @@ export const useEditorialStore = create<EditorialState & EditorialActions>(
         }
       });
 
-      // Thread Messages and their Media
       const threadMessages: ThreadMessage[] = fullPost.threadMessages.map(
         (msg, index) => {
-          // Add thread media to the list
           msg.mediaIds.forEach((mediaId) => {
             const mediaRecord = mediaMap[mediaId];
             if (mediaRecord) {
@@ -157,42 +143,27 @@ export const useEditorialStore = create<EditorialState & EditorialActions>(
         }
       );
 
-      // 2. Rebuild selectedAccounts (single integration on the post)
       const selectedAccounts: SelectedAccounts = {
         [fullPost.integration.platform]: [fullPost.integrationId],
       };
 
-      // 3. Rebuild settings (labels, collaborators, location, etc.)
       const settings = fullPost.settings || {};
-
-      // FIX 1: Get the canonical content from settings, falling back to fullPost.content
       const canonicalContent = settings.canonicalContent || fullPost.content;
-
-      // FIX 2: Check if a platform-specific caption was saved
       const postHasPlatformOverride = fullPost.content !== canonicalContent;
 
-      // 4. Update the state
       const updates: Partial<EditorialState> = {
-        // FIX 3: Use canonicalContent for the main caption
         mainCaption: canonicalContent,
-
-        // FIX 4: Only set platformCaption if an override was actually saved to the DB
         platformCaptions: postHasPlatformOverride
           ? { [fullPost.integration.platform]: fullPost.content }
           : {},
-
         selectedAccounts,
         mediaItems: newMediaItems,
         threadMessages,
-
-        // Settings/Distribution
         labels: settings.labels || "",
         collaborators: settings.collaborators || "",
         location: settings.location || "",
         recycleInterval: fullPost.recycleInterval || null,
         aiGenerated: settings.aiGenerated || false,
-
-        // Schedule
         isScheduling: fullPost.status === "scheduled",
         scheduleDate: fullPost.scheduledAt
           ? format(new Date(fullPost.scheduledAt), "yyyy-MM-dd")
@@ -200,17 +171,14 @@ export const useEditorialStore = create<EditorialState & EditorialActions>(
         scheduleTime: fullPost.scheduledAt
           ? format(new Date(fullPost.scheduledAt), "HH:mm")
           : "12:00",
-
         isInitialized: true,
         sourceDraftId: isEditable ? fullPost.id : null,
       };
 
       set(updates);
-      console.timeEnd('[PERF] initializeFromFullPost duration');
     },
 
     reset: () => {
-      console.log('[PERF] Store reset called');
       set({ ...initialState, draft: null, isInitialized: false });
     },
 

@@ -1,4 +1,5 @@
 // lib/api/publishing.ts
+
 import apiClient from "./index";
 
 export interface ThreadMessagePayload {
@@ -23,7 +24,15 @@ export interface CreatePostPayload {
   threadMessages?: ThreadMessagePayload[];
   recycleInterval?: number;
   aiGenerated?: boolean;
-  sourceDraftId?: string; // NEW FIELD: ID of the draft post being published/scheduled
+  sourceDraftId?: string;
+}
+
+// REMOVED: ReschedulePostPayload (full payload) - replaced by RescheduleOnlyPayload
+// export interface ReschedulePostPayload { ... }
+
+// NEW: Minimalist payload for the new backend endpoint
+export interface RescheduleOnlyPayload {
+  scheduledAt: string;
 }
 
 export interface CreatePostResponse {
@@ -40,7 +49,7 @@ export interface CalendarMediaItem {
 
 export interface ScheduledPostResponse {
   id: string;
-  title?: string | null; // NEW FIELD: Optional title for drafts/YouTube
+  title?: string | null;
   content: string;
   scheduledAt: string;
   status: "draft" | "scheduled" | "sent" | "failed" | "cancelled";
@@ -49,10 +58,9 @@ export interface ScheduledPostResponse {
   media: CalendarMediaItem[];
 }
 
-// NEW: Interface for the full post details from GET /publishing/post/:postId
 export interface FullPostDetails {
   id: string;
-  title: string | null; // NEW FIELD
+  title: string | null;
   content: string;
   integrationId: string;
   organizationId: string;
@@ -91,12 +99,31 @@ export const createPost = async (
   return response.data;
 };
 
+// REMOVED: Old slow reschedulePost function
+
+/**
+ * NEW: Minimalist function to update only the schedule of an existing post.
+ * Uses PATCH /publishing/post/:postId/schedule
+ */
+export const reschedulePostOnly = async (
+  postId: string,
+  payload: RescheduleOnlyPayload
+): Promise<CreatePostResponse> => {
+  console.time("[API] reschedulePostOnly execution time");
+  const response = await apiClient.patch<CreatePostResponse>(
+    `/publishing/post/${postId}/schedule`,
+    payload
+  );
+  console.timeEnd("[API] reschedulePostOnly execution time");
+  return response.data;
+};
+
 /**
  * Fetches all content (drafts, scheduled, sent posts) for the user's organizations.
  */
 export const getContentLibrary = async (): Promise<ScheduledPostResponse[]> => {
   const response = await apiClient.get<ScheduledPostResponse[]>(
-    "/publishing/library" // UPDATED ENDPOINT
+    "/publishing/library"
   );
   return response.data;
 };
@@ -108,7 +135,9 @@ export const deletePost = async (postId: string): Promise<void> => {
   await apiClient.delete(`/publishing/post/${postId}`);
 };
 
-// NEW: Fetches the full details of a single post for editing
+/**
+ * Fetches the full details of a single post for editing
+ */
 export const getPostDetails = async (
   postId: string
 ): Promise<FullPostDetails> => {

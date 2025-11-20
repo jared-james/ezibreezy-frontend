@@ -18,7 +18,6 @@ export const getConnections = async (): Promise<Connection[]> => {
     "/integrations/connections"
   );
 
-  console.log("response.data", response.data);
   return response.data;
 };
 

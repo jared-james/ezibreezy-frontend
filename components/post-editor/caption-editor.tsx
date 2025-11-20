@@ -14,7 +14,6 @@ import {
 } from "@/lib/types/editorial";
 import ThreadPostMediaUpload from "./thread-post-media-upload";
 import { useEditorialStore } from "@/lib/store/editorial-store";
-
 import HashtagSelectorModal from "./hashtag-selector-modal";
 
 type SelectedAccounts = Record<string, string[]>;
@@ -34,8 +33,10 @@ interface CaptionEditorProps {
   ) => void;
   handleRemoveThreadMedia?: (fileToRemove: File, threadIndex: number) => void;
   isGlobalUploading?: boolean;
-  // NEW: Callbacks to pass local state up for preview
-  onLocalCaptionsChange?: (mainCaption: string, platformCaptions: Record<string, string>) => void;
+  onLocalCaptionsChange?: (
+    mainCaption: string,
+    platformCaptions: Record<string, string>
+  ) => void;
 }
 
 const PlatformIcon = ({ platformId }: { platformId: string }) => {
@@ -51,7 +52,6 @@ const PlatformIcon = ({ platformId }: { platformId: string }) => {
   return <Icon className="h-4 w-4 text-brand-primary" />;
 };
 
-// Custom Textarea wrapper to include the Hashtag button
 const CaptionTextarea = ({
   id,
   value,
@@ -79,7 +79,6 @@ const CaptionTextarea = ({
     <button
       type="button"
       onClick={() => onHashtagClick(platformId)}
-      title="Insert Hashtags"
       className="absolute bottom-3 right-3 text-muted-foreground hover:text-brand-primary transition-colors"
     >
       <Hash className="h-4 w-4" />
@@ -87,7 +86,6 @@ const CaptionTextarea = ({
   </div>
 );
 
-// Thread Textarea wrapper with hashtag button
 const ThreadTextarea = ({
   value,
   onChange,
@@ -112,7 +110,6 @@ const ThreadTextarea = ({
     <button
       type="button"
       onClick={() => onHashtagClick(threadIndex)}
-      title="Insert Hashtags"
       className="absolute bottom-3 right-3 text-muted-foreground hover:text-brand-primary transition-colors"
     >
       <Hash className="h-4 w-4" />
@@ -133,18 +130,15 @@ export default function CaptionEditor({
   isGlobalUploading = false,
   onLocalCaptionsChange,
 }: CaptionEditorProps) {
-  console.log('[PERF] CaptionEditor render');
-
-  // ===== READ INITIAL STATE FROM STORE (only on mount) =====
   const mainCaption = useEditorialStore((state) => state.mainCaption);
   const platformCaptions = useEditorialStore((state) => state.platformCaptions);
 
-  // ===== LOCAL STATE - NO STORE UPDATES DURING TYPING =====
   const [localMainCaption, setLocalMainCaption] = useState(mainCaption);
-  const [localPlatformCaptions, setLocalPlatformCaptions] = useState(platformCaptions);
-  const [localThreadMessages, setLocalThreadMessages] = useState(threadMessages);
+  const [localPlatformCaptions, setLocalPlatformCaptions] =
+    useState(platformCaptions);
+  const [localThreadMessages, setLocalThreadMessages] =
+    useState(threadMessages);
 
-  // Sync ONLY on external changes (e.g., when editing a different post)
   useEffect(() => {
     setLocalMainCaption(mainCaption);
   }, [mainCaption]);
@@ -157,18 +151,15 @@ export default function CaptionEditor({
     setLocalThreadMessages(threadMessages);
   }, [threadMessages]);
 
-  // Notify parent of local caption changes (for preview)
   useEffect(() => {
-    console.log('[PERF] onLocalCaptionsChange effect triggered');
-    console.time('[PERF] onLocalCaptionsChange callback');
     onLocalCaptionsChange?.(localMainCaption, localPlatformCaptions);
-    console.timeEnd('[PERF] onLocalCaptionsChange callback');
   }, [localMainCaption, localPlatformCaptions, onLocalCaptionsChange]);
 
-  // State for hashtag modal
   const [isHashtagModalOpen, setIsHashtagModalOpen] = useState(false);
   const [targetPlatformId, setTargetPlatformId] = useState<string | null>(null);
-  const [targetThreadIndex, setTargetThreadIndex] = useState<number | null>(null);
+  const [targetThreadIndex, setTargetThreadIndex] = useState<number | null>(
+    null
+  );
 
   const mainPlaceholder =
     postType === "video"
@@ -204,7 +195,6 @@ export default function CaptionEditor({
     onThreadMessagesChange?.(newMessages);
   };
 
-  // Logic to insert hashtags into the appropriate caption
   const handleInsertHashtags = useCallback(
     (hashtagString: string) => {
       if (!hashtagString) return;
@@ -278,12 +268,7 @@ export default function CaptionEditor({
         <CaptionTextarea
           id="caption"
           value={localMainCaption}
-          onChange={(event) => {
-            console.log('[PERF] Main caption onChange - length:', event.target.value.length);
-            console.time('[PERF] setLocalMainCaption');
-            setLocalMainCaption(event.target.value);
-            console.timeEnd('[PERF] setLocalMainCaption');
-          }}
+          onChange={(event) => setLocalMainCaption(event.target.value)}
           placeholder={mainPlaceholder}
           platformId="main"
           onHashtagClick={openHashtagModal}
@@ -347,15 +332,12 @@ export default function CaptionEditor({
               <CaptionTextarea
                 id={`caption-${platformId}`}
                 value={currentCaption}
-                onChange={(event) => {
-                  console.log(`[PERF] ${platformId} caption onChange - length:`, event.target.value.length);
-                  console.time(`[PERF] setLocalPlatformCaptions-${platformId}`);
+                onChange={(event) =>
                   setLocalPlatformCaptions((prev) => ({
                     ...prev,
                     [platformId]: event.target.value,
-                  }));
-                  console.timeEnd(`[PERF] setLocalPlatformCaptions-${platformId}`);
-                }}
+                  }))
+                }
                 placeholder={`${platform.name} specific caption...`}
                 platformId={platformId}
                 onHashtagClick={openHashtagModal}
@@ -389,15 +371,12 @@ export default function CaptionEditor({
 
                           <ThreadTextarea
                             value={message.content}
-                            onChange={(event) => {
-                              console.log(`[PERF] Thread ${index + 2} onChange - length:`, event.target.value.length);
-                              console.time(`[PERF] updateThreadMessage-${index}`);
+                            onChange={(event) =>
                               updateThreadMessageContent(
                                 index,
                                 event.target.value
-                              );
-                              console.timeEnd(`[PERF] updateThreadMessage-${index}`);
-                            }}
+                              )
+                            }
                             placeholder="What's happening next?"
                             threadIndex={index}
                             onHashtagClick={openThreadHashtagModal}

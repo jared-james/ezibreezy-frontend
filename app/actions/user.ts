@@ -105,7 +105,6 @@ export async function syncUser() {
       };
     }
 
-    console.log(`User ${id} successfully synced with backend.`);
     revalidatePath("/", "layout"); // Revalidates all pages
     return { success: true };
   } catch (error) {
