@@ -22,15 +22,15 @@ export default function Login() {
     setIsLoading(true);
 
     try {
-      const { error } = await supabase.auth.signInWithPassword({
+      const { error: authError } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
 
-      if (error) {
-        const errorMessage = error.message.includes("Invalid login credentials")
+      if (authError) {
+        const errorMessage = authError.message.includes("Invalid login credentials")
           ? "Invalid email or password"
-          : error.message.includes("Email not confirmed")
+          : authError.message.includes("Email not confirmed")
           ? "Please check your email to confirm your account"
           : "Unable to sign in. Please try again.";
 
