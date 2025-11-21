@@ -221,8 +221,9 @@ export default function EditorialCore({
           if (platformId === "x") {
             platformMediaIds = mainPostUploadedIds.slice(0, 4);
           } else {
+            // For non-X platforms, remove thread messages as they are not supported
             platformThreadMessages = [];
-            platformMediaIds = platformMediaIds.slice(0, 1);
+            // We no longer slice the media IDs, allowing for multi-image posts
           }
 
           // Use local state for content
