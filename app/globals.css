@@ -4,9 +4,7 @@
 
 @custom-variant dark (&:is(.dark *));
 
-/* ---------- THEME TOKENS (NEWSPAPER LIGHT) ---------- */
 :root {
-  /* Brand Colors */
   --brand-primary: #246339;
   --brand-primary-hover: #3d704d;
   --brand-accent: #0b84cc;
@@ -14,11 +12,9 @@
 
   --brand-primary-foreground: #ffffff;
 
-  /* Semantic Colors - Newspaper Light Mode */ /* newspaper page */ /* ink black */
-  --muted: oklch(0.97 0 0); /* worn ink grey */
+  --muted: oklch(0.97 0 0);
   --muted-foreground: oklch(0.556 0 0);
 
-  /* State Colors */
   --success: #16a34a;
   --success-hover: #15803d;
   --error: #ef4444;
@@ -30,24 +26,20 @@
   --error-foreground: #ffffff;
   --success-foreground: #ffffff;
 
-  /* Surface Colors - Cards / Panels */
-  --surface: #ffffff; /* crisp sheet */
+  --surface: #ffffff;
   --surface-hover: #f7f7ef;
 
-  --border: oklch(0.922 0 0); /* print-line grey */
+  --border: oklch(0.922 0 0);
   --border-hover: #c7c3bb;
 
-  /* Card/Panel */
   --card: oklch(1 0 0);
   --card-hover: #f7f7ef;
 
-  /* Border Radius */
   --radius-sm: 0.25rem;
   --radius: 0.625rem;
   --radius-lg: 0.75rem;
   --radius-xl: 1rem;
 
-  /* Spacing Scale */
   --space-1: 0.25rem;
   --space-2: 0.5rem;
   --space-3: 0.75rem;
@@ -59,17 +51,15 @@
   --space-12: 3rem;
   --space-16: 4rem;
 
-  /* Typography Scale - Newspaper feel */
   --text-xs: 0.7rem;
-  --text-sm: 0.82rem;
-  --text-base: 0.95rem;
-  --text-lg: 1.08rem;
-  --text-xl: 1.2rem;
-  --text-2xl: 1.5rem;
-  --text-3xl: 1.9rem;
-  --text-4xl: 2.3rem;
+  --text-sm: 0.95rem;
+  --text-base: 1rem;
+  --text-lg: 1.15rem;
+  --text-xl: 1.3rem;
+  --text-2xl: 1.6rem;
+  --text-3xl: 2.1rem;
+  --text-4xl: 2.6rem;
 
-  /* Card sizing */
   --card-min-height-mobile: 120px;
   --card-min-height-desktop: 140px;
 
@@ -130,9 +120,7 @@
   --sidebar-ring: oklch(0.708 0 0);
 }
 
-/* ---------- MAP TOKENS TO TAILWIND ---------- */
 @theme inline {
-  /* Colors */
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-muted: var(--muted);
@@ -169,7 +157,6 @@
   --color-card: var(--card);
   --color-card-hover: var(--card-hover);
 
-  /* Spacing */
   --spacing-1: var(--space-1);
   --spacing-2: var(--space-2);
   --spacing-3: var(--space-3);
@@ -181,13 +168,11 @@
   --spacing-12: var(--space-12);
   --spacing-16: var(--space-16);
 
-  /* Border Radius */
   --radius-sm: var(--radius-sm);
   --radius: var(--radius);
   --radius-lg: var(--radius-lg);
   --radius-xl: var(--radius-xl);
 
-  /* Typography */
   --font-size-xs: var(--text-xs);
   --font-size-sm: var(--text-sm);
   --font-size-base: var(--text-base);
@@ -197,7 +182,6 @@
   --font-size-3xl: var(--text-3xl);
   --font-size-4xl: var(--text-4xl);
 
-  /* Serif font (used by `font-serif`) */
   --font-family-serif: var(--font-serif), Georgia, Cambria, "Times New Roman",
     Times, serif;
   --color-sidebar-ring: var(--sidebar-ring);
@@ -223,191 +207,6 @@
   --color-popover: var(--popover);
   --color-card-foreground: var(--card-foreground);
   --radius-md: calc(var(--radius) - 2px);
-}
-
-/* ---------- BASE LAYER ---------- */
-@layer base {
-  html,
-  body {
-    background: var(--background);
-    color: var(--foreground);
-    font-size: var(--text-base);
-    line-height: 1.5;
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
-  }
-
-  * {
-    border-color: var(--border);
-  }
-
-  ::selection {
-    background: color-mix(in oklab, var(--brand-accent) 20%, transparent);
-  }
-
-  input,
-  button,
-  textarea,
-  select {
-    font: inherit;
-    accent-color: var(--brand-accent);
-  }
-
-  :focus-visible {
-    outline: 2px solid color-mix(in oklab, var(--brand-accent) 75%, white);
-    outline-offset: 2px;
-  }
-
-  a {
-    color: var(--foreground);
-  }
-  a:hover {
-    color: var(--foreground);
-    text-decoration: underline;
-  }
-}
-
-/* ---------- COMPONENTS (CARDS, BUTTONS, NEWSPAPER TYPE) ---------- */
-@layer components {
-  /* Cards */
-  .card {
-    background: var(--card);
-    border-radius: var(--radius-lg);
-    padding: var(--space-4);
-    min-height: var(--card-min-height-mobile);
-    box-shadow: 0 0 0 1px rgba(15, 23, 42, 0.03),
-      0 1px 2px rgba(15, 23, 42, 0.06);
-    transition: box-shadow 120ms ease-out, transform 120ms ease-out,
-      background-color 120ms ease-out;
-  }
-
-  @media (min-width: 768px) {
-    .card {
-      min-height: var(--card-min-height-desktop);
-    }
-  }
-
-  .card:hover {
-    background: var(--card-hover);
-    box-shadow: 0 0 0 1px rgba(15, 23, 42, 0.06),
-      0 4px 10px rgba(15, 23, 42, 0.08);
-    transform: translateY(-1px);
-  }
-
-  .card-muted {
-    background: var(--surface);
-  }
-
-  /* Buttons - newspaper / 1905 */
-  .btn {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.375rem;
-
-    padding-inline: var(--space-4);
-    padding-block: 0.45rem;
-
-    border-width: 1px;
-    border-style: solid;
-    border-color: var(--border);
-    border-radius: var(--radius-sm);
-
-    font-size: var(--text-sm);
-    font-weight: 500;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
-
-    background: #ffffff;
-    color: var(--foreground);
-
-    box-shadow: 0 0 0 1px rgba(15, 23, 42, 0.02),
-      0 1px 1px rgba(15, 23, 42, 0.04);
-
-    transition: background-color 120ms ease-out, border-color 120ms ease-out,
-      color 120ms ease-out, box-shadow 120ms ease-out, transform 80ms ease-out;
-  }
-
-  .btn:hover {
-    background: #f7f7ef;
-    border-color: var(--border-hover);
-    box-shadow: 0 0 0 1px rgba(15, 23, 42, 0.04),
-      0 1px 3px rgba(15, 23, 42, 0.06);
-  }
-
-  .btn:active {
-    transform: translateY(0.5px);
-    background: #e9e7df;
-    box-shadow: 0 0 0 1px rgba(15, 23, 42, 0.06), 0 0 0 rgba(0, 0, 0, 0);
-  }
-
-  .btn-primary {
-    background: var(--brand-primary);
-    color: var(--brand-primary-foreground);
-    border-color: color-mix(in oklab, var(--brand-primary) 75%, black);
-  }
-
-  .btn-primary:hover {
-    background: var(--brand-primary-hover);
-    border-color: color-mix(in oklab, var(--brand-primary-hover) 75%, black);
-  }
-
-  .btn-outline {
-    background: transparent;
-    color: var(--foreground);
-  }
-
-  .btn-outline:hover {
-    background: #f9f5eb;
-  }
-
-  .btn-icon {
-    padding-inline: var(--space-2);
-    padding-block: 0.35rem;
-  }
-
-  /* Newspaper-style typography helpers */
-  .eyebrow {
-    font-family: var(--font-family-serif);
-    font-size: var(--text-xs);
-    letter-spacing: 0.18em;
-    text-transform: uppercase;
-    color: var(--muted-foreground);
-  }
-
-  .headline {
-    font-family: var(--font-family-serif);
-    font-size: var(--text-3xl);
-    line-height: 1.1;
-    letter-spacing: 0.02em;
-  }
-
-  .subheadline {
-    font-family: var(--font-family-serif);
-    font-size: var(--text-lg);
-    color: var(--muted);
-  }
-
-  .byline {
-    font-family: var(--font-family-serif);
-    font-size: var(--text-xs);
-    color: var(--muted-foreground);
-    text-transform: uppercase;
-    letter-spacing: 0.12em;
-  }
-
-  .dateline {
-    font-family: var(--font-family-serif);
-    font-size: var(--text-xs);
-    color: var(--muted-foreground);
-  }
-
-  .article-body {
-    font-family: var(--font-family-serif);
-    font-size: var(--text-sm);
-    line-height: 1.7;
-    color: var(--foreground);
-  }
 }
 
 .dark {
@@ -448,7 +247,124 @@
   * {
     @apply border-border outline-ring/50;
   }
+  html,
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground text-base leading-relaxed antialiased;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  ::selection {
+    background: color-mix(in oklab, var(--brand-accent) 20%, transparent);
+  }
+
+  input,
+  button,
+  textarea,
+  select {
+    font: inherit;
+    accent-color: var(--brand-accent);
+  }
+
+  :focus-visible {
+    outline: 2px solid color-mix(in oklab, var(--brand-accent) 75%, white);
+    outline-offset: 2px;
+  }
+
+  a {
+    color: var(--foreground);
+    @apply hover:text-foreground hover:underline;
+  }
+}
+
+@layer components {
+  .card {
+    @apply bg-card rounded-lg p-4 min-h-[var(--card-min-height-mobile)];
+    box-shadow: 0 0 0 1px rgba(15, 23, 42, 0.03),
+      0 1px 2px rgba(15, 23, 42, 0.06);
+    transition: box-shadow 120ms ease-out, transform 120ms ease-out,
+      background-color 120ms ease-out;
+  }
+
+  @media (min-width: 768px) {
+    .card {
+      min-height: var(--card-min-height-desktop);
+    }
+  }
+
+  .card:hover {
+    @apply bg-card-hover;
+    box-shadow: 0 0 0 1px rgba(15, 23, 42, 0.06),
+      0 4px 10px rgba(15, 23, 42, 0.08);
+    transform: translateY(-1px);
+  }
+
+  .card-muted {
+    @apply bg-surface;
+  }
+
+  .btn {
+    @apply inline-flex items-center justify-center gap-1.5 px-4 py-[0.45rem] 
+           border border-border rounded-sm text-sm font-medium tracking-wider uppercase 
+           bg-white text-foreground shadow-[0_0_0_1px_rgba(15,23,42,0.02),0_1px_1px_rgba(15,23,42,0.04)];
+    transition: background-color 120ms ease-out, border-color 120ms ease-out,
+      color 120ms ease-out, box-shadow 120ms ease-out, transform 80ms ease-out;
+  }
+
+  .btn:hover {
+    @apply bg-[#f7f7ef] border-border-hover shadow-[0_0_0_1px_rgba(15,23,42,0.04),0_1px_3px_rgba(15,23,42,0.06)];
+  }
+
+  .btn:active {
+    @apply bg-[#e9e7df];
+    transform: translateY(0.5px);
+    box-shadow: 0 0 0 1px rgba(15, 23, 42, 0.06), 0 0 0 rgba(0, 0, 0, 0);
+  }
+
+  .btn-primary {
+    @apply bg-brand-primary text-brand-primary-foreground 
+           border-[color-mix(in_oklab,var(--brand-primary)_75%,black)];
+  }
+
+  .btn-primary:hover {
+    @apply bg-brand-primary-hover 
+           border-[color-mix(in_oklab,var(--brand-primary-hover)_75%,black)];
+  }
+
+  .btn-outline {
+    @apply bg-transparent text-foreground;
+  }
+
+  .btn-outline:hover {
+    @apply bg-[#f9f5eb];
+  }
+
+  .btn-icon {
+    @apply px-2 py-[0.35rem];
+  }
+
+  .eyebrow {
+    @apply font-serif text-xs tracking-[0.18em] uppercase text-muted-foreground;
+  }
+
+  .headline {
+    @apply font-serif text-3xl leading-snug tracking-wide;
+  }
+
+  .subheadline {
+    @apply font-serif text-lg text-muted-foreground;
+  }
+
+  .byline {
+    @apply font-serif text-xs text-muted-foreground uppercase tracking-[0.12em];
+  }
+
+  .dateline {
+    @apply font-serif text-xs text-muted-foreground;
+  }
+
+  .article-body {
+    @apply font-serif text-sm leading-relaxed text-foreground;
   }
 }
