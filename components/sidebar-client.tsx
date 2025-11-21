@@ -23,9 +23,9 @@ import { cn } from "@/lib/utils";
 
 const coreNavigation = [
   { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
+  { name: "Calendar", href: "/calendar", icon: Calendar },
   { name: "Editorial", href: "/editorial", icon: Pencil },
   { name: "Ideas", href: "/ideas", icon: Lightbulb },
-  { name: "Calendar", href: "/calendar", icon: Calendar },
   { name: "Analytics", href: "/analytics", icon: BarChart3 },
 ];
 
