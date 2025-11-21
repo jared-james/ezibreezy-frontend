@@ -1,7 +1,5 @@
 // lib/store/editorial-store.ts
 
-// lib\store\editorial-store.ts
-
 "use client";
 
 import { create } from "zustand";
