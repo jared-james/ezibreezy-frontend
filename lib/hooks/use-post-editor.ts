@@ -16,22 +16,8 @@ import type {
   ThreadMessageAugmented,
   EditorialDraft,
 } from "@/lib/types/editorial";
-import { Twitter, Linkedin, Youtube, Instagram } from "lucide-react";
+import { Twitter, Linkedin, Youtube, Instagram, Facebook } from "lucide-react"; // Added Facebook
 import { createPost, type CreatePostPayload } from "@/lib/api/publishing";
-
-const platformDefinitions = {
-  x: { name: "Twitter/X", icon: Twitter },
-  linkedin: { name: "LinkedIn", icon: "LinkedIn" },
-  youtube: { name: "YouTube", icon: "YouTube" },
-  instagram: { name: "Instagram", icon: "Instagram" },
-};
-
-// MODIFIED: The filter no longer uses the helper, but instead uses the correct logic inline
-// The helper causes problems because `fileToRemove` has the problematic type
-/*
-const filterMediaItems = (mediaItems: MediaItem[], fileToRemove: File) =>
-  mediaItems.filter((item) => item.file !== fileToRemove);
-*/
 
 interface UsePostEditorOptions {
   mode?: "editorial" | "clipping";
@@ -97,9 +83,6 @@ export function usePostEditor(options: UsePostEditorOptions = {}) {
           error?.message || "Unknown error"
         }`
       );
-      // MODIFIED: Inlining the filter logic and ensuring correct type comparison (it should compare to the File object, not the type)
-      // Since `variables.file` is guaranteed to be a valid `File` by the mutation call, the old filter was likely fine,
-      // but let's be explicit and remove the helper function reliance.
       setState({
         mediaItems: useEditorialStore
           .getState()
@@ -124,7 +107,7 @@ export function usePostEditor(options: UsePostEditorOptions = {}) {
     if (
       mainPostMedia.some(
         (m) =>
-          (m.file && (m.file as globalThis.File).type.startsWith("video/")) || // NEW: Explicitly assert type to globalThis.File
+          (m.file && (m.file as globalThis.File).type.startsWith("video/")) ||
           (m.file === null &&
             (m.preview.toLowerCase().endsWith(".mp4") ||
               m.preview.toLowerCase().endsWith(".mov")))
@@ -136,7 +119,6 @@ export function usePostEditor(options: UsePostEditorOptions = {}) {
   }, [mainPostMedia]);
 
   const availablePlatforms = useMemo((): Platform[] => {
-    // ... (rest of availablePlatforms logic remains the same)
     if (!connections) return [];
     const connectionsByPlatform = connections.reduce((acc, conn) => {
       acc[conn.platform] = acc[conn.platform] || [];
@@ -144,12 +126,14 @@ export function usePostEditor(options: UsePostEditorOptions = {}) {
       return acc;
     }, {} as Record<string, Connection[]>);
 
+    // UPDATED: Added Facebook to the definitions map
     const fullPlatformDefinitions: Record<string, { name: string; icon: any }> =
       {
         x: { name: "Twitter/X", icon: Twitter },
         linkedin: { name: "LinkedIn", icon: Linkedin },
         youtube: { name: "YouTube", icon: Youtube },
         instagram: { name: "Instagram", icon: Instagram },
+        facebook: { name: "Facebook", icon: Facebook }, // NEW
       };
 
     return Object.keys(fullPlatformDefinitions).map((platformId) => {
@@ -157,7 +141,7 @@ export function usePostEditor(options: UsePostEditorOptions = {}) {
       const accounts =
         connectionsByPlatform[platformId]?.map((conn) => ({
           id: conn.id,
-          name: `@${conn.platformUsername}`,
+          name: conn.name || `@${conn.platformUsername}`, // Use name if available (Pages usually have names)
           img: conn.avatarUrl || "/placeholder-pfp.png",
         })) || [];
       return { ...def, id: platformId, accounts };
@@ -182,7 +166,6 @@ export function usePostEditor(options: UsePostEditorOptions = {}) {
         mediaPreviews: threadMedia
           .map((m) => m.preview)
           .filter(Boolean) as string[],
-        // FIX: Added non-null assertion to map
         mediaFiles: threadMedia.map((m) => m.file!).filter(Boolean) as File[],
         isUploading: threadMedia.some((m) => m.isUploading),
       };
@@ -191,7 +174,6 @@ export function usePostEditor(options: UsePostEditorOptions = {}) {
 
   const handleMediaChange = useCallback(
     (files: File[], previews: string[], threadIndex: number | null = null) => {
-      // ... (rest of handleMediaChange logic remains the same)
       const currentSelectedAccounts =
         useEditorialStore.getState().selectedAccounts;
 
@@ -219,9 +201,6 @@ export function usePostEditor(options: UsePostEditorOptions = {}) {
       const newFilesForUpload: MediaItem[] = [];
 
       files.forEach((file, index) => {
-        // FIX: The File argument from the component is the correct type,
-        // but TypeScript errors on comparing it to the store's File|null.
-        // We use a type cast to ensure comparison works.
         const existing = existingMedia.find(
           (m) => m.file === (file as File | null)
         );
@@ -244,7 +223,6 @@ export function usePostEditor(options: UsePostEditorOptions = {}) {
         mediaItems: [...otherMedia, ...newMediaItems],
       });
 
-      // In clipping mode, don't auto-upload media - defer until save
       if (mode === "editorial") {
         newFilesForUpload.forEach((item) => {
           if (!item.id && item.isUploading && uploadIntegrationId) {
@@ -256,12 +234,13 @@ export function usePostEditor(options: UsePostEditorOptions = {}) {
           }
         });
       } else {
-        // In clipping mode, mark media as not uploading (will upload on save)
-        const updatedMediaItems = useEditorialStore.getState().mediaItems.map((item) =>
-          newFilesForUpload.some(newItem => newItem.file === item.file)
-            ? { ...item, isUploading: false }
-            : item
-        );
+        const updatedMediaItems = useEditorialStore
+          .getState()
+          .mediaItems.map((item) =>
+            newFilesForUpload.some((newItem) => newItem.file === item.file)
+              ? { ...item, isUploading: false }
+              : item
+          );
         setState({ mediaItems: updatedMediaItems });
       }
     },
@@ -272,17 +251,14 @@ export function usePostEditor(options: UsePostEditorOptions = {}) {
     (fileToRemove: File, threadIndex: number | null = null) => {
       const { mediaItems, threadMessages } = useEditorialStore.getState();
 
-      // FIX: Filter based on reference, ensuring `item.file` is not null for comparison
       const newMediaItems = mediaItems.filter(
         (item) => item.threadIndex !== threadIndex || item.file !== fileToRemove
       );
 
-      // Find the ID of the file being removed if it was a file that completed upload
       const mediaItem = mediaItems.find(
         (m) => m.file === fileToRemove && m.threadIndex === threadIndex
       );
 
-      // Update thread messages to remove the media ID
       let newThreadMessages = threadMessages;
       if (threadIndex !== null && mediaItem) {
         newThreadMessages = threadMessages.map((msg, i) => {
@@ -306,7 +282,6 @@ export function usePostEditor(options: UsePostEditorOptions = {}) {
   );
 
   return {
-    // FIX: Using non-null assertion on map and then filter to correctly assert type
     mainPostMediaFiles: mainPostMedia
       .map((m) => m.file!)
       .filter(Boolean) as File[],

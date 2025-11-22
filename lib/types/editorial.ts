@@ -6,6 +6,13 @@
 
 export type PostType = "text" | "image" | "video";
 
+export type PlatformId =
+  | "x"
+  | "linkedin"
+  | "youtube"
+  | "instagram"
+  | "facebook";
+
 export type SelectedAccounts = Record<string, string[]>;
 
 export interface Account {
@@ -15,7 +22,7 @@ export interface Account {
 }
 
 export interface Platform {
-  id: string;
+  id: PlatformId | string; // Allow string for flexibility, but encourage PlatformId
   name: string;
   icon: React.ComponentType<{ className?: string }>; // Lucide icon component type
   accounts: Account[];
@@ -91,7 +98,7 @@ export interface EditorialDraft {
 
   // Source metadata
   sourceClippingId?: string; // ID of the original clipping/idea/draft
-  sourceDraftId?: string | null; // FIXED: Allow null to align with EditorialState and backend payload
+  sourceDraftId?: string | null;
   sourceTitle?: string; // Title of the original clipping
 
   // NEW FIELDS

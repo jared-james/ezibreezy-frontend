@@ -1,8 +1,17 @@
 // components/post-editor/caption-editor.tsx
+
 "use client";
 
 import { useState, useCallback, useEffect } from "react";
-import { Smile, Twitter, Instagram, Plus, Trash2, Hash } from "lucide-react";
+import {
+  Smile,
+  Twitter,
+  Instagram,
+  Plus,
+  Trash2,
+  Hash,
+  Facebook,
+} from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -44,6 +53,8 @@ const PlatformIcon = ({ platformId }: { platformId: string }) => {
       ? Twitter
       : platformId === "instagram"
       ? Instagram
+      : platformId === "facebook"
+      ? Facebook
       : null;
 
   if (!Icon) return null;

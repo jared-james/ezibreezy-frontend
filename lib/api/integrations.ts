@@ -1,18 +1,22 @@
 // lib/api/integrations.ts
+
 import apiClient from "./index";
 
 export interface Connection {
   id: string;
-  platform: "x" | "linkedin" | "youtube" | "instagram";
+  platform: "x" | "linkedin" | "youtube" | "instagram" | "facebook";
   platformUsername: string;
   name: string | null;
   avatarUrl: string | null;
   platformUserId: string;
+  requiresReauth?: boolean;
+  authErrorMessage?: string | null;
+  settings?: {
+    loginType?: "facebook_business" | "instagram_business";
+    [key: string]: any;
+  };
 }
 
-/**
- * Fetches all of the current user's connections from the backend.
- */
 export const getConnections = async (): Promise<Connection[]> => {
   const response = await apiClient.get<Connection[]>(
     "/integrations/connections"

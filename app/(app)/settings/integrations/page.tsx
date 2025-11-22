@@ -14,6 +14,7 @@ import {
   Loader2,
   Instagram,
   AlertTriangle,
+  Facebook,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import ConnectAccountModal from "@/components/connect-account-modal";
@@ -26,7 +27,7 @@ import {
 import { cn } from "@/lib/utils";
 
 type PlatformDefinition = {
-  id: "x" | "linkedin" | "youtube" | "instagram";
+  id: "x" | "linkedin" | "youtube" | "instagram" | "facebook";
   name: string;
   icon: React.ElementType;
   description: string;
@@ -38,6 +39,13 @@ const platformDefinitions: PlatformDefinition[] = [
     name: "Twitter / X",
     icon: Twitter,
     description: "Connect your X accounts to post and schedule threads.",
+  },
+  {
+    id: "facebook",
+    name: "Facebook Page",
+    icon: Facebook,
+    description:
+      "Connect your Facebook Page to publish posts, photos, and videos.",
   },
   {
     id: "instagram",
@@ -80,19 +88,12 @@ const InstagramConnectOptionsModal: React.FC<
       console.error("Could not save to sessionStorage", e);
     }
 
-    // NEW LOGIC: Map selection directly to the distinct backend routes
     const routePlatformId =
       authType === "instagram_business"
         ? "instagram-direct"
         : "instagram-facebook";
 
     const connectUrl = `/api/integrations/${routePlatformId}/connect`;
-
-    // LOGS
-    console.log(`[InstagramConnectOptionsModal] User selected: ${authType}`);
-    console.log(
-      `[InstagramConnectOptionsModal] Final URL for navigation: ${connectUrl}`
-    );
 
     window.location.href = connectUrl;
   };
@@ -190,14 +191,12 @@ export default function IntegrationsPage() {
       : "Something went wrong loading your connections. Please try again.";
 
   const openConnectModal = (platform: PlatformDefinition) => {
-    // If it's Instagram, we open the custom options modal
     if (platform.id === "instagram") {
       setSelectedPlatform(platform);
       setIsModalOpen(true);
       return;
     }
 
-    // For all other platforms, we open the default modal
     setSelectedPlatform(platform);
     setIsModalOpen(true);
   };
@@ -211,6 +210,30 @@ export default function IntegrationsPage() {
       toast.error("Failed to disconnect account.");
       console.error("Disconnect error:", err);
     }
+  };
+
+  const getSourceBadge = (account: Connection) => {
+    if (account.platform !== "instagram") return null;
+
+    const loginType = account.settings?.loginType;
+
+    if (loginType === "facebook_business") {
+      return (
+        <span className="inline-flex items-center gap-1 rounded-full bg-blue-50 px-2 py-0.5 text-xs font-medium text-blue-700 ring-1 ring-inset ring-blue-700/10 ml-2">
+          <Facebook className="h-3 w-3" />
+          via Facebook
+        </span>
+      );
+    }
+    if (loginType === "instagram_business") {
+      return (
+        <span className="inline-flex items-center gap-1 rounded-full bg-pink-50 px-2 py-0.5 text-xs font-medium text-pink-700 ring-1 ring-inset ring-pink-700/10 ml-2">
+          <Instagram className="h-3 w-3" />
+          via Instagram
+        </span>
+      );
+    }
+    return null;
   };
 
   return (
@@ -251,7 +274,6 @@ export default function IntegrationsPage() {
                   key={platform.id}
                   className="border border-border bg-surface"
                 >
-                  {/* Platform Header */}
                   <div className="p-5 flex flex-col md:flex-row md:items-start md:justify-between">
                     <div className="flex items-start gap-4">
                       <div className="flex h-10 w-10 items-center justify-center border border-border bg-background">
@@ -274,15 +296,12 @@ export default function IntegrationsPage() {
                     </div>
                   </div>
 
-                  {/* Connected Accounts List - Applying ListView Aesthetic */}
                   {connectedAccounts.length > 0 && (
                     <div className="border-t border-border">
                       <div className="divide-y divide-border">
                         {connectedAccounts.map((account) => {
-                          const requiresReauth = (account as any)
-                            .requiresReauth;
-                          const authErrorMessage = (account as any)
-                            .authErrorMessage;
+                          const requiresReauth = account.requiresReauth;
+                          const authErrorMessage = account.authErrorMessage;
 
                           return (
                             <div
@@ -301,10 +320,15 @@ export default function IntegrationsPage() {
                                   className="h-8 w-8 rounded-full border border-border bg-muted shrink-0 mt-0.5"
                                 />
                                 <div className="min-w-0 flex-1">
-                                  <span className="font-serif text-sm font-bold text-foreground truncate block">
-                                    {account.name ||
-                                      `@${account.platformUsername}`}
-                                  </span>
+                                  <div className="flex items-center flex-wrap gap-y-1">
+                                    <span className="font-serif text-sm font-bold text-foreground truncate">
+                                      {account.name ||
+                                        `@${account.platformUsername}`}
+                                    </span>
+
+                                    {getSourceBadge(account)}
+                                  </div>
+
                                   <span className="font-serif text-xs text-muted-foreground block truncate">
                                     @{account.platformUsername}
                                   </span>
@@ -313,8 +337,7 @@ export default function IntegrationsPage() {
                                     <div className="flex items-center gap-2 mt-2 p-2 bg-error-hover/20 border border-error/50 rounded-sm">
                                       <AlertTriangle className="w-4 h-4 text-error shrink-0" />
                                       <p className="font-serif text-xs text-error">
-                                        Re-authentication required. Token
-                                        expired or invalid.
+                                        Re-authentication required.
                                         {authErrorMessage && (
                                           <span className="font-medium ml-1 italic">
                                             ({authErrorMessage})
