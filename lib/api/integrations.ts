@@ -4,7 +4,14 @@ import apiClient from "./index";
 
 export interface Connection {
   id: string;
-  platform: "x" | "linkedin" | "youtube" | "instagram" | "facebook" | "threads";
+  platform:
+    | "x"
+    | "linkedin"
+    | "youtube"
+    | "instagram"
+    | "facebook"
+    | "threads"
+    | "tiktok";
   platformUsername: string;
   name: string | null;
   avatarUrl: string | null;

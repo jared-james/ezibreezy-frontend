@@ -23,7 +23,8 @@ import {
   Instagram,
   Facebook,
   AtSign,
-} from "lucide-react"; // Added AtSign for Threads
+  Music2,
+} from "lucide-react";
 import { createPost, type CreatePostPayload } from "@/lib/api/publishing";
 
 interface UsePostEditorOptions {
@@ -140,7 +141,8 @@ export function usePostEditor(options: UsePostEditorOptions = {}) {
         youtube: { name: "YouTube", icon: Youtube },
         instagram: { name: "Instagram", icon: Instagram },
         facebook: { name: "Facebook", icon: Facebook },
-        threads: { name: "Threads", icon: AtSign }, // Added Threads
+        threads: { name: "Threads", icon: AtSign },
+        tiktok: { name: "TikTok", icon: Music2 },
       };
 
     return Object.keys(fullPlatformDefinitions).map((platformId) => {
