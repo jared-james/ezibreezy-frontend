@@ -61,6 +61,7 @@ export default function EditorialCore({
   const recycleInterval = useEditorialStore((state) => state.recycleInterval);
   const aiGenerated = useEditorialStore((state) => state.aiGenerated);
   const sourceDraftId = useEditorialStore((state) => state.sourceDraftId);
+  const firstComment = useEditorialStore((state) => state.firstComment);
 
   const {
     mainPostMediaFiles,
@@ -190,7 +191,7 @@ export default function EditorialCore({
       scheduledAt = dateTime.toISOString();
     }
 
-    const settings = {
+    const baseSettings = {
       labels: localLabels,
       collaborators: localCollaborators,
       location: localLocation,
@@ -218,15 +219,10 @@ export default function EditorialCore({
             throw new Error("Instagram post validation failed");
           }
 
-          // Logic Update: Handle Threads specifically
           if (platformId === "x") {
-            // X strict limit
             platformMediaIds = mainPostUploadedIds.slice(0, 4);
           } else if (platformId === "threads") {
-            // Threads supports threading, so we keep platformThreadMessages
-            // Threads limit is ~20 items (handled in backend), so we send all valid IDs
           } else {
-            // Other platforms (LinkedIn, FB, IG) do not support threading in this manner
             platformThreadMessages = [];
           }
 
@@ -240,7 +236,7 @@ export default function EditorialCore({
             userId: user.id,
             integrationId,
             content: contentToSend,
-            settings,
+            settings: baseSettings,
             scheduledAt,
             mediaIds:
               platformMediaIds.length > 0 ? platformMediaIds : undefined,
@@ -252,6 +248,17 @@ export default function EditorialCore({
             aiGenerated: aiGenerated || undefined,
             sourceDraftId: sourceDraftId || undefined,
           };
+
+          if (
+            platformId === "instagram" &&
+            firstComment &&
+            firstComment.trim().length > 0
+          ) {
+            payload.settings = {
+              ...payload.settings,
+              firstComment: firstComment.trim(),
+            };
+          }
 
           return postMutation.mutateAsync(payload);
         })

@@ -28,6 +28,7 @@ export interface EditorialState {
   threadMessages: ThreadMessage[];
   collaborators: string;
   location: string;
+  firstComment: string;
   isInitialized: boolean;
   draft: EditorialDraft | null;
   recycleInterval: number | null;
@@ -58,6 +59,7 @@ export const initialState: EditorialState = {
   threadMessages: [],
   collaborators: "",
   location: "",
+  firstComment: "",
   isInitialized: false,
   draft: null,
   recycleInterval: null,
@@ -88,6 +90,7 @@ export const useEditorialStore = create<EditorialState & EditorialActions>(
           threadMessages: draft.distribution?.threadMessages || [],
           collaborators: draft.distribution?.collaborators || "",
           location: draft.distribution?.location || "",
+          firstComment: draft.distribution?.firstComment || "",
           isScheduling: draft.schedule?.isScheduled || false,
           scheduleDate: draft.schedule?.date,
           scheduleTime: draft.schedule?.time,
@@ -160,6 +163,7 @@ export const useEditorialStore = create<EditorialState & EditorialActions>(
         labels: settings.labels || "",
         collaborators: settings.collaborators || "",
         location: settings.location || "",
+        firstComment: settings.firstComment || "",
         recycleInterval: fullPost.recycleInterval || null,
         aiGenerated: settings.aiGenerated || false,
         isScheduling: fullPost.status === "scheduled",

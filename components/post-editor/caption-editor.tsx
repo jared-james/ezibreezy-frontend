@@ -13,6 +13,7 @@ import {
   Facebook,
   AtSign,
   Music2,
+  MessageSquare,
 } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
@@ -148,12 +149,18 @@ export default function CaptionEditor({
 }: CaptionEditorProps) {
   const mainCaption = useEditorialStore((state) => state.mainCaption);
   const platformCaptions = useEditorialStore((state) => state.platformCaptions);
+  const firstComment = useEditorialStore((state) => state.firstComment);
+  const setState = useEditorialStore((state) => state.setState);
 
   const [localMainCaption, setLocalMainCaption] = useState(mainCaption);
   const [localPlatformCaptions, setLocalPlatformCaptions] =
     useState(platformCaptions);
   const [localThreadMessages, setLocalThreadMessages] =
     useState(threadMessages);
+  const [localFirstComment, setLocalFirstComment] = useState(firstComment);
+  const [showFirstComment, setShowFirstComment] = useState(
+    !!firstComment && firstComment.length > 0
+  );
 
   useEffect(() => {
     setLocalMainCaption(mainCaption);
@@ -168,8 +175,17 @@ export default function CaptionEditor({
   }, [threadMessages]);
 
   useEffect(() => {
+    setLocalFirstComment(firstComment);
+    setShowFirstComment(!!firstComment && firstComment.length > 0);
+  }, [firstComment]);
+
+  useEffect(() => {
     onLocalCaptionsChange?.(localMainCaption, localPlatformCaptions);
   }, [localMainCaption, localPlatformCaptions, onLocalCaptionsChange]);
+
+  useEffect(() => {
+    setState({ firstComment: localFirstComment });
+  }, [localFirstComment, setState]);
 
   const [isHashtagModalOpen, setIsHashtagModalOpen] = useState(false);
   const [targetPlatformId, setTargetPlatformId] = useState<string | null>(null);
@@ -230,6 +246,10 @@ export default function CaptionEditor({
         const newCaption = localMainCaption.trimEnd() + hashtagsWithPadding;
         setLocalMainCaption(newCaption);
         setTargetPlatformId(null);
+      } else if (targetPlatformId === "instagram_first_comment") {
+        const newComment = localFirstComment.trimEnd() + hashtagsWithPadding;
+        setLocalFirstComment(newComment);
+        setTargetPlatformId(null);
       } else if (targetPlatformId) {
         const currentCaption =
           localPlatformCaptions[targetPlatformId] || localMainCaption;
@@ -248,6 +268,7 @@ export default function CaptionEditor({
       onThreadMessagesChange,
       targetPlatformId,
       targetThreadIndex,
+      localFirstComment,
     ]
   );
 
@@ -297,6 +318,7 @@ export default function CaptionEditor({
 
         const supportsThreading =
           platformId === "x" || platformId === "threads";
+        const supportsFirstComment = platformId === "instagram";
 
         const currentCaption = localPlatformCaptions[platformId] || "";
 
@@ -321,9 +343,7 @@ export default function CaptionEditor({
                       <button
                         key={account.id}
                         type="button"
-                        onClick={() =>
-                          onAccountSelect(platformId, account.id)
-                        }
+                        onClick={() => onAccountSelect(platformId, account.id)}
                         className={cn(
                           "h-6 w-6 rounded-full border-2 transition-all overflow-hidden",
                           isSelected
@@ -435,6 +455,68 @@ export default function CaptionEditor({
                   )}
                 </>
               )}
+
+              {supportsFirstComment && (
+                <>
+                  {showFirstComment ? (
+                    <div className="relative pl-6 before:absolute before:left-0 before:top-0 before:h-full before:w-px before:bg-border ml-2">
+                      <div className="space-y-3">
+                        <div className="flex items-center justify-between">
+                          <p className="eyebrow flex items-center gap-1.5 text-[0.65rem]">
+                            <MessageSquare className="h-3 w-3" />
+                            First Comment
+                          </p>
+                          <Button
+                            type="button"
+                            onClick={() => {
+                              setLocalFirstComment("");
+                              setShowFirstComment(false);
+                            }}
+                            variant="ghost"
+                            size="sm"
+                            className="h-6 px-2 text-muted-foreground hover:text-error"
+                          >
+                            <Trash2 className="h-3 w-3" />
+                          </Button>
+                        </div>
+                        <div className="relative">
+                          <Textarea
+                            rows={4}
+                            value={localFirstComment}
+                            onChange={(e) =>
+                              setLocalFirstComment(e.target.value)
+                            }
+                            placeholder="Add your hashtags or opening line here..."
+                            className="min-h-24 pr-10"
+                          />
+                          <button
+                            type="button"
+                            onClick={() =>
+                              openHashtagModal("instagram_first_comment")
+                            }
+                            className="absolute bottom-3 right-3 text-muted-foreground hover:text-brand-primary transition-colors"
+                          >
+                            <Hash className="h-4 w-4" />
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="flex justify-end">
+                      <Button
+                        type="button"
+                        onClick={() => setShowFirstComment(true)}
+                        variant="ghost"
+                        size="sm"
+                        className="gap-1 text-xs text-muted-foreground hover:text-foreground"
+                      >
+                        <Plus className="h-3 w-3" />
+                        Add first comment
+                      </Button>
+                    </div>
+                  )}
+                </>
+              )}
             </div>
           </div>
         );
@@ -448,6 +530,8 @@ export default function CaptionEditor({
             ? localThreadMessages[targetThreadIndex]?.content || ""
             : targetPlatformId === "main"
             ? localMainCaption
+            : targetPlatformId === "instagram_first_comment"
+            ? localFirstComment
             : localPlatformCaptions[targetPlatformId || ""] || ""
         }
         onSave={handleInsertHashtags}

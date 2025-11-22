@@ -4,22 +4,45 @@
 
 import { useState, useMemo, memo } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Twitter, Instagram, LayoutGrid } from "lucide-react";
+import {
+  Twitter,
+  Instagram,
+  Linkedin,
+  Youtube,
+  Facebook,
+  AtSign,
+  Music2,
+  LayoutGrid,
+} from "lucide-react";
 import Image from "next/image";
 import { getConnections } from "@/lib/api/integrations";
 import XPreview from "./x-preview";
 import InstagramPreview from "./instagram-preview";
+import LinkedInPreview from "./linkedin-preview";
+import FacebookPreview from "./facebook-preview";
+import ThreadsPreview from "./threads-preview";
+import TikTokPreview from "./tiktok-preview";
 import { cn } from "@/lib/utils";
 import { usePostEditor } from "@/lib/hooks/use-post-editor";
 
-const platformIcons = {
+const platformIcons: Record<string, React.ElementType> = {
   x: Twitter,
   instagram: Instagram,
+  linkedin: Linkedin,
+  youtube: Youtube,
+  facebook: Facebook,
+  threads: AtSign,
+  tiktok: Music2,
 };
 
-const platformNames = {
+const platformNames: Record<string, string> = {
   x: "X",
   instagram: "Instagram",
+  linkedin: "LinkedIn",
+  youtube: "YouTube",
+  facebook: "Facebook",
+  threads: "Threads",
+  tiktok: "TikTok",
 };
 
 interface PreviewPanelProps {
@@ -72,15 +95,18 @@ function PreviewPanel({
   const tabList = useMemo(
     () =>
       activePlatforms.map((id) => {
-        const Icon = platformIcons[id as keyof typeof platformIcons] || Twitter;
+        const Icon = platformIcons[id] || Twitter;
         return {
           id,
-          name: platformNames[id as keyof typeof platformNames] || id,
+          name: platformNames[id] || id,
           Icon,
         };
       }),
     [activePlatforms]
   );
+
+  // Show only icons when more than 2 platforms are selected
+  const showIconsOnly = activePlatforms.length > 2;
 
   const currentCaption = useMemo(
     () => platformCaptions[validActiveTab] || mainCaption,
@@ -123,6 +149,10 @@ function PreviewPanel({
       );
     }
 
+    const singleMedia = Array.isArray(mainPostMediaPreviews)
+      ? mainPostMediaPreviews[0]
+      : mainPostMediaPreviews;
+
     switch (validActiveTab) {
       case "x":
         return (
@@ -136,11 +166,7 @@ function PreviewPanel({
             postType={postType}
           />
         );
-      case "instagram": {
-        const singleMedia = Array.isArray(mainPostMediaPreviews)
-          ? mainPostMediaPreviews[0]
-          : mainPostMediaPreviews;
-
+      case "instagram":
         return (
           <InstagramPreview
             caption={currentCaption}
@@ -152,7 +178,47 @@ function PreviewPanel({
             location={location}
           />
         );
-      }
+      case "linkedin":
+        return (
+          <LinkedInPreview
+            caption={currentCaption}
+            mediaPreview={singleMedia}
+            platformUsername={activeAccount.platformUsername}
+            displayName={activeAccount.name}
+            avatarUrl={activeAccount.avatarUrl}
+          />
+        );
+      case "facebook":
+        return (
+          <FacebookPreview
+            caption={currentCaption}
+            mediaPreview={singleMedia}
+            platformUsername={activeAccount.platformUsername}
+            displayName={activeAccount.name}
+            avatarUrl={activeAccount.avatarUrl}
+          />
+        );
+      case "threads":
+        return (
+          <ThreadsPreview
+            caption={currentCaption}
+            mediaPreview={mainPostMediaPreviews}
+            threadMessages={threadMessages}
+            platformUsername={activeAccount.platformUsername}
+            displayName={activeAccount.name}
+            avatarUrl={activeAccount.avatarUrl}
+          />
+        );
+      case "tiktok":
+        return (
+          <TikTokPreview
+            caption={currentCaption}
+            mediaPreview={singleMedia}
+            platformUsername={activeAccount.platformUsername}
+            displayName={activeAccount.name}
+            avatarUrl={activeAccount.avatarUrl}
+          />
+        );
       default:
         return (
           <div className="text-center p-8 text-[--muted-foreground]">
@@ -177,15 +243,17 @@ function PreviewPanel({
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
+              title={tab.name}
               className={cn(
-                "flex items-center gap-2 px-3 py-1.5 text-sm font-serif transition-colors",
+                "flex items-center gap-2 text-sm font-serif transition-colors",
+                showIconsOnly ? "p-2" : "px-3 py-1.5",
                 validActiveTab === tab.id
                   ? "bg-[--foreground] text-[--background] font-bold"
                   : "text-[--muted] hover:bg-[--surface-hover]"
               )}
             >
               <tab.Icon className="w-4 h-4" />
-              {tab.name}
+              {!showIconsOnly && tab.name}
             </button>
           ))}
         </div>

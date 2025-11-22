@@ -47,6 +47,7 @@ export interface DistributionMetadata {
   threadMessages?: ThreadMessage[];
   collaborators?: string;
   location?: string;
+  firstComment?: string;
 }
 
 export interface ScheduleSettings {
