@@ -15,6 +15,7 @@ import {
   Instagram,
   AlertTriangle,
   Facebook,
+  AtSign, // Added AtSign
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import ConnectAccountModal from "@/components/connect-account-modal";
@@ -27,7 +28,7 @@ import {
 import { cn } from "@/lib/utils";
 
 type PlatformDefinition = {
-  id: "x" | "linkedin" | "youtube" | "instagram" | "facebook";
+  id: "x" | "linkedin" | "youtube" | "instagram" | "facebook" | "threads";
   name: string;
   icon: React.ElementType;
   description: string;
@@ -39,6 +40,13 @@ const platformDefinitions: PlatformDefinition[] = [
     name: "Twitter / X",
     icon: Twitter,
     description: "Connect your X accounts to post and schedule threads.",
+  },
+  {
+    id: "threads",
+    name: "Threads",
+    icon: AtSign,
+    description:
+      "Connect your Threads profile to publish text, images, and videos.",
   },
   {
     id: "facebook",

@@ -218,9 +218,15 @@ export default function EditorialCore({
             throw new Error("Instagram post validation failed");
           }
 
+          // Logic Update: Handle Threads specifically
           if (platformId === "x") {
+            // X strict limit
             platformMediaIds = mainPostUploadedIds.slice(0, 4);
+          } else if (platformId === "threads") {
+            // Threads supports threading, so we keep platformThreadMessages
+            // Threads limit is ~20 items (handled in backend), so we send all valid IDs
           } else {
+            // Other platforms (LinkedIn, FB, IG) do not support threading in this manner
             platformThreadMessages = [];
           }
 

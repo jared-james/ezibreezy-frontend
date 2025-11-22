@@ -16,7 +16,14 @@ import type {
   ThreadMessageAugmented,
   EditorialDraft,
 } from "@/lib/types/editorial";
-import { Twitter, Linkedin, Youtube, Instagram, Facebook } from "lucide-react"; // Added Facebook
+import {
+  Twitter,
+  Linkedin,
+  Youtube,
+  Instagram,
+  Facebook,
+  AtSign,
+} from "lucide-react"; // Added AtSign for Threads
 import { createPost, type CreatePostPayload } from "@/lib/api/publishing";
 
 interface UsePostEditorOptions {
@@ -126,14 +133,14 @@ export function usePostEditor(options: UsePostEditorOptions = {}) {
       return acc;
     }, {} as Record<string, Connection[]>);
 
-    // UPDATED: Added Facebook to the definitions map
     const fullPlatformDefinitions: Record<string, { name: string; icon: any }> =
       {
         x: { name: "Twitter/X", icon: Twitter },
         linkedin: { name: "LinkedIn", icon: Linkedin },
         youtube: { name: "YouTube", icon: Youtube },
         instagram: { name: "Instagram", icon: Instagram },
-        facebook: { name: "Facebook", icon: Facebook }, // NEW
+        facebook: { name: "Facebook", icon: Facebook },
+        threads: { name: "Threads", icon: AtSign }, // Added Threads
       };
 
     return Object.keys(fullPlatformDefinitions).map((platformId) => {
@@ -141,7 +148,7 @@ export function usePostEditor(options: UsePostEditorOptions = {}) {
       const accounts =
         connectionsByPlatform[platformId]?.map((conn) => ({
           id: conn.id,
-          name: conn.name || `@${conn.platformUsername}`, // Use name if available (Pages usually have names)
+          name: conn.name || `@${conn.platformUsername}`,
           img: conn.avatarUrl || "/placeholder-pfp.png",
         })) || [];
       return { ...def, id: platformId, accounts };

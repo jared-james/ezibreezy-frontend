@@ -1,5 +1,4 @@
 // components/post-editor/caption-editor.tsx
-
 "use client";
 
 import { useState, useCallback, useEffect } from "react";
@@ -11,6 +10,7 @@ import {
   Trash2,
   Hash,
   Facebook,
+  AtSign, // Added AtSign
 } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
@@ -55,6 +55,8 @@ const PlatformIcon = ({ platformId }: { platformId: string }) => {
       ? Instagram
       : platformId === "facebook"
       ? Facebook
+      : platformId === "threads" // Added Threads
+      ? AtSign
       : null;
 
   if (!Icon) return null;
@@ -289,7 +291,10 @@ export default function CaptionEditor({
         const platform = platforms.find((p) => p.id === platformId);
         if (!platform) return null;
 
-        const isX = platformId === "x";
+        // Updated Check: Allow threading for X and Threads
+        const supportsThreading =
+          platformId === "x" || platformId === "threads";
+
         const currentCaption = localPlatformCaptions[platformId] || "";
 
         return (
@@ -353,7 +358,7 @@ export default function CaptionEditor({
                 onHashtagClick={openHashtagModal}
               />
 
-              {isX && (
+              {supportsThreading && (
                 <>
                   {localThreadMessages.map((message, index) => {
                     const mediaFiles = message.mediaFiles || [];
