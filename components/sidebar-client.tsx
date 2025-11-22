@@ -16,6 +16,7 @@ import {
   Tag,
   LogOut,
   Users,
+  Link2,
 } from "lucide-react";
 import { Button } from "./ui/button";
 import { logout } from "@/app/actions/auth";
@@ -133,12 +134,15 @@ export default function SidebarClient({
       <div className="flex-1" />
 
       <div className="p-4 border-t-2 border-[--foreground] shrink-0">
-        <div className="flex items-center gap-3 px-3 pb-3">
-          <Users className="w-4 h-4 text-[--muted-foreground]" />
-          <p className="font-serif text-xs font-medium text-[--muted-foreground] truncate">
-            {organizationName}
-          </p>
-        </div>
+        <NavItem
+          item={{
+            name: "Channels",
+            href: "/settings/integrations",
+            icon: Link2,
+          }}
+          pathname={pathname}
+          className="rounded-sm"
+        />
 
         <div className="space-y-1 pt-1">
           {isConfirmingLogout ? (
@@ -179,6 +183,13 @@ export default function SidebarClient({
               </button>
             </>
           )}
+        </div>
+
+        <div className="flex items-center gap-3 px-3 pt-3">
+          <Users className="w-4 h-4 text-[--muted-foreground]" />
+          <p className="font-serif text-xs font-medium text-[--muted-foreground] truncate">
+            {organizationName}
+          </p>
         </div>
       </div>
 

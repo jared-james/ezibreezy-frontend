@@ -7,7 +7,7 @@ import { User, PenTool, Link2, Bell, CreditCard } from "lucide-react";
 const settingsNav = [
   { name: "Profile", href: "/settings/profile", icon: User },
   { name: "Writing Style", href: "/settings/writing-style", icon: PenTool },
-  { name: "Integrations", href: "/settings/integrations", icon: Link2 },
+  { name: "Manage Channels", href: "/settings/integrations", icon: Link2 },
   { name: "Notifications", href: "/settings/notifications", icon: Bell },
   { name: "Billing", href: "/settings/billing", icon: CreditCard },
 ];

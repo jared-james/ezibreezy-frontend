@@ -1,3 +1,5 @@
+// app/(app)/settings/profile/page.tsx
+
 import { getUserAndOrganization } from "@/lib/auth";
 import ProfileForm from "./profile-form";
 
