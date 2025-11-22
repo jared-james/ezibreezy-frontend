@@ -309,41 +309,43 @@ export default function CaptionEditor({
               <span className="flex items-center gap-2">
                 <PlatformIcon platformId={platformId} />
                 {platform.name} Caption
-                {platform.accounts.length > 0 && (
-                  <span className="ml-2 flex items-center gap-1.5">
-                    {platform.accounts.map((account) => {
-                      const isSelected = selectedAccounts[platformId]?.includes(
-                        account.id
-                      );
-
-                      return (
-                        <button
-                          key={account.id}
-                          type="button"
-                          onClick={() =>
-                            onAccountSelect(platformId, account.id)
-                          }
-                          className={cn(
-                            "h-6 w-6 rounded-full border-2 transition-all",
-                            isSelected
-                              ? "border-primary bg-primary"
-                              : "border-border bg-surface hover:border-primary/50"
-                          )}
-                          title={account.name}
-                        >
-                          <span className="sr-only">{account.name}</span>
-                        </button>
-                      );
-                    })}
-                  </span>
-                )}
               </span>
-              <button
-                type="button"
-                className="ml-auto text-muted-foreground hover:text-foreground"
-              >
-                <Smile className="h-4 w-4" />
-              </button>
+              {platform.accounts.length > 0 && (
+                <span className="ml-auto flex items-center gap-1.5">
+                  {platform.accounts.map((account) => {
+                    const isSelected = selectedAccounts[platformId]?.includes(
+                      account.id
+                    );
+
+                    return (
+                      <button
+                        key={account.id}
+                        type="button"
+                        onClick={() =>
+                          onAccountSelect(platformId, account.id)
+                        }
+                        className={cn(
+                          "h-6 w-6 rounded-full border-2 transition-all overflow-hidden",
+                          isSelected
+                            ? "border-primary"
+                            : "border-border hover:border-primary/50"
+                        )}
+                        title={account.name}
+                      >
+                        {account.img ? (
+                          <img
+                            src={account.img}
+                            alt={account.name}
+                            className="h-full w-full object-cover"
+                          />
+                        ) : (
+                          <span className="sr-only">{account.name}</span>
+                        )}
+                      </button>
+                    );
+                  })}
+                </span>
+              )}
             </label>
 
             <div className="space-y-4">

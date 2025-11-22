@@ -9,7 +9,6 @@ import {
   Twitter,
   Linkedin,
   Youtube,
-  Link as LinkIcon,
   X,
   Loader2,
   Instagram,
@@ -213,12 +212,6 @@ export default function IntegrationsPage() {
       : "Something went wrong loading your connections. Please try again.";
 
   const openConnectModal = (platform: PlatformDefinition) => {
-    if (platform.id === "instagram") {
-      setSelectedPlatform(platform);
-      setIsModalOpen(true);
-      return;
-    }
-
     setSelectedPlatform(platform);
     setIsModalOpen(true);
   };
@@ -234,40 +227,27 @@ export default function IntegrationsPage() {
     }
   };
 
-  const getSourceBadge = (account: Connection) => {
+  const getPlatformForConnection = (connection: Connection) => {
+    return platformDefinitions.find((p) => p.id === connection.platform);
+  };
+
+  const getSourceLabel = (account: Connection) => {
     if (account.platform !== "instagram") return null;
-
     const loginType = account.settings?.loginType;
-
-    if (loginType === "facebook_business") {
-      return (
-        <span className="inline-flex items-center gap-1 rounded-full bg-blue-50 px-2 py-0.5 text-xs font-medium text-blue-700 ring-1 ring-inset ring-blue-700/10 ml-2">
-          <Facebook className="h-3 w-3" />
-          via Facebook
-        </span>
-      );
-    }
-    if (loginType === "instagram_business") {
-      return (
-        <span className="inline-flex items-center gap-1 rounded-full bg-pink-50 px-2 py-0.5 text-xs font-medium text-pink-700 ring-1 ring-inset ring-pink-700/10 ml-2">
-          <Instagram className="h-3 w-3" />
-          via Instagram
-        </span>
-      );
-    }
+    if (loginType === "facebook_business") return "via Facebook";
+    if (loginType === "instagram_business") return "via Instagram";
     return null;
   };
 
   return (
     <>
       <div>
-        <div className="mb-6 border-b-2 border-foreground pb-3">
+        <div className="mb-8 border-b-2 border-foreground pb-3">
           <h2 className="font-serif text-2xl font-bold text-foreground">
-            Integrations & Connections
+            Manage Channels
           </h2>
           <p className="font-serif text-sm text-muted-foreground mt-1">
-            Connect your social media accounts to publish content directly from
-            EziBreezy.
+            Connect and manage your social media accounts.
           </p>
         </div>
 
@@ -284,114 +264,137 @@ export default function IntegrationsPage() {
         )}
 
         {!isLoading && !error && (
-          <div className="space-y-6">
-            {platformDefinitions.map((platform) => {
-              const Icon = platform.icon;
-              const connectedAccounts = connections.filter(
-                (c) => c.platform === platform.id
-              );
+          <div className="space-y-8">
+            {/* Connected Channels Section */}
+            <section>
+              <div className="flex items-center gap-2 mb-4">
+                <p className="eyebrow text-muted-foreground">Your Channels</p>
+                <span className="text-xs text-muted-foreground">
+                  ({connections.length})
+                </span>
+              </div>
 
-              return (
-                <div
-                  key={platform.id}
-                  className="border border-border bg-surface"
-                >
-                  <div className="p-5 flex flex-col md:flex-row md:items-start md:justify-between">
-                    <div className="flex items-start gap-4">
-                      <div className="flex h-10 w-10 items-center justify-center border border-border bg-background">
-                        <Icon className="h-5 w-5 text-foreground" />
-                      </div>
-                      <div>
-                        <h3 className="font-serif text-lg font-bold text-foreground">
-                          {platform.name}
-                        </h3>
-                        <p className="font-serif text-sm text-muted-foreground">
-                          {platform.description}
-                        </p>
-                      </div>
-                    </div>
-                    <div className="mt-4 shrink-0 md:mt-0 md:ml-4">
-                      <Button onClick={() => openConnectModal(platform)}>
-                        <LinkIcon className="h-4 w-4" />
-                        Connect New Account
-                      </Button>
-                    </div>
-                  </div>
-
-                  {connectedAccounts.length > 0 && (
-                    <div className="border-t border-border">
-                      <div className="divide-y divide-border">
-                        {connectedAccounts.map((account) => {
-                          const requiresReauth = account.requiresReauth;
-                          const authErrorMessage = account.authErrorMessage;
-
-                          return (
-                            <div
-                              key={account.id}
-                              className={cn(
-                                "flex flex-col sm:flex-row items-center justify-between gap-4 p-4 transition-colors hover:bg-muted/20",
-                                requiresReauth && "bg-error/5 hover:bg-error/10"
-                              )}
-                            >
-                              <div className="flex items-start gap-3 flex-1 min-w-0">
-                                <img
-                                  src={
-                                    account.avatarUrl || "/placeholder-pfp.png"
-                                  }
-                                  alt={account.platformUsername}
-                                  className="h-8 w-8 rounded-full border border-border bg-muted shrink-0 mt-0.5"
-                                />
-                                <div className="min-w-0 flex-1">
-                                  <div className="flex items-center flex-wrap gap-y-1">
-                                    <span className="font-serif text-sm font-bold text-foreground truncate">
-                                      {account.name ||
-                                        `@${account.platformUsername}`}
-                                    </span>
-
-                                    {getSourceBadge(account)}
-                                  </div>
-
-                                  <span className="font-serif text-xs text-muted-foreground block truncate">
-                                    @{account.platformUsername}
-                                  </span>
-
-                                  {requiresReauth && (
-                                    <div className="flex items-center gap-2 mt-2 p-2 bg-error-hover/20 border border-error/50 rounded-sm">
-                                      <AlertTriangle className="w-4 h-4 text-error shrink-0" />
-                                      <p className="font-serif text-xs text-error">
-                                        Re-authentication required.
-                                        {authErrorMessage && (
-                                          <span className="font-medium ml-1 italic">
-                                            ({authErrorMessage})
-                                          </span>
-                                        )}
-                                      </p>
-                                    </div>
-                                  )}
-                                </div>
-                              </div>
-                              <div className="shrink-0">
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  className="border-error/30 bg-error/5 text-error transition-all hover:border-error hover:bg-error hover:text-error-foreground"
-                                  onClick={() =>
-                                    handleDisconnect(platform.id, account.id)
-                                  }
-                                >
-                                  <X className="mr-1 h-4 w-4" />
-                                  Disconnect
-                                </Button>
-                              </div>
-                            </div>
-                          );
-                        })}
-                      </div>
-                    </div>
-                  )}
+              {connections.length === 0 ? (
+                <div className="border border-dashed border-border bg-background/50 p-8 text-center">
+                  <p className="font-serif text-sm text-muted-foreground">
+                    No channels connected yet. Add one below to get started.
+                  </p>
                 </div>
-              );
-            })}
+              ) : (
+                <div className="border border-border divide-y divide-border">
+                  {connections.map((account) => {
+                    const platform = getPlatformForConnection(account);
+                    if (!platform) return null;
+                    const Icon = platform.icon;
+                    const sourceLabel = getSourceLabel(account);
+                    const requiresReauth = account.requiresReauth;
+
+                    return (
+                      <div
+                        key={account.id}
+                        className={cn(
+                          "flex items-center gap-4 p-4 transition-colors hover:bg-muted/10",
+                          requiresReauth && "bg-error/5"
+                        )}
+                      >
+                        <img
+                          src={account.avatarUrl || "/placeholder-pfp.png"}
+                          alt={account.platformUsername}
+                          className="h-10 w-10 rounded-full border border-border bg-muted shrink-0"
+                        />
+
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2">
+                            <span className="font-serif text-sm font-bold text-foreground truncate">
+                              {account.name || `@${account.platformUsername}`}
+                            </span>
+                          </div>
+                          <div className="flex items-center gap-2 text-muted-foreground">
+                            <Icon className="h-3 w-3" />
+                            <span className="font-serif text-xs">
+                              {platform.name}
+                              {sourceLabel && (
+                                <span className="text-muted-foreground/70">
+                                  {" "}
+                                  · {sourceLabel}
+                                </span>
+                              )}
+                            </span>
+                          </div>
+
+                          {requiresReauth && (
+                            <div className="flex items-center gap-1.5 mt-1.5">
+                              <AlertTriangle className="w-3 h-3 text-error" />
+                              <span className="font-serif text-xs text-error">
+                                Re-authentication required
+                                {account.authErrorMessage && (
+                                  <span className="italic">
+                                    {" "}
+                                    — {account.authErrorMessage}
+                                  </span>
+                                )}
+                              </span>
+                            </div>
+                          )}
+                        </div>
+
+                        <button
+                          className="shrink-0 font-serif text-xs uppercase tracking-[0.12em] px-3 py-1.5 border border-border text-muted-foreground hover:border-error hover:text-error hover:bg-error/5 transition-colors"
+                          onClick={() =>
+                            handleDisconnect(platform.id, account.id)
+                          }
+                        >
+                          Disconnect
+                        </button>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </section>
+
+            {/* Add Channel Section */}
+            <section>
+              <div className="border-t-2 border-b border-foreground pt-2 pb-1.5 mb-6">
+                <p className="font-serif text-xs uppercase tracking-[0.18em] text-muted-foreground">
+                  Available Channels
+                </p>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-px bg-border border border-border">
+                {platformDefinitions.map((platform) => {
+                  const Icon = platform.icon;
+                  const connectedCount = connections.filter(
+                    (c) => c.platform === platform.id
+                  ).length;
+
+                  return (
+                    <button
+                      key={platform.id}
+                      onClick={() => openConnectModal(platform)}
+                      className="group flex items-center gap-4 p-5 bg-background hover:bg-surface-hover transition-colors text-left"
+                    >
+                      <Icon className="h-5 w-5 text-foreground shrink-0" />
+
+                      <div className="flex-1 min-w-0">
+                        <p className="font-serif text-sm font-semibold text-foreground">
+                          {platform.name}
+                        </p>
+                        {connectedCount > 0 && (
+                          <p className="font-serif text-xs text-muted-foreground italic">
+                            {connectedCount} account{connectedCount > 1 ? "s" : ""} connected
+                          </p>
+                        )}
+                      </div>
+
+                      <span className="shrink-0 font-serif text-xs uppercase tracking-[0.12em] px-3 py-1.5 border border-border text-muted-foreground group-hover:border-foreground group-hover:text-foreground transition-colors">
+                        Connect
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            </section>
           </div>
         )}
       </div>

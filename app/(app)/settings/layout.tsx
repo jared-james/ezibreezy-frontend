@@ -8,8 +8,6 @@ const settingsNav = [
   { name: "Profile", href: "/settings/profile", icon: User },
   { name: "Writing Style", href: "/settings/writing-style", icon: PenTool },
   { name: "Manage Channels", href: "/settings/integrations", icon: Link2 },
-  { name: "Notifications", href: "/settings/notifications", icon: Bell },
-  { name: "Billing", href: "/settings/billing", icon: CreditCard },
 ];
 
 export default function SettingsLayout({
@@ -23,7 +21,7 @@ export default function SettingsLayout({
     <div className="h-full flex flex-col w-full max-w-7xl mx-auto">
       <div className="mb-8 border-b-4 border-double border-[--foreground] pb-6">
         <p className="eyebrow mb-2">Administration</p>
-        <h1 className="font-serif text-4xl md:text-5xl font-bold uppercase tracking-tight text-[--foreground]">
+        <h1 className="font-serif text-5xl md:text-6xl font-bold uppercase tracking-tight text-[--foreground]">
           Settings
         </h1>
         <p className="font-serif text-[--muted] mt-2 max-w-xl text-lg italic">
@@ -33,7 +31,7 @@ export default function SettingsLayout({
 
       <div className="flex-1 grid grid-cols-1 lg:grid-cols-12 gap-8 min-h-0">
         <aside className="lg:col-span-3">
-          <nav className="border border-[--border] bg-[--surface] p-2 space-y-1">
+          <nav className="border border-[--border] p-2 space-y-1">
             {settingsNav.map((item) => {
               const Icon = item.icon;
               const isActive = pathname === item.href;
@@ -46,8 +44,8 @@ export default function SettingsLayout({
                     font-serif text-sm transition-colors
                     ${
                       isActive
-                        ? "font-bold bg-surface-hover text-[--foreground]"
-                        : "text-[--muted] hover:text-[--foreground] hover:bg-surface-hover"
+                        ? "font-bold text-[--foreground]"
+                        : "text-[--muted]"
                     }`}
                 >
                   <Icon className="w-4 h-4" />
@@ -58,7 +56,7 @@ export default function SettingsLayout({
           </nav>
         </aside>
 
-        <main className="lg:col-span-9 border border-[--border] bg-[--surface] p-6 md:p-8">
+        <main className="lg:col-span-9 p-6 md:p-8">
           {children}
         </main>
       </div>

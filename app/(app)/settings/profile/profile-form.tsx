@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Loader2 } from "lucide-react";
 import { updateOrganizationName } from "@/app/actions/organization";
-import { updateDisplayName } from "@/app/actions/user";
+import { updateDisplayName } from "@/app/actions/user"; // Import new action
 import { toast } from "sonner";
 
 interface ProfileFormProps {
@@ -67,10 +67,14 @@ export default function ProfileForm({
 
   return (
     <form className="space-y-6">
-      <div className="border-b border-border pb-6">
-        <h3 className="font-serif text-lg font-bold text-foreground mb-4">
-          Organization Details
-        </h3>
+      {/* Organization Information */}
+      <div className="pb-6">
+        <div className="flex items-center gap-3 mb-4">
+          <h3 className="font-serif text-lg font-bold text-foreground">
+            Organization Details
+          </h3>
+          <div className="flex-1 h-px bg-border" />
+        </div>
         <div className="space-y-4">
           <div>
             <label className="eyebrow mb-2">Organization Name</label>
@@ -103,10 +107,16 @@ export default function ProfileForm({
         </div>
       </div>
 
-      <div className="border-b border-border pb-6">
-        <h3 className="font-serif text-lg font-bold text-foreground mb-4">
-          Personal Information
-        </h3>
+      <div className="h-px bg-border/50" />
+
+      {/* Personal Information */}
+      <div className="pt-2 pb-6">
+        <div className="flex items-center gap-3 mb-4">
+          <h3 className="font-serif text-lg font-bold text-foreground">
+            Personal Information
+          </h3>
+          <div className="flex-1 h-px bg-border" />
+        </div>
         <div className="space-y-4">
           <div>
             <label className="eyebrow mb-2">Full Name</label>
@@ -133,6 +143,8 @@ export default function ProfileForm({
               </Button>
             </div>
           </div>
+
+          <div className="h-px bg-border/30" />
 
           <div>
             <label className="eyebrow mb-2">Email</label>
