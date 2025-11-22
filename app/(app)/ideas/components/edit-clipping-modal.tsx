@@ -79,7 +79,6 @@ export default function EditClippingModal({
     },
   });
 
-  // Initialize store when modal opens
   useEffect(() => {
     if (isOpen) {
       const isAiGenerated =
@@ -103,7 +102,6 @@ export default function EditClippingModal({
     } else {
       reset();
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen, idea.title, idea.body]);
 
   const handleOpenInEditorial = () => {

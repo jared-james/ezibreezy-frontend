@@ -67,7 +67,10 @@ export default function ScheduleCard({
   const onAiGeneratedChange = (value: boolean) =>
     setState({ aiGenerated: value });
 
-  const selectedDate = scheduleDate ? new Date(scheduleDate) : undefined;
+  const selectedDate = React.useMemo(
+    () => (scheduleDate ? new Date(scheduleDate) : undefined),
+    [scheduleDate]
+  );
 
   const timeSlots = React.useMemo(() => {
     const now = new Date();
@@ -217,7 +220,7 @@ export default function ScheduleCard({
               type="checkbox"
               checked={aiGenerated}
               onChange={(e) => onAiGeneratedChange(e.target.checked)}
-              className="!h-4 !w-4 rounded border-brand-primary accent-brand-primary shrink-0"
+              className="h-4! w-4! rounded border-brand-primary accent-brand-primary shrink-0"
             />
             <Lightbulb className="h-4 w-4 text-[--muted]" />
             Mark as AI Generated

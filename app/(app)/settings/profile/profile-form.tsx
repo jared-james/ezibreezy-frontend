@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Loader2 } from "lucide-react";
 import { updateOrganizationName } from "@/app/actions/organization";
-import { updateDisplayName } from "@/app/actions/user"; // Import new action
+import { updateDisplayName } from "@/app/actions/user";
 import { toast } from "sonner";
 
 interface ProfileFormProps {
@@ -67,7 +67,6 @@ export default function ProfileForm({
 
   return (
     <form className="space-y-6">
-      {/* Organization Information */}
       <div className="border-b border-border pb-6">
         <h3 className="font-serif text-lg font-bold text-foreground mb-4">
           Organization Details
@@ -104,7 +103,6 @@ export default function ProfileForm({
         </div>
       </div>
 
-      {/* Personal Information */}
       <div className="border-b border-border pb-6">
         <h3 className="font-serif text-lg font-bold text-foreground mb-4">
           Personal Information

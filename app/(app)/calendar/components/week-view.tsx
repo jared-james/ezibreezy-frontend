@@ -86,9 +86,7 @@ export default function WeekView({
               )}
             >
               {/* DAY HEADER */}
-              <div
-                className="relative group flex h-12 items-center justify-center gap-2 border-b border-border bg-surface-hover px-2"
-              >
+              <div className="relative group flex h-12 items-center justify-center gap-2 border-b border-border bg-surface-hover px-2">
                 <span className="font-serif text-sm font-medium text-muted-foreground">
                   {format(day, "EEE")}
                 </span>

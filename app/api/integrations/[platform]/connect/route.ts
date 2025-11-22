@@ -30,7 +30,6 @@ export async function GET(
   }
 
   try {
-    // Forward query params (e.g., authType) to the backend
     const searchParams = request.nextUrl.searchParams;
     const queryString = searchParams.toString();
     const backendUrl = `${BACKEND_URL}/integrations/${platform}/connect${

@@ -27,7 +27,6 @@ export default function Sidebar() {
 
   return (
     <aside className="w-64 bg-[--background] border-r-2 border-[--foreground] flex flex-col">
-      {/* Masthead / Logo */}
       <div className="h-16 flex items-center px-6 border-b-2 border-[--foreground]">
         <Link
           href="/dashboard"
@@ -37,7 +36,6 @@ export default function Sidebar() {
         </Link>
       </div>
 
-      {/* Navigation */}
       <nav className="flex-1 px-4 py-6 space-y-2">
         {navigation.map((item) => {
           const isActive =
@@ -67,7 +65,6 @@ export default function Sidebar() {
         })}
       </nav>
 
-      {/* Footer Section */}
       <div className="p-4 border-t-2 border-[--foreground]">
         <p className="font-serif text-[0.7rem] text-center uppercase tracking-[0.2em] text-[--muted-foreground]">
           EziBreezy © 2025

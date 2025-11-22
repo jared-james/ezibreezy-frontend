@@ -1,21 +1,12 @@
 // lib/hooks/use-post-editor.ts
 
-import { useMemo, useEffect, useCallback } from "react";
+import { useMemo, useCallback } from "react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
-import {
-  useEditorialStore,
-  initialState as editorInitialState,
-  MediaItem,
-} from "@/lib/store/editorial-store";
+import { useEditorialStore, MediaItem } from "@/lib/store/editorial-store";
 import { uploadMedia } from "@/lib/api/media";
 import { getConnections, type Connection } from "@/lib/api/integrations";
-import type {
-  Platform,
-  ThreadMessage,
-  ThreadMessageAugmented,
-  EditorialDraft,
-} from "@/lib/types/editorial";
+import type { Platform, ThreadMessageAugmented } from "@/lib/types/editorial";
 import {
   Twitter,
   Linkedin,

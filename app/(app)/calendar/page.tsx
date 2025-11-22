@@ -203,9 +203,7 @@ export default function CalendarPage() {
     try {
       await rescheduleMutation.mutateAsync({ postId, payload });
       setPendingReschedule(null);
-    } catch (error: any) {
-      // Handled by onError
-    }
+    } catch (error: any) {}
   };
 
   const handleDropPost = async (postId: string, newDate: Date) => {

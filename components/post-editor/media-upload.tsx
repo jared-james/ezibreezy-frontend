@@ -202,7 +202,7 @@ export default function MediaUpload({
                 <button
                   type="button"
                   onClick={(e) => {
-                    e.stopPropagation(); // Prevent drag start
+                    e.stopPropagation();
                     handleRemove(index);
                   }}
                   disabled={isUploading}

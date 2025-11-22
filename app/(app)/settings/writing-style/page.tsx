@@ -1,5 +1,4 @@
 // app/(app)/settings/writing-style/page.tsx
-// Writing style configuration - helps AI match user's voice
 
 export default function WritingStylePage() {
   return (
@@ -10,7 +9,6 @@ export default function WritingStylePage() {
       </p>
 
       <form className="space-y-6">
-        {/* Tone */}
         <div>
           <h3 className="text-lg font-semibold text-gray-900 mb-4">Tone</h3>
           <div className="grid grid-cols-2 gap-3">
@@ -35,7 +33,6 @@ export default function WritingStylePage() {
 
         <hr className="border-gray-200" />
 
-        {/* Writing samples */}
         <div>
           <h3 className="text-lg font-semibold text-gray-900 mb-4">
             Sample Content
@@ -60,7 +57,6 @@ export default function WritingStylePage() {
 
         <hr className="border-gray-200" />
 
-        {/* Preferences */}
         <div>
           <h3 className="text-lg font-semibold text-gray-900 mb-4">
             Preferences
@@ -90,9 +86,7 @@ export default function WritingStylePage() {
             <div>
               <label className="flex items-center gap-2">
                 <input type="checkbox" className="rounded border-gray-300" />
-                <span className="text-sm text-gray-700">
-                  Include hashtags
-                </span>
+                <span className="text-sm text-gray-700">Include hashtags</span>
               </label>
             </div>
 
@@ -109,7 +103,6 @@ export default function WritingStylePage() {
 
         <hr className="border-gray-200" />
 
-        {/* Keywords to avoid */}
         <div>
           <h3 className="text-lg font-semibold text-gray-900 mb-4">
             Words & Phrases to Avoid
@@ -129,7 +122,6 @@ export default function WritingStylePage() {
           </div>
         </div>
 
-        {/* Save button */}
         <div className="pt-4">
           <button
             type="submit"

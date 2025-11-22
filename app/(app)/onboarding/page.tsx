@@ -1,5 +1,4 @@
 // app/(app)/onboarding/page.tsx
-// First-time user onboarding flow
 
 "use client";
 
@@ -9,19 +8,34 @@ import { ChevronRight, ChevronLeft } from "lucide-react";
 
 type OnboardingStep = "welcome" | "about" | "goals" | "style" | "complete";
 
+function getStepNumber(step: OnboardingStep): number {
+  switch (step) {
+    case "welcome":
+      return 0;
+    case "about":
+      return 1;
+    case "goals":
+      return 2;
+    case "style":
+      return 3;
+    case "complete":
+      return 4;
+    default:
+      return 0;
+  }
+}
+
 export default function OnboardingPage() {
   const router = useRouter();
   const [step, setStep] = useState<OnboardingStep>("welcome");
 
   const handleComplete = () => {
-    // TODO: Save onboarding data
     router.push("/dashboard");
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-linear-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
       <div className="max-w-2xl w-full bg-white rounded-2xl shadow-2xl p-8">
-        {/* Progress bar */}
         <div className="mb-8">
           <div className="flex justify-between text-xs text-gray-600 mb-2">
             <span>Step {getStepNumber(step)} of 4</span>
@@ -35,15 +49,15 @@ export default function OnboardingPage() {
           </div>
         </div>
 
-        {/* Welcome step */}
         {step === "welcome" && (
           <div className="text-center">
             <h1 className="text-4xl font-bold text-gray-900 mb-4">
               Welcome to EziBreezi! 👋
             </h1>
             <p className="text-lg text-gray-600 mb-8">
-              Let&apos;s get you set up in just a few minutes. We&apos;ll learn about you
-              and your content goals so we can help you create amazing content.
+              Let&apos;s get you set up in just a few minutes. We&apos;ll learn
+              about you and your content goals so we can help you create amazing
+              content.
             </p>
             <button
               onClick={() => setStep("about")}
@@ -55,7 +69,6 @@ export default function OnboardingPage() {
           </div>
         )}
 
-        {/* About step */}
         {step === "about" && (
           <div>
             <h2 className="text-3xl font-bold text-gray-900 mb-2">
@@ -119,7 +132,6 @@ export default function OnboardingPage() {
           </div>
         )}
 
-        {/* Goals step */}
         {step === "goals" && (
           <div>
             <h2 className="text-3xl font-bold text-gray-900 mb-2">
@@ -191,7 +203,6 @@ export default function OnboardingPage() {
           </div>
         )}
 
-        {/* Writing style step */}
         {step === "style" && (
           <div>
             <h2 className="text-3xl font-bold text-gray-900 mb-2">
@@ -219,7 +230,10 @@ export default function OnboardingPage() {
                       key={tone}
                       className="flex items-center gap-2 p-3 border border-gray-300 rounded-lg hover:bg-gray-50 cursor-pointer"
                     >
-                      <input type="checkbox" className="rounded border-gray-300" />
+                      <input
+                        type="checkbox"
+                        className="rounded border-gray-300"
+                      />
                       <span className="text-sm text-gray-700">{tone}</span>
                     </label>
                   ))}
@@ -258,21 +272,4 @@ export default function OnboardingPage() {
       </div>
     </div>
   );
-}
-
-function getStepNumber(step: OnboardingStep): number {
-  switch (step) {
-    case "welcome":
-      return 0;
-    case "about":
-      return 1;
-    case "goals":
-      return 2;
-    case "style":
-      return 3;
-    case "complete":
-      return 4;
-    default:
-      return 0;
-  }
 }

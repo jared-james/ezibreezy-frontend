@@ -1,9 +1,10 @@
 // components/connect-account-modal.tsx
 
 "use client";
+
+import { useState } from "react";
 import { X, AlertCircle, Loader2 } from "lucide-react";
 import { Button } from "./ui/button";
-import { useState } from "react";
 
 interface ConnectAccountModalProps {
   isOpen: boolean;
@@ -31,15 +32,12 @@ export default function ConnectAccountModal({
     } catch (e) {
       console.error("Could not save to sessionStorage", e);
     }
-    // This simple call handles all non-Instagram platforms correctly
-    // (X, LinkedIn, YouTube) and directs to the default backend flow.
     window.location.href = `/api/integrations/${platformId}/connect`;
   };
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
       <div className="relative w-full max-w-lg bg-surface border border-foreground shadow-2xl">
-        {/* Close button - disabled during loading */}
         <button
           onClick={onClose}
           disabled={isConnecting}
@@ -50,29 +48,22 @@ export default function ConnectAccountModal({
         </button>
 
         <div className="p-8">
-          {/* Icon - no border */}
           <div className="flex justify-center mb-4">
             <div className="flex h-16 w-16 items-center justify-center bg-background">
               <Icon className="w-8 h-8 text-foreground" />
             </div>
           </div>
 
-          {/* Eyebrow */}
           <p className="eyebrow text-center mb-2">Integration</p>
 
-          {/* Title */}
           <h2 className="text-center font-serif text-3xl font-bold uppercase tracking-tight text-foreground mb-6">
             {isConnecting
               ? `Opening ${platformName}...`
               : `Connect to ${platformName}`}
           </h2>
 
-          {/* Body - Simplified */}
           <div className="space-y-5 text-foreground mb-8">
-            {/* Main instruction */}
             <p className="text-center font-serif text-base leading-relaxed"></p>
-
-            {/* Important notice - thin border */}
             <div className="border-l-2 border-foreground bg-surface-hover p-4">
               <div className="flex gap-3">
                 <AlertCircle className="w-5 h-5 text-foreground shrink-0 mt-0.5" />
@@ -88,7 +79,6 @@ export default function ConnectAccountModal({
             </div>
           </div>
 
-          {/* Buttons */}
           <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-center">
             <Button
               variant="outline"

@@ -11,7 +11,6 @@ import { cn } from "@/lib/utils";
 interface HashtagSelectorModalProps {
   isOpen: boolean;
   onClose: () => void;
-  /** Hashtags as a space-separated string of #tag1 #tag2 */
   initialHashtags: string;
   onSave: (hashtagsString: string) => void;
 }

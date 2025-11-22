@@ -1,6 +1,3 @@
-// app/(app)/settings/layout.tsx
-// Settings layout with sidebar navigation
-
 "use client";
 
 import Link from "next/link";
@@ -24,7 +21,6 @@ export default function SettingsLayout({
 
   return (
     <div className="h-full flex flex-col w-full max-w-7xl mx-auto">
-      {/* Header */}
       <div className="mb-8 border-b-4 border-double border-[--foreground] pb-6">
         <p className="eyebrow mb-2">Administration</p>
         <h1 className="font-serif text-4xl md:text-5xl font-bold uppercase tracking-tight text-[--foreground]">
@@ -36,7 +32,6 @@ export default function SettingsLayout({
       </div>
 
       <div className="flex-1 grid grid-cols-1 lg:grid-cols-12 gap-8 min-h-0">
-        {/* Settings sidebar */}
         <aside className="lg:col-span-3">
           <nav className="border border-[--border] bg-[--surface] p-2 space-y-1">
             {settingsNav.map((item) => {
@@ -56,14 +51,13 @@ export default function SettingsLayout({
                     }`}
                 >
                   <Icon className="w-4 h-4" />
-                  <span className="mt-[1px]">{item.name}</span>
+                  <span className="mt-px">{item.name}</span>
                 </Link>
               );
             })}
           </nav>
         </aside>
 
-        {/* Settings content */}
         <main className="lg:col-span-9 border border-[--border] bg-[--surface] p-6 md:p-8">
           {children}
         </main>

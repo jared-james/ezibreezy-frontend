@@ -1,4 +1,3 @@
-import { requireAuth } from "@/lib/auth/check";
 import SidebarClient from "@/components/sidebar-client";
 import { getUserAndOrganization } from "@/lib/auth";
 
@@ -7,10 +6,8 @@ export default async function AppLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const user = await requireAuth();
   const userContext = await getUserAndOrganization();
 
-  // Handle the unlikely case where requireAuth passes but getUserAndOrganization fails (shouldn't happen with current mock)
   if (!userContext) {
     throw new Error("User context could not be loaded for authenticated user.");
   }

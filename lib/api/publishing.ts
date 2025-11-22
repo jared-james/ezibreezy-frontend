@@ -27,10 +27,6 @@ export interface CreatePostPayload {
   sourceDraftId?: string;
 }
 
-// REMOVED: ReschedulePostPayload (full payload) - replaced by RescheduleOnlyPayload
-// export interface ReschedulePostPayload { ... }
-
-// NEW: Minimalist payload for the new backend endpoint
 export interface RescheduleOnlyPayload {
   scheduledAt: string;
 }
@@ -86,9 +82,6 @@ export interface FullPostDetails {
   };
 }
 
-/**
- * Creates a new post, either for immediate publishing or for scheduling.
- */
 export const createPost = async (
   payload: CreatePostPayload
 ): Promise<CreatePostResponse> => {
@@ -99,12 +92,6 @@ export const createPost = async (
   return response.data;
 };
 
-// REMOVED: Old slow reschedulePost function
-
-/**
- * NEW: Minimalist function to update only the schedule of an existing post.
- * Uses PATCH /publishing/post/:postId/schedule
- */
 export const reschedulePostOnly = async (
   postId: string,
   payload: RescheduleOnlyPayload
@@ -118,9 +105,6 @@ export const reschedulePostOnly = async (
   return response.data;
 };
 
-/**
- * Fetches all content (drafts, scheduled, sent posts) for the user's organizations.
- */
 export const getContentLibrary = async (): Promise<ScheduledPostResponse[]> => {
   const response = await apiClient.get<ScheduledPostResponse[]>(
     "/publishing/library"
@@ -128,16 +112,10 @@ export const getContentLibrary = async (): Promise<ScheduledPostResponse[]> => {
   return response.data;
 };
 
-/**
- * Cancels and deletes a scheduled post.
- */
 export const deletePost = async (postId: string): Promise<void> => {
   await apiClient.delete(`/publishing/post/${postId}`);
 };
 
-/**
- * Fetches the full details of a single post for editing
- */
 export const getPostDetails = async (
   postId: string
 ): Promise<FullPostDetails> => {

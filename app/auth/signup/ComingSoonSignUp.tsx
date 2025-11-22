@@ -11,7 +11,7 @@ import LandingPageHeader from "@/components/landing-page/landing-page-header";
 
 export default function ComingSoonSignUp() {
   const [email, setEmail] = useState("");
-  const [honeypot, setHoneypot] = useState(""); // Honeypot state
+  const [honeypot, setHoneypot] = useState("");
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -19,11 +19,7 @@ export default function ComingSoonSignUp() {
   const handleWaitlistSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // HONEYPOT CHECK: If the honeypot field is filled, treat as bot and exit silently.
     if (honeypot.length > 0) {
-      // Fail silently without error message or submission
-      // To confuse the bot, we can optionally set a short timeout and pretend success,
-      // but for simplicity, we just stop processing immediately.
       setIsLoading(false);
       return;
     }
@@ -52,7 +48,7 @@ export default function ComingSoonSignUp() {
     return (
       <div className="flex flex-col min-h-screen">
         <LandingPageHeader />
-        <main className="flex-grow bg-[--background] py-16 px-4 flex items-center justify-center">
+        <main className="grow bg-[--background] py-16 px-4 flex items-center justify-center">
           <div className="mx-auto w-full max-w-5xl">
             <div className="max-w-md mx-auto text-center space-y-6">
               <div className="w-16 h-16 mx-auto mb-4 flex items-center justify-center">
@@ -90,7 +86,7 @@ export default function ComingSoonSignUp() {
   return (
     <div className="flex flex-col min-h-screen">
       <LandingPageHeader />
-      <main className="flex-grow bg-[--background] py-16 px-4 flex items-center justify-center">
+      <main className="grow bg-[--background] py-16 px-4 flex items-center justify-center">
         <div className="mx-auto w-full max-w-5xl">
           <div className="max-w-md mx-auto text-center space-y-6">
             <div className="w-20 h-24 mx-auto mb-4 flex items-center justify-center">

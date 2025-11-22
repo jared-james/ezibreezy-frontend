@@ -16,7 +16,7 @@ import {
   AlertTriangle,
   Facebook,
   AtSign,
-  Music2, // Added Music2 for TikTok
+  Music2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import ConnectAccountModal from "@/components/connect-account-modal";
@@ -36,7 +36,7 @@ type PlatformDefinition = {
     | "instagram"
     | "facebook"
     | "threads"
-    | "tiktok"; // Added tiktok
+    | "tiktok";
   name: string;
   icon: React.ElementType;
   description: string;
@@ -59,7 +59,7 @@ const platformDefinitions: PlatformDefinition[] = [
   {
     id: "tiktok",
     name: "TikTok",
-    icon: Music2, // Using Music2 as generic icon for TikTok
+    icon: Music2,
     description: "Connect your TikTok account to publish videos.",
   },
   {

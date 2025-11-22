@@ -28,7 +28,9 @@ export default function Login() {
       });
 
       if (authError) {
-        const errorMessage = authError.message.includes("Invalid login credentials")
+        const errorMessage = authError.message.includes(
+          "Invalid login credentials"
+        )
           ? "Invalid email or password"
           : authError.message.includes("Email not confirmed")
           ? "Please check your email to confirm your account"

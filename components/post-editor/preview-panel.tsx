@@ -10,7 +10,6 @@ import { getConnections } from "@/lib/api/integrations";
 import XPreview from "./x-preview";
 import InstagramPreview from "./instagram-preview";
 import { cn } from "@/lib/utils";
-import type { ThreadMessageAugmented } from "@/lib/types/editorial";
 import { usePostEditor } from "@/lib/hooks/use-post-editor";
 
 const platformIcons = {
@@ -24,7 +23,6 @@ const platformNames = {
 };
 
 interface PreviewPanelProps {
-  // Data passed from parent (local state, not store)
   selectedAccounts: Record<string, string[]>;
   mainCaption: string;
   platformCaptions: Record<string, string>;
@@ -71,15 +69,16 @@ function PreviewPanel({
     return connections.find((conn) => conn.id === integrationId) || null;
   }, [validActiveTab, selectedAccounts, connections]);
 
-  const tabList = useMemo(() =>
-    activePlatforms.map((id) => {
-      const Icon = platformIcons[id as keyof typeof platformIcons] || Twitter;
-      return {
-        id,
-        name: platformNames[id as keyof typeof platformNames] || id,
-        Icon,
-      };
-    }),
+  const tabList = useMemo(
+    () =>
+      activePlatforms.map((id) => {
+        const Icon = platformIcons[id as keyof typeof platformIcons] || Twitter;
+        return {
+          id,
+          name: platformNames[id as keyof typeof platformNames] || id,
+          Icon,
+        };
+      }),
     [activePlatforms]
   );
 

@@ -8,13 +8,12 @@ interface CurrentUserSecure {
   userId: string;
   email: string;
   displayName: string;
-  accessToken: string; // Added access token securely retrieved
+  accessToken: string;
 }
 
 export async function getCurrentUser(): Promise<CurrentUserSecure | null> {
   const supabase = await createClient();
 
-  // Securely fetch both user (validated) and session (containing token)
   const [{ data: userData }, { data: sessionData }] = await Promise.all([
     supabase.auth.getUser(),
     supabase.auth.getSession(),
@@ -27,13 +26,11 @@ export async function getCurrentUser(): Promise<CurrentUserSecure | null> {
     return null;
   }
 
-  // The access_token from a valid session object is what we need for backend calls.
-  // We rely on the Supabase Next.js helper's security measures here.
   return {
     userId: user.id,
     email: user.email!,
     displayName: user.user_metadata?.displayName || user.email!,
-    accessToken: session.access_token, // Securely extracted
+    accessToken: session.access_token,
   };
 }
 
@@ -65,7 +62,7 @@ export async function getUserAndOrganization() {
   try {
     const fetchResponse = await fetch(`${BACKEND_URL}/users/me/context`, {
       headers: {
-        Authorization: `Bearer ${user.accessToken}`, // Use the securely fetched token
+        Authorization: `Bearer ${user.accessToken}`,
         "x-api-key": API_KEY,
       },
       cache: "no-store",

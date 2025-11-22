@@ -35,7 +35,6 @@ export default function IdeaClippings() {
     (state) => state.initializeFromFullPost
   );
 
-  // 1. Fetch all content (Drafts, Scheduled, Sent)
   const {
     data: allContent = [],
     isLoading,
@@ -48,7 +47,6 @@ export default function IdeaClippings() {
     staleTime: 60000,
   });
 
-  // 2. Filter for drafts (Ideas)
   const draftPosts = useMemo(() => {
     return allContent
       .filter((post) => post.status === "draft")
@@ -58,7 +56,6 @@ export default function IdeaClippings() {
       );
   }, [allContent]);
 
-  // 3. Fetch full post details when an idea is selected for development
   const {
     data: fullPostData,
     isLoading: isLoadingFullPost,
@@ -72,11 +69,10 @@ export default function IdeaClippings() {
     staleTime: Infinity,
   });
 
-  // 4. Handle initialization and modal opening
   if (fullPostData && !isFetchingFullPost && postIdToDevelop) {
     initializeFromFullPost(fullPostData);
     setIsEditorialModalOpen(true);
-    setPostIdToDevelop(null); // Clear the ID to prevent re-fetching
+    setPostIdToDevelop(null);
   }
 
   if (isErrorFullPost) {
@@ -90,7 +86,7 @@ export default function IdeaClippings() {
 
   const handleCloseEditorialModal = () => {
     setIsEditorialModalOpen(false);
-    refetch(); // Refresh list to ensure any changes are reflected
+    refetch();
   };
 
   if (isLoading) {
@@ -126,7 +122,7 @@ export default function IdeaClippings() {
                     ? "bg-foreground text-background"
                     : "text-muted hover:bg-surface-hover"
                 )}
-                disabled={tab !== "Saved"} // Temporarily disable other tabs until fully implemented
+                disabled={tab !== "Saved"}
               >
                 {tab}
               </button>

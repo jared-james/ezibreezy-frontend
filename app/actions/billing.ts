@@ -6,7 +6,6 @@ import { createClient } from "@/lib/supabase/server";
 
 const BACKEND_URL = process.env.BACKEND_URL || "http://localhost:8000";
 
-// Generic helper to make authenticated requests to your backend
 export async function authenticatedFetch(
   endpoint: string,
   options: RequestInit = {}

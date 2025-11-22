@@ -3,9 +3,8 @@
 "use server";
 
 import { getUserAndOrganization } from "@/lib/auth";
-import { authenticatedFetch } from "./billing"; // Re-using generic fetch helper
+import { authenticatedFetch } from "./billing";
 
-// Data structure mirroring the necessary context
 interface UserContextWithIntegrations {
   userId: string;
   organizationId: string;
@@ -18,10 +17,6 @@ interface UserContextWithIntegrations {
   }[];
 }
 
-/**
- * Fetches the combined user context and all integrations for the client.
- * This function runs entirely on the server to prevent leakage of server-only modules.
- */
 export async function getClientDataForEditor(): Promise<UserContextWithIntegrations | null> {
   const userContext = await getUserAndOrganization();
 
@@ -29,7 +24,6 @@ export async function getClientDataForEditor(): Promise<UserContextWithIntegrati
     return null;
   }
 
-  // Use the established authenticated fetch helper to get connections
   const result = await authenticatedFetch("/integrations/connections");
 
   if (!result.success) {
@@ -40,7 +34,7 @@ export async function getClientDataForEditor(): Promise<UserContextWithIntegrati
     return {
       userId: userContext.userId,
       organizationId: userContext.organizationId,
-      connections: [], // Return empty array on failure, do not block app
+      connections: [],
     };
   }
 

@@ -23,7 +23,6 @@ export async function updateDisplayName(newDisplayName: string) {
   }
 
   try {
-    // 1. Update the Supabase Auth user metadata
     const { error: updateError } = await supabase.auth.updateUser({
       data: {
         displayName: newDisplayName,
@@ -35,15 +34,13 @@ export async function updateDisplayName(newDisplayName: string) {
       return { success: false, error: updateError.message };
     }
 
-    // 2. Trigger backend sync to update the local 'users' table
     const syncResult = await syncUser();
 
     if (!syncResult.success) {
-      // Log, but maybe not a critical failure that halts the display name update
       console.error("Warning: Backend sync failed after display name update.");
     }
 
-    revalidatePath("/", "layout"); // Revalidates the Sidebar
+    revalidatePath("/", "layout");
     return { success: true };
   } catch (error) {
     const message =
@@ -57,7 +54,6 @@ export async function updateDisplayName(newDisplayName: string) {
 export async function syncUser() {
   const supabase = await createClient();
 
-  // Use getUser() for secure authentication verification
   const {
     data: { user },
     error: userError,
@@ -76,7 +72,6 @@ export async function syncUser() {
     return { success: false, error: "User email is missing." };
   }
 
-  // Get session only for the access token
   const {
     data: { session },
   } = await supabase.auth.getSession();
@@ -105,7 +100,7 @@ export async function syncUser() {
       };
     }
 
-    revalidatePath("/", "layout"); // Revalidates all pages
+    revalidatePath("/", "layout");
     return { success: true };
   } catch (error) {
     const message =

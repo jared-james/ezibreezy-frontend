@@ -47,7 +47,7 @@ export default function FullSignUp() {
     return (
       <div className="flex flex-col min-h-screen">
         <LandingPageHeader />
-        <main className="flex-grow bg-[--background] py-16 px-4 flex items-center justify-center">
+        <main className="grow bg-[--background] py-16 px-4 flex items-center justify-center">
           <div className="mx-auto w-full max-w-5xl">
             <div className="bg-[#f5f0e8] border-2 border-[--success] shadow-lg relative">
               <div className="absolute top-4 right-4 w-20 h-24 border-2 border-[--success] bg-green-50 flex items-center justify-center">
@@ -160,7 +160,7 @@ export default function FullSignUp() {
   return (
     <div className="flex flex-col min-h-screen">
       <LandingPageHeader />
-      <main className="flex-grow bg-[--background] py-16 px-4 flex items-center justify-center">
+      <main className="grow bg-[--background] py-16 px-4 flex items-center justify-center">
         <div className="mx-auto w-full max-w-5xl">
           <div className="bg-[#f5f0e8] border-2 border-[--foreground] shadow-lg relative">
             <div className="absolute top-4 right-4 w-20 h-24 flex items-center justify-center p-2">
