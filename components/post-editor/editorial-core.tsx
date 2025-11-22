@@ -1,5 +1,4 @@
 // components/post-editor/editorial-core.tsx
-
 "use client";
 
 import { useState, useEffect } from "react";
@@ -40,7 +39,6 @@ export default function EditorialCore({
   >(null);
   const [confirmationCount, setConfirmationCount] = useState(0);
 
-  // Local state for preview data
   const [localMainCaption, setLocalMainCaption] = useState("");
   const [localPlatformCaptions, setLocalPlatformCaptions] = useState<
     Record<string, string>
@@ -52,7 +50,6 @@ export default function EditorialCore({
   const resetEditor = useEditorialStore((state) => state.reset);
   const setState = useEditorialStore((state) => state.setState);
 
-  // Read only what we need from the store
   const isScheduling = useEditorialStore((state) => state.isScheduling);
   const scheduleDate = useEditorialStore((state) => state.scheduleDate);
   const scheduleTime = useEditorialStore((state) => state.scheduleTime);
@@ -137,7 +134,6 @@ export default function EditorialCore({
   };
 
   const handlePublish = async () => {
-    // Update store with final local state before publishing
     setState({
       mainCaption: localMainCaption,
       platformCaptions: localPlatformCaptions,
@@ -158,7 +154,6 @@ export default function EditorialCore({
     }
 
     const mainPostMedia = mediaItems.filter((m) => m.threadIndex === null);
-
     const mainPostUploadedIds = mainPostMedia
       .filter((m) => m.id !== null)
       .map((m) => m.id) as string[];
@@ -218,15 +213,17 @@ export default function EditorialCore({
           let platformMediaIds = mainPostUploadedIds;
           let platformThreadMessages = finalThreadMessagesForPublish;
 
+          if (platformId === "instagram" && platformMediaIds.length === 0) {
+            toast.error("Instagram posts require at least one image or video.");
+            throw new Error("Instagram post validation failed");
+          }
+
           if (platformId === "x") {
             platformMediaIds = mainPostUploadedIds.slice(0, 4);
           } else {
-            // For non-X platforms, remove thread messages as they are not supported
             platformThreadMessages = [];
-            // We no longer slice the media IDs, allowing for multi-image posts
           }
 
-          // Use local state for content
           const platformSpecificContent = localPlatformCaptions[platformId];
           const contentToSend =
             platformSpecificContent && platformSpecificContent.trim().length > 0
@@ -253,6 +250,10 @@ export default function EditorialCore({
           return postMutation.mutateAsync(payload);
         })
     );
+
+    if (postPromises.length === 0) {
+      return;
+    }
 
     try {
       await Promise.all(postPromises);

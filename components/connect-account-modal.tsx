@@ -31,6 +31,8 @@ export default function ConnectAccountModal({
     } catch (e) {
       console.error("Could not save to sessionStorage", e);
     }
+    // This simple call handles all non-Instagram platforms correctly
+    // (X, LinkedIn, YouTube) and directs to the default backend flow.
     window.location.href = `/api/integrations/${platformId}/connect`;
   };
 

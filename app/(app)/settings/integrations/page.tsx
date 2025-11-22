@@ -60,6 +60,95 @@ const platformDefinitions: PlatformDefinition[] = [
   },
 ];
 
+interface InstagramConnectOptionsModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  platform: PlatformDefinition;
+}
+
+const InstagramConnectOptionsModal: React.FC<
+  InstagramConnectOptionsModalProps
+> = ({ isOpen, onClose, platform }) => {
+  if (!isOpen) return null;
+
+  const handleConnect = (
+    authType: "facebook_business" | "instagram_business"
+  ) => {
+    try {
+      window.sessionStorage.setItem("connecting_platform", platform.id);
+    } catch (e) {
+      console.error("Could not save to sessionStorage", e);
+    }
+
+    // NEW LOGIC: Map selection directly to the distinct backend routes
+    const routePlatformId =
+      authType === "instagram_business"
+        ? "instagram-direct"
+        : "instagram-facebook";
+
+    const connectUrl = `/api/integrations/${routePlatformId}/connect`;
+
+    // LOGS
+    console.log(`[InstagramConnectOptionsModal] User selected: ${authType}`);
+    console.log(
+      `[InstagramConnectOptionsModal] Final URL for navigation: ${connectUrl}`
+    );
+
+    window.location.href = connectUrl;
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
+      <div className="relative w-full max-w-lg bg-surface border border-foreground shadow-2xl">
+        <button
+          onClick={onClose}
+          className="absolute top-4 right-4 text-muted-foreground hover:text-foreground transition-colors"
+          aria-label="Close"
+        >
+          <X className="w-5 h-5" />
+        </button>
+
+        <div className="p-8">
+          <div className="flex justify-center mb-4">
+            <div className="flex h-16 w-16 items-center justify-center bg-background">
+              <Instagram className="w-8 h-8 text-foreground" />
+            </div>
+          </div>
+          <p className="eyebrow text-center mb-2">Integration</p>
+          <h2 className="text-center font-serif text-3xl font-bold uppercase tracking-tight text-foreground mb-6">
+            Connect Instagram
+          </h2>
+
+          <div className="space-y-5 text-foreground mb-8">
+            <p className="text-center font-serif text-base leading-relaxed">
+              Instagram requires a connection through a Facebook Page, unless
+              you are using a Creator/Business account without a linked page.
+              Choose the best option for you:
+            </p>
+          </div>
+
+          <div className="flex flex-col gap-3 sm:flex-row sm:justify-center">
+            <Button
+              variant="outline"
+              onClick={() => handleConnect("instagram_business")}
+              className="min-w-48 font-serif uppercase tracking-[0.12em]"
+            >
+              Connect with Instagram
+            </Button>
+            <Button
+              variant="primary"
+              onClick={() => handleConnect("facebook_business")}
+              className="min-w-48 font-serif uppercase tracking-[0.12em]"
+            >
+              Connect with Facebook
+            </Button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 export default function IntegrationsPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedPlatform, setSelectedPlatform] =
@@ -101,6 +190,14 @@ export default function IntegrationsPage() {
       : "Something went wrong loading your connections. Please try again.";
 
   const openConnectModal = (platform: PlatformDefinition) => {
+    // If it's Instagram, we open the custom options modal
+    if (platform.id === "instagram") {
+      setSelectedPlatform(platform);
+      setIsModalOpen(true);
+      return;
+    }
+
+    // For all other platforms, we open the default modal
     setSelectedPlatform(platform);
     setIsModalOpen(true);
   };
@@ -254,7 +351,15 @@ export default function IntegrationsPage() {
         )}
       </div>
 
-      {selectedPlatform && (
+      {selectedPlatform?.id === "instagram" && (
+        <InstagramConnectOptionsModal
+          isOpen={isModalOpen}
+          onClose={() => setIsModalOpen(false)}
+          platform={selectedPlatform}
+        />
+      )}
+
+      {selectedPlatform && selectedPlatform.id !== "instagram" && (
         <ConnectAccountModal
           isOpen={isModalOpen}
           onClose={() => setIsModalOpen(false)}

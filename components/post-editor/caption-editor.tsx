@@ -1,5 +1,4 @@
 // components/post-editor/caption-editor.tsx
-
 "use client";
 
 import { useState, useCallback, useEffect } from "react";

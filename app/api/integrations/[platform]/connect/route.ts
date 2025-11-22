@@ -30,15 +30,19 @@ export async function GET(
   }
 
   try {
-    const response = await fetch(
-      `${BACKEND_URL}/integrations/${platform}/connect`,
-      {
-        headers: {
-          Authorization: `Bearer ${session.access_token}`,
-        },
-        redirect: "manual",
-      }
-    );
+    // Forward query params (e.g., authType) to the backend
+    const searchParams = request.nextUrl.searchParams;
+    const queryString = searchParams.toString();
+    const backendUrl = `${BACKEND_URL}/integrations/${platform}/connect${
+      queryString ? `?${queryString}` : ""
+    }`;
+
+    const response = await fetch(backendUrl, {
+      headers: {
+        Authorization: `Bearer ${session.access_token}`,
+      },
+      redirect: "manual",
+    });
 
     const redirectUrl = response.headers.get("location");
 
