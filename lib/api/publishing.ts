@@ -12,7 +12,9 @@ export interface PostSettings {
   hashtags?: string;
   collaborators?: string;
   location?: string;
+  locationId?: string;
   firstComment?: string;
+  canonicalContent?: string;
 }
 
 export interface CreatePostPayload {

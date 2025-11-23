@@ -3,7 +3,6 @@
 "use client";
 
 import { useState, useMemo, memo } from "react";
-import { useQuery } from "@tanstack/react-query";
 import {
   Twitter,
   Instagram,
@@ -24,6 +23,8 @@ import ThreadsPreview from "./threads-preview";
 import TikTokPreview from "./tiktok-preview";
 import { cn } from "@/lib/utils";
 import { usePostEditor } from "@/lib/hooks/use-post-editor";
+import { LocationState } from "@/lib/store/editorial-store";
+import { useQuery } from "@tanstack/react-query";
 
 const platformIcons: Record<string, React.ElementType> = {
   x: Twitter,
@@ -50,7 +51,7 @@ interface PreviewPanelProps {
   mainCaption: string;
   platformCaptions: Record<string, string>;
   collaborators: string;
-  location: string;
+  location: LocationState;
 }
 
 function PreviewPanel({
@@ -74,7 +75,6 @@ function PreviewPanel({
 
   const [activeTab, setActiveTab] = useState<string>("empty");
 
-  // Compute the valid active tab (either the current selection if valid, or default)
   const validActiveTab = useMemo(() => {
     if (activePlatforms.length === 0) return "empty";
     if (activeTab !== "empty" && activePlatforms.includes(activeTab)) {
@@ -105,7 +105,6 @@ function PreviewPanel({
     [activePlatforms]
   );
 
-  // Show only icons when more than 2 platforms are selected
   const showIconsOnly = activePlatforms.length > 2;
 
   const currentCaption = useMemo(
@@ -175,7 +174,7 @@ function PreviewPanel({
             displayName={activeAccount.name}
             avatarUrl={activeAccount.avatarUrl}
             collaborators={collaborators}
-            location={location}
+            location={location.name}
           />
         );
       case "linkedin":

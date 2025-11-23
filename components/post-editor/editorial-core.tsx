@@ -15,8 +15,8 @@ import ScheduleCard from "./schedule-card";
 import ConfirmationModal from "./confirmation-modal";
 
 import { usePostEditor } from "@/lib/hooks/use-post-editor";
-import { useEditorialStore } from "@/lib/store/editorial-store";
-import type { CreatePostPayload } from "@/lib/api/publishing";
+import { useEditorialStore, LocationState } from "@/lib/store/editorial-store";
+import type { CreatePostPayload, PostSettings } from "@/lib/api/publishing";
 
 interface EditorialCoreProps {
   onPostSuccess?: () => void;
@@ -45,7 +45,10 @@ export default function EditorialCore({
   >({});
   const [localLabels, setLocalLabels] = useState("");
   const [localCollaborators, setLocalCollaborators] = useState("");
-  const [localLocation, setLocalLocation] = useState("");
+  const [localLocation, setLocalLocation] = useState<LocationState>({
+    id: null,
+    name: "",
+  });
 
   const resetEditor = useEditorialStore((state) => state.reset);
   const setState = useEditorialStore((state) => state.setState);
@@ -191,10 +194,11 @@ export default function EditorialCore({
       scheduledAt = dateTime.toISOString();
     }
 
-    const baseSettings = {
+    const baseSettings: PostSettings = {
       labels: localLabels,
       collaborators: localCollaborators,
-      location: localLocation,
+      location: localLocation.name,
+      locationId: localLocation.id || undefined,
       canonicalContent: localMainCaption,
     };
 

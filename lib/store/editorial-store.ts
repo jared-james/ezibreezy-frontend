@@ -16,6 +16,11 @@ export interface MediaItem {
   threadIndex: number | null;
 }
 
+export interface LocationState {
+  id: string | null;
+  name: string;
+}
+
 export interface EditorialState {
   isScheduling: boolean;
   scheduleDate: string;
@@ -27,7 +32,7 @@ export interface EditorialState {
   labels: string;
   threadMessages: ThreadMessage[];
   collaborators: string;
-  location: string;
+  location: LocationState;
   firstComment: string;
   isInitialized: boolean;
   draft: EditorialDraft | null;
@@ -58,7 +63,7 @@ export const initialState: EditorialState = {
   labels: "",
   threadMessages: [],
   collaborators: "",
-  location: "",
+  location: { id: null, name: "" },
   firstComment: "",
   isInitialized: false,
   draft: null,
@@ -89,7 +94,7 @@ export const useEditorialStore = create<EditorialState & EditorialActions>(
           labels: draft.distribution?.labels || "",
           threadMessages: draft.distribution?.threadMessages || [],
           collaborators: draft.distribution?.collaborators || "",
-          location: draft.distribution?.location || "",
+          location: draft.distribution?.location || { id: null, name: "" },
           firstComment: draft.distribution?.firstComment || "",
           isScheduling: draft.schedule?.isScheduled || false,
           scheduleDate: draft.schedule?.date,
@@ -162,7 +167,10 @@ export const useEditorialStore = create<EditorialState & EditorialActions>(
         threadMessages,
         labels: settings.labels || "",
         collaborators: settings.collaborators || "",
-        location: settings.location || "",
+        location: {
+          id: settings.locationId || null,
+          name: settings.location || "",
+        },
         firstComment: settings.firstComment || "",
         recycleInterval: fullPost.recycleInterval || null,
         aiGenerated: settings.aiGenerated || false,

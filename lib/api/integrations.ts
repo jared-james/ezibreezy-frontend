@@ -24,6 +24,13 @@ export interface Connection {
   };
 }
 
+export interface LocationSearchResult {
+  id: string;
+  name: string;
+  address: string;
+  rating: number | null;
+}
+
 export const getConnections = async (): Promise<Connection[]> => {
   const response = await apiClient.get<Connection[]>(
     "/integrations/connections"
@@ -39,4 +46,17 @@ export const disconnectAccount = async (
   await apiClient.delete(
     `/integrations/${platform}/disconnect/${connectionId}`
   );
+};
+
+export const searchLocations = async (
+  query: string,
+  integrationId: string
+): Promise<LocationSearchResult[]> => {
+  const response = await apiClient.get<LocationSearchResult[]>(
+    "/integrations/locations/search",
+    {
+      params: { q: query, integrationId },
+    }
+  );
+  return response.data;
 };
