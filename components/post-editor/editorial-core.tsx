@@ -1,4 +1,5 @@
 // components/post-editor/editorial-core.tsx
+
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
@@ -66,17 +67,14 @@ export default function EditorialCore({
   const aiGenerated = useEditorialStore((state) => state.aiGenerated);
   const sourceDraftId = useEditorialStore((state) => state.sourceDraftId);
 
-  // General Settings
   const firstComment = useEditorialStore((state) => state.firstComment);
   const postTypeFromStore = useEditorialStore((state) => state.postType);
   const userTags = useEditorialStore((state) => state.userTags);
 
-  // Facebook Specific Settings
   const facebookPostType = useEditorialStore((state) => state.facebookPostType);
   const facebookFirstComment = useEditorialStore(
     (state) => state.facebookFirstComment
   );
-  const facebookUserTags = useEditorialStore((state) => state.facebookUserTags);
 
   const {
     mainPostMediaFiles,
@@ -226,10 +224,8 @@ export default function EditorialCore({
           msg.content.length > 0 || (msg.mediaIds && msg.mediaIds.length > 0)
       );
 
-    // 1. Prepare the Crop Map
     const mediaCrops: Record<string, PlatformCrops> = {};
     mediaItems.forEach((item) => {
-      // Only attach crops if the item has an ID (uploaded) and has crop data
       if (item.id && item.crops) {
         mediaCrops[item.id] = item.crops;
       }
@@ -255,18 +251,15 @@ export default function EditorialCore({
 
           const platformSpecificContent = localPlatformCaptions[platformId];
 
-          // --- CONTENT LOGIC ---
           let contentToSend = "";
 
           const isStory =
             (platformId === "instagram" && postTypeFromStore === "story") ||
             (platformId === "facebook" && facebookPostType === "story");
 
-          // If it's a Story, we allow the content to be empty and DO NOT fallback to the main caption.
           if (isStory) {
             contentToSend = platformSpecificContent || "";
           } else {
-            // Standard behavior: Use platform specific, or fallback to main caption
             contentToSend =
               platformSpecificContent &&
               platformSpecificContent.trim().length > 0
@@ -289,35 +282,26 @@ export default function EditorialCore({
             recycleInterval: recycleInterval || undefined,
             aiGenerated: aiGenerated || undefined,
             sourceDraftId: sourceDraftId || undefined,
-            postType: postTypeFromStore, // Default, might be overridden below
-            userTags, // Default, might be overridden below
+            postType: postTypeFromStore,
+            userTags,
             mediaCrops,
           };
 
-          // --- INSTAGRAM SPECIFIC OVERRIDES ---
           if (platformId === "instagram") {
             if (firstComment && firstComment.trim().length > 0) {
               payload.settings!.firstComment = firstComment.trim();
             }
           }
 
-          // --- FACEBOOK SPECIFIC OVERRIDES ---
           if (platformId === "facebook") {
-            // Override Post Type
             payload.settings!.facebookPostType = facebookPostType;
 
-            // Override First Comment
             if (
               facebookFirstComment &&
               facebookFirstComment.trim().length > 0
             ) {
               payload.settings!.facebookFirstComment =
                 facebookFirstComment.trim();
-            }
-
-            // Override User Tags
-            if (facebookUserTags && facebookUserTags.length > 0) {
-              payload.settings!.facebookUserTags = facebookUserTags;
             }
           }
 

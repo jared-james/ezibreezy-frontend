@@ -48,7 +48,6 @@ export interface EditorialState {
   postType: PlatformPostType;
   facebookPostType: PlatformPostType;
   userTags: UserTagDto[];
-  facebookUserTags: UserTagDto[];
 }
 
 export interface EditorialActions {
@@ -90,7 +89,6 @@ export const initialState: EditorialState = {
   postType: "post",
   facebookPostType: "post",
   userTags: [],
-  facebookUserTags: [],
 };
 
 export const useEditorialStore = create<EditorialState & EditorialActions>(

@@ -1,15 +1,7 @@
 // components/post-editor/facebook-preview.tsx
 
 import { memo, useState, useRef, useEffect } from "react";
-import {
-  ThumbsUp,
-  MessageCircle,
-  Share2,
-  ImageIcon,
-  Crop,
-  UserPlus,
-  X,
-} from "lucide-react";
+import { ThumbsUp, MessageCircle, Share2, ImageIcon, Crop } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { renderCaptionWithHashtags } from "./render-caption";
 import { ImageCropperModal } from "./image-cropper-modal";
@@ -20,7 +12,6 @@ import {
   STORY_ASPECT_RATIO,
   calculateCenteredCrop,
 } from "@/lib/utils/crop-utils";
-import { UserTagDto } from "@/lib/api/publishing";
 
 interface FacebookPreviewProps {
   caption: string;
@@ -36,8 +27,6 @@ interface FacebookPreviewProps {
     croppedPreviewUrl: string
   ) => void;
   postType: "post" | "reel" | "story";
-  userTags: UserTagDto[];
-  onUserTagsChange: (tags: UserTagDto[]) => void;
   aspectRatio?: number;
 }
 
@@ -84,40 +73,23 @@ function FacebookPreview({
   croppedPreview,
   onCropComplete,
   postType,
-  userTags,
-  onUserTagsChange,
   aspectRatio = 1.91,
 }: FacebookPreviewProps) {
   const accountName = platformUsername.replace(/^@/, "");
   const primaryName = displayName || accountName || "Account";
-  const mediaContainerRef = useRef<HTMLDivElement>(null);
 
   const [isCropperOpen, setIsCropperOpen] = useState(false);
-  const [isTaggingMode, setIsTaggingMode] = useState(false);
-  const [localTags, setLocalTags] = useState<UserTagDto[]>(userTags);
-  const [newTag, setNewTag] = useState<{
-    x: number;
-    y: number;
-    username: string;
-  } | null>(null);
 
   const displayMediaSrc = croppedPreview || mediaPreview;
   const canCrop = originalMediaSrc && mediaType === "image" && onCropComplete;
 
-  // Disable tagging if video or if it's a story
-  const isTaggingSupported =
-    mediaPreview && postType === "post" && mediaType !== "video";
-
-  // Track previous postType to detect transitions
   const prevPostTypeRef = useRef(postType);
   useEffect(() => {
     const applyAutoCrop = async () => {
       if (!originalMediaSrc || !onCropComplete) return;
 
-      // If switching TO 'story', auto-crop to 9:16
       if (prevPostTypeRef.current !== "story" && postType === "story") {
         try {
-          // Load image to get dimensions
           const img = new window.Image();
           img.src = originalMediaSrc;
           await new Promise<void>((resolve, reject) => {
@@ -128,14 +100,12 @@ function FacebookPreview({
           const displayedWidth = img.naturalWidth;
           const displayedHeight = img.naturalHeight;
 
-          // Calculate centered crop for story aspect ratio
           const cropPixels = calculateCenteredCrop(
             displayedWidth,
             displayedHeight,
             STORY_ASPECT_RATIO
           );
 
-          // Create cropped preview URL
           const croppedUrl = await createCroppedPreviewUrl(
             originalMediaSrc,
             cropPixels,
@@ -152,15 +122,11 @@ function FacebookPreview({
         } catch (error) {
           console.error("Failed to auto-crop for story:", error);
         }
-      }
-      // If switching FROM 'story' to 'post' and the current aspect ratio is story (9:16),
-      // reset the crop to prevent showing an invalid aspect ratio for posts
-      else if (
+      } else if (
         prevPostTypeRef.current === "story" &&
         postType === "post" &&
         aspectRatio === STORY_ASPECT_RATIO
       ) {
-        // Reset the crop by passing undefined
         onCropComplete(undefined, "");
       }
 
@@ -219,46 +185,8 @@ function FacebookPreview({
     }
   };
 
-  useEffect(() => {
-    setLocalTags(userTags);
-  }, [userTags]);
-
-  useEffect(() => {
-    onUserTagsChange(localTags);
-  }, [localTags, onUserTagsChange]);
-
-  useEffect(() => {
-    if (!isTaggingSupported) {
-      setIsTaggingMode(false);
-    }
-  }, [isTaggingSupported]);
-
-  const handleImageClick = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (!isTaggingMode || !mediaContainerRef.current) return;
-    const rect = mediaContainerRef.current.getBoundingClientRect();
-    const x = (e.clientX - rect.left) / rect.width;
-    const y = (e.clientY - rect.top) / rect.height;
-    setNewTag({ x, y, username: "" });
-  };
-
-  const handleAddTag = () => {
-    if (newTag && newTag.username.trim()) {
-      const finalTag = {
-        ...newTag,
-        username: newTag.username.trim().replace(/^@/, ""),
-      };
-      setLocalTags((prev) => [...prev, finalTag]);
-      setNewTag(null);
-    }
-  };
-
-  const handleRemoveTag = (index: number) => {
-    setLocalTags((prev) => prev.filter((_, i) => i !== index));
-  };
-
   return (
     <div className="w-full bg-[--surface] border border-[--border] shadow-lg max-w-sm mx-auto rounded-lg overflow-hidden">
-      {/* Header */}
       <div className="flex items-center gap-3 p-3">
         <ProfileAvatar
           size={40}
@@ -280,7 +208,6 @@ function FacebookPreview({
         </div>
       </div>
 
-      {/* Caption */}
       {postType !== "story" && (
         <div className="px-3 pb-3">
           <p className="text-sm text-[--foreground] whitespace-pre-wrap">
@@ -289,14 +216,10 @@ function FacebookPreview({
         </div>
       )}
 
-      {/* Media */}
       <div
-        ref={mediaContainerRef}
-        onClick={handleImageClick}
         className={cn(
           "relative bg-[--background]",
-          !displayMediaSrc && "aspect-video flex items-center justify-center",
-          isTaggingMode && "cursor-crosshair"
+          !displayMediaSrc && "aspect-video flex items-center justify-center"
         )}
       >
         {displayMediaSrc ? (
@@ -322,77 +245,8 @@ function FacebookPreview({
             <p className="text-sm">No media attached</p>
           </div>
         )}
-
-        {isTaggingMode && (
-          <div className="absolute inset-0 bg-black/30 p-2 flex flex-col justify-between pointer-events-none">
-            <p className="text-center text-xs font-semibold text-white bg-black/50 rounded-full px-3 py-1 self-center">
-              Click on the photo to tag a user
-            </p>
-          </div>
-        )}
-
-        {localTags.map((tag, index) => (
-          <div
-            key={index}
-            className="absolute group"
-            style={{
-              left: `${tag.x * 100}%`,
-              top: `${tag.y * 100}%`,
-              transform: "translate(-50%, -100%)",
-            }}
-          >
-            <div
-              className="relative flex items-center gap-1 rounded-md px-2 py-1 text-xs font-semibold text-white shadow-lg"
-              style={{ backgroundColor: "rgba(0,0,0,0.85)" }}
-            >
-              <span>{tag.username}</span>
-              <button
-                onClick={() => handleRemoveTag(index)}
-                className="opacity-0 group-hover:opacity-100 ml-1 hover:text-red-400"
-              >
-                <X className="h-3 w-3" />
-              </button>
-              <div
-                className="absolute left-1/2 -bottom-1.5 -translate-x-1/2 w-0 h-0 border-l-[6px] border-l-transparent border-r-[6px] border-r-transparent border-t-[6px]"
-                style={{ borderTopColor: "rgba(0,0,0,0.85)" }}
-              />
-            </div>
-          </div>
-        ))}
-
-        {newTag && (
-          <div
-            className="absolute"
-            style={{
-              left: `${newTag.x * 100}%`,
-              top: `${newTag.y * 100}%`,
-              transform: "translate(-50%, 8px)",
-            }}
-          >
-            <div className="w-40 rounded bg-white p-1 shadow-lg">
-              <input
-                type="text"
-                autoFocus
-                placeholder="@username"
-                value={newTag.username}
-                onChange={(e) =>
-                  setNewTag({ ...newTag, username: e.target.value })
-                }
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") {
-                    e.preventDefault();
-                    handleAddTag();
-                  }
-                }}
-                onBlur={handleAddTag}
-                className="w-full border-none bg-transparent px-2 py-1 text-sm outline-none"
-              />
-            </div>
-          </div>
-        )}
       </div>
 
-      {/* Engagement Stats - only for posts, not stories */}
       {postType !== "story" && (
         <div className="flex items-center justify-between px-3 py-2 text-xs text-[--muted-foreground]">
           <div className="flex items-center gap-1">
@@ -408,7 +262,6 @@ function FacebookPreview({
         </div>
       )}
 
-      {/* Action Buttons - only for posts, not stories */}
       {postType !== "story" && (
         <div className="flex items-center justify-around py-1 border-t border-[--border] text-[--muted-foreground]">
           <button className="flex items-center gap-2 px-4 py-2 hover:bg-[--surface-hover] rounded flex-1 justify-center text-sm">
@@ -426,40 +279,17 @@ function FacebookPreview({
         </div>
       )}
 
-      {/* Footer */}
       <div className="px-3 py-2 border-t border-[--border]">
-        {isTaggingSupported || canCrop ? (
+        {canCrop ? (
           <div className="flex items-center gap-4">
-            {canCrop && (
-              <button
-                onClick={() => setIsCropperOpen(true)}
-                title="Crop Image"
-                className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
-              >
-                <Crop className="h-3.5 w-3.5" />
-                Crop
-              </button>
-            )}
-            {isTaggingSupported && (
-              <button
-                onClick={() => {
-                  if (isTaggingMode) {
-                    setNewTag(null);
-                  }
-                  setIsTaggingMode(!isTaggingMode);
-                }}
-                title={isTaggingMode ? "Done Tagging" : "Tag People"}
-                className={cn(
-                  "flex items-center gap-1.5 text-xs transition-colors",
-                  isTaggingMode
-                    ? "text-brand-primary font-medium"
-                    : "text-muted-foreground hover:text-foreground"
-                )}
-              >
-                <UserPlus className="h-3.5 w-3.5" />
-                {isTaggingMode ? "Done" : "Tag"}
-              </button>
-            )}
+            <button
+              onClick={() => setIsCropperOpen(true)}
+              title="Crop Image"
+              className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
+            >
+              <Crop className="h-3.5 w-3.5" />
+              Crop
+            </button>
           </div>
         ) : (
           <p className="text-xs text-[--muted-foreground] text-center italic">

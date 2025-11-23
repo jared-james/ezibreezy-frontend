@@ -18,16 +18,15 @@ export interface PostSettings {
   labels?: string;
   hashtags?: string;
   collaborators?: string;
+
   location?: string;
   locationId?: string;
   firstComment?: string;
   canonicalContent?: string;
   postType?: "post" | "reel" | "story";
   userTags?: UserTagDto[];
-  // Facebook Specific Overrides
   facebookPostType?: "post" | "reel" | "story";
   facebookFirstComment?: string;
-  facebookUserTags?: UserTagDto[];
 }
 
 export interface CreatePostPayload {

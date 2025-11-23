@@ -73,7 +73,6 @@ function PreviewPanel({
     threadMessages,
   } = usePostEditor();
   const userTags = useEditorialStore((state) => state.userTags);
-  const facebookUserTags = useEditorialStore((state) => state.facebookUserTags);
   const postType = useEditorialStore((state) => state.postType);
   const facebookPostType = useEditorialStore((state) => state.facebookPostType);
   const setState = useEditorialStore((state) => state.setState);
@@ -136,10 +135,6 @@ function PreviewPanel({
 
   const handleUserTagsChange = (tags: UserTagDto[]) => {
     setState({ userTags: tags });
-  };
-
-  const handleFacebookUserTagsChange = (tags: UserTagDto[]) => {
-    setState({ facebookUserTags: tags });
   };
 
   if (activePlatforms.length === 0) {
@@ -295,8 +290,6 @@ function PreviewPanel({
             originalMediaSrc={fbOriginalSrc}
             croppedPreview={fbCroppedPreview}
             postType={facebookPostType}
-            userTags={facebookUserTags}
-            onUserTagsChange={handleFacebookUserTagsChange}
             aspectRatio={fbAspectRatio}
             onCropComplete={(cropData, croppedPreviewUrl) => {
               const mediaIndex = mediaItems.findIndex(
