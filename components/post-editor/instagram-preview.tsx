@@ -19,7 +19,7 @@ import { renderCaptionWithHashtags } from "./render-caption";
 import { UserTagDto } from "@/lib/api/publishing";
 import { ImageCropperModal } from "./image-cropper-modal";
 import type { PixelCrop } from "react-image-crop";
-import { createCroppedPreviewUrl, type CropData } from "@/lib/utils/crop-utils";
+import { createCroppedPreviewUrl, type CropData, STORY_ASPECT_RATIO } from "@/lib/utils/crop-utils";
 
 interface InstagramPreviewProps {
   caption: string;
@@ -35,7 +35,7 @@ interface InstagramPreviewProps {
   onUserTagsChange: (tags: UserTagDto[]) => void;
   originalMediaSrc?: string;
   croppedPreview?: string;
-  onCropComplete?: (cropData: CropData, croppedPreviewUrl: string) => void;
+  onCropComplete?: (cropData: CropData | undefined, croppedPreviewUrl: string) => void;
   /** The aspect ratio of the cropped image (width/height). Defaults to 1 (square). */
   aspectRatio?: number;
 }
@@ -107,6 +107,37 @@ function InstagramPreview({
   const displayMediaSrc = croppedPreview || mediaPreview;
   const canCrop = originalMediaSrc && mediaType === "image" && onCropComplete;
 
+  // Disable tagging if video or if it's a story
+  const isTaggingSupported =
+    mediaPreview && postType === "post" && mediaType !== "video";
+
+  // Determine Aspect Ratio: If story, force 9:16. Otherwise use the cropped ratio.
+  const previewAspectRatio = postType === "story" ? 9 / 16 : aspectRatio;
+
+  // Reset view mode to 'post' if switching to 'story' (since grid view is invalid for stories)
+  useEffect(() => {
+    if (postType === "story") {
+      setViewMode("post");
+    }
+  }, [postType]);
+
+  // Track previous postType to detect transitions
+  const prevPostTypeRef = useRef(postType);
+  useEffect(() => {
+    // If switching from 'story' to 'post' and the current aspect ratio is story (9:16),
+    // reset the crop to prevent showing an invalid aspect ratio for posts
+    if (
+      prevPostTypeRef.current === "story" &&
+      postType === "post" &&
+      aspectRatio === STORY_ASPECT_RATIO &&
+      onCropComplete
+    ) {
+      // Reset the crop by passing undefined
+      onCropComplete(undefined, "");
+    }
+    prevPostTypeRef.current = postType;
+  }, [postType, aspectRatio, onCropComplete]);
+
   const handleCropComplete = async (
     croppedAreaPixels: PixelCrop,
     aspectRatio: number,
@@ -116,9 +147,6 @@ function InstagramPreview({
     if (!originalMediaSrc || !onCropComplete) return;
 
     try {
-      // --- START OF NEW CODE ---
-
-      // 1. Get the original image's dimensions
       const getOriginalDimensions = (
         src: string
       ): Promise<{ width: number; height: number }> =>
@@ -131,11 +159,8 @@ function InstagramPreview({
         });
 
       const originalDimensions = await getOriginalDimensions(originalMediaSrc);
-
-      // 2. Calculate the scaling factor
       const scalingFactor = originalDimensions.width / displayedWidth;
 
-      // 3. Scale the crop coordinates to match the original image
       const scaledCroppedAreaPixels: PixelCrop = {
         ...croppedAreaPixels,
         x: Math.round(croppedAreaPixels.x * scalingFactor),
@@ -144,19 +169,15 @@ function InstagramPreview({
         height: Math.round(croppedAreaPixels.height * scalingFactor),
       };
 
-      // --- END OF NEW CODE ---
-
-      // This function creates the small preview for the UI, it can remain as is.
       const croppedUrl = await createCroppedPreviewUrl(
         originalMediaSrc,
-        croppedAreaPixels, // Use original pixels for the UI preview function if needed
+        croppedAreaPixels,
         displayedWidth,
         displayedHeight
       );
 
-      // IMPORTANT: Pass the NEW, SCALED coordinates up to the parent.
       const cropData: CropData = {
-        croppedAreaPixels: scaledCroppedAreaPixels, // Use the scaled version here
+        croppedAreaPixels: scaledCroppedAreaPixels,
         aspectRatio,
       };
 
@@ -173,8 +194,6 @@ function InstagramPreview({
   useEffect(() => {
     onUserTagsChange(localTags);
   }, [localTags, onUserTagsChange]);
-
-  const isTaggingSupported = mediaPreview && postType === "post";
 
   useEffect(() => {
     if (!isTaggingSupported) {
@@ -206,7 +225,13 @@ function InstagramPreview({
   };
 
   return (
-    <div className="w-full bg-[--surface] border border-[--border] shadow-lg max-w-sm mx-auto">
+    <div
+      className={cn(
+        "w-full bg-[--surface] border border-[--border] shadow-lg mx-auto transition-all duration-300",
+        // Conditionally tighten the width for Stories to prevent them from being too tall
+        postType === "story" ? "max-w-[260px]" : "max-w-sm"
+      )}
+    >
       <div className="flex items-center justify-between p-3 border-b border-[--border]">
         <div className="flex items-center gap-3">
           <ProfileAvatar
@@ -231,14 +256,12 @@ function InstagramPreview({
       </div>
 
       {viewMode === "grid" ? (
-        // Grid view - shows how the image appears on Instagram profile grid (3:4 ratio)
+        // Grid view
         <div className="bg-background p-2">
           <div className="grid grid-cols-3 gap-0.5">
-            {/* Row 1 - placeholder tiles */}
             {[0, 1, 2].map((i) => (
               <div key={`top-${i}`} className="aspect-3/4 bg-muted" />
             ))}
-            {/* Row 2 - placeholder, actual image, placeholder */}
             <div className="aspect-3/4 bg-muted" />
             <div className="aspect-3/4 relative overflow-hidden ring-2 ring-primary">
               {displayMediaSrc ? (
@@ -263,7 +286,6 @@ function InstagramPreview({
               )}
             </div>
             <div className="aspect-3/4 bg-muted" />
-            {/* Row 3 - placeholder tiles */}
             {[0, 1, 2].map((i) => (
               <div key={`bottom-${i}`} className="aspect-3/4 bg-muted" />
             ))}
@@ -273,16 +295,20 @@ function InstagramPreview({
           </p>
         </div>
       ) : (
-        // Post view - shows how the image appears when viewing the full post (actual aspect ratio)
+        // Post view
         <div
           ref={mediaContainerRef}
           onClick={handleImageClick}
           className={cn(
             "relative bg-[--background]",
-            displayMediaSrc ? "" : "aspect-square flex items-center justify-center",
+            displayMediaSrc
+              ? ""
+              : "aspect-square flex items-center justify-center",
             isTaggingMode && "cursor-crosshair"
           )}
-          style={displayMediaSrc ? { aspectRatio: aspectRatio } : undefined}
+          style={
+            displayMediaSrc ? { aspectRatio: previewAspectRatio } : undefined
+          }
         >
           {displayMediaSrc ? (
             mediaType === "video" ? (
@@ -416,8 +442,8 @@ function InstagramPreview({
       <div className="px-3 py-2 border-t border-border">
         {isTaggingSupported || canCrop || displayMediaSrc ? (
           <div className="flex items-center gap-4">
-            {/* View Toggle */}
-            {displayMediaSrc && (
+            {/* View Toggle - Only show if NOT a story */}
+            {displayMediaSrc && postType !== "story" && (
               <div className="flex items-center gap-1">
                 <button
                   onClick={() => setViewMode("post")}
@@ -448,10 +474,12 @@ function InstagramPreview({
               </div>
             )}
 
-            {/* Divider */}
-            {displayMediaSrc && (canCrop || isTaggingSupported) && (
-              <div className="h-4 w-px bg-border" />
-            )}
+            {/* Divider - Only show if we have the toggle on the left */}
+            {displayMediaSrc &&
+              postType !== "story" &&
+              (canCrop || isTaggingSupported) && (
+                <div className="h-4 w-px bg-border" />
+              )}
 
             {/* Action Buttons */}
             {canCrop && (
@@ -473,15 +501,21 @@ function InstagramPreview({
                   }
                   setIsTaggingMode(!isTaggingMode);
                 }}
-                title={viewMode === "grid" ? "Switch to Post view to tag" : isTaggingMode ? "Done Tagging" : "Tag People"}
+                title={
+                  viewMode === "grid"
+                    ? "Switch to Post view to tag"
+                    : isTaggingMode
+                    ? "Done Tagging"
+                    : "Tag People"
+                }
                 disabled={viewMode === "grid"}
                 className={cn(
                   "flex items-center gap-1.5 text-xs transition-colors",
                   viewMode === "grid"
                     ? "text-muted-foreground/40 cursor-not-allowed"
                     : isTaggingMode
-                      ? "text-brand-primary font-medium"
-                      : "text-muted-foreground hover:text-foreground"
+                    ? "text-brand-primary font-medium"
+                    : "text-muted-foreground hover:text-foreground"
                 )}
               >
                 <UserPlus className="h-3.5 w-3.5" />
@@ -502,6 +536,7 @@ function InstagramPreview({
           onClose={() => setIsCropperOpen(false)}
           imageSrc={originalMediaSrc}
           platform="instagram"
+          postType={postType}
           onCropComplete={handleCropComplete}
         />
       )}

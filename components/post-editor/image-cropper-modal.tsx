@@ -25,6 +25,7 @@ interface ImageCropperModalProps {
   onClose: () => void;
   imageSrc: string;
   platform: SocialPlatform;
+  postType?: "post" | "reel" | "story";
   initialCrop?: PixelCrop;
   initialAspectRatio?: number;
   onCropComplete: (
@@ -60,6 +61,7 @@ export function ImageCropperModal({
   onClose,
   imageSrc,
   platform,
+  postType,
   initialCrop,
   initialAspectRatio,
   onCropComplete,
@@ -92,6 +94,7 @@ export function ImageCropperModal({
       onClose={onClose}
       imageSrc={imageSrc}
       platform={platform}
+      postType={postType}
       initialCrop={initialCrop}
       initialAspectRatio={initialAspectRatio}
       onCropComplete={onCropComplete}
@@ -103,6 +106,7 @@ interface ImageCropperModalContentProps {
   onClose: () => void;
   imageSrc: string;
   platform: SocialPlatform;
+  postType?: "post" | "reel" | "story";
   initialCrop?: PixelCrop;
   initialAspectRatio?: number;
   onCropComplete: (
@@ -117,12 +121,32 @@ function ImageCropperModalContent({
   onClose,
   imageSrc,
   platform,
+  postType,
   initialCrop,
   initialAspectRatio,
   onCropComplete,
 }: ImageCropperModalContentProps) {
-  const presets = PLATFORM_ASPECT_RATIOS[platform];
-  const defaultAspect = initialAspectRatio ?? getDefaultAspectRatio(platform);
+  // Filter crop presets based on post type
+  const presets = PLATFORM_ASPECT_RATIOS[platform].filter((preset) => {
+    const isStoryPreset = preset.label.toLowerCase().includes("story");
+    // For posts: hide story presets
+    if (postType === "post" && isStoryPreset) {
+      return false;
+    }
+    // For stories: only show story presets
+    if (postType === "story" && !isStoryPreset) {
+      return false;
+    }
+    return true;
+  });
+
+  // Default to story aspect ratio (9:16) when postType is "story", otherwise use platform default
+  const getDefaultAspect = () => {
+    if (initialAspectRatio) return initialAspectRatio;
+    if (postType === "story") return 9 / 16;
+    return getDefaultAspectRatio(platform);
+  };
+  const defaultAspect = getDefaultAspect();
 
   const [crop, setCrop] = useState<Crop>();
   const [completedCrop, setCompletedCrop] = useState<PixelCrop | null>(
@@ -164,26 +188,23 @@ function ImageCropperModalContent({
     }
   }, [completedCrop, aspectRatio, onCropComplete, onClose]);
 
-  const handleAspectChange = useCallback(
-    (preset: AspectRatioPreset) => {
-      setAspectRatio(preset.value);
-      if (imgRef.current) {
-        const { width, height } = imgRef.current;
-        const newCrop = centerAspectCrop(width, height, preset.value);
-        setCrop(newCrop);
-        // Convert percent crop to pixel crop for completedCrop
-        const pixelCrop: PixelCrop = {
-          unit: "px",
-          x: (newCrop.x / 100) * width,
-          y: (newCrop.y / 100) * height,
-          width: (newCrop.width / 100) * width,
-          height: (newCrop.height / 100) * height,
-        };
-        setCompletedCrop(pixelCrop);
-      }
-    },
-    []
-  );
+  const handleAspectChange = useCallback((preset: AspectRatioPreset) => {
+    setAspectRatio(preset.value);
+    if (imgRef.current) {
+      const { width, height } = imgRef.current;
+      const newCrop = centerAspectCrop(width, height, preset.value);
+      setCrop(newCrop);
+      // Convert percent crop to pixel crop for completedCrop
+      const pixelCrop: PixelCrop = {
+        unit: "px",
+        x: (newCrop.x / 100) * width,
+        y: (newCrop.y / 100) * height,
+        width: (newCrop.width / 100) * width,
+        height: (newCrop.height / 100) * height,
+      };
+      setCompletedCrop(pixelCrop);
+    }
+  }, []);
 
   const handleReset = useCallback(() => {
     const def = getDefaultAspectRatio(platform);
@@ -249,42 +270,56 @@ function ImageCropperModalContent({
               </div>
 
               <div className="flex flex-col gap-2">
-                {presets.map((preset) => (
-                  <button
-                    key={preset.label}
-                    onClick={() => handleAspectChange(preset)}
-                    className={cn(
-                      "flex items-center gap-3 px-3 py-2.5 border rounded-sm transition-all duration-200 group",
-                      aspectRatio === preset.value
-                        ? "border-foreground bg-background shadow-sm"
-                        : "border-border bg-transparent hover:bg-surface-hover"
-                    )}
-                  >
-                    <div
+                {presets.map((preset) => {
+                  // Calculate icon dimensions dynamically to preserve aspect ratio in the button
+                  const isLandscape = preset.value >= 1;
+                  const iconBaseSize = 18;
+                  const iconWidth = isLandscape
+                    ? iconBaseSize
+                    : iconBaseSize * preset.value;
+                  const iconHeight = isLandscape
+                    ? iconBaseSize / preset.value
+                    : iconBaseSize;
+
+                  return (
+                    <button
+                      key={preset.label}
+                      onClick={() => handleAspectChange(preset)}
                       className={cn(
-                        "border-2 rounded-[2px] transition-colors shrink-0",
+                        "flex items-center gap-3 px-3 py-2.5 border rounded-sm transition-all duration-200 group",
                         aspectRatio === preset.value
-                          ? "border-foreground"
-                          : "border-muted-foreground group-hover:border-foreground"
-                      )}
-                      style={{
-                        width: "18px",
-                        height: `${18 / preset.value}px`,
-                        maxHeight: "18px",
-                      }}
-                    />
-                    <span
-                      className={cn(
-                        "text-xs font-medium",
-                        aspectRatio === preset.value
-                          ? "text-foreground"
-                          : "text-muted-foreground"
+                          ? "border-foreground bg-background shadow-sm"
+                          : "border-border bg-transparent hover:bg-surface-hover"
                       )}
                     >
-                      {preset.label}
-                    </span>
-                  </button>
-                ))}
+                      {/* Dynamic Aspect Ratio Icon */}
+                      <div className="flex items-center justify-center w-[20px] shrink-0">
+                        <div
+                          className={cn(
+                            "border-2 rounded-[2px] transition-colors",
+                            aspectRatio === preset.value
+                              ? "border-foreground"
+                              : "border-muted-foreground group-hover:border-foreground"
+                          )}
+                          style={{
+                            width: `${iconWidth}px`,
+                            height: `${iconHeight}px`,
+                          }}
+                        />
+                      </div>
+                      <span
+                        className={cn(
+                          "text-xs font-medium",
+                          aspectRatio === preset.value
+                            ? "text-foreground"
+                            : "text-muted-foreground"
+                        )}
+                      >
+                        {preset.label}
+                      </span>
+                    </button>
+                  );
+                })}
               </div>
             </div>
 

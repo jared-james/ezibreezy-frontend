@@ -245,10 +245,23 @@ export default function EditorialCore({
           }
 
           const platformSpecificContent = localPlatformCaptions[platformId];
-          const contentToSend =
-            platformSpecificContent && platformSpecificContent.trim().length > 0
-              ? platformSpecificContent
-              : localMainCaption;
+
+          // --- CHANGED LOGIC STARTS HERE ---
+          let contentToSend = "";
+
+          // If it's a Story, we allow the content to be empty and DO NOT fallback to the main caption.
+          // This prevents the Main Caption from accidentally becoming a text overlay on the story.
+          if (postTypeFromStore === "story" && platformId === "instagram") {
+            contentToSend = platformSpecificContent || "";
+          } else {
+            // Standard behavior for posts/reels: Use platform specific, or fallback to main caption
+            contentToSend =
+              platformSpecificContent &&
+              platformSpecificContent.trim().length > 0
+                ? platformSpecificContent
+                : localMainCaption;
+          }
+          // --- CHANGED LOGIC ENDS HERE ---
 
           const payload: CreatePostPayload = {
             userId: user.id,

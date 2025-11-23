@@ -23,16 +23,25 @@ export interface AspectRatioPreset {
   value: number;
 }
 
-export const PLATFORM_ASPECT_RATIOS: Record<SocialPlatform, AspectRatioPreset[]> = {
+export const STORY_ASPECT_RATIO = 9 / 16;
+
+export const PLATFORM_ASPECT_RATIOS: Record<
+  SocialPlatform,
+  AspectRatioPreset[]
+> = {
   instagram: [
     { label: "Square (1:1)", value: 1 },
     { label: "Portrait (4:5)", value: 4 / 5 },
     { label: "Landscape (1.91:1)", value: 1.91 },
+    // --- NEW PRESET ADDED HERE ---
+    { label: "Story (9:16)", value: 9 / 16 },
   ],
   facebook: [
     { label: "Landscape (1.91:1)", value: 1.91 },
     { label: "Square (1:1)", value: 1 },
     { label: "Portrait (4:5)", value: 4 / 5 },
+    // Optional: Facebook Stories also support 9:16 if you want it here too
+    { label: "Story (9:16)", value: 9 / 16 },
   ],
   linkedin: [
     { label: "Landscape (1.91:1)", value: 1.91 },
@@ -47,9 +56,7 @@ export const PLATFORM_ASPECT_RATIOS: Record<SocialPlatform, AspectRatioPreset[]>
     { label: "Square (1:1)", value: 1 },
     { label: "Portrait (4:5)", value: 4 / 5 },
   ],
-  tiktok: [
-    { label: "Vertical (9:16)", value: 9 / 16 },
-  ],
+  tiktok: [{ label: "Vertical (9:16)", value: 9 / 16 }],
 };
 
 export function getDefaultAspectRatio(platform: SocialPlatform): number {
@@ -129,7 +136,12 @@ export async function createCroppedPreviewUrl(
   displayedWidth?: number,
   displayedHeight?: number
 ): Promise<string> {
-  const blob = await getCroppedImg(imageSrc, pixelCrop, displayedWidth, displayedHeight);
+  const blob = await getCroppedImg(
+    imageSrc,
+    pixelCrop,
+    displayedWidth,
+    displayedHeight
+  );
   return URL.createObjectURL(blob);
 }
 
@@ -145,10 +157,6 @@ export async function createCroppedFile(
   return new File([blob], newFileName, { type: "image/jpeg" });
 }
 
-/**
- * Apply crops from media items and return cropped files for a specific platform.
- * If no crop exists for the platform, returns the original file.
- */
 export async function applyCropsForPlatform(
   mediaItems: Array<{
     file: File | null;
