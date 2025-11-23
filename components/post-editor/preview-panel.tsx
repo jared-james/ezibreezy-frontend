@@ -23,7 +23,11 @@ import ThreadsPreview from "./threads-preview";
 import TikTokPreview from "./tiktok-preview";
 import { cn } from "@/lib/utils";
 import { usePostEditor } from "@/lib/hooks/use-post-editor";
-import { LocationState, useEditorialStore, MediaItem } from "@/lib/store/editorial-store";
+import {
+  LocationState,
+  useEditorialStore,
+  MediaItem,
+} from "@/lib/store/editorial-store";
 import { useQuery } from "@tanstack/react-query";
 import { UserTagDto } from "@/lib/api/publishing";
 import type { SocialPlatform } from "@/lib/utils/crop-utils";
@@ -69,7 +73,9 @@ function PreviewPanel({
     threadMessages,
   } = usePostEditor();
   const userTags = useEditorialStore((state) => state.userTags);
+  const facebookUserTags = useEditorialStore((state) => state.facebookUserTags);
   const postType = useEditorialStore((state) => state.postType);
+  const facebookPostType = useEditorialStore((state) => state.facebookPostType);
   const setState = useEditorialStore((state) => state.setState);
   const mediaItems = useEditorialStore((state) => state.mediaItems);
   const setCropForMedia = useEditorialStore((state) => state.setCropForMedia);
@@ -132,6 +138,10 @@ function PreviewPanel({
     setState({ userTags: tags });
   };
 
+  const handleFacebookUserTagsChange = (tags: UserTagDto[]) => {
+    setState({ facebookUserTags: tags });
+  };
+
   if (activePlatforms.length === 0) {
     return (
       <div className="flex flex-col">
@@ -189,7 +199,9 @@ function PreviewPanel({
             originalMediaSrc={xOriginalSrc}
             croppedPreview={xCroppedPreview}
             onCropComplete={(cropData, croppedPreviewUrl) => {
-              const mediaIndex = mediaItems.findIndex((m) => m.threadIndex === null);
+              const mediaIndex = mediaItems.findIndex(
+                (m) => m.threadIndex === null
+              );
               if (mediaIndex !== -1) {
                 setCropForMedia(mediaIndex, "x", cropData, croppedPreviewUrl);
               }
@@ -201,7 +213,8 @@ function PreviewPanel({
         const mediaItem = mainPostMediaItems[0];
         const originalSrc = mediaItem?.preview;
         const croppedPreview = mediaItem?.croppedPreviews?.instagram;
-        const instagramAspectRatio = mediaItem?.crops?.instagram?.aspectRatio ?? 1;
+        const instagramAspectRatio =
+          mediaItem?.crops?.instagram?.aspectRatio ?? 1;
         return (
           <InstagramPreview
             caption={currentCaption}
@@ -224,7 +237,12 @@ function PreviewPanel({
                   (m) => m.threadIndex === null
                 );
                 if (mediaIndex !== -1) {
-                  setCropForMedia(mediaIndex, "instagram", cropData, croppedPreviewUrl);
+                  setCropForMedia(
+                    mediaIndex,
+                    "instagram",
+                    cropData,
+                    croppedPreviewUrl
+                  );
                 }
               }
             }}
@@ -246,9 +264,16 @@ function PreviewPanel({
             originalMediaSrc={liOriginalSrc}
             croppedPreview={liCroppedPreview}
             onCropComplete={(cropData, croppedPreviewUrl) => {
-              const mediaIndex = mediaItems.findIndex((m) => m.threadIndex === null);
+              const mediaIndex = mediaItems.findIndex(
+                (m) => m.threadIndex === null
+              );
               if (mediaIndex !== -1) {
-                setCropForMedia(mediaIndex, "linkedin", cropData, croppedPreviewUrl);
+                setCropForMedia(
+                  mediaIndex,
+                  "linkedin",
+                  cropData,
+                  croppedPreviewUrl
+                );
               }
             }}
           />
@@ -258,6 +283,7 @@ function PreviewPanel({
         const fbMediaItem = mainPostMediaItems[0];
         const fbOriginalSrc = fbMediaItem?.preview;
         const fbCroppedPreview = fbMediaItem?.croppedPreviews?.facebook;
+        const fbAspectRatio = fbMediaItem?.crops?.facebook?.aspectRatio ?? 1.91;
         return (
           <FacebookPreview
             caption={currentCaption}
@@ -268,10 +294,21 @@ function PreviewPanel({
             avatarUrl={activeAccount.avatarUrl}
             originalMediaSrc={fbOriginalSrc}
             croppedPreview={fbCroppedPreview}
+            postType={facebookPostType}
+            userTags={facebookUserTags}
+            onUserTagsChange={handleFacebookUserTagsChange}
+            aspectRatio={fbAspectRatio}
             onCropComplete={(cropData, croppedPreviewUrl) => {
-              const mediaIndex = mediaItems.findIndex((m) => m.threadIndex === null);
+              const mediaIndex = mediaItems.findIndex(
+                (m) => m.threadIndex === null
+              );
               if (mediaIndex !== -1) {
-                setCropForMedia(mediaIndex, "facebook", cropData, croppedPreviewUrl);
+                setCropForMedia(
+                  mediaIndex,
+                  "facebook",
+                  cropData,
+                  croppedPreviewUrl
+                );
               }
             }}
           />
@@ -293,9 +330,16 @@ function PreviewPanel({
             originalMediaSrc={thOriginalSrc}
             croppedPreview={thCroppedPreview}
             onCropComplete={(cropData, croppedPreviewUrl) => {
-              const mediaIndex = mediaItems.findIndex((m) => m.threadIndex === null);
+              const mediaIndex = mediaItems.findIndex(
+                (m) => m.threadIndex === null
+              );
               if (mediaIndex !== -1) {
-                setCropForMedia(mediaIndex, "threads", cropData, croppedPreviewUrl);
+                setCropForMedia(
+                  mediaIndex,
+                  "threads",
+                  cropData,
+                  croppedPreviewUrl
+                );
               }
             }}
           />
@@ -316,9 +360,16 @@ function PreviewPanel({
             originalMediaSrc={ttOriginalSrc}
             croppedPreview={ttCroppedPreview}
             onCropComplete={(cropData, croppedPreviewUrl) => {
-              const mediaIndex = mediaItems.findIndex((m) => m.threadIndex === null);
+              const mediaIndex = mediaItems.findIndex(
+                (m) => m.threadIndex === null
+              );
               if (mediaIndex !== -1) {
-                setCropForMedia(mediaIndex, "tiktok", cropData, croppedPreviewUrl);
+                setCropForMedia(
+                  mediaIndex,
+                  "tiktok",
+                  cropData,
+                  croppedPreviewUrl
+                );
               }
             }}
           />

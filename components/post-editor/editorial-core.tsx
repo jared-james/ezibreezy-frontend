@@ -65,9 +65,18 @@ export default function EditorialCore({
   const recycleInterval = useEditorialStore((state) => state.recycleInterval);
   const aiGenerated = useEditorialStore((state) => state.aiGenerated);
   const sourceDraftId = useEditorialStore((state) => state.sourceDraftId);
+
+  // General Settings
   const firstComment = useEditorialStore((state) => state.firstComment);
   const postTypeFromStore = useEditorialStore((state) => state.postType);
   const userTags = useEditorialStore((state) => state.userTags);
+
+  // Facebook Specific Settings
+  const facebookPostType = useEditorialStore((state) => state.facebookPostType);
+  const facebookFirstComment = useEditorialStore(
+    (state) => state.facebookFirstComment
+  );
+  const facebookUserTags = useEditorialStore((state) => state.facebookUserTags);
 
   const {
     mainPostMediaFiles,
@@ -246,28 +255,30 @@ export default function EditorialCore({
 
           const platformSpecificContent = localPlatformCaptions[platformId];
 
-          // --- CHANGED LOGIC STARTS HERE ---
+          // --- CONTENT LOGIC ---
           let contentToSend = "";
 
+          const isStory =
+            (platformId === "instagram" && postTypeFromStore === "story") ||
+            (platformId === "facebook" && facebookPostType === "story");
+
           // If it's a Story, we allow the content to be empty and DO NOT fallback to the main caption.
-          // This prevents the Main Caption from accidentally becoming a text overlay on the story.
-          if (postTypeFromStore === "story" && platformId === "instagram") {
+          if (isStory) {
             contentToSend = platformSpecificContent || "";
           } else {
-            // Standard behavior for posts/reels: Use platform specific, or fallback to main caption
+            // Standard behavior: Use platform specific, or fallback to main caption
             contentToSend =
               platformSpecificContent &&
               platformSpecificContent.trim().length > 0
                 ? platformSpecificContent
                 : localMainCaption;
           }
-          // --- CHANGED LOGIC ENDS HERE ---
 
           const payload: CreatePostPayload = {
             userId: user.id,
             integrationId,
             content: contentToSend,
-            settings: baseSettings,
+            settings: { ...baseSettings },
             scheduledAt,
             mediaIds:
               platformMediaIds.length > 0 ? platformMediaIds : undefined,
@@ -278,20 +289,36 @@ export default function EditorialCore({
             recycleInterval: recycleInterval || undefined,
             aiGenerated: aiGenerated || undefined,
             sourceDraftId: sourceDraftId || undefined,
-            postType: postTypeFromStore,
-            userTags,
+            postType: postTypeFromStore, // Default, might be overridden below
+            userTags, // Default, might be overridden below
             mediaCrops,
           };
 
-          if (
-            platformId === "instagram" &&
-            firstComment &&
-            firstComment.trim().length > 0
-          ) {
-            payload.settings = {
-              ...payload.settings,
-              firstComment: firstComment.trim(),
-            };
+          // --- INSTAGRAM SPECIFIC OVERRIDES ---
+          if (platformId === "instagram") {
+            if (firstComment && firstComment.trim().length > 0) {
+              payload.settings!.firstComment = firstComment.trim();
+            }
+          }
+
+          // --- FACEBOOK SPECIFIC OVERRIDES ---
+          if (platformId === "facebook") {
+            // Override Post Type
+            payload.settings!.facebookPostType = facebookPostType;
+
+            // Override First Comment
+            if (
+              facebookFirstComment &&
+              facebookFirstComment.trim().length > 0
+            ) {
+              payload.settings!.facebookFirstComment =
+                facebookFirstComment.trim();
+            }
+
+            // Override User Tags
+            if (facebookUserTags && facebookUserTags.length > 0) {
+              payload.settings!.facebookUserTags = facebookUserTags;
+            }
           }
 
           return postMutation.mutateAsync(payload);

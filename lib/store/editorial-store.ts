@@ -24,6 +24,8 @@ export interface LocationState {
   name: string;
 }
 
+export type PlatformPostType = "post" | "reel" | "story";
+
 export interface EditorialState {
   isScheduling: boolean;
   scheduleDate: string;
@@ -37,13 +39,16 @@ export interface EditorialState {
   collaborators: string;
   location: LocationState;
   firstComment: string;
+  facebookFirstComment: string;
   isInitialized: boolean;
   draft: EditorialDraft | null;
   recycleInterval: number | null;
   aiGenerated: boolean;
   sourceDraftId: string | null;
-  postType: "post" | "reel" | "story";
+  postType: PlatformPostType;
+  facebookPostType: PlatformPostType;
   userTags: UserTagDto[];
+  facebookUserTags: UserTagDto[];
 }
 
 export interface EditorialActions {
@@ -76,13 +81,16 @@ export const initialState: EditorialState = {
   collaborators: "",
   location: { id: null, name: "" },
   firstComment: "",
+  facebookFirstComment: "",
   isInitialized: false,
   draft: null,
   recycleInterval: null,
   aiGenerated: false,
   sourceDraftId: null,
   postType: "post",
+  facebookPostType: "post",
   userTags: [],
+  facebookUserTags: [],
 };
 
 export const useEditorialStore = create<EditorialState & EditorialActions>(
@@ -107,9 +115,10 @@ export const useEditorialStore = create<EditorialState & EditorialActions>(
           labels: draft.distribution?.labels || "",
           threadMessages: draft.distribution?.threadMessages || [],
           collaborators: draft.distribution?.collaborators || "",
-          location: typeof draft.distribution?.location === "string"
-            ? { id: null, name: draft.distribution.location }
-            : { id: null, name: "" },
+          location:
+            typeof draft.distribution?.location === "string"
+              ? { id: null, name: draft.distribution.location }
+              : { id: null, name: "" },
           firstComment: draft.distribution?.firstComment || "",
           isScheduling: draft.schedule?.isScheduled || false,
           scheduleDate: draft.schedule?.date,

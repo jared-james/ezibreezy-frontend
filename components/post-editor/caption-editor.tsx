@@ -193,7 +193,9 @@ export default function CaptionEditor({
   const mainCaption = useEditorialStore((state) => state.mainCaption);
   const platformCaptions = useEditorialStore((state) => state.platformCaptions);
   const firstComment = useEditorialStore((state) => state.firstComment);
+  const facebookFirstComment = useEditorialStore((state) => state.facebookFirstComment);
   const currentPostType = useEditorialStore((state) => state.postType);
+  const facebookPostType = useEditorialStore((state) => state.facebookPostType);
   const setState = useEditorialStore((state) => state.setState);
 
   const [localMainCaption, setLocalMainCaption] = useState(mainCaption);
@@ -202,8 +204,12 @@ export default function CaptionEditor({
   const [localThreadMessages, setLocalThreadMessages] =
     useState(threadMessages);
   const [localFirstComment, setLocalFirstComment] = useState(firstComment);
+  const [localFacebookFirstComment, setLocalFacebookFirstComment] = useState(facebookFirstComment);
   const [showFirstComment, setShowFirstComment] = useState(
     !!firstComment && firstComment.length > 0
+  );
+  const [showFacebookFirstComment, setShowFacebookFirstComment] = useState(
+    !!facebookFirstComment && facebookFirstComment.length > 0
   );
 
   useEffect(() => {
@@ -228,10 +234,25 @@ export default function CaptionEditor({
   }, [firstComment, currentPostType]);
 
   useEffect(() => {
+    setLocalFacebookFirstComment(facebookFirstComment);
+    if (facebookPostType === "story") {
+      setShowFacebookFirstComment(false);
+    } else {
+      setShowFacebookFirstComment(!!facebookFirstComment && facebookFirstComment.length > 0);
+    }
+  }, [facebookFirstComment, facebookPostType]);
+
+  useEffect(() => {
     if (currentPostType === "story") {
       setLocalPlatformCaptions((prev) => ({ ...prev, instagram: "" }));
     }
   }, [currentPostType]);
+
+  useEffect(() => {
+    if (facebookPostType === "story") {
+      setLocalPlatformCaptions((prev) => ({ ...prev, facebook: "" }));
+    }
+  }, [facebookPostType]);
 
   useEffect(() => {
     onLocalCaptionsChange?.(localMainCaption, localPlatformCaptions);
@@ -240,6 +261,10 @@ export default function CaptionEditor({
   useEffect(() => {
     setState({ firstComment: localFirstComment });
   }, [localFirstComment, setState]);
+
+  useEffect(() => {
+    setState({ facebookFirstComment: localFacebookFirstComment });
+  }, [localFacebookFirstComment, setState]);
 
   const [isHashtagModalOpen, setIsHashtagModalOpen] = useState(false);
   const [targetPlatformId, setTargetPlatformId] = useState<string | null>(null);
@@ -304,6 +329,10 @@ export default function CaptionEditor({
         const newComment = localFirstComment.trimEnd() + hashtagsWithPadding;
         setLocalFirstComment(newComment);
         setTargetPlatformId(null);
+      } else if (targetPlatformId === "facebook_first_comment") {
+        const newComment = localFacebookFirstComment.trimEnd() + hashtagsWithPadding;
+        setLocalFacebookFirstComment(newComment);
+        setTargetPlatformId(null);
       } else if (targetPlatformId) {
         const currentCaption =
           localPlatformCaptions[targetPlatformId] || localMainCaption;
@@ -323,6 +352,7 @@ export default function CaptionEditor({
       targetPlatformId,
       targetThreadIndex,
       localFirstComment,
+      localFacebookFirstComment,
     ]
   );
 
@@ -372,10 +402,12 @@ export default function CaptionEditor({
 
         const supportsThreading =
           platformId === "x" || platformId === "threads";
-        const supportsFirstComment = platformId === "instagram";
-        const supportsPostTypeSelection = platformId === "instagram";
-        const isStory =
-          platformId === "instagram" && currentPostType === "story";
+        const supportsFirstComment = platformId === "instagram" || platformId === "facebook";
+        const supportsPostTypeSelection = platformId === "instagram" || platformId === "facebook";
+
+        const isInstagramStory = platformId === "instagram" && currentPostType === "story";
+        const isFacebookStory = platformId === "facebook" && facebookPostType === "story";
+        const isStory = isInstagramStory || isFacebookStory;
 
         const currentCaption = localPlatformCaptions[platformId] || "";
 
@@ -445,11 +477,20 @@ export default function CaptionEditor({
                 disabled={isStory}
               />
 
-              {supportsPostTypeSelection && (
+              {supportsPostTypeSelection && platformId === "instagram" && (
                 <div className="flex justify-end">
                   <PostTypeSelector
                     currentType={currentPostType}
                     onTypeChange={(type) => setState({ postType: type })}
+                  />
+                </div>
+              )}
+
+              {supportsPostTypeSelection && platformId === "facebook" && (
+                <div className="flex justify-end">
+                  <PostTypeSelector
+                    currentType={facebookPostType}
+                    onTypeChange={(type) => setState({ facebookPostType: type })}
                   />
                 </div>
               )}
@@ -527,7 +568,7 @@ export default function CaptionEditor({
                 </>
               )}
 
-              {supportsFirstComment && (
+              {supportsFirstComment && platformId === "instagram" && (
                 <>
                   {showFirstComment ? (
                     <div className="relative pl-6 before:absolute before:left-0 before:top-0 before:h-full before:w-px before:bg-border ml-2">
@@ -589,6 +630,69 @@ export default function CaptionEditor({
                   )}
                 </>
               )}
+
+              {supportsFirstComment && platformId === "facebook" && (
+                <>
+                  {showFacebookFirstComment ? (
+                    <div className="relative pl-6 before:absolute before:left-0 before:top-0 before:h-full before:w-px before:bg-border ml-2">
+                      <div className="space-y-3">
+                        <div className="flex items-center justify-between">
+                          <p className="eyebrow flex items-center gap-1.5 text-[0.65rem]">
+                            <MessageSquare className="h-3 w-3" />
+                            First Comment
+                          </p>
+                          <Button
+                            type="button"
+                            onClick={() => {
+                              setLocalFacebookFirstComment("");
+                              setShowFacebookFirstComment(false);
+                            }}
+                            variant="ghost"
+                            size="sm"
+                            className="h-6 px-2 text-muted-foreground hover:text-error"
+                          >
+                            <Trash2 className="h-3 w-3" />
+                          </Button>
+                        </div>
+                        <div className="relative">
+                          <Textarea
+                            rows={4}
+                            value={localFacebookFirstComment}
+                            onChange={(e) =>
+                              setLocalFacebookFirstComment(e.target.value)
+                            }
+                            placeholder="Add your hashtags or opening line here..."
+                            className="min-h-24 pr-10"
+                          />
+                          <button
+                            type="button"
+                            onClick={() =>
+                              openHashtagModal("facebook_first_comment")
+                            }
+                            className="absolute bottom-3 right-3 text-muted-foreground hover:text-brand-primary transition-colors"
+                          >
+                            <Hash className="h-4 w-4" />
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="flex justify-end">
+                      <Button
+                        type="button"
+                        onClick={() => setShowFacebookFirstComment(true)}
+                        variant="ghost"
+                        size="sm"
+                        className="gap-1 text-xs text-muted-foreground hover:text-foreground"
+                        disabled={facebookPostType === "story"}
+                      >
+                        <Plus className="h-3 w-3" />
+                        Add first comment
+                      </Button>
+                    </div>
+                  )}
+                </>
+              )}
             </div>
           </div>
         );
@@ -604,6 +708,8 @@ export default function CaptionEditor({
             ? localMainCaption
             : targetPlatformId === "instagram_first_comment"
             ? localFirstComment
+            : targetPlatformId === "facebook_first_comment"
+            ? localFacebookFirstComment
             : localPlatformCaptions[targetPlatformId || ""] || ""
         }
         onSave={handleInsertHashtags}

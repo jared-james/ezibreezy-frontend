@@ -19,7 +19,12 @@ import { renderCaptionWithHashtags } from "./render-caption";
 import { UserTagDto } from "@/lib/api/publishing";
 import { ImageCropperModal } from "./image-cropper-modal";
 import type { PixelCrop } from "react-image-crop";
-import { createCroppedPreviewUrl, type CropData, STORY_ASPECT_RATIO, calculateCenteredCrop } from "@/lib/utils/crop-utils";
+import {
+  createCroppedPreviewUrl,
+  type CropData,
+  STORY_ASPECT_RATIO,
+  calculateCenteredCrop,
+} from "@/lib/utils/crop-utils";
 
 interface InstagramPreviewProps {
   caption: string;
@@ -35,7 +40,10 @@ interface InstagramPreviewProps {
   onUserTagsChange: (tags: UserTagDto[]) => void;
   originalMediaSrc?: string;
   croppedPreview?: string;
-  onCropComplete?: (cropData: CropData | undefined, croppedPreviewUrl: string) => void;
+  onCropComplete?: (
+    cropData: CropData | undefined,
+    croppedPreviewUrl: string
+  ) => void;
   /** The aspect ratio of the cropped image (width/height). Defaults to 1 (square). */
   aspectRatio?: number;
 }
@@ -270,9 +278,7 @@ function InstagramPreview({
   };
 
   return (
-    <div
-      className="w-full max-w-sm bg-[--surface] border border-[--border] shadow-lg mx-auto transition-all duration-300"
-    >
+    <div className="w-full max-w-sm bg-[--surface] border border-[--border] shadow-lg mx-auto transition-all duration-300">
       <div className="flex items-center justify-between p-3 border-b border-[--border]">
         <div className="flex items-center gap-3">
           <ProfileAvatar

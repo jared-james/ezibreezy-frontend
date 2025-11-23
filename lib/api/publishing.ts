@@ -24,6 +24,10 @@ export interface PostSettings {
   canonicalContent?: string;
   postType?: "post" | "reel" | "story";
   userTags?: UserTagDto[];
+  // Facebook Specific Overrides
+  facebookPostType?: "post" | "reel" | "story";
+  facebookFirstComment?: string;
+  facebookUserTags?: UserTagDto[];
 }
 
 export interface CreatePostPayload {
