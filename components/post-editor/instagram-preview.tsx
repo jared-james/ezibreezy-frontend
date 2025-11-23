@@ -182,20 +182,23 @@ function InstagramPreview({
         {localTags.map((tag, index) => (
           <div
             key={index}
-            className="absolute group flex items-center gap-1 rounded bg-black/70 p-1 text-xs text-white"
+            className="absolute group"
             style={{
               left: `${tag.x * 100}%`,
               top: `${tag.y * 100}%`,
-              transform: "translate(-50%, -50%)",
+              transform: "translate(-50%, -100%)",
             }}
           >
-            <span>{tag.username}</span>
-            <button
-              onClick={() => handleRemoveTag(index)}
-              className="opacity-0 group-hover:opacity-100"
-            >
-              <X className="h-3 w-3" />
-            </button>
+            <div className="relative flex items-center gap-1 rounded-md px-2 py-1 text-xs font-semibold text-white shadow-lg" style={{ backgroundColor: "rgba(0,0,0,0.85)" }}>
+              <span>{tag.username}</span>
+              <button
+                onClick={() => handleRemoveTag(index)}
+                className="opacity-0 group-hover:opacity-100 ml-1 hover:text-red-400"
+              >
+                <X className="h-3 w-3" />
+              </button>
+              <div className="absolute left-1/2 -bottom-1.5 -translate-x-1/2 w-0 h-0 border-l-[6px] border-l-transparent border-r-[6px] border-r-transparent border-t-[6px]" style={{ borderTopColor: "rgba(0,0,0,0.85)" }} />
+            </div>
           </div>
         ))}
 
@@ -265,7 +268,12 @@ function InstagramPreview({
       <div className="p-3 text-center border-t border-[--border]">
         {isTaggingSupported ? (
           <button
-            onClick={() => setIsTaggingMode(!isTaggingMode)}
+            onClick={() => {
+              if (isTaggingMode) {
+                setNewTag(null);
+              }
+              setIsTaggingMode(!isTaggingMode);
+            }}
             className={cn(
               "flex items-center gap-2 justify-center w-full font-serif font-bold text-sm",
               isTaggingMode
