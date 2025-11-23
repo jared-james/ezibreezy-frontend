@@ -157,6 +157,43 @@ export async function createCroppedFile(
   return new File([blob], newFileName, { type: "image/jpeg" });
 }
 
+/**
+ * Calculate a centered crop for a given aspect ratio.
+ * Returns the crop coordinates in pixels relative to the displayed image dimensions.
+ */
+export function calculateCenteredCrop(
+  imageWidth: number,
+  imageHeight: number,
+  targetAspectRatio: number
+): PixelCrop {
+  const imageAspectRatio = imageWidth / imageHeight;
+
+  let cropWidth: number;
+  let cropHeight: number;
+
+  if (imageAspectRatio > targetAspectRatio) {
+    // Image is wider than target - crop the sides
+    cropHeight = imageHeight;
+    cropWidth = imageHeight * targetAspectRatio;
+  } else {
+    // Image is taller than target - crop the top/bottom
+    cropWidth = imageWidth;
+    cropHeight = imageWidth / targetAspectRatio;
+  }
+
+  // Center the crop
+  const x = (imageWidth - cropWidth) / 2;
+  const y = (imageHeight - cropHeight) / 2;
+
+  return {
+    x: Math.round(x),
+    y: Math.round(y),
+    width: Math.round(cropWidth),
+    height: Math.round(cropHeight),
+    unit: "px",
+  };
+}
+
 export async function applyCropsForPlatform(
   mediaItems: Array<{
     file: File | null;

@@ -19,7 +19,7 @@ import { renderCaptionWithHashtags } from "./render-caption";
 import { UserTagDto } from "@/lib/api/publishing";
 import { ImageCropperModal } from "./image-cropper-modal";
 import type { PixelCrop } from "react-image-crop";
-import { createCroppedPreviewUrl, type CropData, STORY_ASPECT_RATIO } from "@/lib/utils/crop-utils";
+import { createCroppedPreviewUrl, type CropData, STORY_ASPECT_RATIO, calculateCenteredCrop } from "@/lib/utils/crop-utils";
 
 interface InstagramPreviewProps {
   caption: string;
@@ -124,19 +124,64 @@ function InstagramPreview({
   // Track previous postType to detect transitions
   const prevPostTypeRef = useRef(postType);
   useEffect(() => {
-    // If switching from 'story' to 'post' and the current aspect ratio is story (9:16),
-    // reset the crop to prevent showing an invalid aspect ratio for posts
-    if (
-      prevPostTypeRef.current === "story" &&
-      postType === "post" &&
-      aspectRatio === STORY_ASPECT_RATIO &&
-      onCropComplete
-    ) {
-      // Reset the crop by passing undefined
-      onCropComplete(undefined, "");
-    }
-    prevPostTypeRef.current = postType;
-  }, [postType, aspectRatio, onCropComplete]);
+    const applyAutoCrop = async () => {
+      if (!originalMediaSrc || !onCropComplete) return;
+
+      // If switching TO 'story', auto-crop to 9:16
+      if (prevPostTypeRef.current !== "story" && postType === "story") {
+        try {
+          // Load image to get dimensions
+          const img = new window.Image();
+          img.src = originalMediaSrc;
+          await new Promise<void>((resolve, reject) => {
+            img.onload = () => resolve();
+            img.onerror = reject;
+          });
+
+          const displayedWidth = img.naturalWidth;
+          const displayedHeight = img.naturalHeight;
+
+          // Calculate centered crop for story aspect ratio
+          const cropPixels = calculateCenteredCrop(
+            displayedWidth,
+            displayedHeight,
+            STORY_ASPECT_RATIO
+          );
+
+          // Create cropped preview URL
+          const croppedUrl = await createCroppedPreviewUrl(
+            originalMediaSrc,
+            cropPixels,
+            displayedWidth,
+            displayedHeight
+          );
+
+          const cropData: CropData = {
+            croppedAreaPixels: cropPixels,
+            aspectRatio: STORY_ASPECT_RATIO,
+          };
+
+          onCropComplete(cropData, croppedUrl);
+        } catch (error) {
+          console.error("Failed to auto-crop for story:", error);
+        }
+      }
+      // If switching FROM 'story' to 'post' and the current aspect ratio is story (9:16),
+      // reset the crop to prevent showing an invalid aspect ratio for posts
+      else if (
+        prevPostTypeRef.current === "story" &&
+        postType === "post" &&
+        aspectRatio === STORY_ASPECT_RATIO
+      ) {
+        // Reset the crop by passing undefined
+        onCropComplete(undefined, "");
+      }
+
+      prevPostTypeRef.current = postType;
+    };
+
+    applyAutoCrop();
+  }, [postType, aspectRatio, onCropComplete, originalMediaSrc]);
 
   const handleCropComplete = async (
     croppedAreaPixels: PixelCrop,
