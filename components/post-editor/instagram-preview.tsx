@@ -271,11 +271,7 @@ function InstagramPreview({
 
   return (
     <div
-      className={cn(
-        "w-full bg-[--surface] border border-[--border] shadow-lg mx-auto transition-all duration-300",
-        // Conditionally tighten the width for Stories to prevent them from being too tall
-        postType === "story" ? "max-w-[260px]" : "max-w-sm"
-      )}
+      className="w-full max-w-sm bg-[--surface] border border-[--border] shadow-lg mx-auto transition-all duration-300"
     >
       <div className="flex items-center justify-between p-3 border-b border-[--border]">
         <div className="flex items-center gap-3">
