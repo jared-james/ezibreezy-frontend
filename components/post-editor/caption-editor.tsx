@@ -78,6 +78,7 @@ const CaptionTextarea = ({
   placeholder,
   platformId,
   onHashtagClick,
+  disabled,
 }: {
   id: string;
   value: string;
@@ -85,6 +86,7 @@ const CaptionTextarea = ({
   placeholder: string;
   platformId: string;
   onHashtagClick: (platformId: string) => void;
+  disabled?: boolean;
 }) => (
   <div className="relative">
     <Textarea
@@ -94,11 +96,13 @@ const CaptionTextarea = ({
       onChange={onChange}
       placeholder={placeholder}
       className="min-h-32 pr-10"
+      disabled={disabled}
     />
     <button
       type="button"
       onClick={() => onHashtagClick(platformId)}
       className="absolute bottom-3 right-3 text-muted-foreground hover:text-brand-primary transition-colors"
+      disabled={disabled}
     >
       <Hash className="h-4 w-4" />
     </button>
@@ -222,6 +226,12 @@ export default function CaptionEditor({
       setShowFirstComment(!!firstComment && firstComment.length > 0);
     }
   }, [firstComment, currentPostType]);
+
+  useEffect(() => {
+    if (currentPostType === "story") {
+      setLocalPlatformCaptions((prev) => ({ ...prev, instagram: "" }));
+    }
+  }, [currentPostType]);
 
   useEffect(() => {
     onLocalCaptionsChange?.(localMainCaption, localPlatformCaptions);
@@ -364,6 +374,8 @@ export default function CaptionEditor({
           platformId === "x" || platformId === "threads";
         const supportsFirstComment = platformId === "instagram";
         const supportsPostTypeSelection = platformId === "instagram";
+        const isStory =
+          platformId === "instagram" && currentPostType === "story";
 
         const currentCaption = localPlatformCaptions[platformId] || "";
 
@@ -416,16 +428,21 @@ export default function CaptionEditor({
             <div className="space-y-4">
               <CaptionTextarea
                 id={`caption-${platformId}`}
-                value={currentCaption}
+                value={isStory ? "" : currentCaption}
                 onChange={(event) =>
                   setLocalPlatformCaptions((prev) => ({
                     ...prev,
                     [platformId]: event.target.value,
                   }))
                 }
-                placeholder={`${platform.name} specific caption...`}
+                placeholder={
+                  isStory
+                    ? "Captions are not used for Instagram Stories."
+                    : `${platform.name} specific caption...`
+                }
                 platformId={platformId}
                 onHashtagClick={openHashtagModal}
+                disabled={isStory}
               />
 
               {supportsPostTypeSelection && (
