@@ -1,7 +1,7 @@
 // components/post-editor/editorial-core.tsx
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { FileText } from "lucide-react";
 import { toast } from "sonner";
 import { createClient } from "@/lib/supabase/client";
@@ -66,6 +66,7 @@ export default function EditorialCore({
   const sourceDraftId = useEditorialStore((state) => state.sourceDraftId);
   const firstComment = useEditorialStore((state) => state.firstComment);
   const postTypeFromStore = useEditorialStore((state) => state.postType);
+  const userTags = useEditorialStore((state) => state.userTags);
 
   const {
     mainPostMediaFiles,
@@ -202,6 +203,7 @@ export default function EditorialCore({
       locationId: localLocation.id || undefined,
       canonicalContent: localMainCaption,
       postType: postTypeFromStore,
+      userTags,
     };
 
     const finalThreadMessagesForPublish = storeThreadMessages
@@ -254,6 +256,7 @@ export default function EditorialCore({
             aiGenerated: aiGenerated || undefined,
             sourceDraftId: sourceDraftId || undefined,
             postType: postTypeFromStore,
+            userTags,
           };
 
           if (

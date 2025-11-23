@@ -5,7 +5,7 @@
 import { create } from "zustand";
 import type { SelectedAccounts, ThreadMessage } from "@/lib/types/editorial";
 import { type EditorialDraft } from "@/lib/types/editorial";
-import { FullPostDetails } from "@/lib/api/publishing";
+import { FullPostDetails, UserTagDto } from "@/lib/api/publishing";
 import { format } from "date-fns";
 
 export interface MediaItem {
@@ -40,6 +40,7 @@ export interface EditorialState {
   aiGenerated: boolean;
   sourceDraftId: string | null;
   postType: "post" | "reel" | "story";
+  userTags: UserTagDto[];
 }
 
 export interface EditorialActions {
@@ -72,6 +73,7 @@ export const initialState: EditorialState = {
   aiGenerated: false,
   sourceDraftId: null,
   postType: "post",
+  userTags: [],
 };
 
 export const useEditorialStore = create<EditorialState & EditorialActions>(
@@ -106,6 +108,7 @@ export const useEditorialStore = create<EditorialState & EditorialActions>(
           aiGenerated: draft.aiGenerated || false,
           sourceDraftId: draft.sourceDraftId || null,
           postType: draft.postType || "post",
+          userTags: draft.distribution?.userTags || [],
         };
         set(updates);
       }
@@ -187,6 +190,7 @@ export const useEditorialStore = create<EditorialState & EditorialActions>(
         isInitialized: true,
         sourceDraftId: isEditable ? fullPost.id : null,
         postType: settings.postType || "post",
+        userTags: settings.userTags || [],
       };
 
       set(updates);

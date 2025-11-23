@@ -23,8 +23,9 @@ import ThreadsPreview from "./threads-preview";
 import TikTokPreview from "./tiktok-preview";
 import { cn } from "@/lib/utils";
 import { usePostEditor } from "@/lib/hooks/use-post-editor";
-import { LocationState } from "@/lib/store/editorial-store";
+import { LocationState, useEditorialStore } from "@/lib/store/editorial-store";
 import { useQuery } from "@tanstack/react-query";
+import { UserTagDto } from "@/lib/api/publishing";
 
 const platformIcons: Record<string, React.ElementType> = {
   x: Twitter,
@@ -61,7 +62,14 @@ function PreviewPanel({
   collaborators,
   location,
 }: PreviewPanelProps) {
-  const { postType, mainPostMediaPreviews, threadMessages } = usePostEditor();
+  const {
+    postType: mediaPostType,
+    mainPostMediaPreviews,
+    threadMessages,
+  } = usePostEditor();
+  const userTags = useEditorialStore((state) => state.userTags);
+  const postType = useEditorialStore((state) => state.postType);
+  const setState = useEditorialStore((state) => state.setState);
 
   const { data: connections = [] } = useQuery({
     queryKey: ["connections"],
@@ -111,6 +119,10 @@ function PreviewPanel({
     () => platformCaptions[validActiveTab] || mainCaption,
     [platformCaptions, validActiveTab, mainCaption]
   );
+
+  const handleUserTagsChange = (tags: UserTagDto[]) => {
+    setState({ userTags: tags });
+  };
 
   if (activePlatforms.length === 0) {
     return (
@@ -162,7 +174,7 @@ function PreviewPanel({
             platformUsername={activeAccount.platformUsername}
             displayName={activeAccount.name}
             avatarUrl={activeAccount.avatarUrl}
-            postType={postType}
+            postType={mediaPostType}
           />
         );
       case "instagram":
@@ -175,6 +187,9 @@ function PreviewPanel({
             avatarUrl={activeAccount.avatarUrl}
             collaborators={collaborators}
             location={location.name}
+            postType={postType}
+            userTags={userTags}
+            onUserTagsChange={handleUserTagsChange}
           />
         );
       case "linkedin":

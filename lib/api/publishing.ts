@@ -7,6 +7,12 @@ export interface ThreadMessagePayload {
   mediaIds?: string[];
 }
 
+export interface UserTagDto {
+  username: string;
+  x: number;
+  y: number;
+}
+
 export interface PostSettings {
   labels?: string;
   hashtags?: string;
@@ -16,6 +22,7 @@ export interface PostSettings {
   firstComment?: string;
   canonicalContent?: string;
   postType?: "post" | "reel" | "story";
+  userTags?: UserTagDto[];
 }
 
 export interface CreatePostPayload {
@@ -30,6 +37,7 @@ export interface CreatePostPayload {
   aiGenerated?: boolean;
   sourceDraftId?: string;
   postType?: "post" | "reel" | "story";
+  userTags?: UserTagDto[];
 }
 
 export interface RescheduleOnlyPayload {
