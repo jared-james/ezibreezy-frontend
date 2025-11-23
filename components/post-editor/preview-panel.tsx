@@ -201,6 +201,7 @@ function PreviewPanel({
         const mediaItem = mainPostMediaItems[0];
         const originalSrc = mediaItem?.preview;
         const croppedPreview = mediaItem?.croppedPreviews?.instagram;
+        const instagramAspectRatio = mediaItem?.crops?.instagram?.aspectRatio ?? 1;
         return (
           <InstagramPreview
             caption={currentCaption}
@@ -216,6 +217,7 @@ function PreviewPanel({
             onUserTagsChange={handleUserTagsChange}
             originalMediaSrc={originalSrc}
             croppedPreview={croppedPreview}
+            aspectRatio={instagramAspectRatio}
             onCropComplete={(cropData, croppedPreviewUrl) => {
               if (mainPostMediaItems.length > 0) {
                 const mediaIndex = mediaItems.findIndex(
