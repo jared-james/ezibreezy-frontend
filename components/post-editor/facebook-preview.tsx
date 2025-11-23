@@ -1,7 +1,7 @@
 // components/post-editor/facebook-preview.tsx
 
-import { memo, useState, useRef, useEffect } from "react";
-import { ThumbsUp, MessageCircle, Share2, ImageIcon, Crop } from "lucide-react";
+import { memo, useState, useRef, useEffect, useMemo } from "react";
+import { ThumbsUp, MessageCircle, Share2, Crop, Link2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { renderCaptionWithHashtags } from "./render-caption";
 import { ImageCropperModal } from "./image-cropper-modal";
@@ -12,6 +12,45 @@ import {
   STORY_ASPECT_RATIO,
   calculateCenteredCrop,
 } from "@/lib/utils/crop-utils";
+
+// URL regex pattern to detect links in caption (matches backend pattern)
+// Handles: https://..., http://..., www.example.com, example.com
+const URL_REGEX = /(https?:\/\/[^\s]+|www\.[^\s]+|[a-zA-Z0-9][-a-zA-Z0-9]*\.[a-zA-Z]{2,}(?:\/[^\s]*)?)/gi;
+
+// Extract first URL from text
+function extractFirstUrl(text: string): string | null {
+  const matches = text.match(URL_REGEX);
+  if (!matches) return null;
+
+  // Filter out common false positives (e.g., "word.word" without TLD context)
+  const validUrl = matches.find(match => {
+    // If it starts with http/https or www, it's definitely a URL
+    if (match.startsWith('http') || match.startsWith('www.')) return true;
+    // Otherwise, check if it looks like a real domain (has common TLD)
+    const commonTlds = /\.(com|org|net|io|co|app|dev|me|info|biz|edu|gov|uk|ca|au|de|fr|jp|cn|br|in|ru|nl|it|es|pl|be|ch|at|se|no|dk|fi|nz|za|mx|ar|cl|sg|hk|kr|tw|my|ph|th|vn|id)\b/i;
+    return commonTlds.test(match);
+  });
+
+  return validUrl || null;
+}
+
+// Get domain from URL for display
+function getDomainFromUrl(url: string): string {
+  try {
+    // Add protocol if missing so URL parser works
+    const urlWithProtocol = url.startsWith("http") ? url : `https://${url}`;
+    const urlObj = new URL(urlWithProtocol);
+    return urlObj.hostname.replace(/^www\./, "").toUpperCase();
+  } catch {
+    // Fallback: extract domain-like part
+    return url.replace(/^www\./, "").split("/")[0].toUpperCase();
+  }
+}
+
+// Remove URL from caption (Facebook strips the link when showing preview)
+function stripUrlFromCaption(caption: string, url: string): string {
+  return caption.replace(url, "").trim();
+}
 
 interface FacebookPreviewProps {
   caption: string;
@@ -82,6 +121,20 @@ function FacebookPreview({
 
   const displayMediaSrc = croppedPreview || mediaPreview;
   const canCrop = originalMediaSrc && mediaType === "image" && onCropComplete;
+
+  // Detect URL in caption for link preview
+  const detectedUrl = useMemo(() => extractFirstUrl(caption), [caption]);
+
+  // Show link preview if there's a URL and no media attached
+  const showLinkPreview = detectedUrl && !displayMediaSrc;
+
+  // Strip URL from caption when showing link preview (FB behavior)
+  const displayCaption = useMemo(() => {
+    if (showLinkPreview && detectedUrl) {
+      return stripUrlFromCaption(caption, detectedUrl);
+    }
+    return caption;
+  }, [caption, showLinkPreview, detectedUrl]);
 
   const prevPostTypeRef = useRef(postType);
   useEffect(() => {
@@ -208,22 +261,18 @@ function FacebookPreview({
         </div>
       </div>
 
-      {postType !== "story" && (
+      {postType !== "story" && displayCaption && (
         <div className="px-3 pb-3">
           <p className="text-sm text-[--foreground] whitespace-pre-wrap">
-            {renderCaptionWithHashtags(caption)}
+            {renderCaptionWithHashtags(displayCaption)}
           </p>
         </div>
       )}
 
-      <div
-        className={cn(
-          "relative bg-[--background]",
-          !displayMediaSrc && "aspect-video flex items-center justify-center"
-        )}
-      >
-        {displayMediaSrc ? (
-          mediaType === "video" ? (
+      {/* Media or Link Preview section */}
+      {displayMediaSrc ? (
+        <div className="relative bg-[--background]">
+          {mediaType === "video" ? (
             <video
               src={displayMediaSrc}
               className="w-full h-auto block"
@@ -238,14 +287,25 @@ function FacebookPreview({
               alt="Media Preview"
               className="w-full h-auto block"
             />
-          )
-        ) : (
-          <div className="flex flex-col items-center justify-center text-[--muted-foreground] text-center p-8">
-            <ImageIcon className="w-8 h-8 mb-2" />
-            <p className="text-sm">No media attached</p>
+          )}
+        </div>
+      ) : showLinkPreview && detectedUrl ? (
+        <div className="border-t border-b border-[--border] bg-[--background]">
+          {/* Link preview placeholder image area */}
+          <div className="aspect-[1.91/1] bg-[--muted] flex items-center justify-center">
+            <Link2 className="w-12 h-12 text-[--muted-foreground]" />
           </div>
-        )}
-      </div>
+          {/* Link preview metadata */}
+          <div className="p-3 bg-[--surface]">
+            <p className="text-xs text-[--muted-foreground] uppercase">
+              {getDomainFromUrl(detectedUrl)}
+            </p>
+            <p className="text-sm font-semibold text-[--foreground] mt-1 line-clamp-2">
+              Link Preview
+            </p>
+          </div>
+        </div>
+      ) : null}
 
       {postType !== "story" && (
         <div className="flex items-center justify-between px-3 py-2 text-xs text-[--muted-foreground]">
