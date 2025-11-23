@@ -107,7 +107,9 @@ export const useEditorialStore = create<EditorialState & EditorialActions>(
           labels: draft.distribution?.labels || "",
           threadMessages: draft.distribution?.threadMessages || [],
           collaborators: draft.distribution?.collaborators || "",
-          location: draft.distribution?.location || { id: null, name: "" },
+          location: typeof draft.distribution?.location === "string"
+            ? { id: null, name: draft.distribution.location }
+            : { id: null, name: "" },
           firstComment: draft.distribution?.firstComment || "",
           isScheduling: draft.schedule?.isScheduled || false,
           scheduleDate: draft.schedule?.date,
@@ -116,7 +118,7 @@ export const useEditorialStore = create<EditorialState & EditorialActions>(
           recycleInterval: draft.recycleInterval || null,
           aiGenerated: draft.aiGenerated || false,
           sourceDraftId: draft.sourceDraftId || null,
-          postType: draft.postType || "post",
+          postType: draft.postType === "video" ? "reel" : "post",
           userTags: draft.distribution?.userTags || [],
         };
         set(updates);

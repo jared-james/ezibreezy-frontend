@@ -172,7 +172,7 @@ function ImageCropperModalContent({
         setCrop(newCrop);
       }
     },
-    [initialCrop, aspectRatio]
+    [initialCrop, aspectRatio, setCrop]
   );
 
   const handleSave = useCallback(() => {
@@ -204,7 +204,7 @@ function ImageCropperModalContent({
       };
       setCompletedCrop(pixelCrop);
     }
-  }, []);
+  }, [setCrop, setCompletedCrop]);
 
   const handleReset = useCallback(() => {
     const def = getDefaultAspectRatio(platform);
@@ -223,7 +223,7 @@ function ImageCropperModalContent({
       };
       setCompletedCrop(pixelCrop);
     }
-  }, [platform]);
+  }, [platform, setCrop, setCompletedCrop]);
 
   const platformNames: Record<SocialPlatform, string> = {
     instagram: "Instagram",

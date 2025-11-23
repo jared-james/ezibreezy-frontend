@@ -93,7 +93,7 @@ export default function EditClippingModal({
         platformCaptions: {},
         labels: "",
         collaborators: "",
-        location: "",
+        location: { id: null, name: "" },
         scheduleDate: new Date().toISOString().split("T")[0],
         scheduleTime: "12:00",
         sourceDraftId: null,
@@ -136,7 +136,7 @@ export default function EditClippingModal({
         labels,
         threadMessages,
         collaborators,
-        location,
+        location: location.name,
       },
       schedule: {
         isScheduled: useEditorialStore.getState().isScheduling,
