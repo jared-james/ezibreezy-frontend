@@ -15,6 +15,7 @@ export interface PostSettings {
   locationId?: string;
   firstComment?: string;
   canonicalContent?: string;
+  postType?: "post" | "reel" | "story";
 }
 
 export interface CreatePostPayload {
@@ -28,6 +29,7 @@ export interface CreatePostPayload {
   recycleInterval?: number;
   aiGenerated?: boolean;
   sourceDraftId?: string;
+  postType?: "post" | "reel" | "story";
 }
 
 export interface RescheduleOnlyPayload {

@@ -39,6 +39,7 @@ export interface EditorialState {
   recycleInterval: number | null;
   aiGenerated: boolean;
   sourceDraftId: string | null;
+  postType: "post" | "reel" | "story";
 }
 
 export interface EditorialActions {
@@ -70,6 +71,7 @@ export const initialState: EditorialState = {
   recycleInterval: null,
   aiGenerated: false,
   sourceDraftId: null,
+  postType: "post",
 };
 
 export const useEditorialStore = create<EditorialState & EditorialActions>(
@@ -103,6 +105,7 @@ export const useEditorialStore = create<EditorialState & EditorialActions>(
           recycleInterval: draft.recycleInterval || null,
           aiGenerated: draft.aiGenerated || false,
           sourceDraftId: draft.sourceDraftId || null,
+          postType: draft.postType || "post",
         };
         set(updates);
       }
@@ -183,6 +186,7 @@ export const useEditorialStore = create<EditorialState & EditorialActions>(
           : "12:00",
         isInitialized: true,
         sourceDraftId: isEditable ? fullPost.id : null,
+        postType: settings.postType || "post",
       };
 
       set(updates);

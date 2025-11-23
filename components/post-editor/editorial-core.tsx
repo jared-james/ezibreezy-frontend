@@ -65,6 +65,7 @@ export default function EditorialCore({
   const aiGenerated = useEditorialStore((state) => state.aiGenerated);
   const sourceDraftId = useEditorialStore((state) => state.sourceDraftId);
   const firstComment = useEditorialStore((state) => state.firstComment);
+  const postTypeFromStore = useEditorialStore((state) => state.postType);
 
   const {
     mainPostMediaFiles,
@@ -200,6 +201,7 @@ export default function EditorialCore({
       location: localLocation.name,
       locationId: localLocation.id || undefined,
       canonicalContent: localMainCaption,
+      postType: postTypeFromStore,
     };
 
     const finalThreadMessagesForPublish = storeThreadMessages
@@ -251,6 +253,7 @@ export default function EditorialCore({
             recycleInterval: recycleInterval || undefined,
             aiGenerated: aiGenerated || undefined,
             sourceDraftId: sourceDraftId || undefined,
+            postType: postTypeFromStore,
           };
 
           if (

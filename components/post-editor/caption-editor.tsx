@@ -14,6 +14,8 @@ import {
   AtSign,
   Music2,
   MessageSquare,
+  Book,
+  Clapperboard,
 } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
@@ -134,6 +136,43 @@ const ThreadTextarea = ({
   </div>
 );
 
+const PostTypeSelector = ({
+  currentType,
+  onTypeChange,
+}: {
+  currentType: "post" | "story" | "reel";
+  onTypeChange: (type: "post" | "story" | "reel") => void;
+}) => (
+  <div className="flex items-center gap-2">
+    <button
+      type="button"
+      onClick={() => onTypeChange("post")}
+      className={cn(
+        "flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-medium transition-colors",
+        currentType === "post"
+          ? "border-brand-primary bg-brand-primary/10 text-brand-primary"
+          : "border-border bg-transparent text-muted-foreground hover:bg-surface-hover"
+      )}
+    >
+      <Book className="h-3 w-3" />
+      Post
+    </button>
+    <button
+      type="button"
+      onClick={() => onTypeChange("story")}
+      className={cn(
+        "flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-medium transition-colors",
+        currentType === "story"
+          ? "border-brand-primary bg-brand-primary/10 text-brand-primary"
+          : "border-border bg-transparent text-muted-foreground hover:bg-surface-hover"
+      )}
+    >
+      <Clapperboard className="h-3 w-3" />
+      Story
+    </button>
+  </div>
+);
+
 export default function CaptionEditor({
   selectedAccounts,
   platforms,
@@ -150,6 +189,7 @@ export default function CaptionEditor({
   const mainCaption = useEditorialStore((state) => state.mainCaption);
   const platformCaptions = useEditorialStore((state) => state.platformCaptions);
   const firstComment = useEditorialStore((state) => state.firstComment);
+  const currentPostType = useEditorialStore((state) => state.postType);
   const setState = useEditorialStore((state) => state.setState);
 
   const [localMainCaption, setLocalMainCaption] = useState(mainCaption);
@@ -176,8 +216,12 @@ export default function CaptionEditor({
 
   useEffect(() => {
     setLocalFirstComment(firstComment);
-    setShowFirstComment(!!firstComment && firstComment.length > 0);
-  }, [firstComment]);
+    if (currentPostType === "story") {
+      setShowFirstComment(false);
+    } else {
+      setShowFirstComment(!!firstComment && firstComment.length > 0);
+    }
+  }, [firstComment, currentPostType]);
 
   useEffect(() => {
     onLocalCaptionsChange?.(localMainCaption, localPlatformCaptions);
@@ -319,6 +363,7 @@ export default function CaptionEditor({
         const supportsThreading =
           platformId === "x" || platformId === "threads";
         const supportsFirstComment = platformId === "instagram";
+        const supportsPostTypeSelection = platformId === "instagram";
 
         const currentCaption = localPlatformCaptions[platformId] || "";
 
@@ -382,6 +427,15 @@ export default function CaptionEditor({
                 platformId={platformId}
                 onHashtagClick={openHashtagModal}
               />
+
+              {supportsPostTypeSelection && (
+                <div className="flex justify-end">
+                  <PostTypeSelector
+                    currentType={currentPostType}
+                    onTypeChange={(type) => setState({ postType: type })}
+                  />
+                </div>
+              )}
 
               {supportsThreading && (
                 <>
@@ -509,6 +563,7 @@ export default function CaptionEditor({
                         variant="ghost"
                         size="sm"
                         className="gap-1 text-xs text-muted-foreground hover:text-foreground"
+                        disabled={currentPostType === "story"}
                       >
                         <Plus className="h-3 w-3" />
                         Add first comment
