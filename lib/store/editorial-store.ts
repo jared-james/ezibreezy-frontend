@@ -7,6 +7,7 @@ import type { SelectedAccounts, ThreadMessage } from "@/lib/types/editorial";
 import { type EditorialDraft } from "@/lib/types/editorial";
 import { FullPostDetails, UserTagDto } from "@/lib/api/publishing";
 import { format } from "date-fns";
+import type { PlatformCrops, SocialPlatform } from "@/lib/utils/crop-utils";
 
 export interface MediaItem {
   file: File | null;
@@ -14,6 +15,8 @@ export interface MediaItem {
   id: string | null;
   isUploading: boolean;
   threadIndex: number | null;
+  crops?: PlatformCrops;
+  croppedPreviews?: Partial<Record<SocialPlatform, string>>;
 }
 
 export interface LocationState {
@@ -50,6 +53,12 @@ export interface EditorialActions {
   initializeFromFullPost: (fullPost: FullPostDetails) => void;
   reset: () => void;
   setDraft: (draft: EditorialDraft) => void;
+  setCropForMedia: (
+    mediaIndex: number,
+    platform: SocialPlatform,
+    cropData: PlatformCrops[SocialPlatform],
+    croppedPreviewUrl: string
+  ) => void;
 }
 
 const getTodayString = () => new Date().toISOString().split("T")[0];
@@ -202,6 +211,27 @@ export const useEditorialStore = create<EditorialState & EditorialActions>(
 
     setDraft: (draft: EditorialDraft) => {
       set({ draft });
+    },
+
+    setCropForMedia: (mediaIndex, platform, cropData, croppedPreviewUrl) => {
+      const currentMediaItems = get().mediaItems;
+      const updatedMediaItems = currentMediaItems.map((item, index) => {
+        if (index === mediaIndex) {
+          return {
+            ...item,
+            crops: {
+              ...item.crops,
+              [platform]: cropData,
+            },
+            croppedPreviews: {
+              ...item.croppedPreviews,
+              [platform]: croppedPreviewUrl,
+            },
+          };
+        }
+        return item;
+      });
+      set({ mediaItems: updatedMediaItems });
     },
   })
 );

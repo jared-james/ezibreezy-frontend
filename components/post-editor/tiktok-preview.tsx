@@ -1,9 +1,12 @@
 // components/post-editor/tiktok-preview.tsx
 
-import { memo } from "react";
-import { Heart, MessageCircle, Bookmark, Share2, Music, ImageIcon } from "lucide-react";
+import { memo, useState } from "react";
+import { Heart, MessageCircle, Bookmark, Share2, Music, ImageIcon, Crop } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { renderCaptionWithHashtags } from "./render-caption";
+import { ImageCropperModal } from "./image-cropper-modal";
+import type { PixelCrop } from "react-image-crop";
+import { createCroppedPreviewUrl, type CropData } from "@/lib/utils/crop-utils";
 
 interface TikTokPreviewProps {
   caption: string;
@@ -12,6 +15,9 @@ interface TikTokPreviewProps {
   platformUsername: string;
   displayName: string | null;
   avatarUrl: string | null;
+  originalMediaSrc?: string;
+  croppedPreview?: string;
+  onCropComplete?: (cropData: CropData, croppedPreviewUrl: string) => void;
 }
 
 const ProfileAvatar = ({
@@ -53,9 +59,41 @@ function TikTokPreview({
   platformUsername,
   displayName,
   avatarUrl,
+  originalMediaSrc,
+  croppedPreview,
+  onCropComplete,
 }: TikTokPreviewProps) {
   const accountName = platformUsername.replace(/^@/, "");
   const primaryName = displayName || accountName || "Account";
+  const [isCropperOpen, setIsCropperOpen] = useState(false);
+
+  const displayMediaSrc = croppedPreview || mediaPreview;
+  const canCrop = originalMediaSrc && mediaType === "image" && onCropComplete;
+
+  const handleCropComplete = async (
+    croppedAreaPixels: PixelCrop,
+    aspectRatio: number,
+    displayedWidth: number,
+    displayedHeight: number
+  ) => {
+    if (!originalMediaSrc || !onCropComplete) return;
+
+    try {
+      const croppedUrl = await createCroppedPreviewUrl(
+        originalMediaSrc,
+        croppedAreaPixels,
+        displayedWidth,
+        displayedHeight
+      );
+      const cropData: CropData = {
+        croppedAreaPixels,
+        aspectRatio,
+      };
+      onCropComplete(cropData, croppedUrl);
+    } catch (error) {
+      console.error("Failed to crop image:", error);
+    }
+  };
 
   return (
     <div className="w-full max-w-sm mx-auto">
@@ -63,10 +101,10 @@ function TikTokPreview({
       <div className="relative bg-black rounded-2xl overflow-hidden aspect-[9/16] max-h-[500px]">
         {/* Video/Media area */}
         <div className="absolute inset-0">
-          {mediaPreview ? (
+          {displayMediaSrc ? (
             mediaType === "video" ? (
               <video
-                src={mediaPreview}
+                src={displayMediaSrc}
                 className="w-full h-full object-cover"
                 muted
                 loop
@@ -75,7 +113,7 @@ function TikTokPreview({
               />
             ) : (
               <img
-                src={mediaPreview}
+                src={displayMediaSrc}
                 alt="Media Preview"
                 className="w-full h-full object-cover"
               />
@@ -136,9 +174,31 @@ function TikTokPreview({
       </div>
 
       {/* Footer */}
-      <div className="p-3 text-xs text-[--muted-foreground] text-center italic">
-        TikTok Preview
+      <div className="p-3 border-t border-[--border]">
+        {canCrop ? (
+          <button
+            onClick={() => setIsCropperOpen(true)}
+            className="flex items-center gap-2 justify-center w-full font-serif font-bold text-sm text-brand-primary hover:text-brand-accent"
+          >
+            <Crop className="h-4 w-4" />
+            Crop
+          </button>
+        ) : (
+          <p className="text-xs text-[--muted-foreground] text-center italic">
+            TikTok Preview
+          </p>
+        )}
       </div>
+
+      {originalMediaSrc && (
+        <ImageCropperModal
+          open={isCropperOpen}
+          onClose={() => setIsCropperOpen(false)}
+          imageSrc={originalMediaSrc}
+          platform="tiktok"
+          onCropComplete={handleCropComplete}
+        />
+      )}
     </div>
   );
 }

@@ -9,11 +9,15 @@ import {
   ImageIcon,
   UserPlus,
   X,
+  Crop,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import Image from "next/image";
 import { renderCaptionWithHashtags } from "./render-caption";
 import { UserTagDto } from "@/lib/api/publishing";
+import { ImageCropperModal } from "./image-cropper-modal";
+import type { PixelCrop } from "react-image-crop";
+import { createCroppedPreviewUrl, type CropData } from "@/lib/utils/crop-utils";
 
 interface InstagramPreviewProps {
   caption: string;
@@ -27,6 +31,9 @@ interface InstagramPreviewProps {
   postType: "post" | "reel" | "story";
   userTags: UserTagDto[];
   onUserTagsChange: (tags: UserTagDto[]) => void;
+  originalMediaSrc?: string;
+  croppedPreview?: string;
+  onCropComplete?: (cropData: CropData, croppedPreviewUrl: string) => void;
 }
 
 const ProfileAvatar = ({
@@ -74,6 +81,9 @@ function InstagramPreview({
   postType,
   userTags,
   onUserTagsChange,
+  originalMediaSrc,
+  croppedPreview,
+  onCropComplete,
 }: InstagramPreviewProps) {
   const accountName = platformUsername.replace(/^@/, "");
   const primaryName = displayName || accountName || "Account";
@@ -86,6 +96,35 @@ function InstagramPreview({
     y: number;
     username: string;
   } | null>(null);
+  const [isCropperOpen, setIsCropperOpen] = useState(false);
+
+  const displayMediaSrc = croppedPreview || mediaPreview;
+  const canCrop = originalMediaSrc && mediaType === "image" && onCropComplete;
+
+  const handleCropComplete = async (
+    croppedAreaPixels: PixelCrop,
+    aspectRatio: number,
+    displayedWidth: number,
+    displayedHeight: number
+  ) => {
+    if (!originalMediaSrc || !onCropComplete) return;
+
+    try {
+      const croppedUrl = await createCroppedPreviewUrl(
+        originalMediaSrc,
+        croppedAreaPixels,
+        displayedWidth,
+        displayedHeight
+      );
+      const cropData: CropData = {
+        croppedAreaPixels,
+        aspectRatio,
+      };
+      onCropComplete(cropData, croppedUrl);
+    } catch (error) {
+      console.error("Failed to crop image:", error);
+    }
+  };
 
   useEffect(() => {
     setLocalTags(userTags);
@@ -156,14 +195,14 @@ function InstagramPreview({
         onClick={handleImageClick}
         className={cn(
           "relative aspect-square bg-[--background]",
-          mediaPreview ? "" : "flex items-center justify-center",
+          displayMediaSrc ? "" : "flex items-center justify-center",
           isTaggingMode && "cursor-crosshair"
         )}
       >
-        {mediaPreview ? (
+        {displayMediaSrc ? (
           mediaType === "video" ? (
             <video
-              src={mediaPreview}
+              src={displayMediaSrc}
               className="w-full h-full object-cover"
               muted
               loop
@@ -172,7 +211,7 @@ function InstagramPreview({
             />
           ) : (
             <img
-              src={mediaPreview}
+              src={displayMediaSrc}
               alt="Media Preview"
               className="w-full h-full object-cover"
             />
@@ -278,31 +317,54 @@ function InstagramPreview({
         </p>
       </div>
 
-      <div className="p-3 text-center border-t border-[--border]">
-        {isTaggingSupported ? (
-          <button
-            onClick={() => {
-              if (isTaggingMode) {
-                setNewTag(null);
-              }
-              setIsTaggingMode(!isTaggingMode);
-            }}
-            className={cn(
-              "flex items-center gap-2 justify-center w-full font-serif font-bold text-sm",
-              isTaggingMode
-                ? "text-brand-accent"
-                : "text-brand-primary hover:text-brand-accent"
+      <div className="p-3 border-t border-[--border]">
+        {isTaggingSupported || canCrop ? (
+          <div className="flex items-center justify-center gap-4">
+            {canCrop && (
+              <button
+                onClick={() => setIsCropperOpen(true)}
+                className="flex items-center gap-2 font-serif font-bold text-sm text-brand-primary hover:text-brand-accent"
+              >
+                <Crop className="h-4 w-4" />
+                Crop
+              </button>
             )}
-          >
-            <UserPlus className="h-4 w-4" />
-            {isTaggingMode ? "Done Tagging" : "Tag People"}
-          </button>
+            {isTaggingSupported && (
+              <button
+                onClick={() => {
+                  if (isTaggingMode) {
+                    setNewTag(null);
+                  }
+                  setIsTaggingMode(!isTaggingMode);
+                }}
+                className={cn(
+                  "flex items-center gap-2 font-serif font-bold text-sm",
+                  isTaggingMode
+                    ? "text-brand-accent"
+                    : "text-brand-primary hover:text-brand-accent"
+                )}
+              >
+                <UserPlus className="h-4 w-4" />
+                {isTaggingMode ? "Done Tagging" : "Tag People"}
+              </button>
+            )}
+          </div>
         ) : (
-          <p className="text-xs text-[--muted-foreground] italic">
+          <p className="text-xs text-[--muted-foreground] italic text-center">
             Instagram Preview
           </p>
         )}
       </div>
+
+      {originalMediaSrc && (
+        <ImageCropperModal
+          open={isCropperOpen}
+          onClose={() => setIsCropperOpen(false)}
+          imageSrc={originalMediaSrc}
+          platform="instagram"
+          onCropComplete={handleCropComplete}
+        />
+      )}
     </div>
   );
 }

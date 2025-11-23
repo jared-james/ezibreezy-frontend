@@ -1,9 +1,12 @@
 // components/post-editor/linkedin-preview.tsx
 
-import { memo } from "react";
-import { ThumbsUp, MessageSquare, Repeat2, Send, ImageIcon } from "lucide-react";
+import { memo, useState } from "react";
+import { ThumbsUp, MessageSquare, Repeat2, Send, ImageIcon, Crop } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { renderCaptionWithHashtags } from "./render-caption";
+import { ImageCropperModal } from "./image-cropper-modal";
+import type { PixelCrop } from "react-image-crop";
+import { createCroppedPreviewUrl, type CropData } from "@/lib/utils/crop-utils";
 
 interface LinkedInPreviewProps {
   caption: string;
@@ -12,6 +15,9 @@ interface LinkedInPreviewProps {
   platformUsername: string;
   displayName: string | null;
   avatarUrl: string | null;
+  originalMediaSrc?: string;
+  croppedPreview?: string;
+  onCropComplete?: (cropData: CropData, croppedPreviewUrl: string) => void;
 }
 
 const ProfileAvatar = ({
@@ -53,9 +59,41 @@ function LinkedInPreview({
   platformUsername,
   displayName,
   avatarUrl,
+  originalMediaSrc,
+  croppedPreview,
+  onCropComplete,
 }: LinkedInPreviewProps) {
   const accountName = platformUsername.replace(/^@/, "");
   const primaryName = displayName || accountName || "Account";
+  const [isCropperOpen, setIsCropperOpen] = useState(false);
+
+  const displayMediaSrc = croppedPreview || mediaPreview;
+  const canCrop = originalMediaSrc && mediaType === "image" && onCropComplete;
+
+  const handleCropComplete = async (
+    croppedAreaPixels: PixelCrop,
+    aspectRatio: number,
+    displayedWidth: number,
+    displayedHeight: number
+  ) => {
+    if (!originalMediaSrc || !onCropComplete) return;
+
+    try {
+      const croppedUrl = await createCroppedPreviewUrl(
+        originalMediaSrc,
+        croppedAreaPixels,
+        displayedWidth,
+        displayedHeight
+      );
+      const cropData: CropData = {
+        croppedAreaPixels,
+        aspectRatio,
+      };
+      onCropComplete(cropData, croppedUrl);
+    } catch (error) {
+      console.error("Failed to crop image:", error);
+    }
+  };
 
   return (
     <div className="w-full bg-[--surface] border border-[--border] shadow-lg max-w-sm mx-auto rounded-lg overflow-hidden">
@@ -91,13 +129,13 @@ function LinkedInPreview({
       <div
         className={cn(
           "aspect-video bg-[--background]",
-          mediaPreview ? "" : "flex items-center justify-center"
+          displayMediaSrc ? "" : "flex items-center justify-center"
         )}
       >
-        {mediaPreview ? (
+        {displayMediaSrc ? (
           mediaType === "video" ? (
             <video
-              src={mediaPreview}
+              src={displayMediaSrc}
               className="w-full h-full object-cover"
               muted
               loop
@@ -106,7 +144,7 @@ function LinkedInPreview({
             />
           ) : (
             <img
-              src={mediaPreview}
+              src={displayMediaSrc}
               alt="Media Preview"
               className="w-full h-full object-cover"
             />
@@ -155,9 +193,31 @@ function LinkedInPreview({
       </div>
 
       {/* Footer */}
-      <div className="p-3 text-xs text-[--muted-foreground] text-center italic border-t border-[--border]">
-        LinkedIn Preview
+      <div className="p-3 border-t border-[--border]">
+        {canCrop ? (
+          <button
+            onClick={() => setIsCropperOpen(true)}
+            className="flex items-center gap-2 justify-center w-full font-serif font-bold text-sm text-brand-primary hover:text-brand-accent"
+          >
+            <Crop className="h-4 w-4" />
+            Crop
+          </button>
+        ) : (
+          <p className="text-xs text-[--muted-foreground] text-center italic">
+            LinkedIn Preview
+          </p>
+        )}
       </div>
+
+      {originalMediaSrc && (
+        <ImageCropperModal
+          open={isCropperOpen}
+          onClose={() => setIsCropperOpen(false)}
+          imageSrc={originalMediaSrc}
+          platform="linkedin"
+          onCropComplete={handleCropComplete}
+        />
+      )}
     </div>
   );
 }

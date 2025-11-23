@@ -1,10 +1,13 @@
 // components/post-editor/threads-preview.tsx
 
-import { memo } from "react";
-import { Heart, MessageCircle, Repeat2, Send, ImageIcon } from "lucide-react";
+import { memo, useState } from "react";
+import { Heart, MessageCircle, Repeat2, Send, ImageIcon, Crop } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { ThreadMessageAugmented } from "@/lib/types/editorial";
 import { renderCaptionWithHashtags } from "./render-caption";
+import { ImageCropperModal } from "./image-cropper-modal";
+import type { PixelCrop } from "react-image-crop";
+import { createCroppedPreviewUrl, type CropData } from "@/lib/utils/crop-utils";
 
 interface ThreadsPreviewProps {
   caption: string;
@@ -14,6 +17,9 @@ interface ThreadsPreviewProps {
   platformUsername: string;
   displayName: string | null;
   avatarUrl: string | null;
+  originalMediaSrc?: string;
+  croppedPreview?: string;
+  onCropComplete?: (cropData: CropData, croppedPreviewUrl: string) => void;
 }
 
 const ProfileAvatar = ({
@@ -88,12 +94,45 @@ function ThreadsPreview({
   platformUsername,
   displayName,
   avatarUrl,
+  originalMediaSrc,
+  croppedPreview,
+  onCropComplete,
 }: ThreadsPreviewProps) {
   const accountName = platformUsername.replace(/^@/, "");
   const primaryName = displayName || accountName || "Account";
+  const [isCropperOpen, setIsCropperOpen] = useState(false);
 
-  const mainPostImages = mediaPreview.slice(0, 4);
+  // For Threads, we apply crop to first image only
+  const mainPostImages = croppedPreview
+    ? [croppedPreview, ...mediaPreview.slice(1, 4)]
+    : mediaPreview.slice(0, 4);
   const hasThread = threadMessages.length > 0;
+  const canCrop = originalMediaSrc && mediaType === "image" && onCropComplete && mediaPreview.length > 0;
+
+  const handleCropComplete = async (
+    croppedAreaPixels: PixelCrop,
+    aspectRatio: number,
+    displayedWidth: number,
+    displayedHeight: number
+  ) => {
+    if (!originalMediaSrc || !onCropComplete) return;
+
+    try {
+      const croppedUrl = await createCroppedPreviewUrl(
+        originalMediaSrc,
+        croppedAreaPixels,
+        displayedWidth,
+        displayedHeight
+      );
+      const cropData: CropData = {
+        croppedAreaPixels,
+        aspectRatio,
+      };
+      onCropComplete(cropData, croppedUrl);
+    } catch (error) {
+      console.error("Failed to crop image:", error);
+    }
+  };
 
   return (
     <div className="mx-auto w-full max-w-sm bg-[--surface] border border-[--border] rounded-lg overflow-hidden">
@@ -194,9 +233,31 @@ function ThreadsPreview({
       })}
 
       {/* Footer */}
-      <div className="p-3 text-xs text-[--muted-foreground] text-center italic border-t border-[--border]">
-        Threads Preview
+      <div className="p-3 border-t border-[--border]">
+        {canCrop ? (
+          <button
+            onClick={() => setIsCropperOpen(true)}
+            className="flex items-center gap-2 justify-center w-full font-serif font-bold text-sm text-brand-primary hover:text-brand-accent"
+          >
+            <Crop className="h-4 w-4" />
+            Crop
+          </button>
+        ) : (
+          <p className="text-xs text-[--muted-foreground] text-center italic">
+            Threads Preview
+          </p>
+        )}
       </div>
+
+      {originalMediaSrc && (
+        <ImageCropperModal
+          open={isCropperOpen}
+          onClose={() => setIsCropperOpen(false)}
+          imageSrc={originalMediaSrc}
+          platform="threads"
+          onCropComplete={handleCropComplete}
+        />
+      )}
     </div>
   );
 }

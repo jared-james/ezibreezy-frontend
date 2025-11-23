@@ -1,10 +1,13 @@
 // components/post-editor/x-preview.tsx
 
-import { memo } from "react";
-import { MessageSquare, Repeat2, ImageIcon } from "lucide-react";
+import { memo, useState } from "react";
+import { MessageSquare, Repeat2, ImageIcon, Crop } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { ThreadMessageAugmented } from "@/lib/types/editorial";
 import { renderCaptionWithHashtags } from "./render-caption";
+import { ImageCropperModal } from "./image-cropper-modal";
+import type { PixelCrop } from "react-image-crop";
+import { createCroppedPreviewUrl, type CropData } from "@/lib/utils/crop-utils";
 
 interface XPreviewProps {
   caption: string;
@@ -14,6 +17,9 @@ interface XPreviewProps {
   displayName: string | null;
   avatarUrl: string | null;
   postType?: "text" | "image" | "video";
+  originalMediaSrc?: string;
+  croppedPreview?: string;
+  onCropComplete?: (cropData: CropData, croppedPreviewUrl: string) => void;
 }
 
 const MediaGrid = ({ images, mediaType = "image" }: { images: string[]; mediaType?: "text" | "image" | "video" }) => {
@@ -112,13 +118,46 @@ function XPreview({
   displayName,
   avatarUrl,
   postType = "text",
+  originalMediaSrc,
+  croppedPreview,
+  onCropComplete,
 }: XPreviewProps) {
   const accountName = platformUsername.replace(/^@/, "");
   const primaryName = displayName || accountName || "Account";
   const handle = accountName ? `@${accountName}` : "";
+  const [isCropperOpen, setIsCropperOpen] = useState(false);
 
-  const mainPostImages = mediaPreview.slice(0, 4);
+  // For X, we apply crop to first image only
+  const mainPostImages = croppedPreview
+    ? [croppedPreview, ...mediaPreview.slice(1, 4)]
+    : mediaPreview.slice(0, 4);
   const hasThread = threadMessages.length > 0;
+  const canCrop = originalMediaSrc && postType === "image" && onCropComplete && mediaPreview.length > 0;
+
+  const handleCropComplete = async (
+    croppedAreaPixels: PixelCrop,
+    aspectRatio: number,
+    displayedWidth: number,
+    displayedHeight: number
+  ) => {
+    if (!originalMediaSrc || !onCropComplete) return;
+
+    try {
+      const croppedUrl = await createCroppedPreviewUrl(
+        originalMediaSrc,
+        croppedAreaPixels,
+        displayedWidth,
+        displayedHeight
+      );
+      const cropData: CropData = {
+        croppedAreaPixels,
+        aspectRatio,
+      };
+      onCropComplete(cropData, croppedUrl);
+    } catch (error) {
+      console.error("Failed to crop image:", error);
+    }
+  };
 
   return (
     <div className="mx-auto w-full max-w-sm ">
@@ -240,6 +279,33 @@ function XPreview({
           </div>
         );
       })}
+
+      {/* Footer with Crop button */}
+      <div className="p-3 border-t border-border">
+        {canCrop ? (
+          <button
+            onClick={() => setIsCropperOpen(true)}
+            className="flex items-center gap-2 justify-center w-full font-serif font-bold text-sm text-brand-primary hover:text-brand-accent"
+          >
+            <Crop className="h-4 w-4" />
+            Crop
+          </button>
+        ) : (
+          <p className="text-xs text-muted-foreground text-center italic">
+            X Preview
+          </p>
+        )}
+      </div>
+
+      {originalMediaSrc && (
+        <ImageCropperModal
+          open={isCropperOpen}
+          onClose={() => setIsCropperOpen(false)}
+          imageSrc={originalMediaSrc}
+          platform="x"
+          onCropComplete={handleCropComplete}
+        />
+      )}
     </div>
   );
 }

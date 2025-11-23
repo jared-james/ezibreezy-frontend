@@ -23,9 +23,10 @@ import ThreadsPreview from "./threads-preview";
 import TikTokPreview from "./tiktok-preview";
 import { cn } from "@/lib/utils";
 import { usePostEditor } from "@/lib/hooks/use-post-editor";
-import { LocationState, useEditorialStore } from "@/lib/store/editorial-store";
+import { LocationState, useEditorialStore, MediaItem } from "@/lib/store/editorial-store";
 import { useQuery } from "@tanstack/react-query";
 import { UserTagDto } from "@/lib/api/publishing";
+import type { SocialPlatform } from "@/lib/utils/crop-utils";
 
 const platformIcons: Record<string, React.ElementType> = {
   x: Twitter,
@@ -70,6 +71,13 @@ function PreviewPanel({
   const userTags = useEditorialStore((state) => state.userTags);
   const postType = useEditorialStore((state) => state.postType);
   const setState = useEditorialStore((state) => state.setState);
+  const mediaItems = useEditorialStore((state) => state.mediaItems);
+  const setCropForMedia = useEditorialStore((state) => state.setCropForMedia);
+
+  const mainPostMediaItems = useMemo(
+    () => mediaItems.filter((m) => m.threadIndex === null),
+    [mediaItems]
+  );
 
   const { data: connections = [] } = useQuery({
     queryKey: ["connections"],
@@ -165,7 +173,10 @@ function PreviewPanel({
       : mainPostMediaPreviews;
 
     switch (validActiveTab) {
-      case "x":
+      case "x": {
+        const xMediaItem = mainPostMediaItems[0];
+        const xOriginalSrc = xMediaItem?.preview;
+        const xCroppedPreview = xMediaItem?.croppedPreviews?.x;
         return (
           <XPreview
             caption={currentCaption}
@@ -175,9 +186,21 @@ function PreviewPanel({
             displayName={activeAccount.name}
             avatarUrl={activeAccount.avatarUrl}
             postType={mediaPostType}
+            originalMediaSrc={xOriginalSrc}
+            croppedPreview={xCroppedPreview}
+            onCropComplete={(cropData, croppedPreviewUrl) => {
+              const mediaIndex = mediaItems.findIndex((m) => m.threadIndex === null);
+              if (mediaIndex !== -1) {
+                setCropForMedia(mediaIndex, "x", cropData, croppedPreviewUrl);
+              }
+            }}
           />
         );
-      case "instagram":
+      }
+      case "instagram": {
+        const mediaItem = mainPostMediaItems[0];
+        const originalSrc = mediaItem?.preview;
+        const croppedPreview = mediaItem?.croppedPreviews?.instagram;
         return (
           <InstagramPreview
             caption={currentCaption}
@@ -191,9 +214,25 @@ function PreviewPanel({
             postType={postType}
             userTags={userTags}
             onUserTagsChange={handleUserTagsChange}
+            originalMediaSrc={originalSrc}
+            croppedPreview={croppedPreview}
+            onCropComplete={(cropData, croppedPreviewUrl) => {
+              if (mainPostMediaItems.length > 0) {
+                const mediaIndex = mediaItems.findIndex(
+                  (m) => m.threadIndex === null
+                );
+                if (mediaIndex !== -1) {
+                  setCropForMedia(mediaIndex, "instagram", cropData, croppedPreviewUrl);
+                }
+              }
+            }}
           />
         );
-      case "linkedin":
+      }
+      case "linkedin": {
+        const liMediaItem = mainPostMediaItems[0];
+        const liOriginalSrc = liMediaItem?.preview;
+        const liCroppedPreview = liMediaItem?.croppedPreviews?.linkedin;
         return (
           <LinkedInPreview
             caption={currentCaption}
@@ -202,9 +241,21 @@ function PreviewPanel({
             platformUsername={activeAccount.platformUsername}
             displayName={activeAccount.name}
             avatarUrl={activeAccount.avatarUrl}
+            originalMediaSrc={liOriginalSrc}
+            croppedPreview={liCroppedPreview}
+            onCropComplete={(cropData, croppedPreviewUrl) => {
+              const mediaIndex = mediaItems.findIndex((m) => m.threadIndex === null);
+              if (mediaIndex !== -1) {
+                setCropForMedia(mediaIndex, "linkedin", cropData, croppedPreviewUrl);
+              }
+            }}
           />
         );
-      case "facebook":
+      }
+      case "facebook": {
+        const fbMediaItem = mainPostMediaItems[0];
+        const fbOriginalSrc = fbMediaItem?.preview;
+        const fbCroppedPreview = fbMediaItem?.croppedPreviews?.facebook;
         return (
           <FacebookPreview
             caption={currentCaption}
@@ -213,9 +264,21 @@ function PreviewPanel({
             platformUsername={activeAccount.platformUsername}
             displayName={activeAccount.name}
             avatarUrl={activeAccount.avatarUrl}
+            originalMediaSrc={fbOriginalSrc}
+            croppedPreview={fbCroppedPreview}
+            onCropComplete={(cropData, croppedPreviewUrl) => {
+              const mediaIndex = mediaItems.findIndex((m) => m.threadIndex === null);
+              if (mediaIndex !== -1) {
+                setCropForMedia(mediaIndex, "facebook", cropData, croppedPreviewUrl);
+              }
+            }}
           />
         );
-      case "threads":
+      }
+      case "threads": {
+        const thMediaItem = mainPostMediaItems[0];
+        const thOriginalSrc = thMediaItem?.preview;
+        const thCroppedPreview = thMediaItem?.croppedPreviews?.threads;
         return (
           <ThreadsPreview
             caption={currentCaption}
@@ -225,9 +288,21 @@ function PreviewPanel({
             platformUsername={activeAccount.platformUsername}
             displayName={activeAccount.name}
             avatarUrl={activeAccount.avatarUrl}
+            originalMediaSrc={thOriginalSrc}
+            croppedPreview={thCroppedPreview}
+            onCropComplete={(cropData, croppedPreviewUrl) => {
+              const mediaIndex = mediaItems.findIndex((m) => m.threadIndex === null);
+              if (mediaIndex !== -1) {
+                setCropForMedia(mediaIndex, "threads", cropData, croppedPreviewUrl);
+              }
+            }}
           />
         );
-      case "tiktok":
+      }
+      case "tiktok": {
+        const ttMediaItem = mainPostMediaItems[0];
+        const ttOriginalSrc = ttMediaItem?.preview;
+        const ttCroppedPreview = ttMediaItem?.croppedPreviews?.tiktok;
         return (
           <TikTokPreview
             caption={currentCaption}
@@ -236,8 +311,17 @@ function PreviewPanel({
             platformUsername={activeAccount.platformUsername}
             displayName={activeAccount.name}
             avatarUrl={activeAccount.avatarUrl}
+            originalMediaSrc={ttOriginalSrc}
+            croppedPreview={ttCroppedPreview}
+            onCropComplete={(cropData, croppedPreviewUrl) => {
+              const mediaIndex = mediaItems.findIndex((m) => m.threadIndex === null);
+              if (mediaIndex !== -1) {
+                setCropForMedia(mediaIndex, "tiktok", cropData, croppedPreviewUrl);
+              }
+            }}
           />
         );
+      }
       default:
         return (
           <div className="text-center p-8 text-[--muted-foreground]">
