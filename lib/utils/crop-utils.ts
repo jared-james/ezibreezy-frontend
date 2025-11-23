@@ -55,6 +55,7 @@ export const PLATFORM_ASPECT_RATIOS: Record<
   threads: [
     { label: "Square (1:1)", value: 1 },
     { label: "Portrait (4:5)", value: 4 / 5 },
+    { label: "Landscape (1.91:1)", value: 1.91 },
   ],
   tiktok: [{ label: "Vertical (9:16)", value: 9 / 16 }],
 };

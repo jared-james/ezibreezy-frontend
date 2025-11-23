@@ -233,15 +233,18 @@ function ThreadsPreview({
       })}
 
       {/* Footer */}
-      <div className="p-3 border-t border-[--border]">
+      <div className="px-3 py-2 border-t border-[--border]">
         {canCrop ? (
-          <button
-            onClick={() => setIsCropperOpen(true)}
-            className="flex items-center gap-2 justify-center w-full font-serif font-bold text-sm text-brand-primary hover:text-brand-accent"
-          >
-            <Crop className="h-4 w-4" />
-            Crop
-          </button>
+          <div className="flex items-center gap-4">
+            <button
+              onClick={() => setIsCropperOpen(true)}
+              title="Crop Image"
+              className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
+            >
+              <Crop className="h-3.5 w-3.5" />
+              Crop
+            </button>
+          </div>
         ) : (
           <p className="text-xs text-[--muted-foreground] text-center italic">
             Threads Preview
