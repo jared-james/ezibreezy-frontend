@@ -1,5 +1,6 @@
 // lib/api/publishing.ts
 
+import { PlatformCrops } from "../utils/crop-utils";
 import apiClient from "./index";
 
 export interface ThreadMessagePayload {
@@ -38,6 +39,7 @@ export interface CreatePostPayload {
   sourceDraftId?: string;
   postType?: "post" | "reel" | "story";
   userTags?: UserTagDto[];
+  mediaCrops?: Record<string, PlatformCrops>;
 }
 
 export interface RescheduleOnlyPayload {

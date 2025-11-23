@@ -110,16 +110,50 @@ function InstagramPreview({
     if (!originalMediaSrc || !onCropComplete) return;
 
     try {
+      // --- START OF NEW CODE ---
+
+      // 1. Get the original image's dimensions
+      const getOriginalDimensions = (
+        src: string
+      ): Promise<{ width: number; height: number }> =>
+        new Promise((resolve, reject) => {
+          const img = new window.Image();
+          img.onload = () =>
+            resolve({ width: img.naturalWidth, height: img.naturalHeight });
+          img.onerror = reject;
+          img.src = src;
+        });
+
+      const originalDimensions = await getOriginalDimensions(originalMediaSrc);
+
+      // 2. Calculate the scaling factor
+      const scalingFactor = originalDimensions.width / displayedWidth;
+
+      // 3. Scale the crop coordinates to match the original image
+      const scaledCroppedAreaPixels: PixelCrop = {
+        ...croppedAreaPixels,
+        x: Math.round(croppedAreaPixels.x * scalingFactor),
+        y: Math.round(croppedAreaPixels.y * scalingFactor),
+        width: Math.round(croppedAreaPixels.width * scalingFactor),
+        height: Math.round(croppedAreaPixels.height * scalingFactor),
+      };
+
+      // --- END OF NEW CODE ---
+
+      // This function creates the small preview for the UI, it can remain as is.
       const croppedUrl = await createCroppedPreviewUrl(
         originalMediaSrc,
-        croppedAreaPixels,
+        croppedAreaPixels, // Use original pixels for the UI preview function if needed
         displayedWidth,
         displayedHeight
       );
+
+      // IMPORTANT: Pass the NEW, SCALED coordinates up to the parent.
       const cropData: CropData = {
-        croppedAreaPixels,
+        croppedAreaPixels: scaledCroppedAreaPixels, // Use the scaled version here
         aspectRatio,
       };
+
       onCropComplete(cropData, croppedUrl);
     } catch (error) {
       console.error("Failed to crop image:", error);
@@ -241,7 +275,10 @@ function InstagramPreview({
               transform: "translate(-50%, -100%)",
             }}
           >
-            <div className="relative flex items-center gap-1 rounded-md px-2 py-1 text-xs font-semibold text-white shadow-lg" style={{ backgroundColor: "rgba(0,0,0,0.85)" }}>
+            <div
+              className="relative flex items-center gap-1 rounded-md px-2 py-1 text-xs font-semibold text-white shadow-lg"
+              style={{ backgroundColor: "rgba(0,0,0,0.85)" }}
+            >
               <span>{tag.username}</span>
               <button
                 onClick={() => handleRemoveTag(index)}
@@ -249,7 +286,10 @@ function InstagramPreview({
               >
                 <X className="h-3 w-3" />
               </button>
-              <div className="absolute left-1/2 -bottom-1.5 -translate-x-1/2 w-0 h-0 border-l-[6px] border-l-transparent border-r-[6px] border-r-transparent border-t-[6px]" style={{ borderTopColor: "rgba(0,0,0,0.85)" }} />
+              <div
+                className="absolute left-1/2 -bottom-1.5 -translate-x-1/2 w-0 h-0 border-l-[6px] border-l-transparent border-r-[6px] border-r-transparent border-t-[6px]"
+                style={{ borderTopColor: "rgba(0,0,0,0.85)" }}
+              />
             </div>
           </div>
         ))}

@@ -17,6 +17,7 @@ import ConfirmationModal from "./confirmation-modal";
 import { usePostEditor } from "@/lib/hooks/use-post-editor";
 import { useEditorialStore, LocationState } from "@/lib/store/editorial-store";
 import type { CreatePostPayload, PostSettings } from "@/lib/api/publishing";
+import { PlatformCrops } from "@/lib/utils/crop-utils";
 
 interface EditorialCoreProps {
   onPostSuccess?: () => void;
@@ -216,6 +217,15 @@ export default function EditorialCore({
           msg.content.length > 0 || (msg.mediaIds && msg.mediaIds.length > 0)
       );
 
+    // 1. Prepare the Crop Map
+    const mediaCrops: Record<string, PlatformCrops> = {};
+    mediaItems.forEach((item) => {
+      // Only attach crops if the item has an ID (uploaded) and has crop data
+      if (item.id && item.crops) {
+        mediaCrops[item.id] = item.crops;
+      }
+    });
+
     const postPromises = Object.entries(selectedAccounts).flatMap(
       ([platformId, integrationIds]) =>
         integrationIds.map((integrationId) => {
@@ -257,6 +267,7 @@ export default function EditorialCore({
             sourceDraftId: sourceDraftId || undefined,
             postType: postTypeFromStore,
             userTags,
+            mediaCrops,
           };
 
           if (
