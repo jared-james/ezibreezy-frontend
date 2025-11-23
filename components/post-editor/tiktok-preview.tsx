@@ -8,6 +8,7 @@ import { renderCaptionWithHashtags } from "./render-caption";
 interface TikTokPreviewProps {
   caption: string;
   mediaPreview: string | null;
+  mediaType?: "image" | "video" | "text";
   platformUsername: string;
   displayName: string | null;
   avatarUrl: string | null;
@@ -48,6 +49,7 @@ const ProfileAvatar = ({
 function TikTokPreview({
   caption,
   mediaPreview,
+  mediaType = "image",
   platformUsername,
   displayName,
   avatarUrl,
@@ -62,11 +64,22 @@ function TikTokPreview({
         {/* Video/Media area */}
         <div className="absolute inset-0">
           {mediaPreview ? (
-            <img
-              src={mediaPreview}
-              alt="Media Preview"
-              className="w-full h-full object-cover"
-            />
+            mediaType === "video" ? (
+              <video
+                src={mediaPreview}
+                className="w-full h-full object-cover"
+                muted
+                loop
+                autoPlay
+                playsInline
+              />
+            ) : (
+              <img
+                src={mediaPreview}
+                alt="Media Preview"
+                className="w-full h-full object-cover"
+              />
+            )
           ) : (
             <div className="w-full h-full flex flex-col items-center justify-center text-white/60">
               <ImageIcon className="w-12 h-12 mb-2" />

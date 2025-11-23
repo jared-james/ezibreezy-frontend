@@ -8,6 +8,7 @@ import { renderCaptionWithHashtags } from "./render-caption";
 interface FacebookPreviewProps {
   caption: string;
   mediaPreview: string | null;
+  mediaType?: "image" | "video" | "text";
   platformUsername: string;
   displayName: string | null;
   avatarUrl: string | null;
@@ -48,6 +49,7 @@ const ProfileAvatar = ({
 function FacebookPreview({
   caption,
   mediaPreview,
+  mediaType = "image",
   platformUsername,
   displayName,
   avatarUrl,
@@ -94,11 +96,22 @@ function FacebookPreview({
         )}
       >
         {mediaPreview ? (
-          <img
-            src={mediaPreview}
-            alt="Media Preview"
-            className="w-full h-full object-cover"
-          />
+          mediaType === "video" ? (
+            <video
+              src={mediaPreview}
+              className="w-full h-full object-cover"
+              muted
+              loop
+              autoPlay
+              playsInline
+            />
+          ) : (
+            <img
+              src={mediaPreview}
+              alt="Media Preview"
+              className="w-full h-full object-cover"
+            />
+          )
         ) : (
           <div className="flex flex-col items-center justify-center text-[--muted-foreground] text-center p-8">
             <ImageIcon className="w-8 h-8 mb-2" />

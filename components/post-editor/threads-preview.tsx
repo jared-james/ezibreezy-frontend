@@ -9,6 +9,7 @@ import { renderCaptionWithHashtags } from "./render-caption";
 interface ThreadsPreviewProps {
   caption: string;
   mediaPreview: string[];
+  mediaType?: "text" | "image" | "video";
   threadMessages: ThreadMessageAugmented[];
   platformUsername: string;
   displayName: string | null;
@@ -45,7 +46,7 @@ const ProfileAvatar = ({
   );
 };
 
-const MediaGrid = ({ images }: { images: string[] }) => {
+const MediaGrid = ({ images, mediaType = "image" }: { images: string[]; mediaType?: "text" | "image" | "video" }) => {
   if (images.length === 0) return null;
 
   return (
@@ -57,11 +58,22 @@ const MediaGrid = ({ images }: { images: string[] }) => {
     >
       {images.slice(0, 4).map((src, index) => (
         <div key={index} className="relative overflow-hidden">
-          <img
-            src={src}
-            alt={`Media ${index + 1}`}
-            className="w-full h-full object-cover"
-          />
+          {mediaType === "video" ? (
+            <video
+              src={src}
+              className="w-full h-full object-cover"
+              muted
+              loop
+              autoPlay
+              playsInline
+            />
+          ) : (
+            <img
+              src={src}
+              alt={`Media ${index + 1}`}
+              className="w-full h-full object-cover"
+            />
+          )}
         </div>
       ))}
     </div>
@@ -71,6 +83,7 @@ const MediaGrid = ({ images }: { images: string[] }) => {
 function ThreadsPreview({
   caption,
   mediaPreview,
+  mediaType = "image",
   threadMessages,
   platformUsername,
   displayName,
@@ -110,7 +123,7 @@ function ThreadsPreview({
             </p>
 
             {mainPostImages.length > 0 ? (
-              <MediaGrid images={mainPostImages} />
+              <MediaGrid images={mainPostImages} mediaType={mediaType} />
             ) : (
               caption.length === 0 && (
                 <div className="mt-3 flex items-center gap-2 rounded-md bg-[--background] p-2 text-sm text-[--muted-foreground]">
@@ -165,7 +178,7 @@ function ThreadsPreview({
                 </p>
 
                 {(message.mediaPreviews?.length || 0) > 0 && (
-                  <MediaGrid images={message.mediaPreviews || []} />
+                  <MediaGrid images={message.mediaPreviews || []} mediaType={mediaType} />
                 )}
 
                 <div className="mt-3 flex items-center gap-4 text-[--muted-foreground]">

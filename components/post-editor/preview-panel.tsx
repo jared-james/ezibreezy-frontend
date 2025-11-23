@@ -182,6 +182,7 @@ function PreviewPanel({
           <InstagramPreview
             caption={currentCaption}
             mediaPreview={singleMedia}
+            mediaType={mediaPostType}
             platformUsername={activeAccount.platformUsername}
             displayName={activeAccount.name}
             avatarUrl={activeAccount.avatarUrl}
@@ -197,6 +198,7 @@ function PreviewPanel({
           <LinkedInPreview
             caption={currentCaption}
             mediaPreview={singleMedia}
+            mediaType={mediaPostType}
             platformUsername={activeAccount.platformUsername}
             displayName={activeAccount.name}
             avatarUrl={activeAccount.avatarUrl}
@@ -207,6 +209,7 @@ function PreviewPanel({
           <FacebookPreview
             caption={currentCaption}
             mediaPreview={singleMedia}
+            mediaType={mediaPostType}
             platformUsername={activeAccount.platformUsername}
             displayName={activeAccount.name}
             avatarUrl={activeAccount.avatarUrl}
@@ -217,6 +220,7 @@ function PreviewPanel({
           <ThreadsPreview
             caption={currentCaption}
             mediaPreview={mainPostMediaPreviews}
+            mediaType={mediaPostType}
             threadMessages={threadMessages}
             platformUsername={activeAccount.platformUsername}
             displayName={activeAccount.name}
@@ -228,6 +232,7 @@ function PreviewPanel({
           <TikTokPreview
             caption={currentCaption}
             mediaPreview={singleMedia}
+            mediaType={mediaPostType}
             platformUsername={activeAccount.platformUsername}
             displayName={activeAccount.name}
             avatarUrl={activeAccount.avatarUrl}

@@ -16,7 +16,7 @@ interface XPreviewProps {
   postType?: "text" | "image" | "video";
 }
 
-const MediaGrid = ({ images }: { images: string[] }) => {
+const MediaGrid = ({ images, mediaType = "image" }: { images: string[]; mediaType?: "text" | "image" | "video" }) => {
   if (images.length === 0) return null;
 
   return (
@@ -38,11 +38,22 @@ const MediaGrid = ({ images }: { images: string[] }) => {
               isFirstOfThree && "row-span-2"
             )}
           >
-            <img
-              src={src}
-              alt={`Media ${index + 1}`}
-              className="w-full h-full object-cover transition-opacity hover:opacity-95"
-            />
+            {mediaType === "video" ? (
+              <video
+                src={src}
+                className="w-full h-full object-cover"
+                muted
+                loop
+                autoPlay
+                playsInline
+              />
+            ) : (
+              <img
+                src={src}
+                alt={`Media ${index + 1}`}
+                className="w-full h-full object-cover transition-opacity hover:opacity-95"
+              />
+            )}
           </div>
         );
       })}
@@ -150,7 +161,7 @@ function XPreview({
             </p>
 
             {mainPostImages.length > 0 ? (
-              <MediaGrid images={mainPostImages} />
+              <MediaGrid images={mainPostImages} mediaType={postType} />
             ) : (
               (caption.length === 0 || caption.trim() === "") &&
               postType !== "text" && (
@@ -217,7 +228,7 @@ function XPreview({
                 </p>
 
                 {(message.mediaPreviews?.length || 0) > 0 && (
-                  <MediaGrid images={message.mediaPreviews || []} />
+                  <MediaGrid images={message.mediaPreviews || []} mediaType={postType} />
                 )}
 
                 <div className="mt-3 flex justify-between px-2">
