@@ -231,33 +231,46 @@ function InstagramPreview({
       </div>
 
       {viewMode === "grid" ? (
-        // Grid view - shows how the image appears on Instagram profile grid (1:1 center-cropped)
-        <div className="relative aspect-square bg-[--background] overflow-hidden">
-          {displayMediaSrc ? (
-            mediaType === "video" ? (
-              <video
-                src={displayMediaSrc}
-                className="w-full h-full object-cover"
-                muted
-                playsInline
-              />
-            ) : (
-              <img
-                src={displayMediaSrc}
-                alt="Grid Preview"
-                className="w-full h-full object-cover"
-              />
-            )
-          ) : (
-            <div className="w-full h-full flex items-center justify-center">
-              <ImageIcon className="w-8 h-8 text-[--muted-foreground]" />
+        // Grid view - shows how the image appears on Instagram profile grid (3:4 ratio)
+        <div className="bg-background p-2">
+          <div className="grid grid-cols-3 gap-0.5">
+            {/* Row 1 - placeholder tiles */}
+            {[0, 1, 2].map((i) => (
+              <div key={`top-${i}`} className="aspect-3/4 bg-muted" />
+            ))}
+            {/* Row 2 - placeholder, actual image, placeholder */}
+            <div className="aspect-3/4 bg-muted" />
+            <div className="aspect-3/4 relative overflow-hidden ring-2 ring-primary">
+              {displayMediaSrc ? (
+                mediaType === "video" ? (
+                  <video
+                    src={displayMediaSrc}
+                    className="w-full h-full object-cover"
+                    muted
+                    playsInline
+                  />
+                ) : (
+                  <img
+                    src={displayMediaSrc}
+                    alt="Grid Preview"
+                    className="w-full h-full object-cover"
+                  />
+                )
+              ) : (
+                <div className="w-full h-full bg-muted flex items-center justify-center">
+                  <ImageIcon className="w-6 h-6 text-muted-foreground" />
+                </div>
+              )}
             </div>
-          )}
-          <div className="absolute bottom-2 left-1/2 -translate-x-1/2">
-            <p className="text-xs text-white bg-black/60 rounded-full px-3 py-1">
-              Grid thumbnail (1:1 crop)
-            </p>
+            <div className="aspect-3/4 bg-muted" />
+            {/* Row 3 - placeholder tiles */}
+            {[0, 1, 2].map((i) => (
+              <div key={`bottom-${i}`} className="aspect-3/4 bg-muted" />
+            ))}
           </div>
+          <p className="text-xs text-muted-foreground text-center mt-2">
+            Grid preview (3:4 crop)
+          </p>
         </div>
       ) : (
         // Post view - shows how the image appears when viewing the full post (actual aspect ratio)
@@ -365,36 +378,40 @@ function InstagramPreview({
         </div>
       )}
 
-      <div className="flex justify-between p-3">
-        <div className="flex items-center gap-4 text-[--muted-foreground]">
-          <Heart className="size-6 hover:text-[--foreground] cursor-pointer" />
-          <MessageCircle className="size-6 hover:text-[--foreground] cursor-pointer" />
-          <Send className="size-6 hover:text-[--foreground] cursor-pointer" />
-        </div>
-        <Bookmark className="size-6 text-[--muted-foreground] hover:text-[--foreground] cursor-pointer" />
-      </div>
+      {viewMode === "post" && (
+        <>
+          <div className="flex justify-between p-3">
+            <div className="flex items-center gap-4 text-muted-foreground">
+              <Heart className="size-6 hover:text-foreground cursor-pointer" />
+              <MessageCircle className="size-6 hover:text-foreground cursor-pointer" />
+              <Send className="size-6 hover:text-foreground cursor-pointer" />
+            </div>
+            <Bookmark className="size-6 text-muted-foreground hover:text-foreground cursor-pointer" />
+          </div>
 
-      <div className="px-3 pb-4 space-y-2">
-        <p className="text-xs font-semibold text-[--foreground]">0 likes</p>
+          <div className="px-3 pb-4 space-y-2">
+            <p className="text-xs font-semibold text-foreground">0 likes</p>
 
-        <div className="text-sm">
-          <span className="font-semibold mr-1">{primaryName}</span>
-          <span className="whitespace-pre-wrap">
-            {renderCaptionWithHashtags(caption)}
-          </span>
-        </div>
+            <div className="text-sm">
+              <span className="font-semibold mr-1">{primaryName}</span>
+              <span className="whitespace-pre-wrap">
+                {renderCaptionWithHashtags(caption)}
+              </span>
+            </div>
 
-        {collaborators && (
-          <p className="text-xs text-[--brand-primary]">
-            With <span className="font-semibold">{collaborators}</span>
-          </p>
-        )}
+            {collaborators && (
+              <p className="text-xs text-brand-primary">
+                With <span className="font-semibold">{collaborators}</span>
+              </p>
+            )}
 
-        <p className="text-xs text-[--muted-foreground]">View all 0 comments</p>
-        <p className="text-[0.65rem] uppercase text-[--muted-foreground]">
-          Now
-        </p>
-      </div>
+            <p className="text-xs text-muted-foreground">View all 0 comments</p>
+            <p className="text-[0.65rem] uppercase text-muted-foreground">
+              Now
+            </p>
+          </div>
+        </>
+      )}
 
       <div className="px-3 py-2 border-t border-border">
         {isTaggingSupported || canCrop || displayMediaSrc ? (
