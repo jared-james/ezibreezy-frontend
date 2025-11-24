@@ -15,6 +15,9 @@ import {
   Maximize2,
   Plus,
   ChevronDown,
+  HardDrive,
+  Scaling,
+  Save,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -72,14 +75,22 @@ export default function MediaDetailPanel({
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [showTagDropdown, setShowTagDropdown] = useState(false);
   const [showFolderDropdown, setShowFolderDropdown] = useState(false);
+  const [isDownloading, setIsDownloading] = useState(false);
 
   useEffect(() => {
     setEditedFilename(null);
     setEditedAltText(null);
   }, [mediaId]);
 
+  // Use edited values if user has made changes, otherwise use data from API
   const filename = editedFilename ?? media?.filename ?? "";
   const altText = editedAltText ?? media?.altText ?? "";
+
+  // Check if there are unsaved changes
+  const hasChanges =
+    media &&
+    ((editedFilename !== null && editedFilename !== media.filename) ||
+      (editedAltText !== null && editedAltText !== (media.altText || "")));
 
   const handleSave = () => {
     if (!media) return;
@@ -101,6 +112,48 @@ export default function MediaDetailPanel({
           },
         }
       );
+    }
+  };
+
+  const handleDownload = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    if (!media) return;
+
+    setIsDownloading(true);
+    try {
+      // Try to fetch with cors mode first
+      const response = await fetch(media.url, { mode: 'cors' });
+
+      if (!response.ok) {
+        throw new Error('Network response was not ok');
+      }
+
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = media.filename || "download";
+      document.body.appendChild(link);
+      link.click();
+
+      // Clean up
+      setTimeout(() => {
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(link);
+      }, 100);
+    } catch (error) {
+      console.error("Download failed, trying alternative method:", error);
+      // Fallback: try download attribute method (works if server allows it)
+      const link = document.createElement("a");
+      link.href = media.url;
+      link.download = media.filename || "download";
+      link.target = "_blank";
+      link.rel = "noopener noreferrer";
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    } finally {
+      setIsDownloading(false);
     }
   };
 
@@ -143,275 +196,329 @@ export default function MediaDetailPanel({
         open={!!mediaId}
         onOpenChange={(open: boolean) => !open && closeDetailPanel()}
       >
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden p-0 gap-0">
+        <DialogContent className="max-w-3xl max-h-[90vh] overflow-hidden p-0 gap-0 border-2 border-foreground shadow-2xl">
           {isLoading ? (
             <div className="flex items-center justify-center h-96">
               <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
             </div>
           ) : media ? (
-            <div className="flex flex-col md:flex-row h-full max-h-[90vh]">
-              <div className="flex-1 bg-neutral-100 flex items-center justify-center min-h-[300px] md:min-h-[500px] relative">
-                {isVideo ? (
-                  <video
-                    src={media.url}
-                    controls
-                    className="max-w-full max-h-full object-contain"
-                  />
-                ) : (
-                  <img
-                    src={media.url}
-                    alt={media.altText || media.filename}
-                    className="max-w-full max-h-full object-contain"
-                  />
-                )}
+            <div className="flex flex-col h-full max-h-[90vh]">
+              {/* Top: Media Preview */}
+              <div className="relative w-full bg-neutral-100/50 flex items-center justify-center shrink-0 h-[40vh] border-b border-border group">
+                <div className="relative w-full h-full flex items-center justify-center p-8">
+                  {isVideo ? (
+                    <video
+                      src={media.url}
+                      controls
+                      className="max-w-full max-h-full object-contain shadow-sm rounded-sm"
+                    />
+                  ) : (
+                    <img
+                      src={media.url}
+                      alt={media.altText || media.filename}
+                      className="max-w-full max-h-full object-contain shadow-sm rounded-sm"
+                    />
+                  )}
+                </div>
+
+                {/* Maximize Button */}
                 <a
                   href={media.url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="absolute top-3 right-3 p-2 bg-black/60 text-white rounded hover:bg-black/80 transition-colors"
+                  className="absolute bottom-4 right-4 p-2 bg-foreground text-background rounded-sm hover:bg-foreground/80 transition-colors shadow-sm opacity-0 group-hover:opacity-100 duration-200"
                   title="Open full size"
                 >
                   <Maximize2 className="h-4 w-4" />
                 </a>
               </div>
 
-              <div className="w-full md:w-80 border-t md:border-t-0 md:border-l border-border flex flex-col overflow-y-auto bg-surface">
-                <DialogHeader className="p-4 border-b border-border">
-                  <DialogTitle className="font-serif text-lg">
+              {/* Bottom: Details & Controls */}
+              <div className="flex-1 overflow-y-auto bg-surface flex flex-col">
+                {/* 1. Header & Actions */}
+                <div className="flex items-center justify-between px-6 py-4 border-b border-border bg-white sticky top-0 z-20">
+                  <DialogTitle className="font-serif text-xl font-bold">
                     Media Details
                   </DialogTitle>
-                </DialogHeader>
-
-                <div className="flex items-center gap-2 p-4 border-b border-border">
-                  <a
-                    href={media.url}
-                    download={media.filename}
-                    className="inline-flex items-center gap-1.5 h-8 px-3 rounded-sm text-xs font-serif uppercase tracking-wide border border-border bg-white hover:bg-surface-hover transition-colors w-full justify-center"
-                  >
-                    <Download className="h-3.5 w-3.5" />
-                    Download
-                  </a>
-                </div>
-
-                <div className="p-4 space-y-4 border-b border-border">
-                  <div>
-                    <label className="block text-xs font-bold uppercase tracking-wider text-muted-foreground mb-1.5">
-                      Filename
-                    </label>
-                    <Input
-                      value={filename}
-                      onChange={(e) => setEditedFilename(e.target.value)}
-                      onBlur={handleSave}
-                      className="h-8 text-sm"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-bold uppercase tracking-wider text-muted-foreground mb-1.5">
-                      Alt Text
-                    </label>
-                    <Textarea
-                      value={altText}
-                      onChange={(e) => setEditedAltText(e.target.value)}
-                      onBlur={handleSave}
-                      rows={2}
-                      placeholder="Describe this media for accessibility..."
-                      className="resize-none text-sm"
-                    />
-                  </div>
-                </div>
-
-                <div className="p-4 border-b border-border">
-                  <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5 mb-2">
-                    <Folder className="h-3.5 w-3.5" />
-                    Folder
-                  </label>
-                  <div className="relative">
-                    <button
-                      onClick={() => setShowFolderDropdown(!showFolderDropdown)}
-                      className="w-full flex items-center justify-between px-3 py-2 border border-border bg-white hover:bg-surface-hover transition-colors text-left text-sm font-serif rounded-sm"
+                  <div className="flex items-center gap-3">
+                    <Button
+                      variant="outline"
+                      onClick={handleDownload}
+                      disabled={isDownloading}
+                      className="h-9 gap-2"
                     >
-                      <span>{media.folder?.name || "Root"}</span>
-                      <ChevronDown className="h-4 w-4 text-muted-foreground" />
-                    </button>
-                    {showFolderDropdown && (
-                      <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-border shadow-lg z-50 max-h-48 overflow-y-auto rounded-sm">
-                        <div className="p-2 space-y-1">
-                          <button
-                            onClick={() => handleMoveToFolder(null)}
-                            className={cn(
-                              "w-full px-2 py-1.5 text-left text-sm font-serif transition-colors rounded-sm",
-                              !media.folderId
-                                ? "bg-brand-primary text-brand-primary-foreground"
-                                : "hover:bg-neutral-100"
-                            )}
-                          >
-                            Root
-                          </button>
-                          {folders.map((folder) => (
-                            <button
-                              key={folder.id}
-                              onClick={() => handleMoveToFolder(folder.id)}
-                              className={cn(
-                                "w-full px-2 py-1.5 text-left text-sm font-serif transition-colors rounded-sm",
-                                media.folderId === folder.id
-                                  ? "bg-brand-primary text-brand-primary-foreground"
-                                  : "hover:bg-neutral-100"
-                              )}
-                            >
-                              {folder.name}
-                            </button>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-                <div className="p-4 border-b border-border">
-                  <div className="flex items-center justify-between mb-2">
-                    <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
-                      <Tag className="h-3.5 w-3.5" />
-                      Tags
-                    </label>
-                    <div className="relative">
-                      <button
-                        onClick={() => setShowTagDropdown(!showTagDropdown)}
-                        className="p-1 hover:bg-surface-hover rounded transition-colors text-muted-foreground hover:text-brand-primary"
-                      >
-                        <Plus className="h-4 w-4" />
-                      </button>
-                      {showTagDropdown && (
-                        <div className="absolute top-full right-0 mt-1 w-48 bg-white border border-border shadow-lg z-50 max-h-48 overflow-y-auto rounded-sm">
-                          <div className="p-2 space-y-1">
-                            {tags.map((tag) => {
-                              const isAttached = media.tags.some(
-                                (t) => t.id === tag.id
-                              );
-                              return (
-                                <button
-                                  key={tag.id}
-                                  onClick={() => handleToggleTag(tag.id)}
-                                  className={cn(
-                                    "w-full flex items-center gap-2 px-2 py-1.5 text-left text-sm font-serif transition-colors rounded-sm",
-                                    isAttached
-                                      ? "bg-brand-primary text-brand-primary-foreground"
-                                      : "hover:bg-neutral-100"
-                                  )}
-                                >
-                                  <span
-                                    className="w-3 h-3 rounded-full shrink-0"
-                                    style={{ backgroundColor: tag.color }}
-                                  />
-                                  <span className="truncate">{tag.name}</span>
-                                </button>
-                              );
-                            })}
-                            {tags.length === 0 && (
-                              <p className="text-sm text-muted-foreground px-2 py-1">
-                                No tags yet
-                              </p>
-                            )}
-                          </div>
-                        </div>
+                      {isDownloading ? (
+                        <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                      ) : (
+                        <Download className="h-3.5 w-3.5" />
                       )}
-                    </div>
-                  </div>
-                  <div className="flex flex-wrap gap-1.5">
-                    {media.tags.length === 0 ? (
-                      <p className="text-sm text-muted-foreground font-serif italic">
-                        No tags
-                      </p>
-                    ) : (
-                      media.tags.map((tag) => (
-                        <span
-                          key={tag.id}
-                          className="inline-flex items-center gap-1 px-2 py-1 text-xs font-bold uppercase tracking-wider rounded-sm"
-                          style={{
-                            backgroundColor: tag.color + "20",
-                            color: tag.color,
-                            border: `1px solid ${tag.color}40`,
-                          }}
-                        >
-                          {tag.name}
-                          <button
-                            onClick={() => handleToggleTag(tag.id)}
-                            className="hover:opacity-70"
-                          >
-                            <X className="h-3 w-3" />
-                          </button>
-                        </span>
-                      ))
-                    )}
+                      Download
+                    </Button>
+                    <Button
+                      variant="destructive"
+                      size="sm"
+                      onClick={() => setShowDeleteConfirm(true)}
+                      className="h-9 gap-2"
+                    >
+                      <Trash2 className="h-3.5 w-3.5" />
+                      Delete
+                    </Button>
                   </div>
                 </div>
 
-                <div className="p-4 border-b border-border space-y-2 text-sm">
+                {/* 2. Technical Specs Strip */}
+                <div className="px-6 py-3 bg-neutral-50 border-b border-border flex flex-wrap gap-6 text-xs text-muted-foreground font-medium">
                   <div className="flex items-center gap-2">
-                    <FileType className="h-4 w-4 text-muted-foreground shrink-0" />
-                    <span className="font-serif text-muted-foreground">
-                      {media.type} · {formatFileSize(media.fileSize)}
+                    <FileType className="h-4 w-4 opacity-50" />
+                    <span className="uppercase tracking-wider">
+                      {media.type.split("/")[1] || "FILE"}
                     </span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <Maximize2 className="h-4 w-4 text-muted-foreground shrink-0" />
-                    <span className="font-serif text-muted-foreground">
+                    <HardDrive className="h-4 w-4 opacity-50" />
+                    <span>{formatFileSize(media.fileSize)}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Scaling className="h-4 w-4 opacity-50" />
+                    <span>
                       {media.width} × {media.height} px
                     </span>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <Calendar className="h-4 w-4 text-muted-foreground shrink-0" />
-                    <span className="font-serif text-muted-foreground">
+                  <div className="flex items-center gap-2 ml-auto">
+                    <Calendar className="h-4 w-4 opacity-50" />
+                    <span>
+                      Uploaded{" "}
                       {format(new Date(media.createdAt), "MMM d, yyyy")}
                     </span>
                   </div>
                 </div>
 
-                {media.usedInPosts && media.usedInPosts.length > 0 && (
-                  <div className="p-4 border-b border-border">
-                    <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-2 block">
-                      Used in {media.usedInPosts.length}{" "}
-                      {media.usedInPosts.length === 1 ? "post" : "posts"}
-                    </label>
+                {/* 3. Main Form Content */}
+                <div className="p-6 space-y-8">
+                  {/* Row: Filename & Alt Text */}
+                  <div className="space-y-6 pb-6 border-b border-border">
                     <div className="space-y-2">
-                      {media.usedInPosts.map((post) => (
-                        <div
-                          key={post.id}
-                          className="p-2 border border-border bg-white rounded-sm"
-                        >
-                          <p className="font-serif text-sm font-bold truncate">
-                            {post.title || "Untitled"}
-                          </p>
-                          <p className="text-xs text-muted-foreground mt-0.5">
-                            <span className="uppercase tracking-wider">
-                              {post.status}
-                            </span>
-                            {post.scheduledAt && (
-                              <>
-                                {" "}
-                                ·{" "}
-                                {format(
-                                  new Date(post.scheduledAt),
-                                  "MMM d, yyyy"
-                                )}
-                              </>
-                            )}
-                          </p>
-                        </div>
-                      ))}
+                      <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                        Filename
+                      </label>
+                      <Input
+                        value={filename}
+                        onChange={(e) => setEditedFilename(e.target.value)}
+                        className="font-serif text-base h-11 bg-transparent border-border focus:border-brand-primary"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                        Alt Text (Accessibility)
+                      </label>
+                      <Textarea
+                        value={altText}
+                        onChange={(e) => setEditedAltText(e.target.value)}
+                        rows={3}
+                        placeholder="Describe this media..."
+                        className="resize-none font-serif text-sm bg-transparent border-border focus:border-brand-primary"
+                      />
+                    </div>
+
+                    <div className="flex justify-end pt-2">
+                      <Button
+                        onClick={handleSave}
+                        disabled={!hasChanges || updateMedia.isPending}
+                        variant="primary"
+                        className="gap-2"
+                      >
+                        {updateMedia.isPending ? (
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                        ) : (
+                          <Save className="h-4 w-4" />
+                        )}
+                        {updateMedia.isPending ? "Saving..." : "Save Changes"}
+                      </Button>
                     </div>
                   </div>
-                )}
 
-                <div className="p-4 mt-auto">
-                  <Button
-                    variant="destructive"
-                    size="sm"
-                    onClick={() => setShowDeleteConfirm(true)}
-                    className="w-full gap-1.5"
-                  >
-                    <Trash2 className="h-3.5 w-3.5" />
-                    Delete Media
-                  </Button>
+                  {/* Row: Organization (Folder & Tags) */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {/* Folder */}
+                    <div className="space-y-3">
+                      <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-2">
+                        <Folder className="h-3.5 w-3.5" />
+                        Location
+                      </label>
+                      <div className="relative">
+                        <button
+                          onClick={() =>
+                            setShowFolderDropdown(!showFolderDropdown)
+                          }
+                          className="w-full flex items-center justify-between px-3 py-2.5 border border-border bg-background hover:border-foreground transition-colors text-left text-sm font-serif rounded-sm"
+                        >
+                          <span>
+                            {media.folder?.name || "All Media (Root)"}
+                          </span>
+                          <ChevronDown className="h-4 w-4 text-muted-foreground" />
+                        </button>
+                        {showFolderDropdown && (
+                          <div className="absolute top-full left-0 right-0 mt-1 bg-surface border border-border shadow-xl z-50 max-h-60 overflow-y-auto rounded-sm">
+                            <div className="p-1 space-y-0.5">
+                              <button
+                                onClick={() => handleMoveToFolder(null)}
+                                className={cn(
+                                  "w-full px-3 py-2 text-left text-sm font-serif transition-colors rounded-sm flex items-center gap-2",
+                                  !media.folderId
+                                    ? "bg-brand-primary text-brand-primary-foreground"
+                                    : "hover:bg-neutral-100"
+                                )}
+                              >
+                                <Folder className="h-3.5 w-3.5 opacity-50" />
+                                All Media (Root)
+                              </button>
+                              {folders.map((folder) => (
+                                <button
+                                  key={folder.id}
+                                  onClick={() => handleMoveToFolder(folder.id)}
+                                  className={cn(
+                                    "w-full px-3 py-2 text-left text-sm font-serif transition-colors rounded-sm flex items-center gap-2",
+                                    media.folderId === folder.id
+                                      ? "bg-brand-primary text-brand-primary-foreground"
+                                      : "hover:bg-neutral-100"
+                                  )}
+                                >
+                                  <Folder className="h-3.5 w-3.5 opacity-50" />
+                                  {folder.name}
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Tags */}
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between">
+                        <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-2">
+                          <Tag className="h-3.5 w-3.5" />
+                          Tags
+                        </label>
+                        <div className="relative">
+                          <button
+                            onClick={() => setShowTagDropdown(!showTagDropdown)}
+                            className="text-xs font-bold uppercase tracking-wider text-brand-primary hover:text-brand-primary-hover flex items-center gap-1"
+                          >
+                            <Plus className="h-3 w-3" />
+                            Add Tag
+                          </button>
+                          {showTagDropdown && (
+                            <div className="absolute top-full right-0 mt-2 w-56 bg-surface border border-border shadow-xl z-50 max-h-60 overflow-y-auto rounded-sm">
+                              <div className="p-1 space-y-0.5">
+                                {tags.length === 0 ? (
+                                  <p className="p-3 text-sm text-muted-foreground font-serif italic text-center">
+                                    No tags created yet.
+                                  </p>
+                                ) : (
+                                  tags.map((tag) => {
+                                    const isAttached = media.tags.some(
+                                      (t) => t.id === tag.id
+                                    );
+                                    return (
+                                      <button
+                                        key={tag.id}
+                                        onClick={() => handleToggleTag(tag.id)}
+                                        className={cn(
+                                          "w-full flex items-center gap-2 px-3 py-2 text-left text-sm font-serif transition-colors rounded-sm",
+                                          isAttached
+                                            ? "bg-brand-primary text-brand-primary-foreground"
+                                            : "hover:bg-neutral-100"
+                                        )}
+                                      >
+                                        <span
+                                          className="w-2.5 h-2.5 rounded-full shrink-0 border border-white/20"
+                                          style={{ backgroundColor: tag.color }}
+                                        />
+                                        <span className="truncate">
+                                          {tag.name}
+                                        </span>
+                                      </button>
+                                    );
+                                  })
+                                )}
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+
+                      <div className="flex flex-wrap gap-2 min-h-[44px] bg-neutral-50 border border-border rounded-sm p-2">
+                        {media.tags.length === 0 ? (
+                          <span className="text-sm text-muted-foreground italic px-1 self-center">
+                            No tags attached
+                          </span>
+                        ) : (
+                          media.tags.map((tag) => (
+                            <span
+                              key={tag.id}
+                              className="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-bold uppercase tracking-wider rounded-sm bg-white border border-border shadow-sm"
+                              style={{
+                                color: tag.color,
+                                borderColor: `${tag.color}40`,
+                              }}
+                            >
+                              <span
+                                className="w-1.5 h-1.5 rounded-full"
+                                style={{ backgroundColor: tag.color }}
+                              />
+                              {tag.name}
+                              <button
+                                onClick={() => handleToggleTag(tag.id)}
+                                className="ml-1 hover:text-red-500 transition-colors"
+                              >
+                                <X className="h-3 w-3" />
+                              </button>
+                            </span>
+                          ))
+                        )}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Usage Info (Bottom) */}
+                  {media.usedInPosts && media.usedInPosts.length > 0 && (
+                    <div className="pt-6 border-t border-border">
+                      <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-3 block">
+                        Usage History ({media.usedInPosts.length})
+                      </label>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        {media.usedInPosts.map((post) => (
+                          <div
+                            key={post.id}
+                            className="p-3 border border-border bg-neutral-50 rounded-sm hover:border-foreground/30 transition-colors flex items-center gap-3"
+                          >
+                            <div className="w-1.5 h-1.5 bg-brand-primary rounded-full shrink-0" />
+                            <div className="min-w-0">
+                              <p className="font-serif text-sm font-bold truncate text-foreground">
+                                {post.title || "Untitled Post"}
+                              </p>
+                              <p className="text-xs text-muted-foreground">
+                                <span className="uppercase font-bold text-[10px]">
+                                  {post.status}
+                                </span>
+                                {post.scheduledAt && (
+                                  <>
+                                    {" "}
+                                    ·{" "}
+                                    {format(
+                                      new Date(post.scheduledAt),
+                                      "MMM d, yyyy"
+                                    )}
+                                  </>
+                                )}
+                              </p>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
@@ -425,6 +532,7 @@ export default function MediaDetailPanel({
         </DialogContent>
       </Dialog>
 
+      {/* Delete confirmation */}
       <AlertDialog open={showDeleteConfirm} onOpenChange={setShowDeleteConfirm}>
         <AlertDialogContent>
           <AlertDialogHeader>
@@ -435,8 +543,9 @@ export default function MediaDetailPanel({
               Are you sure you want to delete this media? This action cannot be
               undone.
               {media?.usageCount ? (
-                <span className="block mt-2 text-error">
-                  Warning: This media is used in {media.usageCount} post(s).
+                <span className="block mt-4 p-3 bg-red-50 border border-red-100 text-red-600 rounded-sm font-medium text-sm">
+                  ⚠️ Warning: This media is currently used in {media.usageCount}{" "}
+                  post(s). Deleting it may break images in those posts.
                 </span>
               ) : null}
             </AlertDialogDescription>
@@ -450,7 +559,7 @@ export default function MediaDetailPanel({
               {deleteMedia.isPending ? (
                 <Loader2 className="h-4 w-4 animate-spin" />
               ) : (
-                "Delete"
+                "Delete Permanently"
               )}
             </AlertDialogAction>
           </AlertDialogFooter>
