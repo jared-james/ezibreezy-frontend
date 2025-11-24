@@ -1,11 +1,19 @@
-// components/post-editor/use-post-status-polling.ts
-
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
 import { getPostDetails } from "@/lib/api/publishing";
+import { toast } from "sonner";
 
 export function usePostStatusPolling() {
   const [isPolling, setIsPolling] = useState(false);
   const stopPollingRef = useRef(false);
+
+  useEffect(() => {
+    return () => {
+      if (stopPollingRef.current === false) {
+        stopPollingRef.current = true;
+        toast.dismiss("publishing-toast");
+      }
+    };
+  }, []);
 
   const startPolling = useCallback(
     async (
@@ -30,12 +38,14 @@ export function usePostStatusPolling() {
 
           if (post.status === "sent") {
             setIsPolling(false);
+            stopPollingRef.current = true;
             onSuccess();
             return;
           }
 
           if (post.status === "failed") {
             setIsPolling(false);
+            stopPollingRef.current = true;
             onError(post.error || "The social platform rejected the post.");
             return;
           }
@@ -43,6 +53,7 @@ export function usePostStatusPolling() {
           attempts++;
           if (attempts >= MAX_ATTEMPTS) {
             setIsPolling(false);
+            stopPollingRef.current = true;
             onTimeout();
             return;
           }
@@ -51,6 +62,7 @@ export function usePostStatusPolling() {
         } catch (e) {
           console.error("Polling error", e);
           setIsPolling(false);
+          stopPollingRef.current = true;
           onTimeout();
         }
       };

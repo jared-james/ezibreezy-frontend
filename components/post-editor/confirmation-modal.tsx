@@ -22,10 +22,13 @@ export default function ConfirmationModal({
 
   const isScheduled = status === "scheduled";
 
-  const postLabel = count > 1 ? `${count} posts` : "Your post";
+  const isMultiple = count > 1;
+  const postLabel = isMultiple ? `${count} posts` : "Your post";
   const message = isScheduled
     ? `${postLabel} will be published at the scheduled time.`
-    : `${postLabel} is now live across your channels.`;
+    : `${postLabel} ${
+        isMultiple ? "are" : "is"
+      } now live across your channels.`;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
@@ -39,7 +42,9 @@ export default function ConfirmationModal({
         </button>
 
         <div className="p-8 text-center">
-          <p className="eyebrow mb-2">{isScheduled ? "All Set" : "Published"}</p>
+          <p className="eyebrow mb-2">
+            {isScheduled ? "All Set" : "Published"}
+          </p>
 
           {/* Line under eyebrow */}
           <div className="border-b border-foreground mb-6 mx-auto w-16" />
