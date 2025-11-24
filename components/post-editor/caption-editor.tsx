@@ -2,7 +2,7 @@
 
 "use client";
 
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useMemo } from "react";
 import {
   Smile,
   Twitter,
@@ -17,6 +17,7 @@ import {
   Book,
   Clapperboard,
   Type,
+  Linkedin,
 } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
@@ -54,7 +55,7 @@ interface CaptionEditorProps {
   ) => void;
 }
 
-const PlatformIcon = ({ platformId }: { platformId: string }) => {
+const PlatformIcon = ({ platformId, className }: { platformId: string; className?: string }) => {
   const Icon =
     platformId === "x"
       ? Twitter
@@ -62,6 +63,8 @@ const PlatformIcon = ({ platformId }: { platformId: string }) => {
       ? Instagram
       : platformId === "facebook"
       ? Facebook
+      : platformId === "linkedin"
+      ? Linkedin
       : platformId === "threads"
       ? AtSign
       : platformId === "tiktok"
@@ -70,7 +73,7 @@ const PlatformIcon = ({ platformId }: { platformId: string }) => {
 
   if (!Icon) return null;
 
-  return <Icon className="h-4 w-4 text-brand-primary" />;
+  return <Icon className={cn("h-4 w-4", className || "text-brand-primary")} />;
 };
 
 const CaptionTextarea = ({
@@ -216,6 +219,28 @@ export default function CaptionEditor({
   const [showFacebookFirstComment, setShowFacebookFirstComment] = useState(
     !!facebookFirstComment && facebookFirstComment.length > 0
   );
+
+  // Caption filter tab state - tracks which platform's caption section to show
+  const [activeCaptionFilter, setActiveCaptionFilter] = useState<string>("all");
+
+  // Get the list of selected platform IDs
+  const selectedPlatformIds = useMemo(
+    () => Object.keys(selectedAccounts),
+    [selectedAccounts]
+  );
+
+  // Sync active filter when selected accounts change
+  useEffect(() => {
+    if (selectedPlatformIds.length === 0) {
+      setActiveCaptionFilter("all");
+    } else if (activeCaptionFilter !== "all" && !selectedPlatformIds.includes(activeCaptionFilter)) {
+      // If current filter is no longer valid, switch to first selected platform
+      setActiveCaptionFilter(selectedPlatformIds[0]);
+    } else if (activeCaptionFilter === "all" && selectedPlatformIds.length === 1) {
+      // If only one platform selected, auto-select it
+      setActiveCaptionFilter(selectedPlatformIds[0]);
+    }
+  }, [selectedPlatformIds, activeCaptionFilter]);
 
   useEffect(() => {
     setLocalMainCaption(mainCaption);
@@ -409,7 +434,50 @@ export default function CaptionEditor({
         />
       </div>
 
-      {Object.keys(selectedAccounts).map((platformId) => {
+      {/* Caption Filter Tabs - only show when multiple platforms are selected */}
+      {selectedPlatformIds.length > 1 && (
+        <div className="mt-6 flex flex-wrap items-center gap-2">
+          <button
+            type="button"
+            onClick={() => setActiveCaptionFilter("all")}
+            className={cn(
+              "flex items-center gap-1.5 rounded-full px-4 py-1.5 text-sm font-medium transition-all",
+              activeCaptionFilter === "all"
+                ? "border-2 border-brand-primary bg-surface text-brand-primary"
+                : "border border-border bg-surface text-muted-foreground hover:bg-surface-hover hover:text-foreground"
+            )}
+          >
+            All
+          </button>
+          {selectedPlatformIds.map((platformId) => {
+            const platform = platforms.find((p) => p.id === platformId);
+            if (!platform) return null;
+
+            const isActive = activeCaptionFilter === platformId;
+
+            return (
+              <button
+                key={platformId}
+                type="button"
+                onClick={() => setActiveCaptionFilter(platformId)}
+                title={platform.name}
+                className={cn(
+                  "flex items-center justify-center rounded-full p-2 transition-all",
+                  isActive
+                    ? "border-2 border-brand-primary bg-surface"
+                    : "border border-border bg-surface text-muted-foreground hover:bg-surface-hover hover:text-foreground"
+                )}
+              >
+                <PlatformIcon platformId={platformId} className={isActive ? "text-brand-primary" : undefined} />
+              </button>
+            );
+          })}
+        </div>
+      )}
+
+      {Object.keys(selectedAccounts)
+        .filter((platformId) => activeCaptionFilter === "all" || activeCaptionFilter === platformId)
+        .map((platformId) => {
         const platform = platforms.find((p) => p.id === platformId);
         if (!platform) return null;
 

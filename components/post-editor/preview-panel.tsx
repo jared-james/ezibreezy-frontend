@@ -127,7 +127,6 @@ function PreviewPanel({
     [activePlatforms]
   );
 
-  const showIconsOnly = activePlatforms.length > 2;
 
   const currentCaption = useMemo(
     () => platformCaptions[validActiveTab] || mainCaption,
@@ -396,15 +395,13 @@ function PreviewPanel({
               onClick={() => setActiveTab(tab.id)}
               title={tab.name}
               className={cn(
-                "flex items-center gap-2 text-sm font-serif transition-colors",
-                showIconsOnly ? "p-2" : "px-3 py-1.5",
+                "flex items-center justify-center rounded-full p-2 transition-all",
                 validActiveTab === tab.id
-                  ? "bg-[--foreground] text-[--background] font-bold"
-                  : "text-[--muted] hover:bg-[--surface-hover]"
+                  ? "border-2 border-brand-primary bg-surface text-brand-primary"
+                  : "border border-border bg-surface text-foreground hover:bg-surface-hover"
               )}
             >
               <tab.Icon className="w-4 h-4" />
-              {!showIconsOnly && tab.name}
             </button>
           ))}
         </div>
