@@ -6,8 +6,6 @@ import { Play, Check, Film } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import type { MediaItem } from "@/lib/api/media";
-import { useDraggable } from "@dnd-kit/core";
-import { CSS } from "@dnd-kit/utilities";
 
 interface MediaCardProps {
   item: MediaItem;
@@ -15,7 +13,6 @@ interface MediaCardProps {
   isSelected: boolean;
   onSelect: (id: string, isShiftKey: boolean, isCtrlKey: boolean) => void;
   onOpenDetail: (id: string) => void;
-  isDragDisabled?: boolean;
 }
 
 export default function MediaCard({
@@ -23,23 +20,7 @@ export default function MediaCard({
   isSelected,
   onSelect,
   onOpenDetail,
-  isDragDisabled = false,
 }: MediaCardProps) {
-  const { attributes, listeners, setNodeRef, transform, isDragging } =
-    useDraggable({
-      id: `media-${item.id}`,
-      data: {
-        type: "media",
-        mediaId: item.id,
-        item,
-      },
-      disabled: isDragDisabled,
-    });
-
-  const style = {
-    transform: CSS.Translate.toString(transform),
-    opacity: isDragging ? 0.5 : 1,
-  };
 
   const isVideo = item.type.startsWith("video/");
   const isGif = item.type === "image/gif";
@@ -62,18 +43,13 @@ export default function MediaCard({
 
   return (
     <div
-      ref={setNodeRef}
-      style={style}
       onClick={handleClick}
       className={cn(
         "group relative flex flex-col bg-surface border cursor-pointer transition-all duration-200 overflow-hidden rounded-sm",
         isSelected
           ? "border-brand-primary ring-2 ring-brand-primary"
-          : "border-border hover:border-brand-primary",
-        isDragging && "ring-2 ring-brand-primary"
+          : "border-border hover:border-brand-primary"
       )}
-      {...listeners}
-      {...attributes}
     >
       {/* Thumbnail area */}
       <div className="relative aspect-square overflow-hidden bg-neutral-100">
@@ -113,7 +89,7 @@ export default function MediaCard({
             "absolute top-2 left-2 w-5 h-5 border-2 rounded-sm flex items-center justify-center transition-all",
             isSelected
               ? "bg-brand-primary border-brand-primary"
-              : "bg-white/90 border-border hover:border-brand-primary"
+              : "bg-white/90 border-brand-primary hover:border-brand-primary"
           )}
         >
           {isSelected && (

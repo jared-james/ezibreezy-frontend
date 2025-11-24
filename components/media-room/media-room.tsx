@@ -3,11 +3,11 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Loader2, Upload, Image as ImageIcon, Plus } from "lucide-react";
+import { Loader2, Upload, Plus } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { getClientDataForEditor } from "@/app/actions/data";
 import { useMediaRoomStore } from "@/lib/store/media-room-store";
-import { useBulkMoveMedia, useCreateFolder } from "@/lib/hooks/use-media";
+import { useCreateFolder } from "@/lib/hooks/use-media";
 import MediaFolderBar from "./media-folder-bar";
 import MediaToolbar from "./media-toolbar";
 import MediaGrid from "./media-grid";
@@ -20,47 +20,9 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import {
-  DndContext,
-  closestCenter,
-  useSensor,
-  useSensors,
-  PointerSensor,
-  DragEndEvent,
-  DragStartEvent,
-  DragOverlay,
-} from "@dnd-kit/core";
-import type { MediaItem } from "@/lib/api/media";
-
-function MediaCardOverlay({ item }: { item: MediaItem }) {
-  const isVideo = item.type.startsWith("video/");
-
-  return (
-    <div className="w-24 h-24 bg-surface border-2 border-brand-primary rounded-sm shadow-xl overflow-hidden">
-      {item.thumbnailUrl || item.url ? (
-        <img
-          src={item.thumbnailUrl || item.url}
-          alt={item.filename}
-          className="w-full h-full object-cover"
-        />
-      ) : (
-        <div className="w-full h-full flex items-center justify-center bg-muted">
-          <ImageIcon className="w-6 h-6 text-muted-foreground" />
-        </div>
-      )}
-      {isVideo && (
-        <div className="absolute bottom-1 left-1 px-1 py-0.5 bg-black/70 text-white text-[8px] font-bold uppercase rounded">
-          Video
-        </div>
-      )}
-    </div>
-  );
-}
 
 export default function MediaRoom() {
   const [isUploadOpen, setIsUploadOpen] = useState(false);
-  const [activeDragItem, setActiveDragItem] = useState<MediaItem | null>(null);
-
   const [isCreatingFolder, setIsCreatingFolder] = useState(false);
   const [newFolderName, setNewFolderName] = useState("");
 
@@ -75,49 +37,13 @@ export default function MediaRoom() {
 
   const integrationId = clientData?.connections?.[0]?.id || null;
 
-  const bulkMove = useBulkMoveMedia(integrationId);
   const createFolder = useCreateFolder(integrationId);
-
-  const sensors = useSensors(
-    useSensor(PointerSensor, {
-      activationConstraint: {
-        distance: 8,
-      },
-    })
-  );
 
   useEffect(() => {
     return () => {
       reset();
     };
   }, [reset]);
-
-  const handleDragStart = (event: DragStartEvent) => {
-    const { active } = event;
-    if (active.data.current?.type === "media") {
-      setActiveDragItem(active.data.current.item as MediaItem);
-    }
-  };
-
-  const handleDragEnd = (event: DragEndEvent) => {
-    const { active, over } = event;
-    setActiveDragItem(null);
-
-    if (!over) return;
-
-    if (
-      active.data.current?.type === "media" &&
-      over.data.current?.type === "folder"
-    ) {
-      const mediaId = active.data.current.mediaId as string;
-      const targetFolderId = over.data.current.folderId as string | null;
-
-      bulkMove.mutate({
-        mediaIds: [mediaId],
-        folderId: targetFolderId,
-      });
-    }
-  };
 
   const handleCreateFolder = () => {
     if (!newFolderName.trim()) return;
@@ -160,13 +86,7 @@ export default function MediaRoom() {
   }
 
   return (
-    <DndContext
-      sensors={sensors}
-      collisionDetection={closestCenter}
-      onDragStart={handleDragStart}
-      onDragEnd={handleDragEnd}
-    >
-      <div className="flex flex-col h-full">
+    <div className="flex flex-col h-full">
         <div className="border-b-4 border-double border-foreground pb-6 mb-6">
           <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
             <div>
@@ -271,11 +191,6 @@ export default function MediaRoom() {
           isOpen={isUploadOpen}
           onClose={() => setIsUploadOpen(false)}
         />
-      </div>
-
-      <DragOverlay dropAnimation={null}>
-        {activeDragItem ? <MediaCardOverlay item={activeDragItem} /> : null}
-      </DragOverlay>
-    </DndContext>
+    </div>
   );
 }

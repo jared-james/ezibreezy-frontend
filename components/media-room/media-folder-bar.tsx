@@ -20,7 +20,6 @@ import {
 } from "@/lib/hooks/use-media";
 import { useMediaRoomStore } from "@/lib/store/media-room-store";
 import type { MediaFolder } from "@/lib/api/media";
-import { useDroppable } from "@dnd-kit/core";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -59,27 +58,13 @@ function DroppableFolderTab({
   onDelete,
   children,
 }: DroppableFolderTabProps) {
-  const droppableId = folder ? `folder-${folder.id}` : "folder-root";
-
-  const { isOver, setNodeRef } = useDroppable({
-    id: droppableId,
-    data: {
-      type: "folder",
-      folderId: folder?.id || null,
-    },
-  });
-
   return (
     <div
-      ref={setNodeRef}
       className={cn(
         "group relative flex items-center gap-2 px-3 py-2 text-sm font-serif whitespace-nowrap transition-all border rounded-t-sm mb-2",
         isActive
           ? "bg-brand-primary text-brand-primary-foreground border-brand-primary z-10"
-          : "bg-white text-neutral-500 border-neutral-300 hover:text-neutral-900 hover:border-neutral-500",
-        isOver &&
-          !isActive &&
-          "border-dashed border-brand-primary bg-brand-primary/5"
+          : "bg-white text-neutral-500 border-neutral-300 hover:text-neutral-900 hover:border-neutral-500"
       )}
     >
       <button onClick={onSelect} className="flex items-center gap-2">
@@ -123,10 +108,6 @@ function DroppableFolderTab({
             )}
           </PopoverContent>
         </Popover>
-      )}
-
-      {isOver && (
-        <div className="absolute inset-0 border-2 border-dashed border-brand-primary pointer-events-none" />
       )}
     </div>
   );
