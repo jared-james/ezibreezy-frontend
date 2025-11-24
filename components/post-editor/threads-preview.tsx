@@ -217,7 +217,7 @@ function ThreadsPreview({
                 </p>
 
                 {(message.mediaPreviews?.length || 0) > 0 && (
-                  <MediaGrid images={message.mediaPreviews || []} mediaType={mediaType} />
+                  <MediaGrid images={message.mediaPreviews || []} mediaType={message.mediaType || "image"} />
                 )}
 
                 <div className="mt-3 flex items-center gap-4 text-[--muted-foreground]">

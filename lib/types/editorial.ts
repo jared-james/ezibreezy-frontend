@@ -40,6 +40,7 @@ export interface ThreadMessageAugmented extends ThreadMessage {
   mediaPreviews?: string[];
   mediaFiles?: File[];
   isUploading?: boolean;
+  mediaType?: "text" | "image" | "video";
 }
 
 export interface DistributionMetadata {

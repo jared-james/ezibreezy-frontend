@@ -267,7 +267,7 @@ function XPreview({
                 </p>
 
                 {(message.mediaPreviews?.length || 0) > 0 && (
-                  <MediaGrid images={message.mediaPreviews || []} mediaType={postType} />
+                  <MediaGrid images={message.mediaPreviews || []} mediaType={message.mediaType || "image"} />
                 )}
 
                 <div className="mt-3 flex justify-between px-2">

@@ -161,6 +161,20 @@ export function usePostEditor(options: UsePostEditorOptions = {}) {
   const threadMessagesWithPreviews: ThreadMessageAugmented[] = useMemo(() => {
     return threadMessages.map((msg, index) => {
       const threadMedia = mediaItems.filter((m) => m.threadIndex === index);
+
+      // Determine mediaType for this specific thread message
+      let threadMediaType: "text" | "image" | "video" = "text";
+      if (threadMedia.length > 0) {
+        const hasVideo = threadMedia.some(
+          (m) =>
+            (m.file && (m.file as globalThis.File).type.startsWith("video/")) ||
+            (m.file === null &&
+              (m.preview.toLowerCase().endsWith(".mp4") ||
+                m.preview.toLowerCase().endsWith(".mov")))
+        );
+        threadMediaType = hasVideo ? "video" : "image";
+      }
+
       return {
         ...msg,
         mediaPreviews: threadMedia
@@ -168,6 +182,7 @@ export function usePostEditor(options: UsePostEditorOptions = {}) {
           .filter(Boolean) as string[],
         mediaFiles: threadMedia.map((m) => m.file!).filter(Boolean) as File[],
         isUploading: threadMedia.some((m) => m.isUploading),
+        mediaType: threadMediaType,
       };
     });
   }, [threadMessages, mediaItems]);
