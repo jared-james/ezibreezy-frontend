@@ -1,8 +1,12 @@
-// lib/hooks/use-media.ts
-
 "use client";
 
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import {
+  useQuery,
+  useMutation,
+  useQueryClient,
+  useInfiniteQuery,
+  keepPreviousData,
+} from "@tanstack/react-query";
 import {
   listMedia,
   getMedia,
@@ -27,37 +31,75 @@ import {
   detachTagsFromMedia,
   uploadMedia,
   type MediaFilters,
+  type MediaListResponse, // Ensure this is exported from api/media.ts
+  type MediaItemWithUsage,
 } from "@/lib/api/media";
 import { toast } from "sonner";
-
-// ============================================================================
-// Media Queries
-// ============================================================================
 
 export function useMediaList(
   integrationId: string | null,
   filters: MediaFilters = {}
 ) {
-  return useQuery({
+  return useInfiniteQuery({
     queryKey: ["media", integrationId, filters],
-    queryFn: () => listMedia(integrationId!, filters),
+    queryFn: ({ pageParam = 0 }) =>
+      listMedia(integrationId!, { ...filters, offset: pageParam as number }),
+    initialPageParam: 0,
+    getNextPageParam: (lastPage) => {
+      if (lastPage.pagination.hasMore) {
+        return lastPage.pagination.offset + lastPage.pagination.limit;
+      }
+      return undefined;
+    },
     enabled: !!integrationId,
+    placeholderData: keepPreviousData,
     staleTime: 30000,
   });
 }
 
 export function useMediaItem(id: string | null, integrationId: string | null) {
+  const queryClient = useQueryClient();
+
   return useQuery({
     queryKey: ["media", id, integrationId],
     queryFn: () => getMedia(id!, integrationId!),
     enabled: !!id && !!integrationId,
     staleTime: 30000,
+    // INSTANT LOAD LOGIC:
+    initialData: () => {
+      if (!id || !integrationId) return undefined;
+
+      // 1. Get all active queries that start with "media" and this integration
+      const queries = queryClient.getQueriesData<{
+        pages: MediaListResponse[];
+      }>({ // Infinite Query Structure
+        queryKey: ["media", integrationId],
+      });
+
+      // 2. Search through every cached list to find our item
+      for (const [_, queryData] of queries) {
+        if (!queryData?.pages) continue;
+
+        for (const page of queryData.pages) {
+          const foundItem = page.data.find((item) => item.id === id);
+          if (foundItem) {
+            // 3. Return it immediately so the modal opens instantly
+            // Note: foundItem lacks 'usedInPosts' which fetch will fill in background
+            return {
+              ...foundItem,
+              folder: foundItem.folderId
+                ? { id: foundItem.folderId, name: "Loading..." }
+                : null,
+              usedInPosts: [], // Will populate after background fetch
+            } as MediaItemWithUsage;
+          }
+        }
+      }
+
+      return undefined;
+    },
   });
 }
-
-// ============================================================================
-// Media Mutations
-// ============================================================================
 
 export function useUploadMedia(integrationId: string | null) {
   const queryClient = useQueryClient();
@@ -189,15 +231,10 @@ export function useBulkUntagMedia(integrationId: string | null) {
   });
 }
 
-// ============================================================================
-// Folder Queries
-// ============================================================================
-
 export function useFolderList(
   integrationId: string | null,
   parentId?: string | "root"
 ) {
-  // Ensure parentId is either "root", a valid-looking UUID, or undefined
   const validParentId =
     parentId === "root" || (parentId && parentId.length >= 32)
       ? parentId
@@ -231,10 +268,6 @@ export function useFolderBreadcrumb(
     staleTime: 60000,
   });
 }
-
-// ============================================================================
-// Folder Mutations
-// ============================================================================
 
 export function useCreateFolder(integrationId: string | null) {
   const queryClient = useQueryClient();
@@ -300,10 +333,6 @@ export function useDeleteFolder(integrationId: string | null) {
   });
 }
 
-// ============================================================================
-// Tag Queries
-// ============================================================================
-
 export function useTagList(integrationId: string | null, search?: string) {
   return useQuery({
     queryKey: ["tags", integrationId, search],
@@ -312,10 +341,6 @@ export function useTagList(integrationId: string | null, search?: string) {
     staleTime: 60000,
   });
 }
-
-// ============================================================================
-// Tag Mutations
-// ============================================================================
 
 export function useCreateTag(integrationId: string | null) {
   const queryClient = useQueryClient();

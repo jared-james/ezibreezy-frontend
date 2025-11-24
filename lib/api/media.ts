@@ -133,6 +133,8 @@ export const listMedia = async (
   if (filters.limit) params.set("limit", String(filters.limit));
   if (filters.offset) params.set("offset", String(filters.offset));
 
+  console.log(`[Frontend API] Requesting: /media?${params.toString()}`);
+
   const response = await apiClient.get<MediaListResponse>(`/media?${params}`);
   return response.data;
 };
@@ -377,8 +379,9 @@ export const getMediaDownloadUrl = async (
   mediaId: string,
   integrationId: string
 ): Promise<{ downloadUrl: string; expiresIn: number }> => {
-  const response = await apiClient.get<{ downloadUrl: string; expiresIn: number }>(
-    `/media/${mediaId}/download-url?integrationId=${integrationId}`
-  );
+  const response = await apiClient.get<{
+    downloadUrl: string;
+    expiresIn: number;
+  }>(`/media/${mediaId}/download-url?integrationId=${integrationId}`);
   return response.data;
 };

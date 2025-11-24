@@ -2,7 +2,7 @@
 
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useEffect, useRef } from "react";
 import { Loader2, ImageOff } from "lucide-react";
 import { useMediaList } from "@/lib/hooks/use-media";
 import { useMediaRoomStore } from "@/lib/store/media-room-store";
@@ -15,7 +15,6 @@ interface MediaGridProps {
 }
 
 export default function MediaGrid({ integrationId }: MediaGridProps) {
-  // Select individual state values to build filters (avoids infinite loop from getApiFilters)
   const currentFolderId = useMediaRoomStore((s) => s.currentFolderId);
   const searchQuery = useMediaRoomStore((s) => s.searchQuery);
   const typeFilter = useMediaRoomStore((s) => s.typeFilter);
@@ -28,7 +27,8 @@ export default function MediaGrid({ integrationId }: MediaGridProps) {
   const openDetailPanel = useMediaRoomStore((s) => s.openDetailPanel);
   const viewMode = useMediaRoomStore((s) => s.viewMode);
 
-  // Memoize filters object
+  const observerTarget = useRef<HTMLDivElement>(null);
+
   const filters = useMemo<MediaFilters>(() => {
     const f: MediaFilters = {
       sortBy,
@@ -73,10 +73,32 @@ export default function MediaGrid({ integrationId }: MediaGridProps) {
     sortOrder,
   ]);
 
-  const { data, isLoading, isError, error } = useMediaList(
-    integrationId,
-    filters
-  );
+  const {
+    data,
+    isLoading,
+    isError,
+    error,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+  } = useMediaList(integrationId, filters);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && hasNextPage && !isFetchingNextPage) {
+          fetchNextPage();
+        }
+      },
+      { threshold: 0.1 }
+    );
+
+    if (observerTarget.current) {
+      observer.observe(observerTarget.current);
+    }
+
+    return () => observer.disconnect();
+  }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
 
   if (isLoading) {
     return (
@@ -96,7 +118,7 @@ export default function MediaGrid({ integrationId }: MediaGridProps) {
     );
   }
 
-  const mediaItems = data?.data || [];
+  const mediaItems = data?.pages.flatMap((page) => page.data) || [];
 
   if (mediaItems.length === 0) {
     return (
@@ -140,13 +162,20 @@ export default function MediaGrid({ integrationId }: MediaGridProps) {
         </div>
       )}
 
-      {data?.pagination && (
-        <div className="mt-6 text-center">
-          <p className="font-serif text-sm text-muted-foreground">
-            Showing {mediaItems.length} of {data.pagination.total} items
+      {/* Infinite Scroll Trigger & Loader */}
+      <div
+        ref={observerTarget}
+        className="h-20 flex items-center justify-center w-full mt-4"
+      >
+        {isFetchingNextPage && (
+          <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+        )}
+        {!hasNextPage && mediaItems.length > 0 && (
+          <p className="text-xs text-muted-foreground font-serif italic">
+            All items loaded
           </p>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 }
