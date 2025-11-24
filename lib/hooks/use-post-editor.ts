@@ -31,6 +31,7 @@ export function usePostEditor(options: UsePostEditorOptions = {}) {
   const mediaItems = useEditorialStore((state) => state.mediaItems);
   const selectedAccounts = useEditorialStore((state) => state.selectedAccounts);
   const threadMessages = useEditorialStore((state) => state.threadMessages);
+  const platformThreadMessages = useEditorialStore((state) => state.platformThreadMessages);
 
   const { data: connections = [] } = useQuery({
     queryKey: ["connections"],
@@ -158,34 +159,54 @@ export function usePostEditor(options: UsePostEditorOptions = {}) {
     [mainPostMedia]
   );
 
+  // Helper to augment thread messages with previews and media type
+  const augmentThreadMessages = useCallback(
+    (messages: typeof threadMessages): ThreadMessageAugmented[] => {
+      return messages.map((msg, index) => {
+        const threadMedia = mediaItems.filter((m) => m.threadIndex === index);
+
+        // Determine mediaType for this specific thread message
+        let threadMediaType: "text" | "image" | "video" = "text";
+        if (threadMedia.length > 0) {
+          const hasVideo = threadMedia.some(
+            (m) =>
+              (m.file && (m.file as globalThis.File).type.startsWith("video/")) ||
+              (m.file === null &&
+                (m.preview.toLowerCase().endsWith(".mp4") ||
+                  m.preview.toLowerCase().endsWith(".mov")))
+          );
+          threadMediaType = hasVideo ? "video" : "image";
+        }
+
+        return {
+          ...msg,
+          mediaPreviews: threadMedia
+            .map((m) => m.preview)
+            .filter(Boolean) as string[],
+          mediaFiles: threadMedia.map((m) => m.file!).filter(Boolean) as File[],
+          isUploading: threadMedia.some((m) => m.isUploading),
+          mediaType: threadMediaType,
+        };
+      });
+    },
+    [mediaItems]
+  );
+
   const threadMessagesWithPreviews: ThreadMessageAugmented[] = useMemo(() => {
-    return threadMessages.map((msg, index) => {
-      const threadMedia = mediaItems.filter((m) => m.threadIndex === index);
+    return augmentThreadMessages(threadMessages);
+  }, [threadMessages, augmentThreadMessages]);
 
-      // Determine mediaType for this specific thread message
-      let threadMediaType: "text" | "image" | "video" = "text";
-      if (threadMedia.length > 0) {
-        const hasVideo = threadMedia.some(
-          (m) =>
-            (m.file && (m.file as globalThis.File).type.startsWith("video/")) ||
-            (m.file === null &&
-              (m.preview.toLowerCase().endsWith(".mp4") ||
-                m.preview.toLowerCase().endsWith(".mov")))
-        );
-        threadMediaType = hasVideo ? "video" : "image";
+  // Get thread messages for a specific platform (with fallback to base messages)
+  const getThreadMessagesForPlatform = useCallback(
+    (platformId: string): ThreadMessageAugmented[] => {
+      const platformSpecific = platformThreadMessages[platformId];
+      if (platformSpecific && platformSpecific.length > 0) {
+        return augmentThreadMessages(platformSpecific);
       }
-
-      return {
-        ...msg,
-        mediaPreviews: threadMedia
-          .map((m) => m.preview)
-          .filter(Boolean) as string[],
-        mediaFiles: threadMedia.map((m) => m.file!).filter(Boolean) as File[],
-        isUploading: threadMedia.some((m) => m.isUploading),
-        mediaType: threadMediaType,
-      };
-    });
-  }, [threadMessages, mediaItems]);
+      return augmentThreadMessages(threadMessages);
+    },
+    [platformThreadMessages, threadMessages, augmentThreadMessages]
+  );
 
   const handleMediaChange = useCallback(
     (files: File[], previews: string[], threadIndex: number | null = null) => {
@@ -306,6 +327,7 @@ export function usePostEditor(options: UsePostEditorOptions = {}) {
     availablePlatforms,
     activePlatforms,
     threadMessages: threadMessagesWithPreviews,
+    getThreadMessagesForPlatform,
     updateState: setState,
     handleMediaChange,
     handleRemoveMedia,

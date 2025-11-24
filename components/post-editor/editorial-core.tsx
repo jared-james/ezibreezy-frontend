@@ -63,6 +63,9 @@ export default function EditorialCore({
   const storeThreadMessages = useEditorialStore(
     (state) => state.threadMessages
   );
+  const storePlatformThreadMessages = useEditorialStore(
+    (state) => state.platformThreadMessages
+  );
   const recycleInterval = useEditorialStore((state) => state.recycleInterval);
   const aiGenerated = useEditorialStore((state) => state.aiGenerated);
   const sourceDraftId = useEditorialStore((state) => state.sourceDraftId);
@@ -216,15 +219,19 @@ export default function EditorialCore({
       userTags,
     };
 
-    const finalThreadMessagesForPublish = storeThreadMessages
-      .map((msg) => ({
-        content: msg.content.trim(),
-        mediaIds: msg.mediaIds?.filter(Boolean) || undefined,
-      }))
-      .filter(
-        (msg) =>
-          msg.content.length > 0 || (msg.mediaIds && msg.mediaIds.length > 0)
-      );
+    // Helper to process thread messages for publishing
+    const processThreadMessages = (messages: typeof storeThreadMessages) =>
+      messages
+        .map((msg) => ({
+          content: msg.content.trim(),
+          mediaIds: msg.mediaIds?.filter(Boolean) || undefined,
+        }))
+        .filter(
+          (msg) =>
+            msg.content.length > 0 || (msg.mediaIds && msg.mediaIds.length > 0)
+        );
+
+    const finalThreadMessagesForPublish = processThreadMessages(storeThreadMessages);
 
     const mediaCrops: Record<string, PlatformCrops> = {};
     mediaItems.forEach((item) => {
@@ -237,7 +244,17 @@ export default function EditorialCore({
       ([platformId, integrationIds]) =>
         integrationIds.map((integrationId) => {
           let platformMediaIds = mainPostUploadedIds;
-          let platformThreadMessages = finalThreadMessagesForPublish;
+
+          // Get platform-specific thread messages if available, otherwise use base
+          let platformThreadMessages: { content: string; mediaIds: string[] | undefined }[] = [];
+          if (platformId === "x" || platformId === "threads") {
+            const platformSpecificThreads = storePlatformThreadMessages[platformId];
+            if (platformSpecificThreads && platformSpecificThreads.length > 0) {
+              platformThreadMessages = processThreadMessages(platformSpecificThreads);
+            } else {
+              platformThreadMessages = finalThreadMessagesForPublish;
+            }
+          }
 
           if (platformId === "instagram" && platformMediaIds.length === 0) {
             toast.error("Instagram posts require at least one image or video.");
@@ -246,9 +263,6 @@ export default function EditorialCore({
 
           if (platformId === "x") {
             platformMediaIds = mainPostUploadedIds.slice(0, 4);
-          } else if (platformId === "threads") {
-          } else {
-            platformThreadMessages = [];
           }
 
           const platformSpecificContent = localPlatformCaptions[platformId];

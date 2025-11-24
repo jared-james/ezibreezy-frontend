@@ -70,7 +70,7 @@ function PreviewPanel({
   const {
     postType: mediaPostType,
     mainPostMediaPreviews,
-    threadMessages,
+    getThreadMessagesForPlatform,
   } = usePostEditor();
   const userTags = useEditorialStore((state) => state.userTags);
   const postType = useEditorialStore((state) => state.postType);
@@ -188,11 +188,12 @@ function PreviewPanel({
         const xMediaItem = mainPostMediaItems[0];
         const xOriginalSrc = xMediaItem?.preview;
         const xCroppedPreview = xMediaItem?.croppedPreviews?.x;
+        const xThreadMessages = getThreadMessagesForPlatform("x");
         return (
           <XPreview
             caption={currentCaption}
             mediaPreview={mainPostMediaPreviews}
-            threadMessages={threadMessages}
+            threadMessages={xThreadMessages}
             platformUsername={activeAccount.platformUsername}
             displayName={activeAccount.name}
             avatarUrl={activeAccount.avatarUrl}
@@ -317,12 +318,13 @@ function PreviewPanel({
         const thMediaItem = mainPostMediaItems[0];
         const thOriginalSrc = thMediaItem?.preview;
         const thCroppedPreview = thMediaItem?.croppedPreviews?.threads;
+        const threadsThreadMessages = getThreadMessagesForPlatform("threads");
         return (
           <ThreadsPreview
             caption={currentCaption}
             mediaPreview={mainPostMediaPreviews}
             mediaType={mediaPostType}
-            threadMessages={threadMessages}
+            threadMessages={threadsThreadMessages}
             platformUsername={activeAccount.platformUsername}
             displayName={activeAccount.name}
             avatarUrl={activeAccount.avatarUrl}

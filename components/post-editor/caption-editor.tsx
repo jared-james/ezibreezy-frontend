@@ -198,6 +198,7 @@ export default function CaptionEditor({
   const mainCaption = useEditorialStore((state) => state.mainCaption);
   const platformCaptions = useEditorialStore((state) => state.platformCaptions);
   const platformTitles = useEditorialStore((state) => state.platformTitles);
+  const platformThreadMessages = useEditorialStore((state) => state.platformThreadMessages);
   const firstComment = useEditorialStore((state) => state.firstComment);
   const facebookFirstComment = useEditorialStore((state) => state.facebookFirstComment);
   const currentPostType = useEditorialStore((state) => state.postType);
@@ -211,6 +212,8 @@ export default function CaptionEditor({
     useState(platformTitles);
   const [localThreadMessages, setLocalThreadMessages] =
     useState(threadMessages);
+  const [localPlatformThreadMessages, setLocalPlatformThreadMessages] =
+    useState<Record<string, ThreadMessage[]>>(platformThreadMessages);
   const [localFirstComment, setLocalFirstComment] = useState(firstComment);
   const [localFacebookFirstComment, setLocalFacebookFirstComment] = useState(facebookFirstComment);
   const [showFirstComment, setShowFirstComment] = useState(
@@ -260,6 +263,10 @@ export default function CaptionEditor({
   }, [threadMessages]);
 
   useEffect(() => {
+    setLocalPlatformThreadMessages(platformThreadMessages);
+  }, [platformThreadMessages]);
+
+  useEffect(() => {
     setLocalFirstComment(firstComment);
     if (currentPostType === "story") {
       setShowFirstComment(false);
@@ -305,6 +312,19 @@ export default function CaptionEditor({
     setState({ platformTitles: localPlatformTitles });
   }, [localPlatformTitles, setState]);
 
+  useEffect(() => {
+    setState({ platformThreadMessages: localPlatformThreadMessages });
+  }, [localPlatformThreadMessages, setState]);
+
+  // Get the current thread messages based on the active filter
+  const currentThreadMessages = useMemo(() => {
+    const supportsThreading = activeCaptionFilter === "x" || activeCaptionFilter === "threads";
+    if (supportsThreading && localPlatformThreadMessages[activeCaptionFilter]?.length > 0) {
+      return localPlatformThreadMessages[activeCaptionFilter];
+    }
+    return localThreadMessages;
+  }, [activeCaptionFilter, localPlatformThreadMessages, localThreadMessages]);
+
   const [isHashtagModalOpen, setIsHashtagModalOpen] = useState(false);
   const [targetPlatformId, setTargetPlatformId] = useState<string | null>(null);
   const [targetThreadIndex, setTargetThreadIndex] = useState<number | null>(
@@ -318,31 +338,58 @@ export default function CaptionEditor({
       ? "Describe the visual, context, and what you want people to feel..."
       : "Draft the main caption you want to adapt across platforms...";
 
-  const addThreadMessage = () => {
-    if (localThreadMessages.length < 20 && onThreadMessagesChange) {
+  // Check if we're editing platform-specific thread messages
+  const isEditingPlatformThread = activeCaptionFilter === "x" || activeCaptionFilter === "threads";
+
+  const addThreadMessage = (platformId: string) => {
+    if (currentThreadMessages.length < 20) {
       const newMessages = [
-        ...localThreadMessages,
+        ...currentThreadMessages,
         { content: "", mediaIds: [] },
       ];
-      setLocalThreadMessages(newMessages);
-      onThreadMessagesChange(newMessages);
+
+      if (isEditingPlatformThread) {
+        // Update platform-specific thread messages
+        setLocalPlatformThreadMessages((prev) => ({
+          ...prev,
+          [platformId]: newMessages,
+        }));
+      } else {
+        // Update base thread messages
+        setLocalThreadMessages(newMessages);
+        onThreadMessagesChange?.(newMessages);
+      }
     }
   };
 
-  const removeThreadMessage = (index: number) => {
-    if (onThreadMessagesChange) {
-      const newMessages = localThreadMessages.filter((_, i) => i !== index);
+  const removeThreadMessage = (index: number, platformId: string) => {
+    const newMessages = currentThreadMessages.filter((_, i) => i !== index);
+
+    if (isEditingPlatformThread) {
+      setLocalPlatformThreadMessages((prev) => ({
+        ...prev,
+        [platformId]: newMessages,
+      }));
+    } else {
       setLocalThreadMessages(newMessages);
-      onThreadMessagesChange(newMessages);
+      onThreadMessagesChange?.(newMessages);
     }
   };
 
-  const updateThreadMessageContent = (index: number, content: string) => {
-    const newMessages = localThreadMessages.map((msg, i) =>
+  const updateThreadMessageContent = (index: number, content: string, platformId: string) => {
+    const newMessages = currentThreadMessages.map((msg, i) =>
       i === index ? { ...msg, content } : msg
     );
-    setLocalThreadMessages(newMessages);
-    onThreadMessagesChange?.(newMessages);
+
+    if (isEditingPlatformThread) {
+      setLocalPlatformThreadMessages((prev) => ({
+        ...prev,
+        [platformId]: newMessages,
+      }));
+    } else {
+      setLocalThreadMessages(newMessages);
+      onThreadMessagesChange?.(newMessages);
+    }
   };
 
   const handleInsertHashtags = useCallback(
@@ -352,13 +399,21 @@ export default function CaptionEditor({
       const hashtagsWithPadding = `\n\n${hashtagString.trim()}`;
 
       if (targetThreadIndex !== null) {
-        const newMessages = localThreadMessages.map((msg, i) =>
+        const newMessages = currentThreadMessages.map((msg, i) =>
           i === targetThreadIndex
             ? { ...msg, content: msg.content.trimEnd() + hashtagsWithPadding }
             : msg
         );
-        setLocalThreadMessages(newMessages);
-        onThreadMessagesChange?.(newMessages);
+
+        if (isEditingPlatformThread) {
+          setLocalPlatformThreadMessages((prev) => ({
+            ...prev,
+            [activeCaptionFilter]: newMessages,
+          }));
+        } else {
+          setLocalThreadMessages(newMessages);
+          onThreadMessagesChange?.(newMessages);
+        }
         setTargetThreadIndex(null);
       } else if (targetPlatformId === "main") {
         const newCaption = localMainCaption.trimEnd() + hashtagsWithPadding;
@@ -386,7 +441,9 @@ export default function CaptionEditor({
     [
       localMainCaption,
       localPlatformCaptions,
-      localThreadMessages,
+      currentThreadMessages,
+      isEditingPlatformThread,
+      activeCaptionFilter,
       onThreadMessagesChange,
       targetPlatformId,
       targetThreadIndex,
@@ -607,8 +664,8 @@ export default function CaptionEditor({
 
               {supportsThreading && (
                 <>
-                  {localThreadMessages.map((message, index) => {
-                    const mediaFiles = message.mediaFiles || [];
+                  {currentThreadMessages.map((message, index) => {
+                    const mediaFiles = (message as ThreadMessageAugmented).mediaFiles || [];
 
                     return (
                       <div
@@ -622,7 +679,7 @@ export default function CaptionEditor({
                             </p>
                             <Button
                               type="button"
-                              onClick={() => removeThreadMessage(index)}
+                              onClick={() => removeThreadMessage(index, platformId)}
                               variant="ghost"
                               size="sm"
                               className="h-6 px-2 text-muted-foreground hover:text-error"
@@ -636,7 +693,8 @@ export default function CaptionEditor({
                             onChange={(event) =>
                               updateThreadMessageContent(
                                 index,
-                                event.target.value
+                                event.target.value,
+                                platformId
                               )
                             }
                             placeholder="What's happening next?"
@@ -649,8 +707,8 @@ export default function CaptionEditor({
                               <ThreadPostMediaUpload
                                 threadIndex={index}
                                 mediaFiles={mediaFiles}
-                                mediaPreviews={message.mediaPreviews || []}
-                                isUploading={message.isUploading || false}
+                                mediaPreviews={(message as ThreadMessageAugmented).mediaPreviews || []}
+                                isUploading={(message as ThreadMessageAugmented).isUploading || false}
                                 onMediaChange={handleThreadMediaChange}
                                 onRemoveMedia={handleRemoveThreadMedia}
                               />
@@ -660,11 +718,11 @@ export default function CaptionEditor({
                     );
                   })}
 
-                  {localThreadMessages.length < 20 && (
+                  {currentThreadMessages.length < 20 && (
                     <div className="flex justify-end">
                       <Button
                         type="button"
-                        onClick={addThreadMessage}
+                        onClick={() => addThreadMessage(platformId)}
                         variant="ghost"
                         size="sm"
                         className="gap-1 text-xs text-muted-foreground hover:text-foreground"
@@ -813,7 +871,7 @@ export default function CaptionEditor({
         onClose={() => setIsHashtagModalOpen(false)}
         initialHashtags={
           targetThreadIndex !== null
-            ? localThreadMessages[targetThreadIndex]?.content || ""
+            ? currentThreadMessages[targetThreadIndex]?.content || ""
             : targetPlatformId === "main"
             ? localMainCaption
             : targetPlatformId === "instagram_first_comment"

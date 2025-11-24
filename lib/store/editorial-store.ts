@@ -37,6 +37,7 @@ export interface EditorialState {
   mediaItems: MediaItem[];
   labels: string;
   threadMessages: ThreadMessage[];
+  platformThreadMessages: Record<string, ThreadMessage[]>;
   collaborators: string;
   location: LocationState;
   firstComment: string;
@@ -80,6 +81,7 @@ export const initialState: EditorialState = {
   mediaItems: [],
   labels: "",
   threadMessages: [],
+  platformThreadMessages: {},
   collaborators: "",
   location: { id: null, name: "" },
   firstComment: "",
