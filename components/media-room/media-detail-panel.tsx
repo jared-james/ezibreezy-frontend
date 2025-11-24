@@ -24,6 +24,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { format } from "date-fns";
+import { toast } from "sonner";
 import {
   useMediaItem,
   useUpdateMedia,
@@ -34,6 +35,7 @@ import {
   useFolderList,
 } from "@/lib/hooks/use-media";
 import { useMediaRoomStore } from "@/lib/store/media-room-store";
+import { getMediaDownloadUrl } from "@/lib/api/media";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -82,6 +84,19 @@ export default function MediaDetailPanel({
     setEditedAltText(null);
   }, [mediaId]);
 
+  // Reset edited state when media data is updated from the server
+  useEffect(() => {
+    if (media) {
+      // If the server data matches our edited state, clear the edited state
+      if (editedFilename !== null && editedFilename === media.filename) {
+        setEditedFilename(null);
+      }
+      if (editedAltText !== null && editedAltText === (media.altText || "")) {
+        setEditedAltText(null);
+      }
+    }
+  }, [media, editedFilename, editedAltText]);
+
   // Use edited values if user has made changes, otherwise use data from API
   const filename = editedFilename ?? media?.filename ?? "";
   const altText = editedAltText ?? media?.altText ?? "";
@@ -104,54 +119,37 @@ export default function MediaDetailPanel({
 
     if (Object.keys(updates).length > 0) {
       updateMedia.mutate(
-        { id: media.id, data: updates },
-        {
-          onSuccess: () => {
-            setEditedFilename(null);
-            setEditedAltText(null);
-          },
-        }
+        { id: media.id, data: updates }
+        // Remove onSuccess callback - let React Query's cache update handle the state
+        // The edited state will be reset when media data updates from the server
       );
     }
   };
 
   const handleDownload = async (e: React.MouseEvent) => {
     e.preventDefault();
-    if (!media) return;
+    if (!media || !integrationId) return;
 
     setIsDownloading(true);
     try {
-      // Try to fetch with cors mode first
-      const response = await fetch(media.url, { mode: 'cors' });
+      // Get pre-signed download URL from backend
+      const { downloadUrl } = await getMediaDownloadUrl(media.id, integrationId);
 
-      if (!response.ok) {
-        throw new Error('Network response was not ok');
-      }
-
-      const blob = await response.blob();
-      const url = window.URL.createObjectURL(blob);
+      // Create hidden link and trigger download
       const link = document.createElement("a");
-      link.href = url;
+      link.href = downloadUrl;
       link.download = media.filename || "download";
+      link.style.display = "none";
       document.body.appendChild(link);
       link.click();
 
       // Clean up
       setTimeout(() => {
-        window.URL.revokeObjectURL(url);
         document.body.removeChild(link);
       }, 100);
     } catch (error) {
-      console.error("Download failed, trying alternative method:", error);
-      // Fallback: try download attribute method (works if server allows it)
-      const link = document.createElement("a");
-      link.href = media.url;
-      link.download = media.filename || "download";
-      link.target = "_blank";
-      link.rel = "noopener noreferrer";
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
+      console.error("Failed to download file:", error);
+      toast.error("Failed to download file. Please try again.");
     } finally {
       setIsDownloading(false);
     }

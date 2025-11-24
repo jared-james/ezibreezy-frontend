@@ -368,3 +368,17 @@ export const detachTagsFromMedia = async (
     { data: { tagIds } }
   );
 };
+
+// ============================================================================
+// Download
+// ============================================================================
+
+export const getMediaDownloadUrl = async (
+  mediaId: string,
+  integrationId: string
+): Promise<{ downloadUrl: string; expiresIn: number }> => {
+  const response = await apiClient.get<{ downloadUrl: string; expiresIn: number }>(
+    `/media/${mediaId}/download-url?integrationId=${integrationId}`
+  );
+  return response.data;
+};
