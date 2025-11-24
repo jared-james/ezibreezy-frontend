@@ -2,7 +2,7 @@
 
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Search,
   SortAsc,
@@ -30,7 +30,6 @@ const typeFilters: { label: string; value: MediaTypeFilter }[] = [
   { label: "All", value: "all" },
   { label: "Images", value: "image" },
   { label: "Videos", value: "video" },
-  { label: "GIFs", value: "gif" },
 ];
 
 const sortOptions: { label: string; value: MediaSortBy }[] = [
@@ -57,6 +56,25 @@ export default function MediaToolbar({ integrationId }: MediaToolbarProps) {
   const clearAllFilters = useMediaRoomStore((s) => s.clearAllFilters);
 
   const { data: tags = [] } = useTagList(integrationId);
+
+  // Local state for the input field to prevent API calls on every keystroke
+  const [inputValue, setInputValue] = useState(searchQuery);
+
+  // Sync local input when global state changes (e.g. "Clear filters" clicked)
+  useEffect(() => {
+    setInputValue(searchQuery);
+  }, [searchQuery]);
+
+  // Debounce logic: Update global store only after user stops typing for 500ms
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (inputValue !== searchQuery) {
+        setSearchQuery(inputValue);
+      }
+    }, 500);
+
+    return () => clearTimeout(timer);
+  }, [inputValue, setSearchQuery, searchQuery]);
 
   const hasActiveFilters =
     searchQuery || typeFilter !== "all" || selectedTagIds.length > 0;
@@ -150,13 +168,16 @@ export default function MediaToolbar({ integrationId }: MediaToolbarProps) {
             <Input
               type="text"
               placeholder="Search media..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+              value={inputValue}
+              onChange={(e) => setInputValue(e.target.value)}
               className="pl-8 pr-8 h-8 text-xs font-serif border-neutral-300 focus:border-brand-primary"
             />
-            {searchQuery && (
+            {inputValue && (
               <button
-                onClick={() => setSearchQuery("")}
+                onClick={() => {
+                  setInputValue("");
+                  setSearchQuery("");
+                }}
                 className="absolute right-2 top-1/2 -translate-y-1/2 p-0.5 hover:bg-neutral-100 rounded"
               >
                 <X className="h-3 w-3 text-neutral-400" />

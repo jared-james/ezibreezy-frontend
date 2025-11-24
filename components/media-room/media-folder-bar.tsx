@@ -2,7 +2,6 @@
 
 "use client";
 
-import { useState } from "react";
 import {
   Folder,
   FolderOpen,
@@ -13,29 +12,15 @@ import {
   Trash2,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import {
-  useFolderList,
-  useRenameFolder,
-  useDeleteFolder,
-} from "@/lib/hooks/use-media";
+import { useFolderList } from "@/lib/hooks/use-media";
 import { useMediaRoomStore } from "@/lib/store/media-room-store";
 import type { MediaFolder } from "@/lib/api/media";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { Loader2 as Spinner } from "lucide-react";
+import { useFolderActions } from "./folder-actions";
 
 interface MediaFolderBarProps {
   integrationId: string | null;
@@ -90,7 +75,10 @@ function DroppableFolderTab({
           >
             {onEdit && (
               <button
-                onClick={onEdit}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onEdit();
+                }}
                 className="flex w-full items-center gap-2 px-2 py-1.5 text-sm font-serif hover:bg-neutral-100 transition-colors"
               >
                 <Pencil className="h-3.5 w-3.5" />
@@ -99,7 +87,10 @@ function DroppableFolderTab({
             )}
             {onDelete && (
               <button
-                onClick={onDelete}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onDelete();
+                }}
                 className="flex w-full items-center gap-2 px-2 py-1.5 text-sm font-serif text-red-600 hover:bg-red-50 transition-colors"
               >
                 <Trash2 className="h-3.5 w-3.5" />
@@ -122,39 +113,8 @@ export default function MediaFolderBar({ integrationId }: MediaFolderBarProps) {
   const currentFolderId = useMediaRoomStore((s) => s.currentFolderId);
   const setCurrentFolder = useMediaRoomStore((s) => s.setCurrentFolder);
 
-  const [editingFolder, setEditingFolder] = useState<MediaFolder | null>(null);
-  const [editingName, setEditingName] = useState("");
-  const [deletingFolder, setDeletingFolder] = useState<MediaFolder | null>(
-    null
-  );
-
-  const renameFolder = useRenameFolder(integrationId);
-  const deleteFolder = useDeleteFolder(integrationId);
-
-  const handleRenameFolder = () => {
-    if (!editingFolder || !editingName.trim()) return;
-    renameFolder.mutate(
-      { id: editingFolder.id, name: editingName.trim() },
-      {
-        onSuccess: () => {
-          setEditingFolder(null);
-          setEditingName("");
-        },
-      }
-    );
-  };
-
-  const handleDeleteFolder = () => {
-    if (!deletingFolder) return;
-    deleteFolder.mutate(deletingFolder.id, {
-      onSuccess: () => {
-        if (currentFolderId === deletingFolder.id) {
-          setCurrentFolder(null);
-        }
-        setDeletingFolder(null);
-      },
-    });
-  };
+  const { openRenameDialog, openDeleteDialog, FolderActionDialogs } =
+    useFolderActions({ integrationId });
 
   return (
     <div className="border-b border-neutral-300">
@@ -182,11 +142,8 @@ export default function MediaFolderBar({ integrationId }: MediaFolderBarProps) {
               folder={folder}
               isActive={currentFolderId === folder.id}
               onSelect={() => setCurrentFolder(folder.id)}
-              onEdit={() => {
-                setEditingFolder(folder);
-                setEditingName(folder.name);
-              }}
-              onDelete={() => setDeletingFolder(folder)}
+              onEdit={() => openRenameDialog(folder)}
+              onDelete={() => openDeleteDialog(folder)}
             >
               {currentFolderId === folder.id ? (
                 <FolderOpen className="h-4 w-4 shrink-0" />
@@ -199,79 +156,7 @@ export default function MediaFolderBar({ integrationId }: MediaFolderBarProps) {
         )}
       </div>
 
-      <AlertDialog
-        open={!!editingFolder}
-        onOpenChange={() => setEditingFolder(null)}
-      >
-        <AlertDialogContent className="bg-white border-2 border-neutral-900">
-          <AlertDialogHeader>
-            <AlertDialogTitle className="font-serif">
-              Rename Folder
-            </AlertDialogTitle>
-            <AlertDialogDescription className="font-serif text-neutral-600">
-              Enter a new name for &ldquo;{editingFolder?.name}&rdquo;
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <input
-            type="text"
-            value={editingName}
-            onChange={(e) => setEditingName(e.target.value)}
-            className="w-full px-3 py-2 text-sm font-serif border border-neutral-300 bg-white focus:outline-none focus:border-neutral-900"
-            autoFocus
-            onKeyDown={(e) => {
-              if (e.key === "Enter") handleRenameFolder();
-            }}
-          />
-          <AlertDialogFooter>
-            <AlertDialogCancel className="border-neutral-300 hover:bg-neutral-100">
-              Cancel
-            </AlertDialogCancel>
-            <AlertDialogAction
-              onClick={handleRenameFolder}
-              disabled={renameFolder.isPending || !editingName.trim()}
-              className="bg-emerald-800 text-white hover:bg-emerald-700 border-emerald-900"
-            >
-              {renameFolder.isPending ? (
-                <Spinner className="h-4 w-4 animate-spin" />
-              ) : (
-                "Save"
-              )}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-
-      <AlertDialog
-        open={!!deletingFolder}
-        onOpenChange={() => setDeletingFolder(null)}
-      >
-        <AlertDialogContent className="bg-white border-2 border-neutral-900">
-          <AlertDialogHeader>
-            <AlertDialogTitle className="font-serif">
-              Delete Folder
-            </AlertDialogTitle>
-            <AlertDialogDescription className="font-serif text-neutral-600">
-              Are you sure you want to delete &ldquo;{deletingFolder?.name}
-              &rdquo;? Media inside will be moved to the root folder.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel className="border-neutral-300 hover:bg-neutral-100">
-              Cancel
-            </AlertDialogCancel>
-            <AlertDialogAction
-              onClick={handleDeleteFolder}
-              className="bg-red-600 text-white hover:bg-red-700"
-            >
-              {deleteFolder.isPending ? (
-                <Spinner className="h-4 w-4 animate-spin" />
-              ) : (
-                "Delete"
-              )}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      <FolderActionDialogs />
     </div>
   );
 }

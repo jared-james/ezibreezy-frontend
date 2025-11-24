@@ -30,6 +30,34 @@ export default function MediaUploadZone({
 
   const uploadMedia = useUploadMedia(integrationId);
 
+  const uploadFile = async (file: File) => {
+    // Set status to uploading
+    setUploadQueue((prev) =>
+      prev.map((u) => (u.file === file ? { ...u, status: "uploading" } : u))
+    );
+
+    try {
+      await uploadMedia.mutateAsync(file);
+      // Set status to success
+      setUploadQueue((prev) =>
+        prev.map((u) => (u.file === file ? { ...u, status: "success" } : u))
+      );
+    } catch (error) {
+      // Set status to error
+      setUploadQueue((prev) =>
+        prev.map((u) =>
+          u.file === file
+            ? {
+                ...u,
+                status: "error",
+                error: error instanceof Error ? error.message : "Upload failed",
+              }
+            : u
+        )
+      );
+    }
+  };
+
   const processFiles = useCallback(
     async (files: File[]) => {
       const validFiles = files.filter(
@@ -41,6 +69,7 @@ export default function MediaUploadZone({
 
       if (validFiles.length === 0) return;
 
+      // Add all valid files to queue as 'pending'
       const newItems: UploadItem[] = validFiles.map((file) => ({
         file,
         status: "pending",
@@ -48,38 +77,9 @@ export default function MediaUploadZone({
 
       setUploadQueue((prev) => [...prev, ...newItems]);
 
-      // Process uploads sequentially
-      for (let i = 0; i < newItems.length; i++) {
-        const item = newItems[i];
-
-        setUploadQueue((prev) =>
-          prev.map((u) =>
-            u.file === item.file ? { ...u, status: "uploading" } : u
-          )
-        );
-
-        try {
-          await uploadMedia.mutateAsync(item.file);
-          setUploadQueue((prev) =>
-            prev.map((u) =>
-              u.file === item.file ? { ...u, status: "success" } : u
-            )
-          );
-        } catch (error) {
-          setUploadQueue((prev) =>
-            prev.map((u) =>
-              u.file === item.file
-                ? {
-                    ...u,
-                    status: "error",
-                    error:
-                      error instanceof Error ? error.message : "Upload failed",
-                  }
-                : u
-            )
-          );
-        }
-      }
+      // Trigger all uploads concurrently
+      // Browsers will automatically throttle requests to the per-domain limit (usually 6)
+      await Promise.all(validFiles.map((file) => uploadFile(file)));
     },
     [uploadMedia]
   );
@@ -108,6 +108,7 @@ export default function MediaUploadZone({
     (e: React.ChangeEvent<HTMLInputElement>) => {
       const files = e.target.files ? Array.from(e.target.files) : [];
       processFiles(files);
+      // Reset input value so the same file can be selected again if needed
       e.target.value = "";
     },
     [processFiles]
@@ -129,6 +130,7 @@ export default function MediaUploadZone({
   const hasCompletedItems = uploadQueue.some(
     (item) => item.status === "success" || item.status === "error"
   );
+
   const isUploading = uploadQueue.some((item) => item.status === "uploading");
 
   if (!isOpen) return null;

@@ -15,31 +15,22 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import {
-  useFolderList,
-  useCreateFolder,
-  useRenameFolder,
-  useDeleteFolder,
-} from "@/lib/hooks/use-media";
+import { useFolderList, useCreateFolder } from "@/lib/hooks/use-media";
 import { useMediaRoomStore } from "@/lib/store/media-room-store";
 import type { MediaFolder } from "@/lib/api/media";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
+import { useFolderActions } from "./folder-actions";
 
 interface MediaFolderSidebarProps {
   integrationId: string | null;
 }
 
-export default function MediaFolderSidebar({ integrationId }: MediaFolderSidebarProps) {
-  const { data: folders = [], isLoading } = useFolderList(integrationId, "root");
+export default function MediaFolderSidebar({
+  integrationId,
+}: MediaFolderSidebarProps) {
+  const { data: folders = [], isLoading } = useFolderList(
+    integrationId,
+    "root"
+  );
 
   const currentFolderId = useMediaRoomStore((s) => s.currentFolderId);
   const setCurrentFolder = useMediaRoomStore((s) => s.setCurrentFolder);
@@ -48,13 +39,12 @@ export default function MediaFolderSidebar({ integrationId }: MediaFolderSidebar
 
   const [isCreating, setIsCreating] = useState(false);
   const [newFolderName, setNewFolderName] = useState("");
-  const [editingFolderId, setEditingFolderId] = useState<string | null>(null);
-  const [editingName, setEditingName] = useState("");
-  const [deletingFolder, setDeletingFolder] = useState<MediaFolder | null>(null);
 
   const createFolder = useCreateFolder(integrationId);
-  const renameFolder = useRenameFolder(integrationId);
-  const deleteFolder = useDeleteFolder(integrationId);
+
+  // Use shared actions for Rename and Delete
+  const { openRenameDialog, openDeleteDialog, FolderActionDialogs } =
+    useFolderActions({ integrationId });
 
   const handleCreateFolder = () => {
     if (!newFolderName.trim()) return;
@@ -67,31 +57,6 @@ export default function MediaFolderSidebar({ integrationId }: MediaFolderSidebar
         },
       }
     );
-  };
-
-  const handleRenameFolder = (folderId: string) => {
-    if (!editingName.trim()) return;
-    renameFolder.mutate(
-      { id: folderId, name: editingName.trim() },
-      {
-        onSuccess: () => {
-          setEditingFolderId(null);
-          setEditingName("");
-        },
-      }
-    );
-  };
-
-  const handleDeleteFolder = () => {
-    if (!deletingFolder) return;
-    deleteFolder.mutate(deletingFolder.id, {
-      onSuccess: () => {
-        if (currentFolderId === deletingFolder.id) {
-          setCurrentFolder(null);
-        }
-        setDeletingFolder(null);
-      },
-    });
   };
 
   return (
@@ -140,19 +105,8 @@ export default function MediaFolderSidebar({ integrationId }: MediaFolderSidebar
                 expandedFolderIds={expandedFolderIds}
                 onSelect={setCurrentFolder}
                 onToggleExpand={toggleFolderExpanded}
-                onEdit={(f) => {
-                  setEditingFolderId(f.id);
-                  setEditingName(f.name);
-                }}
-                onDelete={setDeletingFolder}
-                editingFolderId={editingFolderId}
-                editingName={editingName}
-                onEditingNameChange={setEditingName}
-                onSaveEdit={handleRenameFolder}
-                onCancelEdit={() => {
-                  setEditingFolderId(null);
-                  setEditingName("");
-                }}
+                onRename={openRenameDialog}
+                onDelete={openDeleteDialog}
               />
             ))}
           </div>
@@ -184,7 +138,11 @@ export default function MediaFolderSidebar({ integrationId }: MediaFolderSidebar
                 disabled={createFolder.isPending || !newFolderName.trim()}
                 className="flex-1"
               >
-                {createFolder.isPending ? <Loader2 className="h-3 w-3 animate-spin" /> : "Create"}
+                {createFolder.isPending ? (
+                  <Loader2 className="h-3 w-3 animate-spin" />
+                ) : (
+                  "Create"
+                )}
               </Button>
               <Button
                 size="sm"
@@ -201,27 +159,7 @@ export default function MediaFolderSidebar({ integrationId }: MediaFolderSidebar
         )}
       </div>
 
-      {/* Delete confirmation dialog */}
-      <AlertDialog open={!!deletingFolder} onOpenChange={() => setDeletingFolder(null)}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle className="font-serif">Delete Folder</AlertDialogTitle>
-            <AlertDialogDescription className="font-serif">
-              Are you sure you want to delete &ldquo;{deletingFolder?.name}&rdquo;? Media inside will be moved
-              to the root folder.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={handleDeleteFolder}
-              className="bg-error text-error-foreground hover:bg-error-hover"
-            >
-              {deleteFolder.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : "Delete"}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      <FolderActionDialogs />
     </div>
   );
 }
@@ -234,13 +172,8 @@ interface FolderTreeItemProps {
   expandedFolderIds: Set<string>;
   onSelect: (id: string) => void;
   onToggleExpand: (id: string) => void;
-  onEdit: (folder: MediaFolder) => void;
+  onRename: (folder: MediaFolder) => void;
   onDelete: (folder: MediaFolder) => void;
-  editingFolderId: string | null;
-  editingName: string;
-  onEditingNameChange: (name: string) => void;
-  onSaveEdit: (id: string) => void;
-  onCancelEdit: () => void;
 }
 
 function FolderTreeItem({
@@ -251,17 +184,11 @@ function FolderTreeItem({
   expandedFolderIds,
   onSelect,
   onToggleExpand,
-  onEdit,
+  onRename,
   onDelete,
-  editingFolderId,
-  editingName,
-  onEditingNameChange,
-  onSaveEdit,
-  onCancelEdit,
 }: FolderTreeItemProps) {
   const isExpanded = expandedFolderIds.has(folder.id);
   const isSelected = currentFolderId === folder.id;
-  const isEditing = editingFolderId === folder.id;
   const [showActions, setShowActions] = useState(false);
 
   const { data: children = [] } = useFolderList(
@@ -270,27 +197,6 @@ function FolderTreeItem({
   );
 
   const hasChildren = children.length > 0;
-
-  if (isEditing) {
-    return (
-      <div className="flex items-center gap-1 py-1" style={{ paddingLeft: `${depth * 12 + 8}px` }}>
-        <input
-          type="text"
-          value={editingName}
-          onChange={(e) => onEditingNameChange(e.target.value)}
-          className="flex-1 px-2 py-1 text-sm font-serif border border-border rounded-sm bg-background focus:outline-none focus:border-foreground"
-          autoFocus
-          onKeyDown={(e) => {
-            if (e.key === "Enter") onSaveEdit(folder.id);
-            if (e.key === "Escape") onCancelEdit();
-          }}
-        />
-        <Button size="sm" variant="ghost" onClick={() => onSaveEdit(folder.id)} className="h-7 px-2">
-          Save
-        </Button>
-      </div>
-    );
-  }
 
   return (
     <div>
@@ -335,12 +241,13 @@ function FolderTreeItem({
             <button
               onClick={(e) => {
                 e.stopPropagation();
-                onEdit(folder);
+                onRename(folder);
               }}
               className={cn(
                 "p-1 rounded hover:bg-black/10",
                 isSelected && "hover:bg-white/20"
               )}
+              title="Rename"
             >
               <Pencil className="h-3 w-3" />
             </button>
@@ -353,6 +260,7 @@ function FolderTreeItem({
                 "p-1 rounded hover:bg-black/10",
                 isSelected && "hover:bg-white/20"
               )}
+              title="Delete"
             >
               <Trash2 className="h-3 w-3" />
             </button>
@@ -372,13 +280,8 @@ function FolderTreeItem({
               expandedFolderIds={expandedFolderIds}
               onSelect={onSelect}
               onToggleExpand={onToggleExpand}
-              onEdit={onEdit}
+              onRename={onRename}
               onDelete={onDelete}
-              editingFolderId={editingFolderId}
-              editingName={editingName}
-              onEditingNameChange={onEditingNameChange}
-              onSaveEdit={onSaveEdit}
-              onCancelEdit={onCancelEdit}
             />
           ))}
         </div>
