@@ -96,14 +96,20 @@ function PreviewPanel({
   );
 
   const [activeTab, setActiveTab] = useState<string>("empty");
+  const activeCaptionFilter = useEditorialStore((state) => state.activeCaptionFilter);
 
   const validActiveTab = useMemo(() => {
     if (activePlatforms.length === 0) return "empty";
+    // If caption filter is set to a specific platform, use that for the preview
+    if (activeCaptionFilter !== "all" && activePlatforms.includes(activeCaptionFilter)) {
+      return activeCaptionFilter;
+    }
+    // Otherwise use the manually selected tab or fall back to first platform
     if (activeTab !== "empty" && activePlatforms.includes(activeTab)) {
       return activeTab;
     }
     return activePlatforms[0];
-  }, [activePlatforms, activeTab]);
+  }, [activePlatforms, activeTab, activeCaptionFilter]);
 
   const activeAccount = useMemo(() => {
     if (validActiveTab === "empty") return null;
@@ -395,10 +401,10 @@ function PreviewPanel({
               onClick={() => setActiveTab(tab.id)}
               title={tab.name}
               className={cn(
-                "flex items-center justify-center rounded-full p-2 transition-all",
+                "flex items-center justify-center rounded-full p-2 border-2",
                 validActiveTab === tab.id
-                  ? "border-2 border-brand-primary bg-surface text-brand-primary"
-                  : "border border-border bg-surface text-foreground hover:bg-surface-hover"
+                  ? "border-brand-primary bg-surface text-brand-primary"
+                  : "border-border bg-surface text-foreground hover:bg-surface-hover"
               )}
             >
               <tab.Icon className="w-4 h-4" />

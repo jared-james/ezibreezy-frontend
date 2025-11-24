@@ -128,6 +128,7 @@ export default function EditorialCore({
 
     setState({
       selectedAccounts: newSelected,
+      platformCaptions: newCaptions,
     });
     setLocalPlatformCaptions(newCaptions);
   };

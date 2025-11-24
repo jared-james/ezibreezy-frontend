@@ -49,6 +49,7 @@ export interface EditorialState {
   postType: PlatformPostType;
   facebookPostType: PlatformPostType;
   userTags: UserTagDto[];
+  activeCaptionFilter: string;
 }
 
 export interface EditorialActions {
@@ -91,6 +92,7 @@ export const initialState: EditorialState = {
   postType: "post",
   facebookPostType: "post",
   userTags: [],
+  activeCaptionFilter: "all",
 };
 
 export const useEditorialStore = create<EditorialState & EditorialActions>(

@@ -220,8 +220,9 @@ export default function CaptionEditor({
     !!facebookFirstComment && facebookFirstComment.length > 0
   );
 
-  // Caption filter tab state - tracks which platform's caption section to show
-  const [activeCaptionFilter, setActiveCaptionFilter] = useState<string>("all");
+  // Caption filter tab state - tracks which platform's caption section to show (shared via store)
+  const activeCaptionFilter = useEditorialStore((state) => state.activeCaptionFilter);
+  const setActiveCaptionFilter = useCallback((filter: string) => setState({ activeCaptionFilter: filter }), [setState]);
 
   // Get the list of selected platform IDs
   const selectedPlatformIds = useMemo(
@@ -240,7 +241,7 @@ export default function CaptionEditor({
       // If only one platform selected, auto-select it
       setActiveCaptionFilter(selectedPlatformIds[0]);
     }
-  }, [selectedPlatformIds, activeCaptionFilter]);
+  }, [selectedPlatformIds, activeCaptionFilter, setActiveCaptionFilter]);
 
   useEffect(() => {
     setLocalMainCaption(mainCaption);
@@ -462,10 +463,10 @@ export default function CaptionEditor({
                 onClick={() => setActiveCaptionFilter(platformId)}
                 title={platform.name}
                 className={cn(
-                  "flex items-center justify-center rounded-full p-2 transition-all",
+                  "flex items-center justify-center rounded-full p-2 border-2",
                   isActive
-                    ? "border-2 border-brand-primary bg-surface"
-                    : "border border-border bg-surface text-muted-foreground hover:bg-surface-hover hover:text-foreground"
+                    ? "border-brand-primary bg-surface"
+                    : "border-border bg-surface text-muted-foreground hover:bg-surface-hover hover:text-foreground"
                 )}
               >
                 <PlatformIcon platformId={platformId} className={isActive ? "text-brand-primary" : undefined} />
