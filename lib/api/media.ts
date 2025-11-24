@@ -1,4 +1,5 @@
 // lib/api/media.ts
+
 import apiClient from "./index";
 
 // ============================================================================
@@ -34,7 +35,6 @@ export interface MediaItem {
   width: number;
   height: number;
   altText: string | null;
-  isFavorite: boolean;
   folderId: string | null;
   createdAt: string;
   updatedAt: string;
@@ -69,7 +69,6 @@ export interface MediaFilters {
   tagIds?: string[];
   type?: "image" | "video" | "gif";
   search?: string;
-  isFavorite?: boolean;
   isUsed?: boolean;
   isUnused?: boolean;
   sortBy?: "createdAt" | "filename" | "fileSize";
@@ -127,7 +126,6 @@ export const listMedia = async (
   if (filters.tagIds?.length) params.set("tagIds", filters.tagIds.join(","));
   if (filters.type) params.set("type", filters.type);
   if (filters.search) params.set("search", filters.search);
-  if (filters.isFavorite) params.set("isFavorite", "true");
   if (filters.isUsed) params.set("isUsed", "true");
   if (filters.isUnused) params.set("isUnused", "true");
   if (filters.sortBy) params.set("sortBy", filters.sortBy);
@@ -155,7 +153,6 @@ export const updateMedia = async (
   data: {
     filename?: string;
     altText?: string;
-    isFavorite?: boolean;
     folderId?: string | null;
   }
 ): Promise<MediaItem> => {
@@ -301,9 +298,7 @@ export const deleteFolder = async (
   id: string,
   integrationId: string
 ): Promise<void> => {
-  await apiClient.delete(
-    `/media/folders/${id}?integrationId=${integrationId}`
-  );
+  await apiClient.delete(`/media/folders/${id}?integrationId=${integrationId}`);
 };
 
 // ============================================================================

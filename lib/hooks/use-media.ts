@@ -1,5 +1,3 @@
-// lib/hooks/use-media.ts
-
 "use client";
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -34,7 +32,10 @@ import { toast } from "sonner";
 // Media Queries
 // ============================================================================
 
-export function useMediaList(integrationId: string | null, filters: MediaFilters = {}) {
+export function useMediaList(
+  integrationId: string | null,
+  filters: MediaFilters = {}
+) {
   return useQuery({
     queryKey: ["media", integrationId, filters],
     queryFn: () => listMedia(integrationId!, filters),
@@ -80,7 +81,7 @@ export function useUpdateMedia(integrationId: string | null) {
       data,
     }: {
       id: string;
-      data: { filename?: string; altText?: string; isFavorite?: boolean; folderId?: string | null };
+      data: { filename?: string; altText?: string; folderId?: string | null };
     }) => updateMedia(id, integrationId!, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["media"] });
@@ -111,7 +112,8 @@ export function useBulkDeleteMedia(integrationId: string | null) {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (mediaIds: string[]) => bulkDeleteMedia(integrationId!, mediaIds),
+    mutationFn: (mediaIds: string[]) =>
+      bulkDeleteMedia(integrationId!, mediaIds),
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["media"] });
       toast.success(`Deleted ${data.deleted} items`);
@@ -126,8 +128,13 @@ export function useBulkMoveMedia(integrationId: string | null) {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ mediaIds, folderId }: { mediaIds: string[]; folderId: string | null }) =>
-      bulkMoveMedia(integrationId!, mediaIds, folderId),
+    mutationFn: ({
+      mediaIds,
+      folderId,
+    }: {
+      mediaIds: string[];
+      folderId: string | null;
+    }) => bulkMoveMedia(integrationId!, mediaIds, folderId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["media"] });
       toast.success("Media moved");
@@ -142,8 +149,13 @@ export function useBulkTagMedia(integrationId: string | null) {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ mediaIds, tagIds }: { mediaIds: string[]; tagIds: string[] }) =>
-      bulkTagMedia(integrationId!, mediaIds, tagIds),
+    mutationFn: ({
+      mediaIds,
+      tagIds,
+    }: {
+      mediaIds: string[];
+      tagIds: string[];
+    }) => bulkTagMedia(integrationId!, mediaIds, tagIds),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["media"] });
       toast.success("Tags added");
@@ -158,8 +170,13 @@ export function useBulkUntagMedia(integrationId: string | null) {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ mediaIds, tagIds }: { mediaIds: string[]; tagIds: string[] }) =>
-      bulkUntagMedia(integrationId!, mediaIds, tagIds),
+    mutationFn: ({
+      mediaIds,
+      tagIds,
+    }: {
+      mediaIds: string[];
+      tagIds: string[];
+    }) => bulkUntagMedia(integrationId!, mediaIds, tagIds),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["media"] });
       toast.success("Tags removed");
@@ -174,9 +191,15 @@ export function useBulkUntagMedia(integrationId: string | null) {
 // Folder Queries
 // ============================================================================
 
-export function useFolderList(integrationId: string | null, parentId?: string | "root") {
+export function useFolderList(
+  integrationId: string | null,
+  parentId?: string | "root"
+) {
   // Ensure parentId is either "root", a valid-looking UUID, or undefined
-  const validParentId = parentId === "root" || (parentId && parentId.length >= 32) ? parentId : undefined;
+  const validParentId =
+    parentId === "root" || (parentId && parentId.length >= 32)
+      ? parentId
+      : undefined;
 
   return useQuery({
     queryKey: ["folders", integrationId, validParentId],
@@ -195,7 +218,10 @@ export function useFolder(id: string | null, integrationId: string | null) {
   });
 }
 
-export function useFolderBreadcrumb(id: string | null, integrationId: string | null) {
+export function useFolderBreadcrumb(
+  id: string | null,
+  integrationId: string | null
+) {
   return useQuery({
     queryKey: ["folderBreadcrumb", id, integrationId],
     queryFn: () => getFolderBreadcrumb(id!, integrationId!),
@@ -309,8 +335,13 @@ export function useUpdateTag(integrationId: string | null) {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ id, data }: { id: string; data: { name?: string; color?: string } }) =>
-      updateTag(id, integrationId!, data),
+    mutationFn: ({
+      id,
+      data,
+    }: {
+      id: string;
+      data: { name?: string; color?: string };
+    }) => updateTag(id, integrationId!, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["tags"] });
       queryClient.invalidateQueries({ queryKey: ["media"] });

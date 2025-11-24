@@ -23,7 +23,6 @@ export interface MediaRoomState {
   searchQuery: string;
   typeFilter: MediaTypeFilter;
   selectedTagIds: string[];
-  showFavoritesOnly: boolean;
   showUsedOnly: boolean;
   showUnusedOnly: boolean;
 
@@ -58,7 +57,6 @@ export interface MediaRoomActions {
   setTypeFilter: (type: MediaTypeFilter) => void;
   toggleTagFilter: (tagId: string) => void;
   clearTagFilters: () => void;
-  setShowFavoritesOnly: (show: boolean) => void;
   setShowUsedOnly: (show: boolean) => void;
   setShowUnusedOnly: (show: boolean) => void;
   clearAllFilters: () => void;
@@ -94,7 +92,6 @@ const initialState: MediaRoomState = {
   searchQuery: "",
   typeFilter: "all",
   selectedTagIds: [],
-  showFavoritesOnly: false,
   showUsedOnly: false,
   showUnusedOnly: false,
   sortBy: "createdAt",
@@ -104,200 +101,204 @@ const initialState: MediaRoomState = {
   isUploadModalOpen: false,
 };
 
-export const useMediaRoomStore = create<MediaRoomState & MediaRoomActions>((set, get) => ({
-  ...initialState,
+export const useMediaRoomStore = create<MediaRoomState & MediaRoomActions>(
+  (set, get) => ({
+    ...initialState,
 
-  // Selection
-  selectItem: (id, isShiftKey = false, isCtrlKey = false) => {
-    set((state) => {
-      if (isCtrlKey) {
+    // Selection
+    selectItem: (id, isShiftKey = false, isCtrlKey = false) => {
+      set((state) => {
+        if (isCtrlKey) {
+          const newSet = new Set(state.selectedIds);
+          if (newSet.has(id)) {
+            newSet.delete(id);
+          } else {
+            newSet.add(id);
+          }
+          return { selectedIds: newSet, lastSelectedId: id };
+        }
+
+        if (isShiftKey && state.lastSelectedId) {
+          return {
+            selectedIds: new Set([...state.selectedIds, id]),
+            lastSelectedId: id,
+          };
+        }
+
+        return { selectedIds: new Set([id]), lastSelectedId: id };
+      });
+    },
+
+    selectAll: (ids) => {
+      set({ selectedIds: new Set(ids) });
+    },
+
+    clearSelection: () => {
+      set({ selectedIds: new Set(), lastSelectedId: null });
+    },
+
+    toggleSelection: (id) => {
+      set((state) => {
         const newSet = new Set(state.selectedIds);
         if (newSet.has(id)) {
           newSet.delete(id);
         } else {
           newSet.add(id);
         }
-        return { selectedIds: newSet, lastSelectedId: id };
-      }
+        return { selectedIds: newSet };
+      });
+    },
 
-      if (isShiftKey && state.lastSelectedId) {
-        return { selectedIds: new Set([...state.selectedIds, id]), lastSelectedId: id };
-      }
+    // Navigation
+    setCurrentFolder: (folderId) => {
+      set({
+        currentFolderId: folderId,
+        selectedIds: new Set(),
+        lastSelectedId: null,
+      });
+    },
 
-      return { selectedIds: new Set([id]), lastSelectedId: id };
-    });
-  },
+    toggleFolderExpanded: (folderId) => {
+      set((state) => {
+        const newSet = new Set(state.expandedFolderIds);
+        if (newSet.has(folderId)) {
+          newSet.delete(folderId);
+        } else {
+          newSet.add(folderId);
+        }
+        return { expandedFolderIds: newSet };
+      });
+    },
 
-  selectAll: (ids) => {
-    set({ selectedIds: new Set(ids) });
-  },
-
-  clearSelection: () => {
-    set({ selectedIds: new Set(), lastSelectedId: null });
-  },
-
-  toggleSelection: (id) => {
-    set((state) => {
-      const newSet = new Set(state.selectedIds);
-      if (newSet.has(id)) {
-        newSet.delete(id);
-      } else {
-        newSet.add(id);
-      }
-      return { selectedIds: newSet };
-    });
-  },
-
-  // Navigation
-  setCurrentFolder: (folderId) => {
-    set({ currentFolderId: folderId, selectedIds: new Set(), lastSelectedId: null });
-  },
-
-  toggleFolderExpanded: (folderId) => {
-    set((state) => {
-      const newSet = new Set(state.expandedFolderIds);
-      if (newSet.has(folderId)) {
-        newSet.delete(folderId);
-      } else {
+    expandFolder: (folderId) => {
+      set((state) => {
+        const newSet = new Set(state.expandedFolderIds);
         newSet.add(folderId);
+        return { expandedFolderIds: newSet };
+      });
+    },
+
+    // Filters
+    setSearchQuery: (query) => {
+      set({ searchQuery: query });
+    },
+
+    setTypeFilter: (type) => {
+      set({ typeFilter: type });
+    },
+
+    toggleTagFilter: (tagId) => {
+      set((state) => {
+        const index = state.selectedTagIds.indexOf(tagId);
+        if (index >= 0) {
+          return {
+            selectedTagIds: state.selectedTagIds.filter((id) => id !== tagId),
+          };
+        }
+        return { selectedTagIds: [...state.selectedTagIds, tagId] };
+      });
+    },
+
+    clearTagFilters: () => {
+      set({ selectedTagIds: [] });
+    },
+
+    setShowUsedOnly: (show) => {
+      set({ showUsedOnly: show, showUnusedOnly: false });
+    },
+
+    setShowUnusedOnly: (show) => {
+      set({ showUnusedOnly: show, showUsedOnly: false });
+    },
+
+    clearAllFilters: () => {
+      set({
+        searchQuery: "",
+        typeFilter: "all",
+        selectedTagIds: [],
+        showUsedOnly: false,
+        showUnusedOnly: false,
+      });
+    },
+
+    // Sort
+    setSortBy: (sortBy) => {
+      set({ sortBy });
+    },
+
+    setSortOrder: (order) => {
+      set({ sortOrder: order });
+    },
+
+    toggleSortOrder: () => {
+      set((state) => ({
+        sortOrder: state.sortOrder === "asc" ? "desc" : "asc",
+      }));
+    },
+
+    // View
+    setViewMode: (mode) => {
+      set({ viewMode: mode });
+    },
+
+    // Detail panel
+    openDetailPanel: (mediaId) => {
+      set({ detailPanelMediaId: mediaId });
+    },
+
+    closeDetailPanel: () => {
+      set({ detailPanelMediaId: null });
+    },
+
+    // Upload
+    openUploadModal: () => {
+      set({ isUploadModalOpen: true });
+    },
+
+    closeUploadModal: () => {
+      set({ isUploadModalOpen: false });
+    },
+
+    // Reset
+    reset: () => {
+      set(initialState);
+    },
+
+    // Helper to build filters for API
+    getApiFilters: () => {
+      const state = get();
+      const filters: MediaFilters = {
+        sortBy: state.sortBy,
+        order: state.sortOrder,
+      };
+
+      if (state.currentFolderId) {
+        filters.folderId = state.currentFolderId;
+      } else {
+        filters.rootOnly = true;
       }
-      return { expandedFolderIds: newSet };
-    });
-  },
 
-  expandFolder: (folderId) => {
-    set((state) => {
-      const newSet = new Set(state.expandedFolderIds);
-      newSet.add(folderId);
-      return { expandedFolderIds: newSet };
-    });
-  },
-
-  // Filters
-  setSearchQuery: (query) => {
-    set({ searchQuery: query });
-  },
-
-  setTypeFilter: (type) => {
-    set({ typeFilter: type });
-  },
-
-  toggleTagFilter: (tagId) => {
-    set((state) => {
-      const index = state.selectedTagIds.indexOf(tagId);
-      if (index >= 0) {
-        return { selectedTagIds: state.selectedTagIds.filter((id) => id !== tagId) };
+      if (state.searchQuery.trim()) {
+        filters.search = state.searchQuery.trim();
       }
-      return { selectedTagIds: [...state.selectedTagIds, tagId] };
-    });
-  },
 
-  clearTagFilters: () => {
-    set({ selectedTagIds: [] });
-  },
+      if (state.typeFilter !== "all") {
+        filters.type = state.typeFilter;
+      }
 
-  setShowFavoritesOnly: (show) => {
-    set({ showFavoritesOnly: show });
-  },
+      if (state.selectedTagIds.length > 0) {
+        filters.tagIds = state.selectedTagIds;
+      }
 
-  setShowUsedOnly: (show) => {
-    set({ showUsedOnly: show, showUnusedOnly: false });
-  },
+      if (state.showUsedOnly) {
+        filters.isUsed = true;
+      }
 
-  setShowUnusedOnly: (show) => {
-    set({ showUnusedOnly: show, showUsedOnly: false });
-  },
+      if (state.showUnusedOnly) {
+        filters.isUnused = true;
+      }
 
-  clearAllFilters: () => {
-    set({
-      searchQuery: "",
-      typeFilter: "all",
-      selectedTagIds: [],
-      showFavoritesOnly: false,
-      showUsedOnly: false,
-      showUnusedOnly: false,
-    });
-  },
-
-  // Sort
-  setSortBy: (sortBy) => {
-    set({ sortBy });
-  },
-
-  setSortOrder: (order) => {
-    set({ sortOrder: order });
-  },
-
-  toggleSortOrder: () => {
-    set((state) => ({ sortOrder: state.sortOrder === "asc" ? "desc" : "asc" }));
-  },
-
-  // View
-  setViewMode: (mode) => {
-    set({ viewMode: mode });
-  },
-
-  // Detail panel
-  openDetailPanel: (mediaId) => {
-    set({ detailPanelMediaId: mediaId });
-  },
-
-  closeDetailPanel: () => {
-    set({ detailPanelMediaId: null });
-  },
-
-  // Upload
-  openUploadModal: () => {
-    set({ isUploadModalOpen: true });
-  },
-
-  closeUploadModal: () => {
-    set({ isUploadModalOpen: false });
-  },
-
-  // Reset
-  reset: () => {
-    set(initialState);
-  },
-
-  // Helper to build filters for API
-  getApiFilters: () => {
-    const state = get();
-    const filters: MediaFilters = {
-      sortBy: state.sortBy,
-      order: state.sortOrder,
-    };
-
-    if (state.currentFolderId) {
-      filters.folderId = state.currentFolderId;
-    } else {
-      filters.rootOnly = true;
-    }
-
-    if (state.searchQuery.trim()) {
-      filters.search = state.searchQuery.trim();
-    }
-
-    if (state.typeFilter !== "all") {
-      filters.type = state.typeFilter;
-    }
-
-    if (state.selectedTagIds.length > 0) {
-      filters.tagIds = state.selectedTagIds;
-    }
-
-    if (state.showFavoritesOnly) {
-      filters.isFavorite = true;
-    }
-
-    if (state.showUsedOnly) {
-      filters.isUsed = true;
-    }
-
-    if (state.showUnusedOnly) {
-      filters.isUnused = true;
-    }
-
-    return filters;
-  },
-}));
+      return filters;
+    },
+  })
+);

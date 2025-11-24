@@ -7,7 +7,6 @@ import {
   Search,
   SortAsc,
   SortDesc,
-  Heart,
   Grid,
   List,
   X,
@@ -15,7 +14,11 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Input } from "@/components/ui/input";
-import { useMediaRoomStore, type MediaTypeFilter, type MediaSortBy } from "@/lib/store/media-room-store";
+import {
+  useMediaRoomStore,
+  type MediaTypeFilter,
+  type MediaSortBy,
+} from "@/lib/store/media-room-store";
 import { useTagList } from "@/lib/hooks/use-media";
 
 interface MediaToolbarProps {
@@ -43,8 +46,6 @@ export default function MediaToolbar({ integrationId }: MediaToolbarProps) {
   const setSearchQuery = useMediaRoomStore((s) => s.setSearchQuery);
   const typeFilter = useMediaRoomStore((s) => s.typeFilter);
   const setTypeFilter = useMediaRoomStore((s) => s.setTypeFilter);
-  const showFavoritesOnly = useMediaRoomStore((s) => s.showFavoritesOnly);
-  const setShowFavoritesOnly = useMediaRoomStore((s) => s.setShowFavoritesOnly);
   const sortBy = useMediaRoomStore((s) => s.sortBy);
   const setSortBy = useMediaRoomStore((s) => s.setSortBy);
   const sortOrder = useMediaRoomStore((s) => s.sortOrder);
@@ -58,47 +59,22 @@ export default function MediaToolbar({ integrationId }: MediaToolbarProps) {
   const { data: tags = [] } = useTagList(integrationId);
 
   const hasActiveFilters =
-    searchQuery ||
-    typeFilter !== "all" ||
-    showFavoritesOnly ||
-    selectedTagIds.length > 0;
+    searchQuery || typeFilter !== "all" || selectedTagIds.length > 0;
 
   return (
-    <div className="space-y-3">
-      {/* Search */}
-      <div className="relative max-w-sm">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-        <Input
-          type="text"
-          placeholder="Search media..."
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          className="pl-9 pr-8"
-        />
-        {searchQuery && (
-          <button
-            onClick={() => setSearchQuery("")}
-            className="absolute right-2 top-1/2 -translate-y-1/2 p-1 hover:bg-surface-hover rounded"
-          >
-            <X className="h-3 w-3 text-muted-foreground" />
-          </button>
-        )}
-      </div>
-
-      {/* Second row: Filters */}
-      <div className="flex items-center justify-between gap-4 border-b border-border pb-3">
+    <div className="flex flex-col gap-3">
+      <div className="flex flex-wrap items-center justify-between gap-4 border-b border-neutral-300 pb-3">
         <div className="flex items-center gap-3">
-          {/* Type filter */}
-          <div className="flex items-center gap-1 border border-border bg-surface p-1">
+          <div className="flex items-center gap-1 border border-neutral-300 bg-white p-1 rounded-sm">
             {typeFilters.map((filter) => (
               <button
                 key={filter.value}
                 onClick={() => setTypeFilter(filter.value)}
                 className={cn(
-                  "px-3 py-1 text-xs font-bold uppercase tracking-wider transition-colors",
+                  "px-3 py-1 text-xs font-bold uppercase tracking-wider transition-colors rounded-sm",
                   typeFilter === filter.value
-                    ? "bg-foreground text-background"
-                    : "text-muted hover:bg-surface-hover"
+                    ? "bg-brand-primary text-brand-primary-foreground"
+                    : "text-neutral-500 hover:bg-neutral-100"
                 )}
               >
                 {filter.label}
@@ -106,34 +82,19 @@ export default function MediaToolbar({ integrationId }: MediaToolbarProps) {
             ))}
           </div>
 
-          {/* Favorites toggle */}
-          <button
-            onClick={() => setShowFavoritesOnly(!showFavoritesOnly)}
-            className={cn(
-              "flex items-center gap-1.5 px-3 py-1.5 border text-xs font-bold uppercase tracking-wider transition-colors",
-              showFavoritesOnly
-                ? "bg-foreground text-background border-foreground"
-                : "bg-surface text-muted border-border hover:border-foreground hover:text-foreground"
-            )}
-          >
-            <Heart className={cn("h-3 w-3", showFavoritesOnly && "fill-current")} />
-            Favorites
-          </button>
-
-          {/* Tags dropdown */}
           <div className="relative">
             <button
               onClick={() => setShowTagDropdown(!showTagDropdown)}
               className={cn(
-                "flex items-center gap-1.5 px-3 py-1.5 border text-xs font-bold uppercase tracking-wider transition-colors",
+                "flex items-center gap-1.5 px-3 py-1.5 border text-xs font-bold uppercase tracking-wider transition-colors rounded-sm",
                 selectedTagIds.length > 0
-                  ? "bg-foreground text-background border-foreground"
-                  : "bg-surface text-muted border-border hover:border-foreground hover:text-foreground"
+                  ? "bg-brand-primary text-brand-primary-foreground border-brand-primary"
+                  : "bg-white text-neutral-500 border-neutral-300 hover:border-brand-primary hover:text-brand-primary"
               )}
             >
               Tags
               {selectedTagIds.length > 0 && (
-                <span className="ml-1 px-1.5 py-0.5 bg-background text-foreground rounded text-[10px]">
+                <span className="ml-1 px-1.5 py-0.5 bg-white text-brand-primary rounded text-[10px]">
                   {selectedTagIds.length}
                 </span>
               )}
@@ -141,9 +102,9 @@ export default function MediaToolbar({ integrationId }: MediaToolbarProps) {
             </button>
 
             {showTagDropdown && (
-              <div className="absolute top-full left-0 mt-1 w-48 bg-background border border-border shadow-lg z-50 max-h-64 overflow-y-auto">
+              <div className="absolute top-full left-0 mt-1 w-48 bg-white border border-neutral-300 shadow-lg z-50 max-h-64 overflow-y-auto rounded-sm">
                 {tags.length === 0 ? (
-                  <p className="p-3 text-xs text-muted-foreground font-serif italic">
+                  <p className="p-3 text-xs text-neutral-500 font-serif italic">
                     No tags yet
                   </p>
                 ) : (
@@ -155,8 +116,8 @@ export default function MediaToolbar({ integrationId }: MediaToolbarProps) {
                         className={cn(
                           "w-full flex items-center gap-2 px-2 py-1.5 text-left text-sm font-serif transition-colors rounded-sm",
                           selectedTagIds.includes(tag.id)
-                            ? "bg-foreground text-background"
-                            : "hover:bg-surface-hover"
+                            ? "bg-brand-primary text-brand-primary-foreground"
+                            : "hover:bg-neutral-100"
                         )}
                       >
                         <span
@@ -172,11 +133,10 @@ export default function MediaToolbar({ integrationId }: MediaToolbarProps) {
             )}
           </div>
 
-          {/* Clear filters */}
           {hasActiveFilters && (
             <button
               onClick={clearAllFilters}
-              className="flex items-center gap-1 px-2 py-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
+              className="flex items-center gap-1 px-2 py-1.5 text-xs text-neutral-500 hover:text-brand-primary transition-colors"
             >
               <X className="h-3 w-3" />
               Clear filters
@@ -184,14 +144,31 @@ export default function MediaToolbar({ integrationId }: MediaToolbarProps) {
           )}
         </div>
 
-        {/* Right side: Sort + View */}
-        <div className="flex items-center gap-2">
-          {/* Sort */}
-          <div className="flex items-center gap-1 border border-border bg-surface">
+        <div className="flex items-center gap-3">
+          <div className="relative w-48">
+            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-neutral-400" />
+            <Input
+              type="text"
+              placeholder="Search media..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-8 pr-8 h-8 text-xs font-serif border-neutral-300 focus:border-brand-primary"
+            />
+            {searchQuery && (
+              <button
+                onClick={() => setSearchQuery("")}
+                className="absolute right-2 top-1/2 -translate-y-1/2 p-0.5 hover:bg-neutral-100 rounded"
+              >
+                <X className="h-3 w-3 text-neutral-400" />
+              </button>
+            )}
+          </div>
+
+          <div className="flex items-center gap-1 border border-neutral-300 bg-white rounded-sm">
             <select
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value as MediaSortBy)}
-              className="px-2 py-1.5 text-xs font-bold uppercase tracking-wider bg-transparent border-0 focus:outline-none cursor-pointer"
+              className="px-2 py-1.5 text-xs font-bold uppercase tracking-wider bg-transparent border-0 focus:outline-none cursor-pointer hover:text-brand-primary"
             >
               {sortOptions.map((option) => (
                 <option key={option.value} value={option.value}>
@@ -201,7 +178,7 @@ export default function MediaToolbar({ integrationId }: MediaToolbarProps) {
             </select>
             <button
               onClick={toggleSortOrder}
-              className="p-1.5 hover:bg-surface-hover border-l border-border"
+              className="p-1.5 hover:bg-neutral-100 border-l border-neutral-300 text-neutral-500 hover:text-brand-primary"
             >
               {sortOrder === "desc" ? (
                 <SortDesc className="h-4 w-4" />
@@ -211,13 +188,14 @@ export default function MediaToolbar({ integrationId }: MediaToolbarProps) {
             </button>
           </div>
 
-          {/* View mode */}
-          <div className="flex items-center border border-border bg-surface">
+          <div className="flex items-center border border-neutral-300 bg-white rounded-sm overflow-hidden">
             <button
               onClick={() => setViewMode("grid")}
               className={cn(
                 "p-1.5 transition-colors",
-                viewMode === "grid" ? "bg-foreground text-background" : "hover:bg-surface-hover"
+                viewMode === "grid"
+                  ? "bg-brand-primary text-brand-primary-foreground"
+                  : "hover:bg-neutral-100 text-neutral-500"
               )}
             >
               <Grid className="h-4 w-4" />
@@ -225,8 +203,10 @@ export default function MediaToolbar({ integrationId }: MediaToolbarProps) {
             <button
               onClick={() => setViewMode("list")}
               className={cn(
-                "p-1.5 border-l border-border transition-colors",
-                viewMode === "list" ? "bg-foreground text-background" : "hover:bg-surface-hover"
+                "p-1.5 border-l border-neutral-300 transition-colors",
+                viewMode === "list"
+                  ? "bg-brand-primary text-brand-primary-foreground"
+                  : "hover:bg-neutral-100 text-neutral-500"
               )}
             >
               <List className="h-4 w-4" />

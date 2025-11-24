@@ -2,24 +2,19 @@
 
 "use client";
 
-import { useState, useRef } from "react";
+import { useState } from "react";
 import {
   Folder,
   FolderOpen,
   Home,
-  Plus,
   Loader2,
   MoreHorizontal,
   Pencil,
   Trash2,
-  ChevronLeft,
-  ChevronRight,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { Button } from "@/components/ui/button";
 import {
   useFolderList,
-  useCreateFolder,
   useRenameFolder,
   useDeleteFolder,
 } from "@/lib/hooks/use-media";
@@ -41,6 +36,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import { Loader2 as Spinner } from "lucide-react";
 
 interface MediaFolderBarProps {
   integrationId: string | null;
@@ -77,11 +73,13 @@ function DroppableFolderTab({
     <div
       ref={setNodeRef}
       className={cn(
-        "group relative flex items-center gap-2 px-3 py-2 text-sm font-serif whitespace-nowrap transition-all rounded-sm border",
+        "group relative flex items-center gap-2 px-3 py-2 text-sm font-serif whitespace-nowrap transition-all border rounded-t-sm mb-2",
         isActive
-          ? "bg-foreground text-background border-foreground"
-          : "bg-surface text-muted-foreground border-border hover:text-foreground hover:border-foreground/50",
-        isOver && !isActive && "border-brand-primary border-dashed bg-brand-primary/5"
+          ? "bg-brand-primary text-brand-primary-foreground border-brand-primary z-10"
+          : "bg-white text-neutral-500 border-neutral-300 hover:text-neutral-900 hover:border-neutral-500",
+        isOver &&
+          !isActive &&
+          "border-dashed border-brand-primary bg-brand-primary/5"
       )}
     >
       <button onClick={onSelect} className="flex items-center gap-2">
@@ -94,18 +92,21 @@ function DroppableFolderTab({
             <button
               className={cn(
                 "p-0.5 rounded opacity-0 group-hover:opacity-100 transition-opacity",
-                isActive ? "hover:bg-white/20" : "hover:bg-black/10"
+                isActive ? "hover:bg-white/20" : "hover:bg-neutral-100"
               )}
               onClick={(e) => e.stopPropagation()}
             >
               <MoreHorizontal className="h-3.5 w-3.5" />
             </button>
           </PopoverTrigger>
-          <PopoverContent align="end" className="w-32 p-1">
+          <PopoverContent
+            align="end"
+            className="w-32 p-1 bg-white border border-neutral-300"
+          >
             {onEdit && (
               <button
                 onClick={onEdit}
-                className="flex w-full items-center gap-2 px-2 py-1.5 text-sm font-serif rounded-sm hover:bg-surface-hover transition-colors"
+                className="flex w-full items-center gap-2 px-2 py-1.5 text-sm font-serif hover:bg-neutral-100 transition-colors"
               >
                 <Pencil className="h-3.5 w-3.5" />
                 Rename
@@ -114,7 +115,7 @@ function DroppableFolderTab({
             {onDelete && (
               <button
                 onClick={onDelete}
-                className="flex w-full items-center gap-2 px-2 py-1.5 text-sm font-serif text-error rounded-sm hover:bg-error/10 transition-colors"
+                className="flex w-full items-center gap-2 px-2 py-1.5 text-sm font-serif text-red-600 hover:bg-red-50 transition-colors"
               >
                 <Trash2 className="h-3.5 w-3.5" />
                 Delete
@@ -125,41 +126,29 @@ function DroppableFolderTab({
       )}
 
       {isOver && (
-        <div className="absolute inset-0 border-2 border-dashed border-brand-primary rounded-sm pointer-events-none" />
+        <div className="absolute inset-0 border-2 border-dashed border-brand-primary pointer-events-none" />
       )}
     </div>
   );
 }
 
 export default function MediaFolderBar({ integrationId }: MediaFolderBarProps) {
-  const scrollContainerRef = useRef<HTMLDivElement>(null);
-  const { data: folders = [], isLoading } = useFolderList(integrationId, "root");
+  const { data: folders = [], isLoading } = useFolderList(
+    integrationId,
+    "root"
+  );
 
   const currentFolderId = useMediaRoomStore((s) => s.currentFolderId);
   const setCurrentFolder = useMediaRoomStore((s) => s.setCurrentFolder);
 
-  const [isCreating, setIsCreating] = useState(false);
-  const [newFolderName, setNewFolderName] = useState("");
   const [editingFolder, setEditingFolder] = useState<MediaFolder | null>(null);
   const [editingName, setEditingName] = useState("");
-  const [deletingFolder, setDeletingFolder] = useState<MediaFolder | null>(null);
+  const [deletingFolder, setDeletingFolder] = useState<MediaFolder | null>(
+    null
+  );
 
-  const createFolder = useCreateFolder(integrationId);
   const renameFolder = useRenameFolder(integrationId);
   const deleteFolder = useDeleteFolder(integrationId);
-
-  const handleCreateFolder = () => {
-    if (!newFolderName.trim()) return;
-    createFolder.mutate(
-      { name: newFolderName.trim(), parentId: currentFolderId || undefined },
-      {
-        onSuccess: () => {
-          setNewFolderName("");
-          setIsCreating(false);
-        },
-      }
-    );
-  };
 
   const handleRenameFolder = () => {
     if (!editingFolder || !editingName.trim()) return;
@@ -186,33 +175,12 @@ export default function MediaFolderBar({ integrationId }: MediaFolderBarProps) {
     });
   };
 
-  const scrollLeft = () => {
-    scrollContainerRef.current?.scrollBy({ left: -200, behavior: "smooth" });
-  };
-
-  const scrollRight = () => {
-    scrollContainerRef.current?.scrollBy({ left: 200, behavior: "smooth" });
-  };
-
   return (
-    <div className="flex items-center gap-2 py-3 border-b border-border">
-      {/* Scroll left button */}
-      <Button
-        variant="ghost"
-        size="icon"
-        className="h-8 w-8 shrink-0"
-        onClick={scrollLeft}
-      >
-        <ChevronLeft className="h-4 w-4" />
-      </Button>
-
-      {/* Scrollable folder tabs */}
+    <div className="border-b border-neutral-300">
       <div
-        ref={scrollContainerRef}
-        className="flex-1 flex items-center gap-2 overflow-x-auto scrollbar-hide"
+        className="flex items-center gap-2 overflow-x-auto scrollbar-hide px-1"
         style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
       >
-        {/* All Media (root) */}
         <DroppableFolderTab
           folder={null}
           isActive={currentFolderId === null}
@@ -223,7 +191,7 @@ export default function MediaFolderBar({ integrationId }: MediaFolderBarProps) {
         </DroppableFolderTab>
 
         {isLoading ? (
-          <div className="flex items-center gap-2 px-3 py-2 text-muted-foreground">
+          <div className="flex items-center gap-2 px-3 py-2 text-neutral-500">
             <Loader2 className="h-4 w-4 animate-spin" />
           </div>
         ) : (
@@ -250,77 +218,16 @@ export default function MediaFolderBar({ integrationId }: MediaFolderBarProps) {
         )}
       </div>
 
-      {/* Scroll right button */}
-      <Button
-        variant="ghost"
-        size="icon"
-        className="h-8 w-8 shrink-0"
-        onClick={scrollRight}
+      <AlertDialog
+        open={!!editingFolder}
+        onOpenChange={() => setEditingFolder(null)}
       >
-        <ChevronRight className="h-4 w-4" />
-      </Button>
-
-      {/* New folder button with popover */}
-      <Popover open={isCreating} onOpenChange={setIsCreating}>
-        <PopoverTrigger asChild>
-          <Button variant="outline" size="sm" className="gap-1.5 shrink-0">
-            <Plus className="h-3.5 w-3.5" />
-            <span className="hidden sm:inline">New Folder</span>
-          </Button>
-        </PopoverTrigger>
-        <PopoverContent align="end" className="w-64 p-3">
-          <div className="space-y-3">
-            <p className="eyebrow">Create Folder</p>
-            <input
-              type="text"
-              value={newFolderName}
-              onChange={(e) => setNewFolderName(e.target.value)}
-              placeholder="Folder name..."
-              className="w-full px-3 py-2 text-sm font-serif border border-border rounded-sm bg-surface focus:outline-none focus:ring-2 focus:ring-ring/40"
-              autoFocus
-              onKeyDown={(e) => {
-                if (e.key === "Enter") handleCreateFolder();
-                if (e.key === "Escape") {
-                  setIsCreating(false);
-                  setNewFolderName("");
-                }
-              }}
-            />
-            <div className="flex gap-2">
-              <Button
-                size="sm"
-                variant="primary"
-                onClick={handleCreateFolder}
-                disabled={createFolder.isPending || !newFolderName.trim()}
-                className="flex-1"
-              >
-                {createFolder.isPending ? (
-                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                ) : (
-                  "Create"
-                )}
-              </Button>
-              <Button
-                size="sm"
-                variant="ghost"
-                onClick={() => {
-                  setIsCreating(false);
-                  setNewFolderName("");
-                }}
-              >
-                Cancel
-              </Button>
-            </div>
-          </div>
-        </PopoverContent>
-      </Popover>
-
-      {/* Rename dialog */}
-      <AlertDialog open={!!editingFolder} onOpenChange={() => setEditingFolder(null)}>
-        <AlertDialogContent>
+        <AlertDialogContent className="bg-white border-2 border-neutral-900">
           <AlertDialogHeader>
-            <AlertDialogTitle className="font-serif">Rename Folder</AlertDialogTitle>
-            <AlertDialogDescription className="font-serif">
+            <AlertDialogTitle className="font-serif">
+              Rename Folder
+            </AlertDialogTitle>
+            <AlertDialogDescription className="font-serif text-neutral-600">
               Enter a new name for &ldquo;{editingFolder?.name}&rdquo;
             </AlertDialogDescription>
           </AlertDialogHeader>
@@ -328,21 +235,23 @@ export default function MediaFolderBar({ integrationId }: MediaFolderBarProps) {
             type="text"
             value={editingName}
             onChange={(e) => setEditingName(e.target.value)}
-            className="w-full px-3 py-2 text-sm font-serif border border-border rounded-sm bg-surface focus:outline-none focus:ring-2 focus:ring-ring/40"
+            className="w-full px-3 py-2 text-sm font-serif border border-neutral-300 bg-white focus:outline-none focus:border-neutral-900"
             autoFocus
             onKeyDown={(e) => {
               if (e.key === "Enter") handleRenameFolder();
             }}
           />
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogCancel className="border-neutral-300 hover:bg-neutral-100">
+              Cancel
+            </AlertDialogCancel>
             <AlertDialogAction
               onClick={handleRenameFolder}
               disabled={renameFolder.isPending || !editingName.trim()}
-              className="bg-brand-primary text-brand-primary-foreground hover:bg-brand-primary-hover"
+              className="bg-emerald-800 text-white hover:bg-emerald-700 border-emerald-900"
             >
               {renameFolder.isPending ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
+                <Spinner className="h-4 w-4 animate-spin" />
               ) : (
                 "Save"
               )}
@@ -351,24 +260,30 @@ export default function MediaFolderBar({ integrationId }: MediaFolderBarProps) {
         </AlertDialogContent>
       </AlertDialog>
 
-      {/* Delete confirmation dialog */}
-      <AlertDialog open={!!deletingFolder} onOpenChange={() => setDeletingFolder(null)}>
-        <AlertDialogContent>
+      <AlertDialog
+        open={!!deletingFolder}
+        onOpenChange={() => setDeletingFolder(null)}
+      >
+        <AlertDialogContent className="bg-white border-2 border-neutral-900">
           <AlertDialogHeader>
-            <AlertDialogTitle className="font-serif">Delete Folder</AlertDialogTitle>
-            <AlertDialogDescription className="font-serif">
-              Are you sure you want to delete &ldquo;{deletingFolder?.name}&rdquo;? Media inside will be moved
-              to the root folder.
+            <AlertDialogTitle className="font-serif">
+              Delete Folder
+            </AlertDialogTitle>
+            <AlertDialogDescription className="font-serif text-neutral-600">
+              Are you sure you want to delete &ldquo;{deletingFolder?.name}
+              &rdquo;? Media inside will be moved to the root folder.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogCancel className="border-neutral-300 hover:bg-neutral-100">
+              Cancel
+            </AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDeleteFolder}
-              className="bg-error text-error-foreground hover:bg-error/90"
+              className="bg-red-600 text-white hover:bg-red-700"
             >
               {deleteFolder.isPending ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
+                <Spinner className="h-4 w-4 animate-spin" />
               ) : (
                 "Delete"
               )}

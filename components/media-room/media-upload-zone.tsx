@@ -72,7 +72,8 @@ export default function MediaUploadZone({
                 ? {
                     ...u,
                     status: "error",
-                    error: error instanceof Error ? error.message : "Upload failed",
+                    error:
+                      error instanceof Error ? error.message : "Upload failed",
                   }
                 : u
             )
@@ -114,7 +115,9 @@ export default function MediaUploadZone({
 
   const handleClearCompleted = () => {
     setUploadQueue((prev) =>
-      prev.filter((item) => item.status !== "success" && item.status !== "error")
+      prev.filter(
+        (item) => item.status !== "success" && item.status !== "error"
+      )
     );
   };
 
@@ -131,18 +134,20 @@ export default function MediaUploadZone({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-      <div className="w-full max-w-xl bg-background border-2 border-foreground shadow-2xl">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+      <div className="w-full max-w-xl bg-background border-2 border-foreground shadow-2xl rounded-sm">
         {/* Header */}
         <div className="flex items-center justify-between p-4 border-b border-border">
           <div>
             <p className="eyebrow">Upload Media</p>
-            <h2 className="font-serif text-xl font-bold">Add files to your library</h2>
+            <h2 className="font-serif text-xl font-bold">
+              Add files to your library
+            </h2>
           </div>
           <button
             onClick={handleClose}
             disabled={isUploading}
-            className="p-2 hover:bg-surface-hover rounded transition-colors disabled:opacity-50"
+            className="p-2 hover:bg-surface-hover rounded-sm transition-colors disabled:opacity-50"
           >
             <X className="h-5 w-5" />
           </button>
@@ -155,10 +160,10 @@ export default function MediaUploadZone({
             onDragLeave={handleDragLeave}
             onDrop={handleDrop}
             className={cn(
-              "border-2 border-dashed rounded-lg transition-colors p-8",
+              "border-2 border-dashed rounded-sm transition-colors p-8",
               isDragging
-                ? "border-foreground bg-surface-hover"
-                : "border-border hover:border-foreground/50"
+                ? "border-brand-primary bg-brand-primary/5"
+                : "border-border hover:border-brand-primary hover:bg-surface-hover"
             )}
           >
             <label className="block cursor-pointer">
@@ -171,7 +176,12 @@ export default function MediaUploadZone({
                 disabled={isUploading}
               />
               <div className="text-center">
-                <Upload className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
+                <Upload
+                  className={cn(
+                    "w-12 h-12 mx-auto mb-4 transition-colors",
+                    isDragging ? "text-brand-primary" : "text-muted-foreground"
+                  )}
+                />
                 <p className="font-serif text-lg text-foreground mb-2">
                   Drag & drop files here
                 </p>
@@ -197,7 +207,7 @@ export default function MediaUploadZone({
               {hasCompletedItems && !isUploading && (
                 <button
                   onClick={handleClearCompleted}
-                  className="text-xs text-muted-foreground hover:text-foreground transition-colors"
+                  className="text-xs text-muted-foreground hover:text-brand-primary transition-colors font-medium"
                 >
                   Clear completed
                 </button>
@@ -227,9 +237,13 @@ export default function MediaUploadZone({
 
                   {/* File info */}
                   <div className="flex-1 min-w-0">
-                    <p className="font-serif text-sm truncate">{item.file.name}</p>
+                    <p className="font-serif text-sm truncate">
+                      {item.file.name}
+                    </p>
                     {item.error && (
-                      <p className="text-xs text-error truncate">{item.error}</p>
+                      <p className="text-xs text-error truncate">
+                        {item.error}
+                      </p>
                     )}
                   </div>
 
@@ -245,7 +259,11 @@ export default function MediaUploadZone({
 
         {/* Footer */}
         <div className="flex items-center justify-end gap-3 p-4 border-t border-border">
-          <Button variant="outline" onClick={handleClose} disabled={isUploading}>
+          <Button
+            variant="primary"
+            onClick={handleClose}
+            disabled={isUploading}
+          >
             {isUploading ? "Uploading..." : "Done"}
           </Button>
         </div>

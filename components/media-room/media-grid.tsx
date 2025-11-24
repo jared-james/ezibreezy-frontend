@@ -19,7 +19,6 @@ export default function MediaGrid({ integrationId }: MediaGridProps) {
   const searchQuery = useMediaRoomStore((s) => s.searchQuery);
   const typeFilter = useMediaRoomStore((s) => s.typeFilter);
   const selectedTagIds = useMediaRoomStore((s) => s.selectedTagIds);
-  const showFavoritesOnly = useMediaRoomStore((s) => s.showFavoritesOnly);
   const showUsedOnly = useMediaRoomStore((s) => s.showUsedOnly);
   const showUnusedOnly = useMediaRoomStore((s) => s.showUnusedOnly);
   const sortBy = useMediaRoomStore((s) => s.sortBy);
@@ -53,10 +52,6 @@ export default function MediaGrid({ integrationId }: MediaGridProps) {
       f.tagIds = selectedTagIds;
     }
 
-    if (showFavoritesOnly) {
-      f.isFavorite = true;
-    }
-
     if (showUsedOnly) {
       f.isUsed = true;
     }
@@ -71,14 +66,16 @@ export default function MediaGrid({ integrationId }: MediaGridProps) {
     searchQuery,
     typeFilter,
     selectedTagIds,
-    showFavoritesOnly,
     showUsedOnly,
     showUnusedOnly,
     sortBy,
     sortOrder,
   ]);
 
-  const { data, isLoading, isError, error } = useMediaList(integrationId, filters);
+  const { data, isLoading, isError, error } = useMediaList(
+    integrationId,
+    filters
+  );
 
   if (isLoading) {
     return (
@@ -102,7 +99,7 @@ export default function MediaGrid({ integrationId }: MediaGridProps) {
 
   if (mediaItems.length === 0) {
     return (
-      <div className="py-16 text-center border-2 border-dashed border-border">
+      <div className="py-16 text-center border-2 border-dashed border-border rounded-lg">
         <ImageOff className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
         <p className="font-serif text-lg text-muted-foreground italic">
           No media found

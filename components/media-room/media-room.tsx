@@ -3,11 +3,11 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Loader2, Upload, Image as ImageIcon } from "lucide-react";
+import { Loader2, Upload, Image as ImageIcon, Plus } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { getClientDataForEditor } from "@/app/actions/data";
 import { useMediaRoomStore } from "@/lib/store/media-room-store";
-import { useBulkMoveMedia } from "@/lib/hooks/use-media";
+import { useBulkMoveMedia, useCreateFolder } from "@/lib/hooks/use-media";
 import MediaFolderBar from "./media-folder-bar";
 import MediaToolbar from "./media-toolbar";
 import MediaGrid from "./media-grid";
@@ -15,6 +15,11 @@ import MediaDetailPanel from "./media-detail-panel";
 import BulkActionBar from "./bulk-action-bar";
 import MediaUploadZone from "./media-upload-zone";
 import { Button } from "@/components/ui/button";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import {
   DndContext,
   closestCenter,
@@ -27,7 +32,6 @@ import {
 } from "@dnd-kit/core";
 import type { MediaItem } from "@/lib/api/media";
 
-// Overlay component shown during drag
 function MediaCardOverlay({ item }: { item: MediaItem }) {
   const isVideo = item.type.startsWith("video/");
 
@@ -57,23 +61,23 @@ export default function MediaRoom() {
   const [isUploadOpen, setIsUploadOpen] = useState(false);
   const [activeDragItem, setActiveDragItem] = useState<MediaItem | null>(null);
 
-  const detailPanelMediaId = useMediaRoomStore((s) => s.detailPanelMediaId);
-  const reset = useMediaRoomStore((s) => s.reset);
+  const [isCreatingFolder, setIsCreatingFolder] = useState(false);
+  const [newFolderName, setNewFolderName] = useState("");
 
-  // Get client data including connections
+  const reset = useMediaRoomStore((s) => s.reset);
+  const currentFolderId = useMediaRoomStore((s) => s.currentFolderId);
+
   const { data: clientData, isLoading: isLoadingClientData } = useQuery({
     queryKey: ["clientEditorData"],
     queryFn: getClientDataForEditor,
     staleTime: 60000,
   });
 
-  // Use first connection's ID as integrationId
   const integrationId = clientData?.connections?.[0]?.id || null;
 
-  // Bulk move mutation for drag-and-drop
   const bulkMove = useBulkMoveMedia(integrationId);
+  const createFolder = useCreateFolder(integrationId);
 
-  // Configure drag sensors with distance threshold to prevent accidental drags
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: {
@@ -82,7 +86,6 @@ export default function MediaRoom() {
     })
   );
 
-  // Reset store on unmount
   useEffect(() => {
     return () => {
       reset();
@@ -102,7 +105,6 @@ export default function MediaRoom() {
 
     if (!over) return;
 
-    // Check if dropped on a folder
     if (
       active.data.current?.type === "media" &&
       over.data.current?.type === "folder"
@@ -110,12 +112,24 @@ export default function MediaRoom() {
       const mediaId = active.data.current.mediaId as string;
       const targetFolderId = over.data.current.folderId as string | null;
 
-      // Move the media to the folder
       bulkMove.mutate({
         mediaIds: [mediaId],
         folderId: targetFolderId,
       });
     }
+  };
+
+  const handleCreateFolder = () => {
+    if (!newFolderName.trim()) return;
+    createFolder.mutate(
+      { name: newFolderName.trim(), parentId: currentFolderId || undefined },
+      {
+        onSuccess: () => {
+          setNewFolderName("");
+          setIsCreatingFolder(false);
+        },
+      }
+    );
   };
 
   if (isLoadingClientData) {
@@ -153,7 +167,6 @@ export default function MediaRoom() {
       onDragEnd={handleDragEnd}
     >
       <div className="flex flex-col h-full">
-        {/* Header - matching Calendar/Editorial style */}
         <div className="border-b-4 border-double border-foreground pb-6 mb-6">
           <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
             <div>
@@ -162,37 +175,97 @@ export default function MediaRoom() {
                 Media Room
               </h1>
             </div>
-            <Button
-              variant="primary"
-              className="gap-2 shrink-0"
-              onClick={() => setIsUploadOpen(true)}
-            >
-              <Upload className="h-4 w-4" />
-              Upload Media
-            </Button>
+            <div className="flex items-center gap-2">
+              <Popover
+                open={isCreatingFolder}
+                onOpenChange={setIsCreatingFolder}
+              >
+                <PopoverTrigger asChild>
+                  <Button variant="outline" className="gap-2 shrink-0">
+                    <Plus className="h-4 w-4" />
+                    New Folder
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent
+                  align="end"
+                  className="w-64 p-3 bg-white border border-neutral-300"
+                >
+                  <div className="space-y-3">
+                    <p className="font-serif text-xs tracking-widest uppercase text-neutral-500">
+                      Create Folder
+                    </p>
+                    <input
+                      type="text"
+                      value={newFolderName}
+                      onChange={(e) => setNewFolderName(e.target.value)}
+                      placeholder="Folder name..."
+                      className="w-full px-3 py-2 text-sm font-serif border border-neutral-300 bg-white focus:outline-none focus:border-neutral-900"
+                      autoFocus
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") handleCreateFolder();
+                        if (e.key === "Escape") {
+                          setIsCreatingFolder(false);
+                          setNewFolderName("");
+                        }
+                      }}
+                    />
+                    <div className="flex gap-2">
+                      <Button
+                        size="sm"
+                        variant="primary"
+                        onClick={handleCreateFolder}
+                        disabled={
+                          createFolder.isPending || !newFolderName.trim()
+                        }
+                        className="flex-1"
+                      >
+                        {createFolder.isPending ? (
+                          <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                        ) : (
+                          "Create"
+                        )}
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => {
+                          setIsCreatingFolder(false);
+                          setNewFolderName("");
+                        }}
+                      >
+                        Cancel
+                      </Button>
+                    </div>
+                  </div>
+                </PopoverContent>
+              </Popover>
+
+              <Button
+                variant="primary"
+                className="gap-2 shrink-0"
+                onClick={() => setIsUploadOpen(true)}
+              >
+                <Upload className="h-4 w-4" />
+                Upload Media
+              </Button>
+            </div>
           </div>
         </div>
 
-        {/* Folder bar - horizontal tabs with drop zones */}
         <MediaFolderBar integrationId={integrationId} />
 
-        {/* Toolbar */}
         <div className="py-4">
           <MediaToolbar integrationId={integrationId} />
         </div>
 
-        {/* Grid */}
         <div className="flex-1 overflow-y-auto pb-6">
           <MediaGrid integrationId={integrationId} />
         </div>
 
-        {/* Detail panel */}
-        {detailPanelMediaId && <MediaDetailPanel integrationId={integrationId} />}
+        <MediaDetailPanel integrationId={integrationId} />
 
-        {/* Bulk action bar */}
         <BulkActionBar integrationId={integrationId} />
 
-        {/* Upload modal */}
         <MediaUploadZone
           integrationId={integrationId}
           isOpen={isUploadOpen}
@@ -200,7 +273,6 @@ export default function MediaRoom() {
         />
       </div>
 
-      {/* Drag overlay */}
       <DragOverlay dropAnimation={null}>
         {activeDragItem ? <MediaCardOverlay item={activeDragItem} /> : null}
       </DragOverlay>

@@ -3,7 +3,14 @@
 "use client";
 
 import { useState } from "react";
-import { X, Trash2, FolderInput, Tag, Loader2, ChevronDown } from "lucide-react";
+import {
+  X,
+  Trash2,
+  FolderInput,
+  Tag,
+  Loader2,
+  ChevronDown,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useMediaRoomStore } from "@/lib/store/media-room-store";
 import {
@@ -79,12 +86,13 @@ export default function BulkActionBar({ integrationId }: BulkActionBarProps) {
     );
   };
 
-  const isLoading = bulkDelete.isPending || bulkMove.isPending || bulkTag.isPending;
+  const isLoading =
+    bulkDelete.isPending || bulkMove.isPending || bulkTag.isPending;
 
   return (
     <>
       <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50">
-        <div className="flex items-center gap-3 bg-foreground text-background px-4 py-3 shadow-xl border border-foreground/20">
+        <div className="flex items-center gap-3 bg-foreground text-background px-4 py-3 shadow-xl border border-foreground/20 rounded-sm">
           {/* Selection count */}
           <div className="flex items-center gap-2 pr-3 border-r border-background/20">
             <span className="font-serif text-sm font-bold">
@@ -115,7 +123,7 @@ export default function BulkActionBar({ integrationId }: BulkActionBarProps) {
               <ChevronDown className="h-3 w-3" />
             </Button>
             {showFolderDropdown && (
-              <div className="absolute bottom-full left-0 mb-2 w-48 bg-background text-foreground border border-border shadow-lg max-h-64 overflow-y-auto">
+              <div className="absolute bottom-full left-0 mb-2 w-48 bg-background text-foreground border border-border shadow-lg max-h-64 overflow-y-auto rounded-sm">
                 <div className="p-2 space-y-1">
                   <button
                     onClick={() => handleMoveToFolder(null)}
@@ -154,7 +162,7 @@ export default function BulkActionBar({ integrationId }: BulkActionBarProps) {
               <ChevronDown className="h-3 w-3" />
             </Button>
             {showTagDropdown && (
-              <div className="absolute bottom-full left-0 mb-2 w-48 bg-background text-foreground border border-border shadow-lg max-h-64 overflow-y-auto">
+              <div className="absolute bottom-full left-0 mb-2 w-48 bg-background text-foreground border border-border shadow-lg max-h-64 overflow-y-auto rounded-sm">
                 {tags.length === 0 ? (
                   <p className="p-3 text-xs text-muted-foreground font-serif italic">
                     No tags available
@@ -204,10 +212,13 @@ export default function BulkActionBar({ integrationId }: BulkActionBarProps) {
       <AlertDialog open={showDeleteConfirm} onOpenChange={setShowDeleteConfirm}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle className="font-serif">Delete {selectedCount} Items</AlertDialogTitle>
+            <AlertDialogTitle className="font-serif">
+              Delete {selectedCount} Items
+            </AlertDialogTitle>
             <AlertDialogDescription className="font-serif">
               Are you sure you want to delete {selectedCount} media{" "}
-              {selectedCount === 1 ? "item" : "items"}? This action cannot be undone.
+              {selectedCount === 1 ? "item" : "items"}? This action cannot be
+              undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -216,7 +227,11 @@ export default function BulkActionBar({ integrationId }: BulkActionBarProps) {
               onClick={handleDelete}
               className="bg-error text-error-foreground hover:bg-error-hover"
             >
-              {bulkDelete.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : "Delete All"}
+              {bulkDelete.isPending ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                "Delete All"
+              )}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
