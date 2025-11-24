@@ -16,8 +16,10 @@ import {
   MessageSquare,
   Book,
   Clapperboard,
+  Type,
 } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
+import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import {
@@ -192,6 +194,7 @@ export default function CaptionEditor({
 }: CaptionEditorProps) {
   const mainCaption = useEditorialStore((state) => state.mainCaption);
   const platformCaptions = useEditorialStore((state) => state.platformCaptions);
+  const platformTitles = useEditorialStore((state) => state.platformTitles);
   const firstComment = useEditorialStore((state) => state.firstComment);
   const facebookFirstComment = useEditorialStore((state) => state.facebookFirstComment);
   const currentPostType = useEditorialStore((state) => state.postType);
@@ -201,6 +204,8 @@ export default function CaptionEditor({
   const [localMainCaption, setLocalMainCaption] = useState(mainCaption);
   const [localPlatformCaptions, setLocalPlatformCaptions] =
     useState(platformCaptions);
+  const [localPlatformTitles, setLocalPlatformTitles] =
+    useState(platformTitles);
   const [localThreadMessages, setLocalThreadMessages] =
     useState(threadMessages);
   const [localFirstComment, setLocalFirstComment] = useState(firstComment);
@@ -219,6 +224,10 @@ export default function CaptionEditor({
   useEffect(() => {
     setLocalPlatformCaptions(platformCaptions);
   }, [platformCaptions]);
+
+  useEffect(() => {
+    setLocalPlatformTitles(platformTitles);
+  }, [platformTitles]);
 
   useEffect(() => {
     setLocalThreadMessages(threadMessages);
@@ -265,6 +274,10 @@ export default function CaptionEditor({
   useEffect(() => {
     setState({ facebookFirstComment: localFacebookFirstComment });
   }, [localFacebookFirstComment, setState]);
+
+  useEffect(() => {
+    setState({ platformTitles: localPlatformTitles });
+  }, [localPlatformTitles, setState]);
 
   const [isHashtagModalOpen, setIsHashtagModalOpen] = useState(false);
   const [targetPlatformId, setTargetPlatformId] = useState<string | null>(null);
@@ -404,6 +417,7 @@ export default function CaptionEditor({
           platformId === "x" || platformId === "threads";
         const supportsFirstComment = platformId === "instagram" || platformId === "facebook";
         const supportsPostTypeSelection = platformId === "instagram" || platformId === "facebook";
+        const supportsTitle = platformId === "tiktok";
 
         const isInstagramStory = platformId === "instagram" && currentPostType === "story";
         const isFacebookStory = platformId === "facebook" && facebookPostType === "story";
@@ -458,6 +472,33 @@ export default function CaptionEditor({
             </label>
 
             <div className="space-y-4">
+              {supportsTitle && (
+                <div>
+                  <label
+                    htmlFor={`title-${platformId}`}
+                    className="eyebrow mb-2 flex items-center gap-1.5"
+                  >
+                    <Type className="h-3 w-3" />
+                    Title
+                    <span className="ml-auto text-[0.65rem] text-muted-foreground">
+                      {postType === "video" ? "Max 2200 chars" : "Max 90 chars"}
+                    </span>
+                  </label>
+                  <Input
+                    id={`title-${platformId}`}
+                    value={localPlatformTitles[platformId] || ""}
+                    onChange={(event) =>
+                      setLocalPlatformTitles((prev) => ({
+                        ...prev,
+                        [platformId]: event.target.value,
+                      }))
+                    }
+                    placeholder="Add a title for your TikTok..."
+                    maxLength={postType === "video" ? 2200 : 90}
+                  />
+                </div>
+              )}
+
               <CaptionTextarea
                 id={`caption-${platformId}`}
                 value={isStory ? "" : currentCaption}

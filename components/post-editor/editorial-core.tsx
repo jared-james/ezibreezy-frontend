@@ -75,6 +75,7 @@ export default function EditorialCore({
   const facebookFirstComment = useEditorialStore(
     (state) => state.facebookFirstComment
   );
+  const platformTitles = useEditorialStore((state) => state.platformTitles);
 
   const {
     mainPostMediaFiles,
@@ -302,6 +303,13 @@ export default function EditorialCore({
             ) {
               payload.settings!.facebookFirstComment =
                 facebookFirstComment.trim();
+            }
+          }
+
+          if (platformId === "tiktok") {
+            const tiktokTitle = platformTitles["tiktok"];
+            if (tiktokTitle && tiktokTitle.trim().length > 0) {
+              payload.title = tiktokTitle.trim();
             }
           }
 

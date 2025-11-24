@@ -75,6 +75,7 @@ function PreviewPanel({
   const userTags = useEditorialStore((state) => state.userTags);
   const postType = useEditorialStore((state) => state.postType);
   const facebookPostType = useEditorialStore((state) => state.facebookPostType);
+  const platformTitles = useEditorialStore((state) => state.platformTitles);
   const setState = useEditorialStore((state) => state.setState);
   const mediaItems = useEditorialStore((state) => state.mediaItems);
   const setCropForMedia = useEditorialStore((state) => state.setCropForMedia);
@@ -345,6 +346,7 @@ function PreviewPanel({
         return (
           <TikTokPreview
             caption={currentCaption}
+            title={platformTitles["tiktok"]}
             mediaPreview={singleMedia}
             mediaType={mediaPostType}
             platformUsername={activeAccount.platformUsername}

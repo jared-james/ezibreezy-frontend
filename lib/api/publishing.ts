@@ -33,6 +33,7 @@ export interface CreatePostPayload {
   userId: string;
   integrationId: string;
   content: string;
+  title?: string;
   settings?: PostSettings;
   scheduledAt?: string;
   mediaIds?: string[];

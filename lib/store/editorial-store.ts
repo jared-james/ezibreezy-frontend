@@ -33,6 +33,7 @@ export interface EditorialState {
   selectedAccounts: SelectedAccounts;
   mainCaption: string;
   platformCaptions: Record<string, string>;
+  platformTitles: Record<string, string>;
   mediaItems: MediaItem[];
   labels: string;
   threadMessages: ThreadMessage[];
@@ -74,6 +75,7 @@ export const initialState: EditorialState = {
   selectedAccounts: {},
   mainCaption: "",
   platformCaptions: {},
+  platformTitles: {},
   mediaItems: [],
   labels: "",
   threadMessages: [],
@@ -185,6 +187,9 @@ export const useEditorialStore = create<EditorialState & EditorialActions>(
         mainCaption: canonicalContent,
         platformCaptions: postHasPlatformOverride
           ? { [fullPost.integration.platform]: fullPost.content }
+          : {},
+        platformTitles: fullPost.title
+          ? { [fullPost.integration.platform]: fullPost.title }
           : {},
         selectedAccounts,
         mediaItems: newMediaItems,
