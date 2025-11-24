@@ -58,6 +58,29 @@ export function usePostEditor(options: UsePostEditorOptions = {}) {
     }) => uploadMedia(variables.file, variables.integrationId),
     onSuccess: (data, variables) => {
       const currentStoreState = useEditorialStore.getState();
+
+      // Helper to add mediaId to thread messages at the specified index
+      const addMediaIdToThreadMessages = (messages: typeof currentStoreState.threadMessages) =>
+        messages.map((msg, i) =>
+          i === variables.threadIndex
+            ? { ...msg, mediaIds: [...(msg.mediaIds || []), data.mediaId] }
+            : msg
+        );
+
+      // Update platformThreadMessages for both X and Threads if they have thread messages
+      let updatedPlatformThreadMessages = currentStoreState.platformThreadMessages;
+      if (variables.threadIndex !== null) {
+        const platformsToUpdate = ["x", "threads"] as const;
+        updatedPlatformThreadMessages = { ...currentStoreState.platformThreadMessages };
+
+        for (const platform of platformsToUpdate) {
+          const platformMessages = updatedPlatformThreadMessages[platform];
+          if (platformMessages && platformMessages.length > variables.threadIndex) {
+            updatedPlatformThreadMessages[platform] = addMediaIdToThreadMessages(platformMessages);
+          }
+        }
+      }
+
       setState({
         mediaItems: currentStoreState.mediaItems.map((item) =>
           item.file === variables.file
@@ -66,15 +89,9 @@ export function usePostEditor(options: UsePostEditorOptions = {}) {
         ),
         threadMessages:
           variables.threadIndex !== null
-            ? currentStoreState.threadMessages.map((msg, i) =>
-                i === variables.threadIndex
-                  ? {
-                      ...msg,
-                      mediaIds: [...(msg.mediaIds || []), data.mediaId],
-                    }
-                  : msg
-              )
+            ? addMediaIdToThreadMessages(currentStoreState.threadMessages)
             : currentStoreState.threadMessages,
+        platformThreadMessages: updatedPlatformThreadMessages,
       });
     },
     onError: (error: any, variables) => {
@@ -285,7 +302,7 @@ export function usePostEditor(options: UsePostEditorOptions = {}) {
 
   const handleRemoveMedia = useCallback(
     (fileToRemove: File, threadIndex: number | null = null) => {
-      const { mediaItems, threadMessages } = useEditorialStore.getState();
+      const { mediaItems, threadMessages, platformThreadMessages } = useEditorialStore.getState();
 
       const newMediaItems = mediaItems.filter(
         (item) => item.threadIndex !== threadIndex || item.file !== fileToRemove
@@ -295,23 +312,40 @@ export function usePostEditor(options: UsePostEditorOptions = {}) {
         (m) => m.file === fileToRemove && m.threadIndex === threadIndex
       );
 
-      let newThreadMessages = threadMessages;
-      if (threadIndex !== null && mediaItem) {
-        newThreadMessages = threadMessages.map((msg, i) => {
+      // Helper to remove mediaId from thread messages at the specified index
+      const removeMediaIdFromThreadMessages = (messages: typeof threadMessages) =>
+        messages.map((msg, i) => {
           if (i === threadIndex) {
             return {
               ...msg,
-              mediaIds:
-                msg.mediaIds?.filter((id) => id !== mediaItem.id) || undefined,
+              mediaIds: msg.mediaIds?.filter((id) => id !== mediaItem?.id) || undefined,
             };
           }
           return msg;
         });
+
+      let newThreadMessages = threadMessages;
+      let updatedPlatformThreadMessages = platformThreadMessages;
+
+      if (threadIndex !== null && mediaItem) {
+        newThreadMessages = removeMediaIdFromThreadMessages(threadMessages);
+
+        // Also update platformThreadMessages for X and Threads
+        const platformsToUpdate = ["x", "threads"] as const;
+        updatedPlatformThreadMessages = { ...platformThreadMessages };
+
+        for (const platform of platformsToUpdate) {
+          const platformMessages = updatedPlatformThreadMessages[platform];
+          if (platformMessages && platformMessages.length > threadIndex) {
+            updatedPlatformThreadMessages[platform] = removeMediaIdFromThreadMessages(platformMessages);
+          }
+        }
       }
 
       setState({
         mediaItems: newMediaItems,
         threadMessages: newThreadMessages,
+        platformThreadMessages: updatedPlatformThreadMessages,
       });
     },
     [setState]

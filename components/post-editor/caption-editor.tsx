@@ -199,6 +199,7 @@ export default function CaptionEditor({
   const platformCaptions = useEditorialStore((state) => state.platformCaptions);
   const platformTitles = useEditorialStore((state) => state.platformTitles);
   const platformThreadMessages = useEditorialStore((state) => state.platformThreadMessages);
+  const mediaItems = useEditorialStore((state) => state.mediaItems);
   const firstComment = useEditorialStore((state) => state.firstComment);
   const facebookFirstComment = useEditorialStore((state) => state.facebookFirstComment);
   const currentPostType = useEditorialStore((state) => state.postType);
@@ -316,14 +317,33 @@ export default function CaptionEditor({
     setState({ platformThreadMessages: localPlatformThreadMessages });
   }, [localPlatformThreadMessages, setState]);
 
+  // Helper to augment thread messages with media data from the store
+  const augmentThreadMessages = useCallback(
+    (messages: ThreadMessage[]): ThreadMessageAugmented[] => {
+      return messages.map((msg, index) => {
+        const threadMedia = mediaItems.filter((m) => m.threadIndex === index);
+        return {
+          ...msg,
+          mediaPreviews: threadMedia
+            .map((m) => m.preview)
+            .filter(Boolean) as string[],
+          mediaFiles: threadMedia.map((m) => m.file!).filter(Boolean) as File[],
+          isUploading: threadMedia.some((m) => m.isUploading),
+        };
+      });
+    },
+    [mediaItems]
+  );
+
   // Get the current thread messages based on the active filter
   const currentThreadMessages = useMemo(() => {
     const supportsThreading = activeCaptionFilter === "x" || activeCaptionFilter === "threads";
     if (supportsThreading && localPlatformThreadMessages[activeCaptionFilter]?.length > 0) {
-      return localPlatformThreadMessages[activeCaptionFilter];
+      // Augment platform-specific thread messages with media data
+      return augmentThreadMessages(localPlatformThreadMessages[activeCaptionFilter]);
     }
     return localThreadMessages;
-  }, [activeCaptionFilter, localPlatformThreadMessages, localThreadMessages]);
+  }, [activeCaptionFilter, localPlatformThreadMessages, localThreadMessages, augmentThreadMessages]);
 
   const [isHashtagModalOpen, setIsHashtagModalOpen] = useState(false);
   const [targetPlatformId, setTargetPlatformId] = useState<string | null>(null);
