@@ -1,4 +1,4 @@
-// components/media-room/media-grid.tsx
+// components/media-room/media-list.tsx
 
 "use client";
 
@@ -7,15 +7,14 @@ import { Loader2, ImageOff } from "lucide-react";
 import { useMediaList } from "@/lib/hooks/use-media";
 import { useMediaRoomStore } from "@/lib/store/media-room-store";
 import type { MediaFilters } from "@/lib/api/media";
-import MediaCard from "./media-card";
 import MediaListItem from "./media-list-item";
 
-interface MediaGridProps {
+interface MediaListProps {
   integrationId: string | null;
 }
 
-export default function MediaGrid({ integrationId }: MediaGridProps) {
-  // Select individual state values to build filters (avoids infinite loop from getApiFilters)
+export default function MediaList({ integrationId }: MediaListProps) {
+  // Select individual state values to build filters
   const currentFolderId = useMediaRoomStore((s) => s.currentFolderId);
   const searchQuery = useMediaRoomStore((s) => s.searchQuery);
   const typeFilter = useMediaRoomStore((s) => s.typeFilter);
@@ -26,7 +25,6 @@ export default function MediaGrid({ integrationId }: MediaGridProps) {
   const sortOrder = useMediaRoomStore((s) => s.sortOrder);
   const selectItem = useMediaRoomStore((s) => s.selectItem);
   const openDetailPanel = useMediaRoomStore((s) => s.openDetailPanel);
-  const viewMode = useMediaRoomStore((s) => s.viewMode);
 
   // Memoize filters object
   const filters = useMemo<MediaFilters>(() => {
@@ -114,31 +112,17 @@ export default function MediaGrid({ integrationId }: MediaGridProps) {
 
   return (
     <div>
-      {viewMode === "grid" ? (
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
-          {mediaItems.map((item) => (
-            <MediaCard
-              key={item.id}
-              item={item}
-              integrationId={integrationId}
-              onSelect={selectItem}
-              onOpenDetail={openDetailPanel}
-            />
-          ))}
-        </div>
-      ) : (
-        <div className="space-y-2">
-          {mediaItems.map((item) => (
-            <MediaListItem
-              key={item.id}
-              item={item}
-              integrationId={integrationId}
-              onSelect={selectItem}
-              onOpenDetail={openDetailPanel}
-            />
-          ))}
-        </div>
-      )}
+      <div className="space-y-2">
+        {mediaItems.map((item) => (
+          <MediaListItem
+            key={item.id}
+            item={item}
+            integrationId={integrationId}
+            onSelect={selectItem}
+            onOpenDetail={openDetailPanel}
+          />
+        ))}
+      </div>
 
       {data?.pagination && (
         <div className="mt-6 text-center">

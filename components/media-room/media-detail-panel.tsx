@@ -51,6 +51,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
 } from "@/components/ui/dialog";
 
 interface MediaDetailPanelProps {
@@ -195,6 +196,12 @@ export default function MediaDetailPanel({
         onOpenChange={(open: boolean) => !open && closeDetailPanel()}
       >
         <DialogContent className="max-w-3xl max-h-[90vh] overflow-hidden p-0 gap-0 border-2 border-foreground shadow-2xl">
+          <DialogHeader className="sr-only">
+            <DialogTitle>Media Details</DialogTitle>
+            <DialogDescription>
+              View and edit media information, including filename, alt text, folder location, and tags.
+            </DialogDescription>
+          </DialogHeader>
           {isLoading ? (
             <div className="flex items-center justify-center h-96">
               <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
@@ -235,9 +242,9 @@ export default function MediaDetailPanel({
               <div className="flex-1 overflow-y-auto bg-surface flex flex-col">
                 {/* 1. Header & Actions */}
                 <div className="flex items-center justify-between px-6 py-4 border-b border-border bg-white sticky top-0 z-20">
-                  <DialogTitle className="font-serif text-xl font-bold">
+                  <h2 className="font-serif text-xl font-bold">
                     Media Details
-                  </DialogTitle>
+                  </h2>
                   <div className="flex items-center gap-3">
                     <Button
                       variant="outline"

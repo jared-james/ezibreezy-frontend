@@ -132,7 +132,7 @@ export default function BulkActionBar({ integrationId }: BulkActionBarProps) {
                       onClick={() => handleMoveToFolder(null)}
                       className="w-full px-2 py-1.5 text-left text-sm font-serif hover:bg-surface-hover transition-colors rounded-sm"
                     >
-                      Root (No folder)
+                      All Media (Root folder)
                     </button>
                     {folders.map((folder) => (
                       <button

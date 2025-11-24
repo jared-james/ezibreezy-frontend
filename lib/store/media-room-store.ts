@@ -8,7 +8,7 @@ import type { MediaFilters } from "@/lib/api/media";
 export type MediaViewMode = "grid" | "list";
 export type MediaSortBy = "createdAt" | "filename" | "fileSize";
 export type MediaSortOrder = "asc" | "desc";
-export type MediaTypeFilter = "all" | "image" | "video" | "gif";
+export type MediaTypeFilter = "all" | "image" | "video";
 
 export interface MediaRoomState {
   // Selection

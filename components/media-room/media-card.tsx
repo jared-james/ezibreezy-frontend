@@ -2,37 +2,44 @@
 
 "use client";
 
-import { Play, Check, Film } from "lucide-react";
+import { Play, Check, Film, Pencil } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import type { MediaItem } from "@/lib/api/media";
+import { useMediaRoomStore } from "@/lib/store/media-room-store";
 
 interface MediaCardProps {
   item: MediaItem;
   integrationId: string | null;
-  isSelected: boolean;
   onSelect: (id: string, isShiftKey: boolean, isCtrlKey: boolean) => void;
   onOpenDetail: (id: string) => void;
 }
 
 export default function MediaCard({
   item,
-  isSelected,
   onSelect,
   onOpenDetail,
 }: MediaCardProps) {
+  // Each card subscribes only to its own selection state
+  // This prevents re-renders when other items are selected/deselected
+  const isSelected = useMediaRoomStore((s) => s.selectedIds.has(item.id));
 
   const isVideo = item.type.startsWith("video/");
   const isGif = item.type === "image/gif";
 
   const handleClick = () => {
-    // Single click opens detail modal
-    onOpenDetail(item.id);
+    // Click on card selects it
+    onSelect(item.id, false, false);
   };
 
   const handleCheckboxClick = (e: React.MouseEvent) => {
     e.stopPropagation();
     onSelect(item.id, false, true);
+  };
+
+  const handleViewClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    onOpenDetail(item.id);
   };
 
   const formatFileSize = (bytes: number) => {
@@ -55,7 +62,7 @@ export default function MediaCard({
       <div className="relative aspect-square overflow-hidden bg-neutral-100">
         {isVideo ? (
           <div className="relative w-full h-full bg-black/5">
-            {item.thumbnailUrl ? (
+            {item.thumbnailUrl && item.thumbnailUrl.trim() !== "" ? (
               <img
                 src={item.thumbnailUrl}
                 alt={item.altText || item.filename}
@@ -74,12 +81,18 @@ export default function MediaCard({
             </div>
           </div>
         ) : (
-          <img
-            src={item.thumbnailUrl || item.url}
-            alt={item.altText || item.filename}
-            className="w-full h-full object-cover"
-            loading="lazy"
-          />
+          (item.thumbnailUrl || item.url) ? (
+            <img
+              src={item.thumbnailUrl || item.url}
+              alt={item.altText || item.filename}
+              className="w-full h-full object-cover"
+              loading="lazy"
+            />
+          ) : (
+            <div className="w-full h-full flex items-center justify-center bg-neutral-100">
+              <Film className="w-8 h-8 text-muted-foreground" />
+            </div>
+          )
         )}
 
         {/* Selection checkbox - always visible */}
@@ -118,11 +131,20 @@ export default function MediaCard({
             {formatFileSize(item.fileSize)} ·{" "}
             {format(new Date(item.createdAt), "MMM d")}
           </p>
-          {item.usageCount > 0 && (
-            <span className="text-[10px] text-brand-primary font-medium">
-              {item.usageCount} {item.usageCount === 1 ? "post" : "posts"}
-            </span>
-          )}
+          <div className="flex items-center gap-1.5">
+            {item.usageCount > 0 && (
+              <span className="text-[10px] text-brand-primary font-medium">
+                {item.usageCount} {item.usageCount === 1 ? "post" : "posts"}
+              </span>
+            )}
+            <button
+              onClick={handleViewClick}
+              className="p-1 hover:bg-neutral-100 rounded-sm transition-colors group/view"
+              title="View details"
+            >
+              <Pencil className="h-3.5 w-3.5 text-neutral-500 group-hover/view:text-brand-primary" />
+            </button>
+          </div>
         </div>
       </div>
     </div>
