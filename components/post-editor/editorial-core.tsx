@@ -2,9 +2,10 @@
 
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect } from "react";
 import { FileText } from "lucide-react";
 import { toast } from "sonner";
+import { showError } from "@/components/ui/sonner";
 import { createClient } from "@/lib/supabase/client";
 
 import ChannelSelector from "./channel-selector";
@@ -19,6 +20,7 @@ import { usePostEditor } from "@/lib/hooks/use-post-editor";
 import { useEditorialStore, LocationState } from "@/lib/store/editorial-store";
 import type { CreatePostPayload, PostSettings } from "@/lib/api/publishing";
 import { PlatformCrops } from "@/lib/utils/crop-utils";
+import { usePostStatusPolling } from "./use-post-status-polling";
 
 interface EditorialCoreProps {
   onPostSuccess?: () => void;
@@ -94,6 +96,8 @@ export default function EditorialCore({
     postMutation,
   } = usePostEditor({ mode });
 
+  const { startPolling, isPolling: isPollingStatus } = usePostStatusPolling();
+
   useEffect(() => {
     const supabase = createClient();
     const fetchUser = async () => {
@@ -161,15 +165,15 @@ export default function EditorialCore({
       location: localLocation,
     });
 
-    if (!user) return toast.error("You must be logged in to post.");
+    if (!user) return showError("You must be logged in to post.");
 
     const integrationsToPost = Object.values(selectedAccounts).flat();
     if (integrationsToPost.length === 0) {
-      return toast.error("Please select at least one account.");
+      return showError("Please select at least one account.");
     }
 
     if (isGlobalUploading) {
-      return toast.error("Please wait for media to finish uploading.");
+      return showError("Please wait for media to finish uploading.");
     }
 
     const mainPostMedia = mediaItems.filter((m) => m.threadIndex === null);
@@ -181,7 +185,7 @@ export default function EditorialCore({
       mainPostMedia.length > 0 &&
       mainPostUploadedIds.length !== mainPostMedia.length
     ) {
-      return toast.error(
+      return showError(
         "One or more main post media files failed to upload properly."
       );
     }
@@ -192,7 +196,7 @@ export default function EditorialCore({
     ).length;
 
     if (threadMediaUploadedCount !== threadMediaItems.length) {
-      return toast.error(
+      return showError(
         "One or more thread media files failed to upload properly."
       );
     }
@@ -200,11 +204,11 @@ export default function EditorialCore({
     let scheduledAt: string | undefined;
     if (isScheduling) {
       if (!scheduleDate || !scheduleTime) {
-        return toast.error("Please select a valid date and time.");
+        return showError("Please select a valid date and time.");
       }
       const dateTime = new Date(`${scheduleDate}T${scheduleTime}`);
       if (isNaN(dateTime.getTime())) {
-        return toast.error("Invalid schedule date or time.");
+        return showError("Invalid schedule date or time.");
       }
       scheduledAt = dateTime.toISOString();
     }
@@ -219,7 +223,6 @@ export default function EditorialCore({
       userTags,
     };
 
-    // Helper to process thread messages for publishing
     const processThreadMessages = (messages: typeof storeThreadMessages) =>
       messages
         .map((msg) => ({
@@ -231,7 +234,8 @@ export default function EditorialCore({
             msg.content.length > 0 || (msg.mediaIds && msg.mediaIds.length > 0)
         );
 
-    const finalThreadMessagesForPublish = processThreadMessages(storeThreadMessages);
+    const finalThreadMessagesForPublish =
+      processThreadMessages(storeThreadMessages);
 
     const mediaCrops: Record<string, PlatformCrops> = {};
     mediaItems.forEach((item) => {
@@ -245,19 +249,24 @@ export default function EditorialCore({
         integrationIds.map((integrationId) => {
           let platformMediaIds = mainPostUploadedIds;
 
-          // Get platform-specific thread messages if available, otherwise use base
-          let platformThreadMessages: { content: string; mediaIds: string[] | undefined }[] = [];
+          let platformThreadMessages: {
+            content: string;
+            mediaIds: string[] | undefined;
+          }[] = [];
           if (platformId === "x" || platformId === "threads") {
-            const platformSpecificThreads = storePlatformThreadMessages[platformId];
+            const platformSpecificThreads =
+              storePlatformThreadMessages[platformId];
             if (platformSpecificThreads && platformSpecificThreads.length > 0) {
-              platformThreadMessages = processThreadMessages(platformSpecificThreads);
+              platformThreadMessages = processThreadMessages(
+                platformSpecificThreads
+              );
             } else {
               platformThreadMessages = finalThreadMessagesForPublish;
             }
           }
 
           if (platformId === "instagram" && platformMediaIds.length === 0) {
-            toast.error("Instagram posts require at least one image or video.");
+            showError("Instagram posts require at least one image or video.");
             throw new Error("Instagram post validation failed");
           }
 
@@ -337,12 +346,42 @@ export default function EditorialCore({
     }
 
     try {
-      await Promise.all(postPromises);
-      setConfirmationStatus(isScheduling ? "scheduled" : "sent");
-      setConfirmationCount(postPromises.length);
-      postMutation.reset();
-    } catch (error) {
+      const results = await Promise.all(postPromises);
+      const createdPostIds = results.map((r) => r.id);
+
+      if (isScheduling) {
+        setConfirmationStatus("scheduled");
+        setConfirmationCount(postPromises.length);
+        postMutation.reset();
+      } else {
+        toast.loading("Sending to social platforms...", {
+          id: "publishing-toast",
+        });
+
+        startPolling(
+          createdPostIds,
+          () => {
+            toast.dismiss("publishing-toast");
+            setConfirmationStatus("sent");
+            setConfirmationCount(postPromises.length);
+            postMutation.reset();
+          },
+          (errorMessage) => {
+            toast.dismiss("publishing-toast");
+            showError(`Publishing failed: ${errorMessage}`);
+          },
+          () => {
+            toast.dismiss("publishing-toast");
+            toast.success("Post queued! It will appear shortly.");
+            setConfirmationStatus("sent");
+            setConfirmationCount(postPromises.length);
+            postMutation.reset();
+          }
+        );
+      }
+    } catch (error: any) {
       console.error("One or more posts failed to publish.", error);
+      showError(error.message || "Failed to create posts.");
     }
   };
 
@@ -384,9 +423,11 @@ export default function EditorialCore({
                 <MediaUpload
                   mediaFiles={mainPostMediaFiles}
                   mediaPreviews={mainPostMediaPreviews}
-                  isUploading={mediaItems
-                    .filter((m) => m.threadIndex === null)
-                    .some((m) => m.isUploading)}
+                  isUploading={
+                    mediaItems
+                      .filter((m) => m.threadIndex === null)
+                      .some((m) => m.isUploading) || isGlobalUploading
+                  }
                   onMediaChange={(files, previews) =>
                     handleMediaChange(files, previews, null)
                   }
@@ -420,7 +461,7 @@ export default function EditorialCore({
           {mode === "editorial" && (
             <ScheduleCard
               onPublish={handlePublish}
-              isPublishing={postMutation.isPending}
+              isPublishing={postMutation.isPending || isPollingStatus}
               isUploading={isGlobalUploading}
             />
           )}

@@ -3,7 +3,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { CheckCircle, CalendarCheck, X } from "lucide-react";
+import { X } from "lucide-react";
 
 interface ConfirmationModalProps {
   isOpen: boolean;
@@ -21,35 +21,47 @@ export default function ConfirmationModal({
   if (!isOpen || !status) return null;
 
   const isScheduled = status === "scheduled";
-  const title = isScheduled ? "Post Scheduled!" : "Post Sent!";
-  const Icon = isScheduled ? CalendarCheck : CheckCircle;
-  const postText = count > 1 ? `${count} posts have` : `Your post has`;
-  const message = `${postText} been successfully ${status}.`;
+
+  const postLabel = count > 1 ? `${count} posts` : "Your post";
+  const message = isScheduled
+    ? `${postLabel} will be published at the scheduled time.`
+    : `${postLabel} is now live across your channels.`;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
-      <div className="bg-surface border-4 border-foreground w-full max-w-lg shadow-2xl p-6 relative">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
+      <div className="relative w-full max-w-lg bg-surface border border-foreground shadow-2xl">
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 text-muted hover:text-foreground"
+          className="absolute top-4 right-4 text-muted-foreground hover:text-foreground transition-colors z-10"
+          aria-label="Close"
         >
           <X className="w-5 h-5" />
         </button>
-        <div className="text-center">
-          <div className="w-16 h-16 mx-auto flex items-center justify-center border border-border bg-background mb-4">
-            <Icon className="w-8 h-8 text-success" />
-          </div>
-          <h2 className="font-serif text-2xl font-bold text-foreground">
-            {title}
+
+        <div className="p-8 text-center">
+          <p className="eyebrow mb-2">{isScheduled ? "All Set" : "Published"}</p>
+
+          {/* Line under eyebrow */}
+          <div className="border-b border-foreground mb-6 mx-auto w-16" />
+
+          <h2 className="font-serif text-4xl font-bold uppercase tracking-tight text-foreground">
+            {isScheduled ? "Scheduled" : "Live"}
           </h2>
-          <p className="font-serif text-muted mt-2 mb-6 max-w-sm mx-auto">
+
+          {/* Double rule divider */}
+          <div className="border-b-4 border-double border-foreground my-5 mx-8" />
+
+          <p className="font-serif text-sm text-muted-foreground leading-relaxed mb-8">
             {message}
           </p>
-          <div className="flex justify-center">
-            <Button variant="primary" onClick={onClose} className="w-48">
-              Create Another Post
-            </Button>
-          </div>
+
+          <Button
+            variant="primary"
+            onClick={onClose}
+            className="w-full font-serif uppercase tracking-[0.12em]"
+          >
+            Done
+          </Button>
         </div>
       </div>
     </div>

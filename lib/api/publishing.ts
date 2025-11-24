@@ -84,6 +84,7 @@ export interface FullPostDetails {
   recycleInterval: number | null;
   settings: any;
   status: string;
+  error?: string | null;
   mediaIds: string[];
   threadMessages: {
     id: string;
