@@ -1,3 +1,5 @@
+// components/post-editor/use-post-status-polling.ts
+
 import { useState, useRef, useCallback, useEffect } from "react";
 import { getPostDetails } from "@/lib/api/publishing";
 import { toast } from "sonner";

@@ -1,0 +1,255 @@
+// components/media-room/media-upload-zone.tsx
+
+"use client";
+
+import { useState, useCallback } from "react";
+import { Upload, X, Loader2, CheckCircle, AlertCircle } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
+import { useUploadMedia } from "@/lib/hooks/use-media";
+
+interface MediaUploadZoneProps {
+  integrationId: string | null;
+  isOpen: boolean;
+  onClose: () => void;
+}
+
+interface UploadItem {
+  file: File;
+  status: "pending" | "uploading" | "success" | "error";
+  error?: string;
+}
+
+export default function MediaUploadZone({
+  integrationId,
+  isOpen,
+  onClose,
+}: MediaUploadZoneProps) {
+  const [isDragging, setIsDragging] = useState(false);
+  const [uploadQueue, setUploadQueue] = useState<UploadItem[]>([]);
+
+  const uploadMedia = useUploadMedia(integrationId);
+
+  const processFiles = useCallback(
+    async (files: File[]) => {
+      const validFiles = files.filter(
+        (f) =>
+          f.type.startsWith("image/") ||
+          f.type.startsWith("video/") ||
+          f.type === "image/gif"
+      );
+
+      if (validFiles.length === 0) return;
+
+      const newItems: UploadItem[] = validFiles.map((file) => ({
+        file,
+        status: "pending",
+      }));
+
+      setUploadQueue((prev) => [...prev, ...newItems]);
+
+      // Process uploads sequentially
+      for (let i = 0; i < newItems.length; i++) {
+        const item = newItems[i];
+
+        setUploadQueue((prev) =>
+          prev.map((u) =>
+            u.file === item.file ? { ...u, status: "uploading" } : u
+          )
+        );
+
+        try {
+          await uploadMedia.mutateAsync(item.file);
+          setUploadQueue((prev) =>
+            prev.map((u) =>
+              u.file === item.file ? { ...u, status: "success" } : u
+            )
+          );
+        } catch (error) {
+          setUploadQueue((prev) =>
+            prev.map((u) =>
+              u.file === item.file
+                ? {
+                    ...u,
+                    status: "error",
+                    error: error instanceof Error ? error.message : "Upload failed",
+                  }
+                : u
+            )
+          );
+        }
+      }
+    },
+    [uploadMedia]
+  );
+
+  const handleDragOver = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(true);
+  }, []);
+
+  const handleDragLeave = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(false);
+  }, []);
+
+  const handleDrop = useCallback(
+    (e: React.DragEvent) => {
+      e.preventDefault();
+      setIsDragging(false);
+      const files = Array.from(e.dataTransfer.files);
+      processFiles(files);
+    },
+    [processFiles]
+  );
+
+  const handleFileSelect = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const files = e.target.files ? Array.from(e.target.files) : [];
+      processFiles(files);
+      e.target.value = "";
+    },
+    [processFiles]
+  );
+
+  const handleClearCompleted = () => {
+    setUploadQueue((prev) =>
+      prev.filter((item) => item.status !== "success" && item.status !== "error")
+    );
+  };
+
+  const handleClose = () => {
+    setUploadQueue([]);
+    onClose();
+  };
+
+  const hasCompletedItems = uploadQueue.some(
+    (item) => item.status === "success" || item.status === "error"
+  );
+  const isUploading = uploadQueue.some((item) => item.status === "uploading");
+
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+      <div className="w-full max-w-xl bg-background border-2 border-foreground shadow-2xl">
+        {/* Header */}
+        <div className="flex items-center justify-between p-4 border-b border-border">
+          <div>
+            <p className="eyebrow">Upload Media</p>
+            <h2 className="font-serif text-xl font-bold">Add files to your library</h2>
+          </div>
+          <button
+            onClick={handleClose}
+            disabled={isUploading}
+            className="p-2 hover:bg-surface-hover rounded transition-colors disabled:opacity-50"
+          >
+            <X className="h-5 w-5" />
+          </button>
+        </div>
+
+        {/* Drop zone */}
+        <div className="p-6">
+          <div
+            onDragOver={handleDragOver}
+            onDragLeave={handleDragLeave}
+            onDrop={handleDrop}
+            className={cn(
+              "border-2 border-dashed rounded-lg transition-colors p-8",
+              isDragging
+                ? "border-foreground bg-surface-hover"
+                : "border-border hover:border-foreground/50"
+            )}
+          >
+            <label className="block cursor-pointer">
+              <input
+                type="file"
+                accept="image/*,video/*"
+                multiple
+                onChange={handleFileSelect}
+                className="hidden"
+                disabled={isUploading}
+              />
+              <div className="text-center">
+                <Upload className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
+                <p className="font-serif text-lg text-foreground mb-2">
+                  Drag & drop files here
+                </p>
+                <p className="text-sm text-muted-foreground mb-4">
+                  or click to browse
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  Supports JPG, PNG, GIF, WebP, MP4, MOV (max 512MB)
+                </p>
+              </div>
+            </label>
+          </div>
+        </div>
+
+        {/* Upload queue */}
+        {uploadQueue.length > 0 && (
+          <div className="border-t border-border">
+            <div className="flex items-center justify-between px-4 py-2 bg-surface">
+              <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                {uploadQueue.filter((i) => i.status === "success").length} of{" "}
+                {uploadQueue.length} uploaded
+              </span>
+              {hasCompletedItems && !isUploading && (
+                <button
+                  onClick={handleClearCompleted}
+                  className="text-xs text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  Clear completed
+                </button>
+              )}
+            </div>
+            <div className="max-h-48 overflow-y-auto">
+              {uploadQueue.map((item, index) => (
+                <div
+                  key={`${item.file.name}-${index}`}
+                  className="flex items-center gap-3 px-4 py-2 border-b border-border last:border-0"
+                >
+                  {/* Status icon */}
+                  <div className="shrink-0">
+                    {item.status === "pending" && (
+                      <div className="w-5 h-5 rounded-full border-2 border-muted-foreground" />
+                    )}
+                    {item.status === "uploading" && (
+                      <Loader2 className="w-5 h-5 animate-spin text-brand-primary" />
+                    )}
+                    {item.status === "success" && (
+                      <CheckCircle className="w-5 h-5 text-success" />
+                    )}
+                    {item.status === "error" && (
+                      <AlertCircle className="w-5 h-5 text-error" />
+                    )}
+                  </div>
+
+                  {/* File info */}
+                  <div className="flex-1 min-w-0">
+                    <p className="font-serif text-sm truncate">{item.file.name}</p>
+                    {item.error && (
+                      <p className="text-xs text-error truncate">{item.error}</p>
+                    )}
+                  </div>
+
+                  {/* File size */}
+                  <span className="text-xs text-muted-foreground shrink-0">
+                    {(item.file.size / (1024 * 1024)).toFixed(1)} MB
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Footer */}
+        <div className="flex items-center justify-end gap-3 p-4 border-t border-border">
+          <Button variant="outline" onClick={handleClose} disabled={isUploading}>
+            {isUploading ? "Uploading..." : "Done"}
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+}
