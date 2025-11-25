@@ -82,6 +82,17 @@ export default function EditorialCore({
   );
   const platformTitles = useEditorialStore((state) => state.platformTitles);
 
+  // Instagram Reel Settings
+  const instagramCoverUrl = useEditorialStore(
+    (state) => state.instagramCoverUrl
+  );
+  const instagramThumbOffset = useEditorialStore(
+    (state) => state.instagramThumbOffset
+  );
+  const instagramShareToFeed = useEditorialStore(
+    (state) => state.instagramShareToFeed
+  );
+
   const {
     mainPostMediaFiles,
     mainPostMediaPreviews,
@@ -316,6 +327,16 @@ export default function EditorialCore({
             if (firstComment && firstComment.trim().length > 0) {
               payload.settings!.firstComment = firstComment.trim();
             }
+
+            // Instagram Reel Settings
+            if (instagramCoverUrl) {
+              payload.settings!.coverUrl = instagramCoverUrl;
+            }
+            if (instagramThumbOffset !== null) {
+              payload.settings!.thumbOffset = instagramThumbOffset;
+            }
+            // Always attach shareToFeed setting (defaults to true in store)
+            payload.settings!.shareToFeed = instagramShareToFeed;
           }
 
           if (platformId === "facebook") {

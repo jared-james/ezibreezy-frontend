@@ -27,6 +27,11 @@ export interface PostSettings {
   userTags?: UserTagDto[];
   facebookPostType?: "post" | "reel" | "story";
   facebookFirstComment?: string;
+
+  // Instagram Reel specific settings
+  coverUrl?: string;
+  thumbOffset?: number; // in milliseconds
+  shareToFeed?: boolean;
 }
 
 export interface CreatePostPayload {

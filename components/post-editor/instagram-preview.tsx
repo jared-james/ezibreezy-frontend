@@ -12,6 +12,11 @@ import {
   Crop,
   Grid3X3,
   Square,
+  Upload,
+  Image as LucideImage,
+  Film,
+  Loader2,
+  Trash2,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import Image from "next/image";
@@ -25,6 +30,9 @@ import {
   STORY_ASPECT_RATIO,
   calculateCenteredCrop,
 } from "@/lib/utils/crop-utils";
+import { useEditorialStore } from "@/lib/store/editorial-store";
+import { uploadMedia } from "@/lib/api/media";
+import { toast } from "sonner";
 
 interface InstagramPreviewProps {
   caption: string;
@@ -44,8 +52,15 @@ interface InstagramPreviewProps {
     cropData: CropData | undefined,
     croppedPreviewUrl: string
   ) => void;
-  /** The aspect ratio of the cropped image (width/height). Defaults to 1 (square). */
   aspectRatio?: number;
+
+  // Reel Specific Props
+  coverUrl?: string | null;
+  onCoverChange?: (url: string | null) => void;
+  thumbOffset?: number | null;
+  onThumbOffsetChange?: (offset: number | null) => void;
+  shareToFeed?: boolean;
+  onShareToFeedChange?: (val: boolean) => void;
 }
 
 const ProfileAvatar = ({
@@ -97,10 +112,17 @@ function InstagramPreview({
   croppedPreview,
   onCropComplete,
   aspectRatio = 1,
+  coverUrl,
+  onCoverChange,
+  thumbOffset,
+  onThumbOffsetChange,
+  shareToFeed,
+  onShareToFeedChange,
 }: InstagramPreviewProps) {
   const accountName = platformUsername.replace(/^@/, "");
   const primaryName = displayName || accountName || "Account";
   const mediaContainerRef = useRef<HTMLDivElement>(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
 
   const [isTaggingMode, setIsTaggingMode] = useState(false);
   const [localTags, setLocalTags] = useState<UserTagDto[]>(userTags);
@@ -112,33 +134,37 @@ function InstagramPreview({
   const [isCropperOpen, setIsCropperOpen] = useState(false);
   const [viewMode, setViewMode] = useState<"post" | "grid">("post");
 
+  // Reel Specific State
+  const [videoDuration, setVideoDuration] = useState(0);
+  const [isUploadingCover, setIsUploadingCover] = useState(false);
+
+  // Access store to get an integration ID for uploading covers
+  const selectedAccounts = useEditorialStore((state) => state.selectedAccounts);
+  const integrationId = selectedAccounts["instagram"]?.[0];
+
   const displayMediaSrc = croppedPreview || mediaPreview;
   const canCrop = originalMediaSrc && mediaType === "image" && onCropComplete;
 
-  // Disable tagging if video or if it's a story
   const isTaggingSupported =
     mediaPreview && postType === "post" && mediaType !== "video";
 
-  // Determine Aspect Ratio: If story, force 9:16. Otherwise use the cropped ratio.
   const previewAspectRatio = postType === "story" ? 9 / 16 : aspectRatio;
 
-  // Reset view mode to 'post' if switching to 'story' (since grid view is invalid for stories)
+  // Reset view mode to 'post' if switching to 'story'
   useEffect(() => {
     if (postType === "story") {
       setViewMode("post");
     }
   }, [postType]);
 
-  // Track previous postType to detect transitions
+  // Handle Auto-Crop for Stories
   const prevPostTypeRef = useRef(postType);
   useEffect(() => {
     const applyAutoCrop = async () => {
       if (!originalMediaSrc || !onCropComplete) return;
 
-      // If switching TO 'story', auto-crop to 9:16
       if (prevPostTypeRef.current !== "story" && postType === "story") {
         try {
-          // Load image to get dimensions
           const img = new window.Image();
           img.src = originalMediaSrc;
           await new Promise<void>((resolve, reject) => {
@@ -149,14 +175,12 @@ function InstagramPreview({
           const displayedWidth = img.naturalWidth;
           const displayedHeight = img.naturalHeight;
 
-          // Calculate centered crop for story aspect ratio
           const cropPixels = calculateCenteredCrop(
             displayedWidth,
             displayedHeight,
             STORY_ASPECT_RATIO
           );
 
-          // Create cropped preview URL
           const croppedUrl = await createCroppedPreviewUrl(
             originalMediaSrc,
             cropPixels,
@@ -173,15 +197,11 @@ function InstagramPreview({
         } catch (error) {
           console.error("Failed to auto-crop for story:", error);
         }
-      }
-      // If switching FROM 'story' to 'post' and the current aspect ratio is story (9:16),
-      // reset the crop to prevent showing an invalid aspect ratio for posts
-      else if (
+      } else if (
         prevPostTypeRef.current === "story" &&
         postType === "post" &&
         aspectRatio === STORY_ASPECT_RATIO
       ) {
-        // Reset the crop by passing undefined
         onCropComplete(undefined, "");
       }
 
@@ -254,6 +274,50 @@ function InstagramPreview({
     }
   }, [isTaggingSupported]);
 
+  // --- Reel / Video Handlers ---
+
+  const handleVideoMetadata = (e: React.SyntheticEvent<HTMLVideoElement>) => {
+    setVideoDuration(e.currentTarget.duration);
+    // Apply saved offset if exists
+    if (thumbOffset && thumbOffset > 0) {
+      e.currentTarget.currentTime = thumbOffset / 1000;
+    }
+  };
+
+  const handleSliderChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const timeSeconds = parseFloat(e.target.value);
+    if (videoRef.current) {
+      videoRef.current.currentTime = timeSeconds;
+    }
+    if (onThumbOffsetChange) {
+      onThumbOffsetChange(Math.floor(timeSeconds * 1000)); // Convert to ms for API
+    }
+  };
+
+  const handleCoverUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!integrationId) {
+      toast.error("Please select an Instagram account first.");
+      return;
+    }
+
+    try {
+      setIsUploadingCover(true);
+      const response = await uploadMedia(file, integrationId);
+      onCoverChange?.(response.url);
+      toast.success("Cover image uploaded");
+    } catch (error) {
+      toast.error("Failed to upload cover image");
+      console.error(error);
+    } finally {
+      setIsUploadingCover(false);
+    }
+  };
+
+  // --- Tagging Handlers ---
+
   const handleImageClick = (e: React.MouseEvent<HTMLDivElement>) => {
     if (!isTaggingMode || !mediaContainerRef.current) return;
     const rect = mediaContainerRef.current.getBoundingClientRect();
@@ -278,304 +342,452 @@ function InstagramPreview({
   };
 
   return (
-    <div className="w-full max-w-sm bg-[--surface] border border-[--border] shadow-lg mx-auto transition-all duration-300">
-      <div className="flex items-center justify-between p-3 border-b border-[--border]">
-        <div className="flex items-center gap-3">
-          <ProfileAvatar
-            size={32}
-            avatarUrl={avatarUrl}
-            primaryName={primaryName}
-          />
-          <div>
-            <span className="font-semibold text-sm text-[--foreground]">
-              {primaryName}
-            </span>
-            {location && (
-              <p className="text-xs text-[--muted-foreground] leading-none">
-                {location}
-              </p>
-            )}
+    <div className="w-full max-w-sm mx-auto space-y-4 transition-all duration-300">
+      {/* Main Preview Card */}
+      <div className="bg-[--surface] border border-[--border] shadow-lg">
+        <div className="flex items-center justify-between p-3 border-b border-[--border]">
+          <div className="flex items-center gap-3">
+            <ProfileAvatar
+              size={32}
+              avatarUrl={avatarUrl}
+              primaryName={primaryName}
+            />
+            <div>
+              <span className="font-semibold text-sm text-[--foreground]">
+                {primaryName}
+              </span>
+              {location && (
+                <p className="text-xs text-[--muted-foreground] leading-none">
+                  {location}
+                </p>
+              )}
+            </div>
+          </div>
+          <div className="text-[--muted-foreground]">
+            <span className="font-serif text-sm">...</span>
           </div>
         </div>
-        <div className="text-[--muted-foreground]">
-          <span className="font-serif text-sm">...</span>
+
+        {viewMode === "grid" ? (
+          // Grid view
+          <div className="bg-background p-2">
+            <div className="grid grid-cols-3 gap-0.5">
+              {[0, 1, 2].map((i) => (
+                <div key={`top-${i}`} className="aspect-3/4 bg-muted" />
+              ))}
+              <div className="aspect-3/4 bg-muted" />
+              <div className="aspect-3/4 relative overflow-hidden ring-2 ring-primary">
+                {displayMediaSrc ? (
+                  mediaType === "video" ? (
+                    // For video grid view: Show Custom Cover > or Video at current timestamp
+                    coverUrl ? (
+                      <img
+                        src={coverUrl}
+                        alt="Cover"
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <video
+                        src={displayMediaSrc}
+                        className="w-full h-full object-cover"
+                        muted
+                        playsInline
+                        // Show the selected frame
+                        ref={(el) => {
+                          if (el && thumbOffset) {
+                            el.currentTime = thumbOffset / 1000;
+                          }
+                        }}
+                      />
+                    )
+                  ) : (
+                    <img
+                      src={displayMediaSrc}
+                      alt="Grid Preview"
+                      className="w-full h-full object-cover"
+                    />
+                  )
+                ) : (
+                  <div className="w-full h-full bg-muted flex items-center justify-center">
+                    <ImageIcon className="w-6 h-6 text-muted-foreground" />
+                  </div>
+                )}
+              </div>
+              <div className="aspect-3/4 bg-muted" />
+              {[0, 1, 2].map((i) => (
+                <div key={`bottom-${i}`} className="aspect-3/4 bg-muted" />
+              ))}
+            </div>
+            <p className="text-xs text-muted-foreground text-center mt-2">
+              Grid preview (3:4 crop)
+            </p>
+          </div>
+        ) : (
+          // Post view
+          <div
+            ref={mediaContainerRef}
+            onClick={handleImageClick}
+            className={cn(
+              "relative bg-[--background]",
+              displayMediaSrc
+                ? ""
+                : "aspect-square flex items-center justify-center",
+              isTaggingMode && "cursor-crosshair"
+            )}
+            style={
+              displayMediaSrc ? { aspectRatio: previewAspectRatio } : undefined
+            }
+          >
+            {displayMediaSrc ? (
+              mediaType === "video" ? (
+                <video
+                  ref={videoRef}
+                  src={displayMediaSrc}
+                  className="w-full h-full object-contain"
+                  muted
+                  controls={false}
+                  autoPlay
+                  loop
+                  playsInline
+                  onLoadedMetadata={handleVideoMetadata}
+                  poster={coverUrl || undefined}
+                />
+              ) : (
+                <img
+                  src={displayMediaSrc}
+                  alt="Media Preview"
+                  className="w-full h-full object-contain"
+                />
+              )
+            ) : (
+              <div className="flex flex-col items-center justify-center text-[--muted-foreground] text-center p-12">
+                <ImageIcon className="w-8 h-8 mb-2" />
+                <p>No Image/Video Attached</p>
+              </div>
+            )}
+
+            {isTaggingMode && (
+              <div className="absolute inset-0 bg-black/30 p-2 flex flex-col justify-between pointer-events-none">
+                <p className="text-center text-xs font-semibold text-white bg-black/50 rounded-full px-3 py-1 self-center">
+                  Click on the photo to tag a user
+                </p>
+              </div>
+            )}
+
+            {localTags.map((tag, index) => (
+              <div
+                key={index}
+                className="absolute group"
+                style={{
+                  left: `${tag.x * 100}%`,
+                  top: `${tag.y * 100}%`,
+                  transform: "translate(-50%, -100%)",
+                }}
+              >
+                <div
+                  className="relative flex items-center gap-1 rounded-md px-2 py-1 text-xs font-semibold text-white shadow-lg"
+                  style={{ backgroundColor: "rgba(0,0,0,0.85)" }}
+                >
+                  <span>{tag.username}</span>
+                  <button
+                    onClick={() => handleRemoveTag(index)}
+                    className="opacity-0 group-hover:opacity-100 ml-1 hover:text-red-400"
+                  >
+                    <X className="h-3 w-3" />
+                  </button>
+                  <div
+                    className="absolute left-1/2 -bottom-1.5 -translate-x-1/2 w-0 h-0 border-l-[6px] border-l-transparent border-r-[6px] border-r-transparent border-t-[6px]"
+                    style={{ borderTopColor: "rgba(0,0,0,0.85)" }}
+                  />
+                </div>
+              </div>
+            ))}
+
+            {newTag && (
+              <div
+                className="absolute"
+                style={{
+                  left: `${newTag.x * 100}%`,
+                  top: `${newTag.y * 100}%`,
+                  transform: "translate(-50%, 8px)",
+                }}
+              >
+                <div className="w-40 rounded bg-white p-1 shadow-lg">
+                  <input
+                    type="text"
+                    autoFocus
+                    placeholder="@username"
+                    value={newTag.username}
+                    onChange={(e) =>
+                      setNewTag({ ...newTag, username: e.target.value })
+                    }
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") {
+                        e.preventDefault();
+                        handleAddTag();
+                      }
+                    }}
+                    onBlur={handleAddTag}
+                    className="w-full border-none bg-transparent px-2 py-1 text-sm outline-none"
+                  />
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {viewMode === "post" && (
+          <>
+            <div className="flex justify-between p-3">
+              <div className="flex items-center gap-4 text-muted-foreground">
+                <Heart className="size-6 hover:text-foreground cursor-pointer" />
+                <MessageCircle className="size-6 hover:text-foreground cursor-pointer" />
+                <Send className="size-6 hover:text-foreground cursor-pointer" />
+              </div>
+              <Bookmark className="size-6 text-muted-foreground hover:text-foreground cursor-pointer" />
+            </div>
+
+            <div className="px-3 pb-4 space-y-2">
+              <p className="text-xs font-semibold text-foreground">0 likes</p>
+
+              <div className="text-sm">
+                <span className="font-semibold mr-1">{primaryName}</span>
+                <span className="whitespace-pre-wrap">
+                  {renderCaptionWithHashtags(caption)}
+                </span>
+              </div>
+
+              {collaborators && (
+                <p className="text-xs text-brand-primary">
+                  With <span className="font-semibold">{collaborators}</span>
+                </p>
+              )}
+
+              <p className="text-xs text-muted-foreground">
+                View all 0 comments
+              </p>
+              <p className="text-[0.65rem] uppercase text-muted-foreground">
+                Now
+              </p>
+            </div>
+          </>
+        )}
+
+        <div className="px-3 py-2 border-t border-border">
+          {isTaggingSupported || canCrop || displayMediaSrc ? (
+            <div className="flex items-center gap-4">
+              {/* View Toggle - Only show if NOT a story */}
+              {displayMediaSrc && postType !== "story" && (
+                <div className="flex items-center gap-1">
+                  <button
+                    onClick={() => setViewMode("post")}
+                    title="Post View"
+                    className={cn(
+                      "flex items-center gap-1.5 px-2 py-1 rounded-sm text-xs font-medium transition-colors",
+                      viewMode === "post"
+                        ? "bg-primary text-primary-foreground"
+                        : "text-muted-foreground hover:text-foreground"
+                    )}
+                  >
+                    <Square className="h-3.5 w-3.5" />
+                    Post
+                  </button>
+                  <button
+                    onClick={() => setViewMode("grid")}
+                    title="Grid View"
+                    className={cn(
+                      "flex items-center gap-1.5 px-2 py-1 rounded-sm text-xs font-medium transition-colors",
+                      viewMode === "grid"
+                        ? "bg-primary text-primary-foreground"
+                        : "text-muted-foreground hover:text-foreground"
+                    )}
+                  >
+                    <Grid3X3 className="h-3.5 w-3.5" />
+                    Grid
+                  </button>
+                </div>
+              )}
+
+              {/* Divider */}
+              {displayMediaSrc &&
+                postType !== "story" &&
+                (canCrop || isTaggingSupported) && (
+                  <div className="h-4 w-px bg-border" />
+                )}
+
+              {/* Action Buttons */}
+              {canCrop && (
+                <button
+                  onClick={() => setIsCropperOpen(true)}
+                  title="Crop Image"
+                  className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  <Crop className="h-3.5 w-3.5" />
+                  Crop
+                </button>
+              )}
+              {isTaggingSupported && (
+                <button
+                  onClick={() => {
+                    if (viewMode === "grid") return;
+                    if (isTaggingMode) {
+                      setNewTag(null);
+                    }
+                    setIsTaggingMode(!isTaggingMode);
+                  }}
+                  title={
+                    viewMode === "grid"
+                      ? "Switch to Post view to tag"
+                      : isTaggingMode
+                      ? "Done Tagging"
+                      : "Tag People"
+                  }
+                  disabled={viewMode === "grid"}
+                  className={cn(
+                    "flex items-center gap-1.5 text-xs transition-colors",
+                    viewMode === "grid"
+                      ? "text-muted-foreground/40 cursor-not-allowed"
+                      : isTaggingMode
+                      ? "text-brand-primary font-medium"
+                      : "text-muted-foreground hover:text-foreground"
+                  )}
+                >
+                  <UserPlus className="h-3.5 w-3.5" />
+                  {isTaggingMode ? "Done" : "Tag"}
+                </button>
+              )}
+            </div>
+          ) : (
+            <p className="text-xs text-muted-foreground italic">
+              Instagram Preview
+            </p>
+          )}
         </div>
       </div>
 
-      {viewMode === "grid" ? (
-        // Grid view
-        <div className="bg-background p-2">
-          <div className="grid grid-cols-3 gap-0.5">
-            {[0, 1, 2].map((i) => (
-              <div key={`top-${i}`} className="aspect-3/4 bg-muted" />
-            ))}
-            <div className="aspect-3/4 bg-muted" />
-            <div className="aspect-3/4 relative overflow-hidden ring-2 ring-primary">
-              {displayMediaSrc ? (
-                mediaType === "video" ? (
+      {/* ============================================ */}
+      {/* REEL SETTINGS SECTION                        */}
+      {/* ============================================ */}
+      {/* Logic: "Post" + Video = Reel */}
+      {postType === "post" && mediaType === "video" && displayMediaSrc && (
+        <div className="bg-surface border border-border rounded-lg p-4 space-y-5 animate-in fade-in-50">
+          <div className="flex items-center justify-between">
+            <h3 className="font-serif text-sm font-bold text-foreground flex items-center gap-2">
+              <Film className="w-4 h-4" />
+              Reel Options
+            </h3>
+          </div>
+
+          {/* Share to Feed Toggle */}
+          <div className="flex items-center justify-between">
+            <div className="space-y-0.5">
+              <label className="text-sm font-medium text-foreground">
+                Share to Feed
+              </label>
+              <p className="text-xs text-muted-foreground">
+                Also show this Reel on your main profile grid
+              </p>
+            </div>
+            <input
+              type="checkbox"
+              checked={shareToFeed ?? true}
+              onChange={(e) => onShareToFeedChange?.(e.target.checked)}
+              className="h-4 w-4 rounded border-brand-primary accent-brand-primary"
+            />
+          </div>
+
+          <div className="h-px bg-border" />
+
+          {/* Cover Image Section */}
+          <div className="space-y-3">
+            <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+              Cover Image
+            </label>
+
+            <div className="flex gap-4 items-start">
+              {/* Preview of Cover */}
+              <div className="relative w-20 aspect-[9/16] bg-muted border border-border rounded-md overflow-hidden shrink-0">
+                {coverUrl ? (
+                  <>
+                    <img
+                      src={coverUrl}
+                      alt="Cover"
+                      className="w-full h-full object-cover"
+                    />
+                    <button
+                      onClick={() => onCoverChange?.(null)}
+                      className="absolute top-1 right-1 p-1 bg-black/60 text-white rounded-full hover:bg-red-600 transition-colors"
+                    >
+                      <Trash2 className="w-3 h-3" />
+                    </button>
+                  </>
+                ) : displayMediaSrc ? (
                   <video
                     src={displayMediaSrc}
                     className="w-full h-full object-cover"
                     muted
                     playsInline
+                    ref={(el) => {
+                      if (el && thumbOffset !== null && thumbOffset !== undefined) {
+                        el.currentTime = thumbOffset / 1000;
+                      }
+                    }}
                   />
                 ) : (
-                  <img
-                    src={displayMediaSrc}
-                    alt="Grid Preview"
-                    className="w-full h-full object-cover"
-                  />
-                )
-              ) : (
-                <div className="w-full h-full bg-muted flex items-center justify-center">
-                  <ImageIcon className="w-6 h-6 text-muted-foreground" />
-                </div>
-              )}
-            </div>
-            <div className="aspect-3/4 bg-muted" />
-            {[0, 1, 2].map((i) => (
-              <div key={`bottom-${i}`} className="aspect-3/4 bg-muted" />
-            ))}
-          </div>
-          <p className="text-xs text-muted-foreground text-center mt-2">
-            Grid preview (3:4 crop)
-          </p>
-        </div>
-      ) : (
-        // Post view
-        <div
-          ref={mediaContainerRef}
-          onClick={handleImageClick}
-          className={cn(
-            "relative bg-[--background]",
-            displayMediaSrc
-              ? ""
-              : "aspect-square flex items-center justify-center",
-            isTaggingMode && "cursor-crosshair"
-          )}
-          style={
-            displayMediaSrc ? { aspectRatio: previewAspectRatio } : undefined
-          }
-        >
-          {displayMediaSrc ? (
-            mediaType === "video" ? (
-              <video
-                src={displayMediaSrc}
-                className="w-full h-full object-contain"
-                muted
-                loop
-                autoPlay
-                playsInline
-              />
-            ) : (
-              <img
-                src={displayMediaSrc}
-                alt="Media Preview"
-                className="w-full h-full object-contain"
-              />
-            )
-          ) : (
-            <div className="flex flex-col items-center justify-center text-[--muted-foreground] text-center p-12">
-              <ImageIcon className="w-8 h-8 mb-2" />
-              <p>No Image/Video Attached</p>
-            </div>
-          )}
-
-          {isTaggingMode && (
-            <div className="absolute inset-0 bg-black/30 p-2 flex flex-col justify-between pointer-events-none">
-              <p className="text-center text-xs font-semibold text-white bg-black/50 rounded-full px-3 py-1 self-center">
-                Click on the photo to tag a user
-              </p>
-            </div>
-          )}
-
-          {localTags.map((tag, index) => (
-            <div
-              key={index}
-              className="absolute group"
-              style={{
-                left: `${tag.x * 100}%`,
-                top: `${tag.y * 100}%`,
-                transform: "translate(-50%, -100%)",
-              }}
-            >
-              <div
-                className="relative flex items-center gap-1 rounded-md px-2 py-1 text-xs font-semibold text-white shadow-lg"
-                style={{ backgroundColor: "rgba(0,0,0,0.85)" }}
-              >
-                <span>{tag.username}</span>
-                <button
-                  onClick={() => handleRemoveTag(index)}
-                  className="opacity-0 group-hover:opacity-100 ml-1 hover:text-red-400"
-                >
-                  <X className="h-3 w-3" />
-                </button>
-                <div
-                  className="absolute left-1/2 -bottom-1.5 -translate-x-1/2 w-0 h-0 border-l-[6px] border-l-transparent border-r-[6px] border-r-transparent border-t-[6px]"
-                  style={{ borderTopColor: "rgba(0,0,0,0.85)" }}
-                />
-              </div>
-            </div>
-          ))}
-
-          {newTag && (
-            <div
-              className="absolute"
-              style={{
-                left: `${newTag.x * 100}%`,
-                top: `${newTag.y * 100}%`,
-                transform: "translate(-50%, 8px)",
-              }}
-            >
-              <div className="w-40 rounded bg-white p-1 shadow-lg">
-                <input
-                  type="text"
-                  autoFocus
-                  placeholder="@username"
-                  value={newTag.username}
-                  onChange={(e) =>
-                    setNewTag({ ...newTag, username: e.target.value })
-                  }
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter") {
-                      e.preventDefault();
-                      handleAddTag();
-                    }
-                  }}
-                  onBlur={handleAddTag}
-                  className="w-full border-none bg-transparent px-2 py-1 text-sm outline-none"
-                />
-              </div>
-            </div>
-          )}
-        </div>
-      )}
-
-      {viewMode === "post" && (
-        <>
-          <div className="flex justify-between p-3">
-            <div className="flex items-center gap-4 text-muted-foreground">
-              <Heart className="size-6 hover:text-foreground cursor-pointer" />
-              <MessageCircle className="size-6 hover:text-foreground cursor-pointer" />
-              <Send className="size-6 hover:text-foreground cursor-pointer" />
-            </div>
-            <Bookmark className="size-6 text-muted-foreground hover:text-foreground cursor-pointer" />
-          </div>
-
-          <div className="px-3 pb-4 space-y-2">
-            <p className="text-xs font-semibold text-foreground">0 likes</p>
-
-            <div className="text-sm">
-              <span className="font-semibold mr-1">{primaryName}</span>
-              <span className="whitespace-pre-wrap">
-                {renderCaptionWithHashtags(caption)}
-              </span>
-            </div>
-
-            {collaborators && (
-              <p className="text-xs text-brand-primary">
-                With <span className="font-semibold">{collaborators}</span>
-              </p>
-            )}
-
-            <p className="text-xs text-muted-foreground">View all 0 comments</p>
-            <p className="text-[0.65rem] uppercase text-muted-foreground">
-              Now
-            </p>
-          </div>
-        </>
-      )}
-
-      <div className="px-3 py-2 border-t border-border">
-        {isTaggingSupported || canCrop || displayMediaSrc ? (
-          <div className="flex items-center gap-4">
-            {/* View Toggle - Only show if NOT a story */}
-            {displayMediaSrc && postType !== "story" && (
-              <div className="flex items-center gap-1">
-                <button
-                  onClick={() => setViewMode("post")}
-                  title="Post View"
-                  className={cn(
-                    "flex items-center gap-1.5 px-2 py-1 rounded-sm text-xs font-medium transition-colors",
-                    viewMode === "post"
-                      ? "bg-primary text-primary-foreground"
-                      : "text-muted-foreground hover:text-foreground"
-                  )}
-                >
-                  <Square className="h-3.5 w-3.5" />
-                  Post
-                </button>
-                <button
-                  onClick={() => setViewMode("grid")}
-                  title="Grid View"
-                  className={cn(
-                    "flex items-center gap-1.5 px-2 py-1 rounded-sm text-xs font-medium transition-colors",
-                    viewMode === "grid"
-                      ? "bg-primary text-primary-foreground"
-                      : "text-muted-foreground hover:text-foreground"
-                  )}
-                >
-                  <Grid3X3 className="h-3.5 w-3.5" />
-                  Grid
-                </button>
-              </div>
-            )}
-
-            {/* Divider - Only show if we have the toggle on the left */}
-            {displayMediaSrc &&
-              postType !== "story" &&
-              (canCrop || isTaggingSupported) && (
-                <div className="h-4 w-px bg-border" />
-              )}
-
-            {/* Action Buttons */}
-            {canCrop && (
-              <button
-                onClick={() => setIsCropperOpen(true)}
-                title="Crop Image"
-                className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
-              >
-                <Crop className="h-3.5 w-3.5" />
-                Crop
-              </button>
-            )}
-            {isTaggingSupported && (
-              <button
-                onClick={() => {
-                  if (viewMode === "grid") return;
-                  if (isTaggingMode) {
-                    setNewTag(null);
-                  }
-                  setIsTaggingMode(!isTaggingMode);
-                }}
-                title={
-                  viewMode === "grid"
-                    ? "Switch to Post view to tag"
-                    : isTaggingMode
-                    ? "Done Tagging"
-                    : "Tag People"
-                }
-                disabled={viewMode === "grid"}
-                className={cn(
-                  "flex items-center gap-1.5 text-xs transition-colors",
-                  viewMode === "grid"
-                    ? "text-muted-foreground/40 cursor-not-allowed"
-                    : isTaggingMode
-                    ? "text-brand-primary font-medium"
-                    : "text-muted-foreground hover:text-foreground"
+                  <div className="w-full h-full flex flex-col items-center justify-center text-muted-foreground text-[10px] text-center p-1">
+                    <span>Auto</span>
+                  </div>
                 )}
-              >
-                <UserPlus className="h-3.5 w-3.5" />
-                {isTaggingMode ? "Done" : "Tag"}
-              </button>
-            )}
+              </div>
+
+              <div className="flex-1 space-y-4">
+                {/* Upload Button */}
+                <div>
+                  <label className="inline-flex items-center gap-2 px-3 py-2 bg-surface border border-border hover:bg-surface-hover rounded-md text-xs font-medium cursor-pointer transition-colors">
+                    {isUploadingCover ? (
+                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                    ) : (
+                      <Upload className="w-3.5 h-3.5" />
+                    )}
+                    Upload Custom Cover
+                    <input
+                      type="file"
+                      accept="image/jpeg,image/jpg"
+                      className="hidden"
+                      onChange={handleCoverUpload}
+                      disabled={isUploadingCover}
+                    />
+                  </label>
+                  <p className="text-[10px] text-muted-foreground mt-1.5">
+                    Must be a JPEG image (max 8MB). Overrides video frame.
+                  </p>
+                </div>
+
+                {/* Frame Slider */}
+                {!coverUrl && (
+                  <div className="space-y-2">
+                    <div className="flex justify-between text-[10px] text-muted-foreground">
+                      <span>Select Frame</span>
+                      <span>
+                        {thumbOffset ? (thumbOffset / 1000).toFixed(1) : "0.0"}s
+                      </span>
+                    </div>
+                    <input
+                      type="range"
+                      min={0}
+                      max={videoDuration || 100}
+                      step={0.1}
+                      value={thumbOffset ? thumbOffset / 1000 : 0}
+                      onChange={handleSliderChange}
+                      className="w-full h-1.5 bg-muted rounded-lg appearance-none cursor-pointer accent-brand-primary"
+                    />
+                  </div>
+                )}
+              </div>
+            </div>
           </div>
-        ) : (
-          <p className="text-xs text-muted-foreground italic">
-            Instagram Preview
-          </p>
-        )}
-      </div>
+        </div>
+      )}
 
       {originalMediaSrc && (
         <ImageCropperModal

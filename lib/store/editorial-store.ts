@@ -51,6 +51,11 @@ export interface EditorialState {
   facebookPostType: PlatformPostType;
   userTags: UserTagDto[];
   activeCaptionFilter: string;
+
+  // Instagram Reel Specifics
+  instagramCoverUrl: string | null;
+  instagramThumbOffset: number | null;
+  instagramShareToFeed: boolean;
 }
 
 export interface EditorialActions {
@@ -95,6 +100,10 @@ export const initialState: EditorialState = {
   facebookPostType: "post",
   userTags: [],
   activeCaptionFilter: "all",
+
+  instagramCoverUrl: null,
+  instagramThumbOffset: null,
+  instagramShareToFeed: true,
 };
 
 export const useEditorialStore = create<EditorialState & EditorialActions>(
@@ -218,6 +227,11 @@ export const useEditorialStore = create<EditorialState & EditorialActions>(
         sourceDraftId: isEditable ? fullPost.id : null,
         postType: settings.postType || "post",
         userTags: settings.userTags || [],
+
+        // Load Instagram specific settings
+        instagramCoverUrl: settings.coverUrl || null,
+        instagramThumbOffset: settings.thumbOffset || null,
+        instagramShareToFeed: settings.shareToFeed ?? true,
       };
 
       set(updates);

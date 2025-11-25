@@ -80,6 +80,17 @@ function PreviewPanel({
   const mediaItems = useEditorialStore((state) => state.mediaItems);
   const setCropForMedia = useEditorialStore((state) => state.setCropForMedia);
 
+  // Instagram Reel Settings
+  const instagramCoverUrl = useEditorialStore(
+    (state) => state.instagramCoverUrl
+  );
+  const instagramThumbOffset = useEditorialStore(
+    (state) => state.instagramThumbOffset
+  );
+  const instagramShareToFeed = useEditorialStore(
+    (state) => state.instagramShareToFeed
+  );
+
   const mainPostMediaItems = useMemo(
     () => mediaItems.filter((m) => m.threadIndex === null),
     [mediaItems]
@@ -96,12 +107,17 @@ function PreviewPanel({
   );
 
   const [activeTab, setActiveTab] = useState<string>("empty");
-  const activeCaptionFilter = useEditorialStore((state) => state.activeCaptionFilter);
+  const activeCaptionFilter = useEditorialStore(
+    (state) => state.activeCaptionFilter
+  );
 
   const validActiveTab = useMemo(() => {
     if (activePlatforms.length === 0) return "empty";
     // If caption filter is set to a specific platform, use that for the preview
-    if (activeCaptionFilter !== "all" && activePlatforms.includes(activeCaptionFilter)) {
+    if (
+      activeCaptionFilter !== "all" &&
+      activePlatforms.includes(activeCaptionFilter)
+    ) {
       return activeCaptionFilter;
     }
     // Otherwise use the manually selected tab or fall back to first platform
@@ -132,7 +148,6 @@ function PreviewPanel({
       }),
     [activePlatforms]
   );
-
 
   const currentCaption = useMemo(
     () => platformCaptions[validActiveTab] || mainCaption,
@@ -248,6 +263,16 @@ function PreviewPanel({
                 }
               }
             }}
+            coverUrl={instagramCoverUrl}
+            onCoverChange={(url) => setState({ instagramCoverUrl: url })}
+            thumbOffset={instagramThumbOffset}
+            onThumbOffsetChange={(offset) =>
+              setState({ instagramThumbOffset: offset })
+            }
+            shareToFeed={instagramShareToFeed}
+            onShareToFeedChange={(val) =>
+              setState({ instagramShareToFeed: val })
+            }
           />
         );
       }
