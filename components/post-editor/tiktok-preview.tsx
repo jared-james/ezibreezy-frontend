@@ -9,24 +9,25 @@ import {
   Music,
   ImageIcon,
   Crop,
+  Loader2,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { renderCaptionWithHashtags } from "./render-caption";
 import { ImageCropperModal } from "./image-cropper-modal";
 import type { PixelCrop } from "react-image-crop";
 import { createCroppedPreviewUrl, type CropData } from "@/lib/utils/crop-utils";
+import { useEditorialStore, MediaItem } from "@/lib/store/editorial-store";
+import { getMediaViewUrl } from "@/lib/api/media";
+import { toast } from "sonner";
 
 interface TikTokPreviewProps {
   caption: string;
   title?: string;
-  mediaPreview: string | null;
+  singleMediaItem: MediaItem | null;
   mediaType?: "image" | "video" | "text";
   platformUsername: string;
   displayName: string | null;
   avatarUrl: string | null;
-  originalMediaSrc?: string;
-  croppedPreview?: string;
-  onCropComplete?: (cropData: CropData, croppedPreviewUrl: string) => void;
 }
 
 const ProfileAvatar = ({
@@ -62,21 +63,40 @@ const ProfileAvatar = ({
 function TikTokPreview({
   caption,
   title,
-  mediaPreview,
+  singleMediaItem,
   mediaType = "image",
   platformUsername,
   displayName,
   avatarUrl,
-  originalMediaSrc,
-  croppedPreview,
-  onCropComplete,
 }: TikTokPreviewProps) {
   const accountName = platformUsername.replace(/^@/, "");
   const primaryName = displayName || accountName || "Account";
   const [isCropperOpen, setIsCropperOpen] = useState(false);
+  const [isFetchingOriginal, setIsFetchingOriginal] = useState(false);
+  const setCropForMedia = useEditorialStore((state) => state.setCropForMedia);
+  const integrationId =
+    useEditorialStore.getState().selectedAccounts["tiktok"]?.[0];
 
-  const displayMediaSrc = croppedPreview || mediaPreview;
-  const canCrop = originalMediaSrc && mediaType === "image" && onCropComplete;
+  const croppedPreview = singleMediaItem?.croppedPreviews?.tiktok;
+  const displayMediaSrc = croppedPreview || singleMediaItem?.preview;
+  const canCrop = singleMediaItem?.id && mediaType === "image";
+  const originalMediaSrc = singleMediaItem?.file
+    ? singleMediaItem.preview
+    : singleMediaItem?.originalUrlForCropping;
+
+  const onCropComplete = (
+    cropData: CropData | undefined,
+    croppedPreviewUrl: string
+  ) => {
+    if (singleMediaItem) {
+      setCropForMedia(
+        singleMediaItem.uid,
+        "tiktok",
+        cropData,
+        croppedPreviewUrl
+      );
+    }
+  };
 
   const handleCropComplete = async (
     croppedAreaPixels: PixelCrop,
@@ -84,7 +104,7 @@ function TikTokPreview({
     displayedWidth: number,
     displayedHeight: number
   ) => {
-    if (!originalMediaSrc || !onCropComplete) return;
+    if (!originalMediaSrc) return;
 
     try {
       const getOriginalDimensions = (
@@ -122,6 +142,42 @@ function TikTokPreview({
       onCropComplete(cropData, croppedUrl);
     } catch (error) {
       console.error("Failed to crop image:", error);
+    }
+  };
+
+  const handleCropClick = async () => {
+    if (!canCrop || !singleMediaItem || !singleMediaItem.id) return;
+
+    if (singleMediaItem.originalUrlForCropping) {
+      setIsCropperOpen(true);
+      return;
+    }
+
+    setIsFetchingOriginal(true);
+    try {
+      if (!integrationId) throw new Error("TikTok account not selected.");
+
+      const { downloadUrl } = await getMediaViewUrl(
+        singleMediaItem.id,
+        integrationId
+      );
+
+      const currentItems = useEditorialStore.getState().stagedMediaItems;
+      const updatedItems = currentItems.map((item) =>
+        item.uid === singleMediaItem.uid
+          ? { ...item, originalUrlForCropping: downloadUrl }
+          : item
+      );
+      useEditorialStore.getState().setStagedMediaItems(updatedItems);
+
+      setIsCropperOpen(true);
+    } catch (error) {
+      console.error("Failed to get view URL for cropping:", error);
+      toast.error(
+        "Could not load original image for cropping. Please try again."
+      );
+    } finally {
+      setIsFetchingOriginal(false);
     }
   };
 
@@ -210,11 +266,16 @@ function TikTokPreview({
         {canCrop ? (
           <div className="flex items-center gap-4">
             <button
-              onClick={() => setIsCropperOpen(true)}
+              onClick={handleCropClick}
               title="Crop Image"
               className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
+              disabled={isFetchingOriginal}
             >
-              <Crop className="h-3.5 w-3.5" />
+              {isFetchingOriginal ? (
+                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+              ) : (
+                <Crop className="h-3.5 w-3.5" />
+              )}
               Crop
             </button>
           </div>

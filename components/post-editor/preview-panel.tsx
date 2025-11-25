@@ -1,7 +1,5 @@
 // components/post-editor/preview-panel.tsx
 
-"use client";
-
 import { useState, useMemo, memo } from "react";
 import {
   Twitter,
@@ -74,7 +72,6 @@ function PreviewPanel({
   const platformMediaSelections = useEditorialStore(
     (state) => state.platformMediaSelections
   );
-  const setCropForMedia = useEditorialStore((state) => state.setCropForMedia);
 
   const instagramCoverUrl = useEditorialStore(
     (state) => state.instagramCoverUrl
@@ -190,7 +187,13 @@ function PreviewPanel({
       ? "image"
       : "text";
     const singleMediaItem = activeMediaItems[0];
-    const mediaPreviews = activeMediaItems.map((item) => item.preview);
+    const mediaPreviews = activeMediaItems.map((item) => {
+      const cropped =
+        item.croppedPreviews?.[
+          validActiveTab as keyof typeof item.croppedPreviews
+        ];
+      return cropped || item.preview;
+    });
 
     switch (validActiveTab) {
       case "x": {
@@ -202,18 +205,7 @@ function PreviewPanel({
             displayName={activeAccount.name}
             avatarUrl={activeAccount.avatarUrl}
             postType={mediaPostType}
-            originalMediaSrc={singleMediaItem?.preview}
-            croppedPreview={singleMediaItem?.croppedPreviews?.x}
-            onCropComplete={(cropData, croppedPreviewUrl) => {
-              if (singleMediaItem) {
-                setCropForMedia(
-                  singleMediaItem.uid,
-                  "x",
-                  cropData,
-                  croppedPreviewUrl
-                );
-              }
-            }}
+            singleMediaItem={singleMediaItem}
           />
         );
       }
@@ -223,7 +215,7 @@ function PreviewPanel({
         return (
           <InstagramPreview
             caption={currentCaption}
-            mediaPreview={singleMediaItem?.preview || null}
+            singleMediaItem={singleMediaItem || null}
             mediaType={mediaPostType}
             platformUsername={activeAccount.platformUsername}
             displayName={activeAccount.name}
@@ -233,19 +225,7 @@ function PreviewPanel({
             postType={postType}
             userTags={userTags}
             onUserTagsChange={handleUserTagsChange}
-            originalMediaSrc={singleMediaItem?.preview}
-            croppedPreview={singleMediaItem?.croppedPreviews?.instagram}
             aspectRatio={instagramAspectRatio}
-            onCropComplete={(cropData, croppedPreviewUrl) => {
-              if (singleMediaItem) {
-                setCropForMedia(
-                  singleMediaItem.uid,
-                  "instagram",
-                  cropData,
-                  croppedPreviewUrl
-                );
-              }
-            }}
             coverUrl={instagramCoverUrl}
             onCoverChange={(url) => setState({ instagramCoverUrl: url })}
             thumbOffset={instagramThumbOffset}
@@ -263,23 +243,11 @@ function PreviewPanel({
         return (
           <LinkedInPreview
             caption={currentCaption}
-            mediaPreview={singleMediaItem?.preview || null}
+            singleMediaItem={singleMediaItem || null}
             mediaType={mediaPostType}
             platformUsername={activeAccount.platformUsername}
             displayName={activeAccount.name}
             avatarUrl={activeAccount.avatarUrl}
-            originalMediaSrc={singleMediaItem?.preview}
-            croppedPreview={singleMediaItem?.croppedPreviews?.linkedin}
-            onCropComplete={(cropData, croppedPreviewUrl) => {
-              if (singleMediaItem) {
-                setCropForMedia(
-                  singleMediaItem.uid,
-                  "linkedin",
-                  cropData,
-                  croppedPreviewUrl
-                );
-              }
-            }}
           />
         );
       }
@@ -289,25 +257,13 @@ function PreviewPanel({
         return (
           <FacebookPreview
             caption={currentCaption}
-            mediaPreview={singleMediaItem?.preview || null}
+            singleMediaItem={singleMediaItem || null}
             mediaType={mediaPostType}
             platformUsername={activeAccount.platformUsername}
             displayName={activeAccount.name}
             avatarUrl={activeAccount.avatarUrl}
-            originalMediaSrc={singleMediaItem?.preview}
-            croppedPreview={singleMediaItem?.croppedPreviews?.facebook}
             postType={facebookPostType}
             aspectRatio={fbAspectRatio}
-            onCropComplete={(cropData, croppedPreviewUrl) => {
-              if (singleMediaItem) {
-                setCropForMedia(
-                  singleMediaItem.uid,
-                  "facebook",
-                  cropData,
-                  croppedPreviewUrl
-                );
-              }
-            }}
           />
         );
       }
@@ -320,18 +276,7 @@ function PreviewPanel({
             platformUsername={activeAccount.platformUsername}
             displayName={activeAccount.name}
             avatarUrl={activeAccount.avatarUrl}
-            originalMediaSrc={singleMediaItem?.preview}
-            croppedPreview={singleMediaItem?.croppedPreviews?.threads}
-            onCropComplete={(cropData, croppedPreviewUrl) => {
-              if (singleMediaItem) {
-                setCropForMedia(
-                  singleMediaItem.uid,
-                  "threads",
-                  cropData,
-                  croppedPreviewUrl
-                );
-              }
-            }}
+            singleMediaItem={singleMediaItem}
           />
         );
       }
@@ -340,23 +285,11 @@ function PreviewPanel({
           <TikTokPreview
             caption={currentCaption}
             title={platformTitles["tiktok"]}
-            mediaPreview={singleMediaItem?.preview || null}
+            singleMediaItem={singleMediaItem || null}
             mediaType={mediaPostType}
             platformUsername={activeAccount.platformUsername}
             displayName={activeAccount.name}
             avatarUrl={activeAccount.avatarUrl}
-            originalMediaSrc={singleMediaItem?.preview}
-            croppedPreview={singleMediaItem?.croppedPreviews?.tiktok}
-            onCropComplete={(cropData, croppedPreviewUrl) => {
-              if (singleMediaItem) {
-                setCropForMedia(
-                  singleMediaItem.uid,
-                  "tiktok",
-                  cropData,
-                  croppedPreviewUrl
-                );
-              }
-            }}
           />
         );
       }

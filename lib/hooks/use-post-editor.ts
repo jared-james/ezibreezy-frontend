@@ -237,7 +237,6 @@ export function usePostEditor(options: UsePostEditorOptions = {}) {
         );
         setStagedMediaItems(newMediaItems);
 
-        // Also remove it from any platform selections
         const currentSelections =
           useEditorialStore.getState().platformMediaSelections;
         const newSelections = { ...currentSelections };
@@ -256,17 +255,16 @@ export function usePostEditor(options: UsePostEditorOptions = {}) {
     (libraryMedia: any) => {
       const currentItems = useEditorialStore.getState().stagedMediaItems;
 
-      // Check if this library item is already selected
-      const existingItem = currentItems.find((item) => item.id === libraryMedia.id);
+      const existingItem = currentItems.find(
+        (item) => item.id === libraryMedia.id
+      );
 
       if (existingItem) {
-        // Remove it if already selected
         const newMediaItems = currentItems.filter(
           (item) => item.id !== libraryMedia.id
         );
         setStagedMediaItems(newMediaItems);
 
-        // Also remove it from any platform selections
         const currentSelections =
           useEditorialStore.getState().platformMediaSelections;
         const newSelections = { ...currentSelections };
@@ -277,12 +275,12 @@ export function usePostEditor(options: UsePostEditorOptions = {}) {
         });
         setState({ platformMediaSelections: newSelections });
       } else {
-        // Add it as a new media item
         const newMediaItem: MediaItem = {
           uid: crypto.randomUUID(),
-          file: null, // Library media doesn't have a File object
+          file: null,
           preview: libraryMedia.thumbnailUrl || libraryMedia.url,
-          id: libraryMedia.id, // Already uploaded, has an ID
+          originalUrlForCropping: libraryMedia.url,
+          id: libraryMedia.id,
           isUploading: false,
           threadIndex: null,
           type: libraryMedia.type.startsWith("video/") ? "video" : "image",

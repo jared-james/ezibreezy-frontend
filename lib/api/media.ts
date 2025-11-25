@@ -372,7 +372,7 @@ export const detachTagsFromMedia = async (
 };
 
 // ============================================================================
-// Download
+// Download & View URLs
 // ============================================================================
 
 export const getMediaDownloadUrl = async (
@@ -383,5 +383,16 @@ export const getMediaDownloadUrl = async (
     downloadUrl: string;
     expiresIn: number;
   }>(`/media/${mediaId}/download-url?integrationId=${integrationId}`);
+  return response.data;
+};
+
+export const getMediaViewUrl = async (
+  mediaId: string,
+  integrationId: string
+): Promise<{ downloadUrl: string; expiresIn: number }> => {
+  const response = await apiClient.get<{
+    downloadUrl: string;
+    expiresIn: number;
+  }>(`/media/${mediaId}/view-url?integrationId=${integrationId}`);
   return response.data;
 };

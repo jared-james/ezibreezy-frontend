@@ -29,13 +29,13 @@ import {
   STORY_ASPECT_RATIO,
   calculateCenteredCrop,
 } from "@/lib/utils/crop-utils";
-import { useEditorialStore } from "@/lib/store/editorial-store";
-import { uploadMedia } from "@/lib/api/media";
+import { useEditorialStore, MediaItem } from "@/lib/store/editorial-store";
+import { uploadMedia, getMediaViewUrl } from "@/lib/api/media";
 import { toast } from "sonner";
 
 interface InstagramPreviewProps {
   caption: string;
-  mediaPreview: string | null;
+  singleMediaItem: MediaItem | null;
   mediaType?: "image" | "video" | "text";
   platformUsername: string;
   displayName: string | null;
@@ -45,12 +45,6 @@ interface InstagramPreviewProps {
   postType: "post" | "reel" | "story";
   userTags: UserTagDto[];
   onUserTagsChange: (tags: UserTagDto[]) => void;
-  originalMediaSrc?: string;
-  croppedPreview?: string;
-  onCropComplete?: (
-    cropData: CropData | undefined,
-    croppedPreviewUrl: string
-  ) => void;
   aspectRatio?: number;
   coverUrl?: string | null;
   onCoverChange?: (url: string | null) => void;
@@ -95,7 +89,7 @@ const ProfileAvatar = ({
 
 function InstagramPreview({
   caption,
-  mediaPreview,
+  singleMediaItem,
   mediaType = "image",
   platformUsername,
   displayName,
@@ -105,9 +99,6 @@ function InstagramPreview({
   postType,
   userTags,
   onUserTagsChange,
-  originalMediaSrc,
-  croppedPreview,
-  onCropComplete,
   aspectRatio = 1,
   coverUrl,
   onCoverChange,
@@ -120,6 +111,7 @@ function InstagramPreview({
   const primaryName = displayName || accountName || "Account";
   const mediaContainerRef = useRef<HTMLDivElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
+  const setCropForMedia = useEditorialStore((state) => state.setCropForMedia);
 
   const [isTaggingMode, setIsTaggingMode] = useState(false);
   const [localTags, setLocalTags] = useState<UserTagDto[]>(userTags);
@@ -130,6 +122,7 @@ function InstagramPreview({
   } | null>(null);
   const [isCropperOpen, setIsCropperOpen] = useState(false);
   const [viewMode, setViewMode] = useState<"post" | "grid">("post");
+  const [isFetchingOriginal, setIsFetchingOriginal] = useState(false);
 
   const [videoDuration, setVideoDuration] = useState(0);
   const [isUploadingCover, setIsUploadingCover] = useState(false);
@@ -137,11 +130,15 @@ function InstagramPreview({
   const selectedAccounts = useEditorialStore((state) => state.selectedAccounts);
   const integrationId = selectedAccounts["instagram"]?.[0];
 
-  const displayMediaSrc = croppedPreview || mediaPreview;
-  const canCrop = originalMediaSrc && mediaType === "image" && onCropComplete;
+  const displayMediaSrc =
+    singleMediaItem?.croppedPreviews?.instagram || singleMediaItem?.preview;
+  const canCrop = singleMediaItem?.id && mediaType === "image";
+  const originalMediaSrc = singleMediaItem?.file
+    ? singleMediaItem.preview
+    : singleMediaItem?.originalUrlForCropping;
 
   const isTaggingSupported =
-    mediaPreview && postType === "post" && mediaType !== "video";
+    displayMediaSrc && postType === "post" && mediaType !== "video";
 
   const previewAspectRatio = postType === "story" ? 9 / 16 : aspectRatio;
 
@@ -151,10 +148,24 @@ function InstagramPreview({
     }
   }, [postType]);
 
+  const onCropComplete = (
+    cropData: CropData | undefined,
+    croppedPreviewUrl: string
+  ) => {
+    if (singleMediaItem) {
+      setCropForMedia(
+        singleMediaItem.uid,
+        "instagram",
+        cropData,
+        croppedPreviewUrl
+      );
+    }
+  };
+
   const prevPostTypeRef = useRef(postType);
   useEffect(() => {
     const applyAutoCrop = async () => {
-      if (!originalMediaSrc || !onCropComplete) return;
+      if (!originalMediaSrc) return;
 
       if (prevPostTypeRef.current !== "story" && postType === "story") {
         try {
@@ -206,11 +217,11 @@ function InstagramPreview({
 
   const handleCropComplete = async (
     croppedAreaPixels: PixelCrop,
-    aspectRatio: number,
+    newAspectRatio: number,
     displayedWidth: number,
     displayedHeight: number
   ) => {
-    if (!originalMediaSrc || !onCropComplete) return;
+    if (!originalMediaSrc) return;
 
     try {
       const getOriginalDimensions = (
@@ -244,12 +255,48 @@ function InstagramPreview({
 
       const cropData: CropData = {
         croppedAreaPixels: scaledCroppedAreaPixels,
-        aspectRatio,
+        aspectRatio: newAspectRatio,
       };
 
       onCropComplete(cropData, croppedUrl);
     } catch (error) {
       console.error("Failed to crop image:", error);
+    }
+  };
+
+  const handleCropClick = async () => {
+    if (!canCrop || !singleMediaItem || !singleMediaItem.id) return;
+
+    if (singleMediaItem.originalUrlForCropping) {
+      setIsCropperOpen(true);
+      return;
+    }
+
+    setIsFetchingOriginal(true);
+    try {
+      if (!integrationId) throw new Error("Instagram account not selected.");
+
+      const { downloadUrl } = await getMediaViewUrl(
+        singleMediaItem.id,
+        integrationId
+      );
+
+      const currentItems = useEditorialStore.getState().stagedMediaItems;
+      const updatedItems = currentItems.map((item) =>
+        item.uid === singleMediaItem.uid
+          ? { ...item, originalUrlForCropping: downloadUrl }
+          : item
+      );
+      useEditorialStore.getState().setStagedMediaItems(updatedItems);
+
+      setIsCropperOpen(true);
+    } catch (error) {
+      console.error("Failed to get view URL for cropping:", error);
+      toast.error(
+        "Could not load original image for cropping. Please try again."
+      );
+    } finally {
+      setIsFetchingOriginal(false);
     }
   };
 
@@ -598,11 +645,16 @@ function InstagramPreview({
 
               {canCrop && (
                 <button
-                  onClick={() => setIsCropperOpen(true)}
+                  onClick={handleCropClick}
                   title="Crop Image"
                   className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
+                  disabled={isFetchingOriginal}
                 >
-                  <Crop className="h-3.5 w-3.5" />
+                  {isFetchingOriginal ? (
+                    <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                  ) : (
+                    <Crop className="h-3.5 w-3.5" />
+                  )}
                   Crop
                 </button>
               )}

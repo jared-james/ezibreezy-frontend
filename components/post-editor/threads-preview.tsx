@@ -8,12 +8,16 @@ import {
   Send,
   ImageIcon,
   Crop,
+  Loader2,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { renderCaptionWithHashtags } from "./render-caption";
 import { ImageCropperModal } from "./image-cropper-modal";
 import type { PixelCrop } from "react-image-crop";
 import { createCroppedPreviewUrl, type CropData } from "@/lib/utils/crop-utils";
+import { useEditorialStore, MediaItem } from "@/lib/store/editorial-store";
+import { getMediaViewUrl } from "@/lib/api/media";
+import { toast } from "sonner";
 
 interface ThreadsPreviewProps {
   caption: string;
@@ -22,9 +26,7 @@ interface ThreadsPreviewProps {
   platformUsername: string;
   displayName: string | null;
   avatarUrl: string | null;
-  originalMediaSrc?: string;
-  croppedPreview?: string;
-  onCropComplete?: (cropData: CropData, croppedPreviewUrl: string) => void;
+  singleMediaItem?: MediaItem;
 }
 
 const ProfileAvatar = ({
@@ -104,23 +106,40 @@ function ThreadsPreview({
   platformUsername,
   displayName,
   avatarUrl,
-  originalMediaSrc,
-  croppedPreview,
-  onCropComplete,
+  singleMediaItem,
 }: ThreadsPreviewProps) {
   const accountName = platformUsername.replace(/^@/, "");
   const primaryName = displayName || accountName || "Account";
   const [isCropperOpen, setIsCropperOpen] = useState(false);
+  const [isFetchingOriginal, setIsFetchingOriginal] = useState(false);
+  const setCropForMedia = useEditorialStore((state) => state.setCropForMedia);
+  const integrationId =
+    useEditorialStore.getState().selectedAccounts["threads"]?.[0];
 
+  const croppedPreview = singleMediaItem?.croppedPreviews?.threads;
   const mainPostImages = croppedPreview
     ? [croppedPreview, ...mediaPreview.slice(1, 4)]
     : mediaPreview.slice(0, 4);
 
   const canCrop =
-    originalMediaSrc &&
-    mediaType === "image" &&
-    onCropComplete &&
-    mediaPreview.length > 0;
+    singleMediaItem?.id && mediaType === "image" && mediaPreview.length > 0;
+  const originalMediaSrc = singleMediaItem?.file
+    ? singleMediaItem.preview
+    : singleMediaItem?.originalUrlForCropping;
+
+  const onCropComplete = (
+    cropData: CropData | undefined,
+    croppedPreviewUrl: string
+  ) => {
+    if (singleMediaItem) {
+      setCropForMedia(
+        singleMediaItem.uid,
+        "threads",
+        cropData,
+        croppedPreviewUrl
+      );
+    }
+  };
 
   const handleCropComplete = async (
     croppedAreaPixels: PixelCrop,
@@ -128,7 +147,7 @@ function ThreadsPreview({
     displayedWidth: number,
     displayedHeight: number
   ) => {
-    if (!originalMediaSrc || !onCropComplete) return;
+    if (!originalMediaSrc) return;
 
     try {
       const getOriginalDimensions = (
@@ -166,6 +185,42 @@ function ThreadsPreview({
       onCropComplete(cropData, croppedUrl);
     } catch (error) {
       console.error("Failed to crop image:", error);
+    }
+  };
+
+  const handleCropClick = async () => {
+    if (!canCrop || !singleMediaItem || !singleMediaItem.id) return;
+
+    if (singleMediaItem.originalUrlForCropping) {
+      setIsCropperOpen(true);
+      return;
+    }
+
+    setIsFetchingOriginal(true);
+    try {
+      if (!integrationId) throw new Error("Threads account not selected.");
+
+      const { downloadUrl } = await getMediaViewUrl(
+        singleMediaItem.id,
+        integrationId
+      );
+
+      const currentItems = useEditorialStore.getState().stagedMediaItems;
+      const updatedItems = currentItems.map((item) =>
+        item.uid === singleMediaItem.uid
+          ? { ...item, originalUrlForCropping: downloadUrl }
+          : item
+      );
+      useEditorialStore.getState().setStagedMediaItems(updatedItems);
+
+      setIsCropperOpen(true);
+    } catch (error) {
+      console.error("Failed to get view URL for cropping:", error);
+      toast.error(
+        "Could not load original image for cropping. Please try again."
+      );
+    } finally {
+      setIsFetchingOriginal(false);
     }
   };
 
@@ -221,11 +276,16 @@ function ThreadsPreview({
         {canCrop ? (
           <div className="flex items-center gap-4">
             <button
-              onClick={() => setIsCropperOpen(true)}
+              onClick={handleCropClick}
               title="Crop Image"
               className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
+              disabled={isFetchingOriginal}
             >
-              <Crop className="h-3.5 w-3.5" />
+              {isFetchingOriginal ? (
+                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+              ) : (
+                <Crop className="h-3.5 w-3.5" />
+              )}
               Crop
             </button>
           </div>

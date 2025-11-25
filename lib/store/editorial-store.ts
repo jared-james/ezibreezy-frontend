@@ -14,6 +14,7 @@ export interface MediaItem {
   uid: string;
   file: File | null;
   preview: string;
+  originalUrlForCropping?: string;
   id: string | null;
   isUploading: boolean;
   threadIndex: number | null;

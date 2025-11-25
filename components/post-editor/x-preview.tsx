@@ -1,12 +1,15 @@
 // components/post-editor/x-preview.tsx
 
 import { memo, useState } from "react";
-import { MessageSquare, Repeat2, ImageIcon, Crop } from "lucide-react";
+import { MessageSquare, Repeat2, ImageIcon, Crop, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { renderCaptionWithHashtags } from "./render-caption";
 import { ImageCropperModal } from "./image-cropper-modal";
 import type { PixelCrop } from "react-image-crop";
 import { createCroppedPreviewUrl, type CropData } from "@/lib/utils/crop-utils";
+import { useEditorialStore, MediaItem } from "@/lib/store/editorial-store";
+import { getMediaViewUrl } from "@/lib/api/media";
+import { toast } from "sonner";
 
 interface XPreviewProps {
   caption: string;
@@ -15,9 +18,7 @@ interface XPreviewProps {
   displayName: string | null;
   avatarUrl: string | null;
   postType?: "text" | "image" | "video";
-  originalMediaSrc?: string;
-  croppedPreview?: string;
-  onCropComplete?: (cropData: CropData, croppedPreviewUrl: string) => void;
+  singleMediaItem?: MediaItem;
 }
 
 const MediaGrid = ({
@@ -121,24 +122,35 @@ function XPreview({
   displayName,
   avatarUrl,
   postType = "text",
-  originalMediaSrc,
-  croppedPreview,
-  onCropComplete,
+  singleMediaItem,
 }: XPreviewProps) {
   const accountName = platformUsername.replace(/^@/, "");
   const primaryName = displayName || accountName || "Account";
   const handle = accountName ? `@${accountName}` : "";
   const [isCropperOpen, setIsCropperOpen] = useState(false);
+  const [isFetchingOriginal, setIsFetchingOriginal] = useState(false);
+  const setCropForMedia = useEditorialStore((state) => state.setCropForMedia);
+  const integrationId = useEditorialStore.getState().selectedAccounts["x"]?.[0];
 
+  const croppedPreview = singleMediaItem?.croppedPreviews?.x;
   const mainPostImages = croppedPreview
     ? [croppedPreview, ...mediaPreview.slice(1, 4)]
     : mediaPreview.slice(0, 4);
 
   const canCrop =
-    originalMediaSrc &&
-    postType === "image" &&
-    onCropComplete &&
-    mediaPreview.length > 0;
+    singleMediaItem?.id && postType === "image" && mediaPreview.length > 0;
+  const originalMediaSrc = singleMediaItem?.file
+    ? singleMediaItem.preview
+    : singleMediaItem?.originalUrlForCropping;
+
+  const onCropComplete = (
+    cropData: CropData | undefined,
+    croppedPreviewUrl: string
+  ) => {
+    if (singleMediaItem) {
+      setCropForMedia(singleMediaItem.uid, "x", cropData, croppedPreviewUrl);
+    }
+  };
 
   const handleCropComplete = async (
     croppedAreaPixels: PixelCrop,
@@ -146,7 +158,7 @@ function XPreview({
     displayedWidth: number,
     displayedHeight: number
   ) => {
-    if (!originalMediaSrc || !onCropComplete) return;
+    if (!originalMediaSrc) return;
 
     try {
       const croppedUrl = await createCroppedPreviewUrl(
@@ -162,6 +174,42 @@ function XPreview({
       onCropComplete(cropData, croppedUrl);
     } catch (error) {
       console.error("Failed to crop image:", error);
+    }
+  };
+
+  const handleCropClick = async () => {
+    if (!canCrop || !singleMediaItem || !singleMediaItem.id) return;
+
+    if (singleMediaItem.originalUrlForCropping) {
+      setIsCropperOpen(true);
+      return;
+    }
+
+    setIsFetchingOriginal(true);
+    try {
+      if (!integrationId) throw new Error("X account not selected.");
+
+      const { downloadUrl } = await getMediaViewUrl(
+        singleMediaItem.id,
+        integrationId
+      );
+
+      const currentItems = useEditorialStore.getState().stagedMediaItems;
+      const updatedItems = currentItems.map((item) =>
+        item.uid === singleMediaItem.uid
+          ? { ...item, originalUrlForCropping: downloadUrl }
+          : item
+      );
+      useEditorialStore.getState().setStagedMediaItems(updatedItems);
+
+      setIsCropperOpen(true);
+    } catch (error) {
+      console.error("Failed to get view URL for cropping:", error);
+      toast.error(
+        "Could not load original image for cropping. Please try again."
+      );
+    } finally {
+      setIsFetchingOriginal(false);
     }
   };
 
@@ -220,10 +268,15 @@ function XPreview({
       <div className="p-3 border-t border-border">
         {canCrop ? (
           <button
-            onClick={() => setIsCropperOpen(true)}
+            onClick={handleCropClick}
             className="flex items-center gap-2 justify-center w-full font-serif font-bold text-sm text-brand-primary hover:text-brand-accent"
+            disabled={isFetchingOriginal}
           >
-            <Crop className="h-4 w-4" />
+            {isFetchingOriginal ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <Crop className="h-4 w-4" />
+            )}
             Crop
           </button>
         ) : (

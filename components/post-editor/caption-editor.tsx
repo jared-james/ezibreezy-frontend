@@ -382,11 +382,7 @@ export default function CaptionEditor({
   );
 
   const mainPlaceholder =
-    postType === "video"
-      ? "Introduce the hook, context, and call to action for your video..."
-      : postType === "image"
-      ? "Describe the visual, context, and what you want people to feel..."
-      : "Draft the main caption you want to adapt across platforms...";
+    "Draft the main caption you want to adapt across platforms. You can update the specific caption per platform below";
 
   const isEditingPlatformThread =
     activeCaptionFilter === "x" || activeCaptionFilter === "threads";

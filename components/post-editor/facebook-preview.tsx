@@ -1,7 +1,14 @@
 // components/post-editor/facebook-preview.tsx
 
 import { memo, useState, useRef, useEffect, useMemo } from "react";
-import { ThumbsUp, MessageCircle, Share2, Crop, Link2 } from "lucide-react";
+import {
+  ThumbsUp,
+  MessageCircle,
+  Share2,
+  Crop,
+  Link2,
+  Loader2,
+} from "lucide-react";
 import { cn } from "@/lib/utils";
 import { renderCaptionWithHashtags } from "./render-caption";
 import { ImageCropperModal } from "./image-cropper-modal";
@@ -12,6 +19,9 @@ import {
   STORY_ASPECT_RATIO,
   calculateCenteredCrop,
 } from "@/lib/utils/crop-utils";
+import { useEditorialStore, MediaItem } from "@/lib/store/editorial-store";
+import { getMediaDownloadUrl, getMediaViewUrl } from "@/lib/api/media";
+import { toast } from "sonner";
 
 const URL_REGEX =
   /(https?:\/\/[^\s]+|www\.[^\s]+|[a-zA-Z0-9][-a-zA-Z0-9]*\.[a-zA-Z]{2,}(?:\/[^\s]*)?)/gi;
@@ -49,17 +59,11 @@ function stripUrlFromCaption(caption: string, url: string): string {
 
 interface FacebookPreviewProps {
   caption: string;
-  mediaPreview: string | null;
+  singleMediaItem: MediaItem | null;
   mediaType?: "image" | "video" | "text";
   platformUsername: string;
   displayName: string | null;
   avatarUrl: string | null;
-  originalMediaSrc?: string;
-  croppedPreview?: string;
-  onCropComplete?: (
-    cropData: CropData | undefined,
-    croppedPreviewUrl: string
-  ) => void;
   postType: "post" | "reel" | "story";
   aspectRatio?: number;
 }
@@ -98,14 +102,11 @@ const ProfileAvatar = ({
 
 function FacebookPreview({
   caption,
-  mediaPreview,
+  singleMediaItem,
   mediaType = "image",
   platformUsername,
   displayName,
   avatarUrl,
-  originalMediaSrc,
-  croppedPreview,
-  onCropComplete,
   postType,
   aspectRatio = 1.91,
 }: FacebookPreviewProps) {
@@ -113,9 +114,17 @@ function FacebookPreview({
   const primaryName = displayName || accountName || "Account";
 
   const [isCropperOpen, setIsCropperOpen] = useState(false);
+  const [isFetchingOriginal, setIsFetchingOriginal] = useState(false);
+  const setCropForMedia = useEditorialStore((state) => state.setCropForMedia);
+  const integrationId =
+    useEditorialStore.getState().selectedAccounts["facebook"]?.[0];
 
-  const displayMediaSrc = croppedPreview || mediaPreview;
-  const canCrop = originalMediaSrc && mediaType === "image" && onCropComplete;
+  const croppedPreview = singleMediaItem?.croppedPreviews?.facebook;
+  const displayMediaSrc = croppedPreview || singleMediaItem?.preview;
+  const canCrop = singleMediaItem?.id && mediaType === "image";
+  const originalMediaSrc = singleMediaItem?.file
+    ? singleMediaItem.preview
+    : singleMediaItem?.originalUrlForCropping;
 
   const detectedUrl = useMemo(() => extractFirstUrl(caption), [caption]);
   const showLinkPreview = detectedUrl && !displayMediaSrc;
@@ -127,10 +136,24 @@ function FacebookPreview({
     return caption;
   }, [caption, showLinkPreview, detectedUrl]);
 
+  const onCropComplete = (
+    cropData: CropData | undefined,
+    croppedPreviewUrl: string
+  ) => {
+    if (singleMediaItem) {
+      setCropForMedia(
+        singleMediaItem.uid,
+        "facebook",
+        cropData,
+        croppedPreviewUrl
+      );
+    }
+  };
+
   const prevPostTypeRef = useRef(postType);
   useEffect(() => {
     const applyAutoCrop = async () => {
-      if (!originalMediaSrc || !onCropComplete) return;
+      if (!originalMediaSrc) return;
 
       if (prevPostTypeRef.current !== "story" && postType === "story") {
         try {
@@ -186,7 +209,7 @@ function FacebookPreview({
     displayedWidth: number,
     displayedHeight: number
   ) => {
-    if (!originalMediaSrc || !onCropComplete) return;
+    if (!originalMediaSrc) return;
 
     try {
       const getOriginalDimensions = (
@@ -226,6 +249,42 @@ function FacebookPreview({
       onCropComplete(cropData, croppedUrl);
     } catch (error) {
       console.error("Failed to crop image:", error);
+    }
+  };
+
+  const handleCropClick = async () => {
+    if (!canCrop || !singleMediaItem || !singleMediaItem.id) return;
+
+    if (singleMediaItem.originalUrlForCropping) {
+      setIsCropperOpen(true);
+      return;
+    }
+
+    setIsFetchingOriginal(true);
+    try {
+      if (!integrationId) throw new Error("Facebook account not selected.");
+
+      const { downloadUrl } = await getMediaViewUrl(
+        singleMediaItem.id,
+        integrationId
+      );
+
+      const currentItems = useEditorialStore.getState().stagedMediaItems;
+      const updatedItems = currentItems.map((item) =>
+        item.uid === singleMediaItem.uid
+          ? { ...item, originalUrlForCropping: downloadUrl }
+          : item
+      );
+      useEditorialStore.getState().setStagedMediaItems(updatedItems);
+
+      setIsCropperOpen(true);
+    } catch (error) {
+      console.error("Failed to get download URL for cropping:", error);
+      toast.error(
+        "Could not load original image for cropping. Please try again."
+      );
+    } finally {
+      setIsFetchingOriginal(false);
     }
   };
 
@@ -331,11 +390,16 @@ function FacebookPreview({
         {canCrop ? (
           <div className="flex items-center gap-4">
             <button
-              onClick={() => setIsCropperOpen(true)}
+              onClick={handleCropClick}
               title="Crop Image"
               className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
+              disabled={isFetchingOriginal}
             >
-              <Crop className="h-3.5 w-3.5" />
+              {isFetchingOriginal ? (
+                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+              ) : (
+                <Crop className="h-3.5 w-3.5" />
+              )}
               Crop
             </button>
           </div>
