@@ -1,3 +1,5 @@
+// components/media-room/media-grid.tsx
+
 "use client";
 
 import { useMemo, useEffect, useRef } from "react";

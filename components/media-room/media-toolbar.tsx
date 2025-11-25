@@ -11,15 +11,18 @@ import {
   List,
   X,
   ChevronDown,
+  Plus,
+  Loader2,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 import {
   useMediaRoomStore,
   type MediaTypeFilter,
   type MediaSortBy,
 } from "@/lib/store/media-room-store";
-import { useTagList } from "@/lib/hooks/use-media";
+import { useTagList, useCreateTag } from "@/lib/hooks/use-media";
 
 interface MediaToolbarProps {
   integrationId: string | null;
@@ -38,8 +41,24 @@ const sortOptions: { label: string; value: MediaSortBy }[] = [
   { label: "Size", value: "fileSize" },
 ];
 
+// Helper to generate nice pastel colors
+const getRandomColor = () => {
+  const colors = [
+    "#ef4444", // red
+    "#f97316", // orange
+    "#eab308", // yellow
+    "#22c55e", // green
+    "#06b6d4", // cyan
+    "#3b82f6", // blue
+    "#8b5cf6", // violet
+    "#d946ef", // fuchsia
+  ];
+  return colors[Math.floor(Math.random() * colors.length)];
+};
+
 export default function MediaToolbar({ integrationId }: MediaToolbarProps) {
   const [showTagDropdown, setShowTagDropdown] = useState(false);
+  const [newTagName, setNewTagName] = useState("");
 
   const searchQuery = useMediaRoomStore((s) => s.searchQuery);
   const setSearchQuery = useMediaRoomStore((s) => s.setSearchQuery);
@@ -56,6 +75,7 @@ export default function MediaToolbar({ integrationId }: MediaToolbarProps) {
   const clearAllFilters = useMediaRoomStore((s) => s.clearAllFilters);
 
   const { data: tags = [] } = useTagList(integrationId);
+  const createTagMutation = useCreateTag(integrationId);
 
   // Local state for the input field to prevent API calls on every keystroke
   const [inputValue, setInputValue] = useState(searchQuery);
@@ -65,7 +85,7 @@ export default function MediaToolbar({ integrationId }: MediaToolbarProps) {
     setInputValue(searchQuery);
   }, [searchQuery]);
 
-  // Debounce logic: Update global store only after user stops typing for 500ms
+  // Debounce logic
   useEffect(() => {
     const timer = setTimeout(() => {
       if (inputValue !== searchQuery) {
@@ -75,6 +95,20 @@ export default function MediaToolbar({ integrationId }: MediaToolbarProps) {
 
     return () => clearTimeout(timer);
   }, [inputValue, setSearchQuery, searchQuery]);
+
+  const handleCreateTag = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newTagName.trim()) return;
+
+    createTagMutation.mutate(
+      { name: newTagName.trim(), color: getRandomColor() },
+      {
+        onSuccess: () => {
+          setNewTagName("");
+        },
+      }
+    );
+  };
 
   const hasActiveFilters =
     searchQuery || typeFilter !== "all" || selectedTagIds.length > 0;
@@ -120,33 +154,65 @@ export default function MediaToolbar({ integrationId }: MediaToolbarProps) {
             </button>
 
             {showTagDropdown && (
-              <div className="absolute top-full left-0 mt-1 w-48 bg-white border border-neutral-300 shadow-lg z-50 max-h-64 overflow-y-auto rounded-sm">
-                {tags.length === 0 ? (
-                  <p className="p-3 text-xs text-neutral-500 font-serif italic">
-                    No tags yet
-                  </p>
-                ) : (
-                  <div className="p-2 space-y-1">
-                    {tags.map((tag) => (
-                      <button
-                        key={tag.id}
-                        onClick={() => toggleTagFilter(tag.id)}
-                        className={cn(
-                          "w-full flex items-center gap-2 px-2 py-1.5 text-left text-sm font-serif transition-colors rounded-sm",
-                          selectedTagIds.includes(tag.id)
-                            ? "bg-brand-primary text-brand-primary-foreground"
-                            : "hover:bg-neutral-100"
-                        )}
-                      >
-                        <span
-                          className="w-3 h-3 rounded-full shrink-0"
-                          style={{ backgroundColor: tag.color }}
-                        />
-                        <span className="truncate">{tag.name}</span>
-                      </button>
-                    ))}
+              <div className="absolute top-full left-0 mt-1 w-56 bg-white border border-neutral-300 shadow-lg z-50 rounded-sm flex flex-col">
+                {/* Create Tag Input */}
+                <form
+                  onSubmit={handleCreateTag}
+                  className="p-2 border-b border-neutral-200 bg-neutral-50"
+                >
+                  <div className="flex gap-1">
+                    <Input
+                      value={newTagName}
+                      onChange={(e) => setNewTagName(e.target.value)}
+                      placeholder="New tag name..."
+                      className="h-8 text-xs bg-white"
+                    />
+                    <Button
+                      type="submit"
+                      size="sm"
+                      disabled={
+                        !newTagName.trim() || createTagMutation.isPending
+                      }
+                      className="h-8 w-8 p-0 shrink-0 bg-brand-primary hover:bg-brand-primary/90 text-white"
+                    >
+                      {createTagMutation.isPending ? (
+                        <Loader2 className="h-3 w-3 animate-spin" />
+                      ) : (
+                        <Plus className="h-4 w-4" />
+                      )}
+                    </Button>
                   </div>
-                )}
+                </form>
+
+                {/* Tag List */}
+                <div className="max-h-64 overflow-y-auto p-1">
+                  {tags.length === 0 ? (
+                    <p className="p-3 text-xs text-neutral-500 font-serif italic text-center">
+                      No tags created yet
+                    </p>
+                  ) : (
+                    <div className="space-y-0.5">
+                      {tags.map((tag) => (
+                        <button
+                          key={tag.id}
+                          onClick={() => toggleTagFilter(tag.id)}
+                          className={cn(
+                            "w-full flex items-center gap-2 px-2 py-1.5 text-left text-sm font-serif transition-colors rounded-sm",
+                            selectedTagIds.includes(tag.id)
+                              ? "bg-brand-primary text-brand-primary-foreground"
+                              : "hover:bg-neutral-100"
+                          )}
+                        >
+                          <span
+                            className="w-2.5 h-2.5 rounded-full shrink-0 border border-black/10"
+                            style={{ backgroundColor: tag.color }}
+                          />
+                          <span className="truncate">{tag.name}</span>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
               </div>
             )}
           </div>
