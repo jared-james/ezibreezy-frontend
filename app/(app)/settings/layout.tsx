@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { User, PenTool, Link2, Bell, CreditCard } from "lucide-react";
+import { User, PenTool, Link2 } from "lucide-react";
 
 const settingsNav = [
   { name: "Profile", href: "/settings/profile", icon: User },
