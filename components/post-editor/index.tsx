@@ -17,7 +17,7 @@ import SchedulePanel from "./panels/schedule-panel";
 import ConfirmationModal from "./modals/confirmation-modal";
 
 import { usePostEditor } from "@/lib/hooks/use-post-editor";
-import { useEditorialStore, LocationState } from "@/lib/store/editorial-store";
+import { useEditorialStore } from "@/lib/store/editorial-store";
 import type { CreatePostPayload, PostSettings } from "@/lib/api/publishing";
 import { PlatformCrops } from "@/lib/utils/crop-utils";
 import { usePostStatusPolling } from "./hooks/use-post-status-polling";
@@ -49,10 +49,6 @@ export default function EditorialCore({
   >({});
   const [localLabels, setLocalLabels] = useState("");
   const [localCollaborators, setLocalCollaborators] = useState("");
-  const [localLocation, setLocalLocation] = useState<LocationState>({
-    id: null,
-    name: "",
-  });
 
   const resetEditor = useEditorialStore((state) => state.reset);
   const setState = useEditorialStore((state) => state.setState);
@@ -177,7 +173,6 @@ export default function EditorialCore({
       platformCaptions: localPlatformCaptions,
       labels: localLabels,
       collaborators: localCollaborators,
-      location: localLocation,
     });
 
     if (!user) return showError("You must be logged in to post.");
@@ -222,11 +217,12 @@ export default function EditorialCore({
       scheduledAt = dateTime.toISOString();
     }
 
+    const location = useEditorialStore.getState().location;
     const baseSettings: PostSettings = {
       labels: localLabels,
       collaborators: localCollaborators,
-      location: localLocation.name,
-      locationId: localLocation.id || undefined,
+      location: location.name,
+      locationId: location.id || undefined,
       canonicalContent: localMainCaption,
       postType: postTypeFromStore,
       userTags,
@@ -456,17 +452,15 @@ export default function EditorialCore({
             mainCaption={localMainCaption}
             platformCaptions={localPlatformCaptions}
             collaborators={localCollaborators}
-            location={localLocation}
           />
           <DistributionPanel
             showActionButtons={mode === "clipping"}
             onSaveClipping={onSaveClipping}
             onOpenInEditorial={onOpenInEditorial}
             isSaving={isSavingClipping}
-            onLocalFieldsChange={(labels, collaborators, location) => {
+            onLocalFieldsChange={(labels, collaborators) => {
               setLocalLabels(labels);
               setLocalCollaborators(collaborators);
-              setLocalLocation(location);
             }}
           />
           {mode === "editorial" && (

@@ -14,11 +14,10 @@ import {
   Instagram,
   Loader2,
 } from "lucide-react";
-import { useEditorialStore, LocationState } from "@/lib/store/editorial-store";
+import { useEditorialStore } from "@/lib/store/editorial-store";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import LocationSearchInput from "../location-search-input";
 
 interface DistributionPanelProps {
   onOpenInEditorial?: () => void;
@@ -27,8 +26,7 @@ interface DistributionPanelProps {
   isSaving?: boolean;
   onLocalFieldsChange?: (
     labels: string,
-    collaborators: string,
-    location: LocationState
+    collaborators: string
   ) => void;
 }
 
@@ -72,9 +70,7 @@ export default function DistributionPanel({
 }: DistributionPanelProps) {
   const labels = useEditorialStore((state) => state.labels);
   const collaborators = useEditorialStore((state) => state.collaborators);
-  const location = useEditorialStore((state) => state.location);
   const selectedAccounts = useEditorialStore((state) => state.selectedAccounts);
-  const setState = useEditorialStore((state) => state.setState);
 
   const [localLabels, setLocalLabels] = useState(labels);
   const [localCollaborators, setLocalCollaborators] = useState(collaborators);
@@ -89,9 +85,9 @@ export default function DistributionPanel({
 
   useEffect(() => {
     if (onLocalFieldsChange) {
-      onLocalFieldsChange(localLabels, localCollaborators, location);
+      onLocalFieldsChange(localLabels, localCollaborators);
     }
-  }, [localLabels, localCollaborators, location, onLocalFieldsChange]);
+  }, [localLabels, localCollaborators, onLocalFieldsChange]);
 
   const activePlatforms = useMemo(
     () => new Set(Object.keys(selectedAccounts)),
@@ -102,20 +98,12 @@ export default function DistributionPanel({
     () => ({
       hashtags: ["x", "instagram"],
       collaborators: ["instagram"],
-      location: ["instagram"],
     }),
     []
   );
 
   const shouldShowField = (field: keyof typeof fieldSupport) =>
     fieldSupport[field].some((id) => activePlatforms.has(id));
-
-  const instagramIntegrationId = useMemo(() => {
-    if (activePlatforms.has("instagram")) {
-      return selectedAccounts["instagram"]?.[0] || null;
-    }
-    return null;
-  }, [activePlatforms, selectedAccounts]);
 
   return (
     <div className="flex flex-col">
@@ -173,17 +161,6 @@ export default function DistributionPanel({
               </div>
             </div>
           )}
-
-          <LocationSearchInput
-            initialLocation={location}
-            onLocationSelect={(newLocation) =>
-              setState({
-                location: newLocation || { id: null, name: "" },
-              })
-            }
-            integrationId={instagramIntegrationId}
-            isEnabled={shouldShowField("location")}
-          />
         </div>
 
         {showActionButtons && (

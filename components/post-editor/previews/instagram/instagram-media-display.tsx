@@ -15,6 +15,7 @@ interface InstagramMediaDisplayProps {
   onRemoveTag: (index: number) => void;
   coverUrl?: string | null;
   onVideoMetadataLoaded?: (duration: number) => void;
+  isStory?: boolean;
 }
 
 export function InstagramMediaDisplay({
@@ -27,8 +28,11 @@ export function InstagramMediaDisplay({
   onRemoveTag,
   coverUrl,
   onVideoMetadataLoaded,
+  isStory = false,
 }: InstagramMediaDisplayProps) {
   const containerRef = useRef<HTMLDivElement>(null);
+  const imageRef = useRef<HTMLImageElement>(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
   const [newTag, setNewTag] = useState<{
     x: number;
     y: number;
@@ -37,9 +41,30 @@ export function InstagramMediaDisplay({
 
   const handleImageClick = (e: React.MouseEvent<HTMLDivElement>) => {
     if (!isTaggingMode || !containerRef.current) return;
-    const rect = containerRef.current.getBoundingClientRect();
-    const x = (e.clientX - rect.left) / rect.width;
-    const y = (e.clientY - rect.top) / rect.height;
+
+    // Get the actual media element (image or video)
+    const mediaElement = imageRef.current || videoRef.current;
+    if (!mediaElement) return;
+
+    // Get the media element's bounding box
+    const mediaRect = mediaElement.getBoundingClientRect();
+
+    // Check if click is within the actual media bounds
+    const clickX = e.clientX;
+    const clickY = e.clientY;
+
+    if (
+      clickX < mediaRect.left ||
+      clickX > mediaRect.right ||
+      clickY < mediaRect.top ||
+      clickY > mediaRect.bottom
+    ) {
+      return; // Click is outside the actual media, ignore it
+    }
+
+    // Calculate position relative to the media element
+    const x = (clickX - mediaRect.left) / mediaRect.width;
+    const y = (clickY - mediaRect.top) / mediaRect.height;
     setNewTag({ x, y, username: "" });
   };
 
@@ -51,6 +76,10 @@ export function InstagramMediaDisplay({
       });
       setNewTag(null);
     }
+  };
+
+  const cancelTag = () => {
+    setNewTag(null);
   };
 
   return (
@@ -67,8 +96,12 @@ export function InstagramMediaDisplay({
       {displayMediaSrc ? (
         mediaType === "video" ? (
           <video
+            ref={videoRef}
             src={displayMediaSrc}
-            className="w-full h-full object-contain"
+            className={cn(
+              "w-full h-full",
+              isStory ? "object-cover" : "object-contain"
+            )}
             muted
             controls={false}
             autoPlay
@@ -81,9 +114,13 @@ export function InstagramMediaDisplay({
           />
         ) : (
           <img
+            ref={imageRef}
             src={displayMediaSrc}
             alt="Media Preview"
-            className="w-full h-full object-contain"
+            className={cn(
+              "w-full h-full",
+              isStory ? "object-cover" : "object-contain"
+            )}
           />
         )
       ) : (
@@ -130,31 +167,52 @@ export function InstagramMediaDisplay({
 
       {newTag && (
         <div
-          className="absolute"
+          className="absolute pointer-events-auto"
           style={{
             left: `${newTag.x * 100}%`,
             top: `${newTag.y * 100}%`,
             transform: "translate(-50%, 8px)",
           }}
         >
-          <div className="w-40 rounded bg-white p-1 shadow-lg">
-            <input
-              type="text"
-              autoFocus
-              placeholder="@username"
-              value={newTag.username}
-              onChange={(e) =>
-                setNewTag({ ...newTag, username: e.target.value })
-              }
-              onKeyDown={(e) => {
-                if (e.key === "Enter") {
-                  e.preventDefault();
-                  finalizeTag();
-                }
+          <div className="relative">
+            <button
+              className="cancel-tag-btn absolute -top-2 -left-2 p-0.5 bg-white hover:bg-gray-100 rounded-full shadow-md z-10"
+              onClick={(e) => {
+                e.stopPropagation();
+                cancelTag();
               }}
-              onBlur={finalizeTag}
-              className="w-full border-none bg-transparent px-2 py-1 text-sm outline-none text-black"
-            />
+              onMouseDown={(e) => e.preventDefault()} // Prevent blur from firing
+              type="button"
+            >
+              <X className="h-3 w-3 text-gray-500" />
+            </button>
+            <div className="w-40 rounded bg-white p-1 shadow-lg">
+              <input
+                type="text"
+                autoFocus
+                placeholder="@username"
+                value={newTag.username}
+                onChange={(e) =>
+                  setNewTag({ ...newTag, username: e.target.value })
+                }
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    e.preventDefault();
+                    finalizeTag();
+                  } else if (e.key === "Escape") {
+                    e.preventDefault();
+                    cancelTag();
+                  }
+                }}
+                onBlur={(e) => {
+                  // Only finalize if the blur wasn't caused by clicking the X button
+                  if (!e.relatedTarget?.closest('.cancel-tag-btn')) {
+                    finalizeTag();
+                  }
+                }}
+                className="w-full border-none bg-transparent px-2 py-1 text-sm outline-none text-black"
+              />
+            </div>
           </div>
         </div>
       )}

@@ -53,7 +53,6 @@ interface PreviewPanelProps {
   mainCaption: string;
   platformCaptions: Record<string, string>;
   collaborators: string;
-  location: LocationState;
 }
 
 function PreviewPanel({
@@ -61,7 +60,6 @@ function PreviewPanel({
   mainCaption,
   platformCaptions,
   collaborators,
-  location,
 }: PreviewPanelProps) {
   const userTags = useEditorialStore((state) => state.userTags);
   const postType = useEditorialStore((state) => state.postType);
@@ -221,7 +219,6 @@ function PreviewPanel({
             displayName={activeAccount.name}
             avatarUrl={activeAccount.avatarUrl}
             collaborators={collaborators}
-            location={location.name}
             postType={postType}
             userTags={userTags}
             onUserTagsChange={handleUserTagsChange}

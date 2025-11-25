@@ -15,6 +15,7 @@ import {
 import { useEditorialStore, MediaItem } from "@/lib/store/editorial-store";
 import { getMediaViewUrl } from "@/lib/api/media";
 import { toast } from "sonner";
+import LocationSearchInput from "../../location-search-input";
 
 // Sub-components
 import { InstagramHeader } from "./instagram-header";
@@ -32,7 +33,6 @@ interface InstagramPreviewProps {
   displayName: string | null;
   avatarUrl: string | null;
   collaborators: string;
-  location: string;
   postType: "post" | "reel" | "story";
   userTags: UserTagDto[];
   onUserTagsChange: (tags: UserTagDto[]) => void;
@@ -53,7 +53,6 @@ function InstagramPreview({
   displayName,
   avatarUrl,
   collaborators,
-  location,
   postType,
   userTags,
   onUserTagsChange,
@@ -68,6 +67,8 @@ function InstagramPreview({
   const accountName = platformUsername.replace(/^@/, "");
   const primaryName = displayName || accountName || "Account";
   const setCropForMedia = useEditorialStore((state) => state.setCropForMedia);
+  const setState = useEditorialStore((state) => state.setState);
+  const location = useEditorialStore((state) => state.location);
 
   // Local State
   const [isTaggingMode, setIsTaggingMode] = useState(false);
@@ -256,7 +257,7 @@ function InstagramPreview({
         <InstagramHeader
           avatarUrl={avatarUrl}
           primaryName={primaryName}
-          location={location}
+          location={location.name}
         />
 
         {/* Content Area */}
@@ -280,6 +281,7 @@ function InstagramPreview({
             }
             coverUrl={coverUrl}
             onVideoMetadataLoaded={setVideoDuration}
+            isStory={postType === "story"}
           />
         )}
 
@@ -305,6 +307,20 @@ function InstagramPreview({
             onToggleTagging={() => setIsTaggingMode(!isTaggingMode)}
             displayMediaSrc={displayMediaSrc}
             isStory={postType === "story"}
+          />
+        </div>
+
+        {/* Location Input */}
+        <div className="px-3 py-2 border-t border-border">
+          <LocationSearchInput
+            initialLocation={location}
+            onLocationSelect={(newLocation) =>
+              setState({
+                location: newLocation || { id: null, name: "" },
+              })
+            }
+            integrationId={integrationId || null}
+            isEnabled={true}
           />
         </div>
       </div>
