@@ -1,26 +1,28 @@
-// components/post-editor/linkedin-preview.tsx
+// components/post-editor/tiktok-preview.tsx
 
 import { memo, useState } from "react";
 import {
-  ThumbsUp,
-  MessageSquare,
-  Repeat2,
-  Send,
+  Heart,
+  MessageCircle,
+  Bookmark,
+  Share2,
+  Music,
   ImageIcon,
   Crop,
   Loader2,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { renderCaptionWithHashtags } from "./render-caption";
-import { ImageCropperModal } from "./image-cropper-modal";
+import { renderCaptionWithHashtags } from "../../render-caption";
+import { ImageCropperModal } from "../../modals/image-cropper-modal";
 import type { PixelCrop } from "react-image-crop";
 import { createCroppedPreviewUrl, type CropData } from "@/lib/utils/crop-utils";
 import { useEditorialStore, MediaItem } from "@/lib/store/editorial-store";
 import { getMediaViewUrl } from "@/lib/api/media";
 import { toast } from "sonner";
 
-interface LinkedInPreviewProps {
+interface TikTokPreviewProps {
   caption: string;
+  title?: string;
   singleMediaItem: MediaItem | null;
   mediaType?: "image" | "video" | "text";
   platformUsername: string;
@@ -42,7 +44,7 @@ const ProfileAvatar = ({
       <img
         src={avatarUrl}
         alt={`${primaryName} profile picture`}
-        className="rounded-full border border-[--border] shrink-0 object-cover"
+        className="rounded-full border-2 border-white shrink-0 object-cover"
         style={{ width: size, height: size }}
       />
     );
@@ -50,9 +52,7 @@ const ProfileAvatar = ({
 
   return (
     <div
-      className={cn(
-        "rounded-full bg-[--muted] border border-[--border] shrink-0"
-      )}
+      className={cn("rounded-full bg-[--muted] border-2 border-white shrink-0")}
       style={{ width: size, height: size }}
       role="img"
       aria-label="Profile image placeholder"
@@ -60,23 +60,24 @@ const ProfileAvatar = ({
   );
 };
 
-function LinkedInPreview({
+function TikTokPreview({
   caption,
+  title,
   singleMediaItem,
   mediaType = "image",
   platformUsername,
   displayName,
   avatarUrl,
-}: LinkedInPreviewProps) {
+}: TikTokPreviewProps) {
   const accountName = platformUsername.replace(/^@/, "");
   const primaryName = displayName || accountName || "Account";
   const [isCropperOpen, setIsCropperOpen] = useState(false);
   const [isFetchingOriginal, setIsFetchingOriginal] = useState(false);
   const setCropForMedia = useEditorialStore((state) => state.setCropForMedia);
   const integrationId =
-    useEditorialStore.getState().selectedAccounts["linkedin"]?.[0];
+    useEditorialStore.getState().selectedAccounts["tiktok"]?.[0];
 
-  const croppedPreview = singleMediaItem?.croppedPreviews?.linkedin;
+  const croppedPreview = singleMediaItem?.croppedPreviews?.tiktok;
   const displayMediaSrc = croppedPreview || singleMediaItem?.preview;
   const canCrop = singleMediaItem?.id && mediaType === "image";
   const originalMediaSrc = singleMediaItem?.file
@@ -90,7 +91,7 @@ function LinkedInPreview({
     if (singleMediaItem) {
       setCropForMedia(
         singleMediaItem.uid,
-        "linkedin",
+        "tiktok",
         cropData,
         croppedPreviewUrl
       );
@@ -154,7 +155,7 @@ function LinkedInPreview({
 
     setIsFetchingOriginal(true);
     try {
-      if (!integrationId) throw new Error("LinkedIn account not selected.");
+      if (!integrationId) throw new Error("TikTok account not selected.");
 
       const { downloadUrl } = await getMediaViewUrl(
         singleMediaItem.id,
@@ -181,114 +182,106 @@ function LinkedInPreview({
   };
 
   return (
-    <div className="w-full bg-[--surface] border border-[--border] shadow-lg max-w-sm mx-auto rounded-lg overflow-hidden">
-      <div className="flex items-start gap-3 p-3">
-        <ProfileAvatar
-          size={48}
-          avatarUrl={avatarUrl}
-          primaryName={primaryName}
-        />
-        <div className="flex-1 min-w-0">
-          <p className="font-semibold text-sm text-[--foreground] truncate">
-            {primaryName}
-          </p>
-          <p className="text-xs text-[--muted-foreground] truncate">
-            @{accountName}
-          </p>
-          <p className="text-xs text-[--muted-foreground]">Now · 🌐</p>
-        </div>
-        <div className="text-[--muted-foreground]">
-          <span className="text-lg">···</span>
-        </div>
-      </div>
-
-      <div className="px-3 pb-3">
-        <p className="text-sm text-[--foreground] whitespace-pre-wrap">
-          {renderCaptionWithHashtags(caption)}
-        </p>
-      </div>
-
-      <div
-        className={cn(
-          "aspect-video bg-[--background]",
-          displayMediaSrc ? "" : "flex items-center justify-center"
-        )}
-      >
-        {displayMediaSrc ? (
-          mediaType === "video" ? (
-            <video
-              src={displayMediaSrc}
-              className="w-full h-full object-cover"
-              muted
-              loop
-              autoPlay
-              playsInline
-            />
-          ) : (
-            <img
-              src={displayMediaSrc}
-              alt="Media Preview"
-              className="w-full h-full object-cover"
-            />
-          )
-        ) : (
-          <div className="flex flex-col items-center justify-center text-[--muted-foreground] text-center p-8">
-            <ImageIcon className="w-8 h-8 mb-2" />
-            <p className="text-sm">No media attached</p>
-          </div>
-        )}
-      </div>
-
-      <div className="flex items-center justify-between px-3 py-2 text-xs text-[--muted-foreground] border-b border-[--border]">
-        <div className="flex items-center gap-1">
-          <span className="flex items-center justify-center w-4 h-4 rounded-full bg-blue-500 text-white text-[10px]">
-            👍
-          </span>
-          <span>0</span>
-        </div>
-        <div className="flex items-center gap-2">
-          <span>0 comments</span>
-          <span>·</span>
-          <span>0 reposts</span>
-        </div>
-      </div>
-
-      <div className="flex items-center justify-around py-2 text-[--muted-foreground]">
-        <button className="flex items-center gap-1 px-3 py-2 hover:bg-[--surface-hover] rounded text-xs">
-          <ThumbsUp className="w-4 h-4" />
-          <span>Like</span>
-        </button>
-        <button className="flex items-center gap-1 px-3 py-2 hover:bg-[--surface-hover] rounded text-xs">
-          <MessageSquare className="w-4 h-4" />
-          <span>Comment</span>
-        </button>
-        <button className="flex items-center gap-1 px-3 py-2 hover:bg-[--surface-hover] rounded text-xs">
-          <Repeat2 className="w-4 h-4" />
-          <span>Repost</span>
-        </button>
-        <button className="flex items-center gap-1 px-3 py-2 hover:bg-[--surface-hover] rounded text-xs">
-          <Send className="w-4 h-4" />
-          <span>Send</span>
-        </button>
-      </div>
-
-      <div className="p-3 border-t border-[--border]">
-        {canCrop ? (
-          <button
-            onClick={handleCropClick}
-            className="flex items-center gap-2 justify-center w-full font-serif font-bold text-sm text-brand-primary hover:text-brand-accent"
-            disabled={isFetchingOriginal}
-          >
-            {isFetchingOriginal ? (
-              <Loader2 className="h-4 w-4 animate-spin" />
+    <div className="w-full max-w-sm mx-auto">
+      <div className="relative bg-black rounded-2xl overflow-hidden aspect-9/16 max-h-[500px] border border-border">
+        <div className="absolute inset-0">
+          {displayMediaSrc ? (
+            mediaType === "video" ? (
+              <video
+                src={displayMediaSrc}
+                className="w-full h-full object-cover"
+                muted
+                loop
+                autoPlay
+                playsInline
+              />
             ) : (
-              <Crop className="h-4 w-4" />
-            )}
-            Crop
-          </button>
+              <img
+                src={displayMediaSrc}
+                alt="Media Preview"
+                className="w-full h-full object-cover"
+              />
+            )
+          ) : (
+            <div className="w-full h-full flex flex-col items-center justify-center text-white/60">
+              <ImageIcon className="w-12 h-12 mb-2" />
+              <p className="text-sm">No video attached</p>
+            </div>
+          )}
+        </div>
+
+        <div className="absolute right-3 bottom-24 flex flex-col items-center gap-5">
+          <div className="flex flex-col items-center">
+            <ProfileAvatar
+              size={44}
+              avatarUrl={avatarUrl}
+              primaryName={primaryName}
+            />
+            <div className="w-5 h-5 -mt-2.5 rounded-full bg-red-500 flex items-center justify-center">
+              <span className="text-white text-xs font-bold">+</span>
+            </div>
+          </div>
+
+          <div className="flex flex-col items-center gap-1">
+            <Heart className="w-7 h-7 text-white" />
+            <span className="text-white text-xs">0</span>
+          </div>
+
+          <div className="flex flex-col items-center gap-1">
+            <MessageCircle className="w-7 h-7 text-white" />
+            <span className="text-white text-xs">0</span>
+          </div>
+
+          <div className="flex flex-col items-center gap-1">
+            <Bookmark className="w-7 h-7 text-white" />
+            <span className="text-white text-xs">0</span>
+          </div>
+
+          <div className="flex flex-col items-center gap-1">
+            <Share2 className="w-7 h-7 text-white" />
+            <span className="text-white text-xs">Share</span>
+          </div>
+
+          <div className="w-10 h-10 rounded-full border-2 border-white/30 bg-linear-to-br from-gray-800 to-gray-900 flex items-center justify-center animate-spin-slow">
+            <Music className="w-4 h-4 text-white" />
+          </div>
+        </div>
+
+        <div className="absolute bottom-4 left-3 right-16 text-white">
+          <p className="font-bold text-sm">@{accountName}</p>
+          {title && (
+            <p className="font-semibold text-sm mt-1 line-clamp-2">{title}</p>
+          )}
+          <p className="text-sm mt-1 line-clamp-3 whitespace-pre-wrap">
+            {renderCaptionWithHashtags(caption)}
+          </p>
+          <div className="flex items-center gap-2 mt-2">
+            <Music className="w-3 h-3" />
+            <p className="text-xs truncate">Original sound - {primaryName}</p>
+          </div>
+        </div>
+      </div>
+
+      <div className="px-3 py-2 border-t border-border bg-surface rounded-b-lg">
+        {canCrop ? (
+          <div className="flex items-center gap-4">
+            <button
+              onClick={handleCropClick}
+              title="Crop Image"
+              className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
+              disabled={isFetchingOriginal}
+            >
+              {isFetchingOriginal ? (
+                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+              ) : (
+                <Crop className="h-3.5 w-3.5" />
+              )}
+              Crop
+            </button>
+          </div>
         ) : (
-          <p className="text-xs text-[--muted-foreground] text-center italic">
-            LinkedIn Preview
+          <p className="text-xs text-muted-foreground text-center italic">
+            TikTok Preview
           </p>
         )}
       </div>
@@ -298,7 +291,7 @@ function LinkedInPreview({
           open={isCropperOpen}
           onClose={() => setIsCropperOpen(false)}
           imageSrc={originalMediaSrc}
-          platform="linkedin"
+          platform="tiktok"
           onCropComplete={handleCropComplete}
         />
       )}
@@ -306,4 +299,4 @@ function LinkedInPreview({
   );
 }
 
-export default memo(LinkedInPreview);
+export default memo(TikTokPreview);

@@ -1,3 +1,5 @@
+// components/post-editor/previews/facebook/index.tsx
+
 // components/post-editor/facebook-preview.tsx
 
 import { memo, useState, useRef, useEffect, useMemo } from "react";
@@ -10,8 +12,8 @@ import {
   Loader2,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { renderCaptionWithHashtags } from "./render-caption";
-import { ImageCropperModal } from "./image-cropper-modal";
+import { renderCaptionWithHashtags } from "../../render-caption";
+import { ImageCropperModal } from "../../modals/image-cropper-modal";
 import type { PixelCrop } from "react-image-crop";
 import {
   createCroppedPreviewUrl,

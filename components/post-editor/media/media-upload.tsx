@@ -7,7 +7,7 @@ import { Upload, X, Loader2, Plus, FolderOpen } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useQuery } from "@tanstack/react-query";
 import { getConnections } from "@/lib/api/integrations";
-import MediaRoomModal from "./media-room-modal";
+import MediaRoomModal from "../modals/media-room-modal";
 import type { MediaItem as LibraryMediaItem } from "@/lib/api/media";
 import { Button } from "@/components/ui/button";
 
@@ -258,7 +258,7 @@ export default function MediaUpload({
             className="gap-2 border-brand-primary text-brand-primary hover:bg-brand-primary hover:text-white"
           >
             <FolderOpen className="h-4 w-4" />
-            Browse Library
+            Browse Media Library
           </Button>
         </div>
       </div>

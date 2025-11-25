@@ -18,7 +18,7 @@ import { useEditorialStore, LocationState } from "@/lib/store/editorial-store";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import LocationSearchInput from "./location-search-input";
+import LocationSearchInput from "../location-search-input";
 
 interface DistributionPanelProps {
   onOpenInEditorial?: () => void;

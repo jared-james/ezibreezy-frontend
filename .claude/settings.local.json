@@ -9,7 +9,8 @@
       "Bash(npm run build:*)",
       "Bash(pnpm remove:*)",
       "Bash(npx tsc:*)",
-      "Bash(npx eslint:*)"
+      "Bash(npx eslint:*)",
+      "Bash(xargs -I {} bash -c \"echo ''''=== {} ==='''' && grep -E ''''^import.*from'''' ''''{}''''\")"
     ],
     "deny": [],
     "ask": []

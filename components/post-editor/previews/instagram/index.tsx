@@ -19,9 +19,9 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import Image from "next/image";
-import { renderCaptionWithHashtags } from "./render-caption";
+import { renderCaptionWithHashtags } from "../../render-caption";
 import { UserTagDto } from "@/lib/api/publishing";
-import { ImageCropperModal } from "./image-cropper-modal";
+import { ImageCropperModal } from "../../modals/image-cropper-modal";
 import type { PixelCrop } from "react-image-crop";
 import {
   createCroppedPreviewUrl,

@@ -3,8 +3,8 @@
 "use client";
 
 import { X, Loader2 } from "lucide-react";
-import EditorialCore from "@/components/post-editor/editorial-core";
 import { useEditorialStore } from "@/lib/store/editorial-store";
+import EditorialCore from "@/components/post-editor";
 
 interface EditorialModalProps {
   isOpen: boolean;
@@ -51,7 +51,9 @@ export default function EditorialModal({
             <div className="flex items-center justify-center min-h-[400px]">
               <div className="flex flex-col items-center gap-4">
                 <Loader2 className="h-8 w-8 animate-spin text-brand-primary" />
-                <p className="text-sm text-muted-foreground">Loading post data...</p>
+                <p className="text-sm text-muted-foreground">
+                  Loading post data...
+                </p>
               </div>
             </div>
           ) : (

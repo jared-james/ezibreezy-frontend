@@ -13,12 +13,12 @@ import {
 } from "lucide-react";
 import Image from "next/image";
 import { getConnections } from "@/lib/api/integrations";
-import XPreview from "./x-preview";
-import InstagramPreview from "./instagram-preview";
-import LinkedInPreview from "./linkedin-preview";
-import FacebookPreview from "./facebook-preview";
-import ThreadsPreview from "./threads-preview";
-import TikTokPreview from "./tiktok-preview";
+import XPreview from "../previews/x";
+import InstagramPreview from "../previews/instagram";
+import LinkedInPreview from "../previews/linkedin";
+import FacebookPreview from "../previews/facebook";
+import ThreadsPreview from "../previews/threads";
+import TikTokPreview from "../previews/tiktok";
 import { cn } from "@/lib/utils";
 import {
   LocationState,

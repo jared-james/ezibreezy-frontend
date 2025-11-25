@@ -28,10 +28,10 @@ import {
   ThreadMessage,
   ThreadMessageAugmented,
 } from "@/lib/types/editorial";
-import ThreadPostMediaUpload from "./thread-post-media-upload";
+import ThreadPostMediaUpload from "../media/thread-post-media-upload";
 import { useEditorialStore } from "@/lib/store/editorial-store";
-import HashtagSelectorModal from "./hashtag-selector-modal";
-import PlatformMediaSelector from "./platform-media-selector";
+import HashtagSelectorModal from "../modals/hashtag-selector-modal";
+import PlatformMediaSelector from "../media/platform-media-selector";
 
 type SelectedAccounts = Record<string, string[]>;
 

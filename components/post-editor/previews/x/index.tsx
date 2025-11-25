@@ -1,10 +1,12 @@
+// components/post-editor/previews/x/index.tsx
+
 // components/post-editor/x-preview.tsx
 
 import { memo, useState } from "react";
 import { MessageSquare, Repeat2, ImageIcon, Crop, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { renderCaptionWithHashtags } from "./render-caption";
-import { ImageCropperModal } from "./image-cropper-modal";
+import { renderCaptionWithHashtags } from "../../render-caption";
+import { ImageCropperModal } from "../../modals/image-cropper-modal";
 import type { PixelCrop } from "react-image-crop";
 import { createCroppedPreviewUrl, type CropData } from "@/lib/utils/crop-utils";
 import { useEditorialStore, MediaItem } from "@/lib/store/editorial-store";

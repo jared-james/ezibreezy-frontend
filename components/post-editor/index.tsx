@@ -1,4 +1,4 @@
-// components/post-editor/editorial-core.tsx
+// components/post-editor/index.tsx
 
 "use client";
 
@@ -8,19 +8,19 @@ import { toast } from "sonner";
 import { showError } from "@/components/ui/sonner";
 import { createClient } from "@/lib/supabase/client";
 
-import ChannelSelector from "./channel-selector";
-import CaptionEditor from "./caption-editor";
-import DistributionPanel from "./distribution-panel";
-import PreviewPanel from "./preview-panel";
-import MediaUpload from "./media-upload";
-import ScheduleCard from "./schedule-card";
-import ConfirmationModal from "./confirmation-modal";
+import ChannelSelector from "./panels/channel-selector";
+import CaptionEditor from "./caption/caption-editor";
+import DistributionPanel from "./panels/distribution-panel";
+import PreviewPanel from "./panels/preview-panel";
+import MediaUpload from "./media/media-upload";
+import SchedulePanel from "./panels/schedule-panel";
+import ConfirmationModal from "./modals/confirmation-modal";
 
 import { usePostEditor } from "@/lib/hooks/use-post-editor";
 import { useEditorialStore, LocationState } from "@/lib/store/editorial-store";
 import type { CreatePostPayload, PostSettings } from "@/lib/api/publishing";
 import { PlatformCrops } from "@/lib/utils/crop-utils";
-import { usePostStatusPolling } from "./use-post-status-polling";
+import { usePostStatusPolling } from "./hooks/use-post-status-polling";
 
 interface EditorialCoreProps {
   onPostSuccess?: () => void;
@@ -470,7 +470,7 @@ export default function EditorialCore({
             }}
           />
           {mode === "editorial" && (
-            <ScheduleCard
+            <SchedulePanel
               onPublish={handlePublish}
               isPublishing={postMutation.isPending || isPollingStatus}
               isUploading={isGlobalUploading}
