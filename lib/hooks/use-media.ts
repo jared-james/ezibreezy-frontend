@@ -1,3 +1,5 @@
+// lib/hooks/use-media.ts
+
 "use client";
 
 import {
@@ -72,7 +74,8 @@ export function useMediaItem(id: string | null, integrationId: string | null) {
       // 1. Get all active queries that start with "media" and this integration
       const queries = queryClient.getQueriesData<{
         pages: MediaListResponse[];
-      }>({ // Infinite Query Structure
+      }>({
+        // Infinite Query Structure
         queryKey: ["media", integrationId],
       });
 

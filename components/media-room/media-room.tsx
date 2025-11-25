@@ -17,7 +17,11 @@ import MediaUploadZone from "./media-upload-zone";
 import { useFolderActions } from "./folder-actions";
 import { Button } from "@/components/ui/button";
 
-export default function MediaRoom() {
+interface MediaRoomProps {
+  preloadedIntegrationId?: string | null;
+}
+
+export default function MediaRoom({ preloadedIntegrationId }: MediaRoomProps) {
   const [isUploadOpen, setIsUploadOpen] = useState(false);
   const reset = useMediaRoomStore((s) => s.reset);
 
@@ -25,9 +29,13 @@ export default function MediaRoom() {
     queryKey: ["clientEditorData"],
     queryFn: getClientDataForEditor,
     staleTime: 60000,
+    // If we have a preloaded ID, we don't strictly need this to be blocking,
+    // but we fetch it to ensure we have the full connection list/details if needed later.
   });
 
-  const integrationId = clientData?.connections?.[0]?.id || null;
+  // Prefer preloaded ID (instant), fallback to client fetched data
+  const integrationId =
+    preloadedIntegrationId || clientData?.connections?.[0]?.id || null;
 
   // Hook up shared actions
   const { openCreateDialog, FolderActionDialogs } = useFolderActions({
@@ -40,7 +48,8 @@ export default function MediaRoom() {
     };
   }, [reset]);
 
-  if (isLoadingClientData) {
+  // Only block with a loader if we have NO ID and are still waiting for client data
+  if (isLoadingClientData && !integrationId) {
     return (
       <div className="flex items-center justify-center h-full">
         <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
@@ -48,7 +57,8 @@ export default function MediaRoom() {
     );
   }
 
-  if (!clientData?.connections?.length) {
+  // If we loaded and still have no connections/ID
+  if (!isLoadingClientData && !integrationId) {
     return (
       <div className="flex items-center justify-center h-full">
         <div className="text-center max-w-md px-4">

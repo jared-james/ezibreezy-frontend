@@ -1,5 +1,3 @@
-// components/media-room/media-grid.tsx
-
 "use client";
 
 import { useMemo, useEffect, useRef } from "react";
@@ -27,12 +25,15 @@ export default function MediaGrid({ integrationId }: MediaGridProps) {
   const openDetailPanel = useMediaRoomStore((s) => s.openDetailPanel);
   const viewMode = useMediaRoomStore((s) => s.viewMode);
 
+  // Intersection Observer Target for Infinite Scroll
   const observerTarget = useRef<HTMLDivElement>(null);
 
   const filters = useMemo<MediaFilters>(() => {
+    // EXPLICITLY set the limit here
     const f: MediaFilters = {
       sortBy,
       order: sortOrder,
+      limit: 50, // <--- ADDED: Forces API to respect limit
     };
 
     if (currentFolderId) {
@@ -118,6 +119,7 @@ export default function MediaGrid({ integrationId }: MediaGridProps) {
     );
   }
 
+  // Flatten the pages from Infinite Query
   const mediaItems = data?.pages.flatMap((page) => page.data) || [];
 
   if (mediaItems.length === 0) {
@@ -138,41 +140,44 @@ export default function MediaGrid({ integrationId }: MediaGridProps) {
     <div>
       {viewMode === "grid" ? (
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
-          {mediaItems.map((item) => (
+          {mediaItems.map((item, index) => (
             <MediaCard
               key={item.id}
               item={item}
               integrationId={integrationId}
               onSelect={selectItem}
               onOpenDetail={openDetailPanel}
+              // Prioritize loading the first 12 images (approx. one full screen)
+              priority={index < 12}
             />
           ))}
         </div>
       ) : (
         <div className="space-y-2">
-          {mediaItems.map((item) => (
+          {mediaItems.map((item, index) => (
             <MediaListItem
               key={item.id}
               item={item}
               integrationId={integrationId}
               onSelect={selectItem}
               onOpenDetail={openDetailPanel}
+              priority={index < 12}
             />
           ))}
         </div>
       )}
 
-      {/* Infinite Scroll Trigger & Loader */}
+      {/* Infinite Scroll Loader */}
       <div
         ref={observerTarget}
-        className="h-20 flex items-center justify-center w-full mt-4"
+        className="h-24 flex items-center justify-center w-full mt-4"
       >
         {isFetchingNextPage && (
           <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
         )}
         {!hasNextPage && mediaItems.length > 0 && (
           <p className="text-xs text-muted-foreground font-serif italic">
-            All items loaded
+            End of list
           </p>
         )}
       </div>

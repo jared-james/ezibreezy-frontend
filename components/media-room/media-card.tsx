@@ -13,12 +13,14 @@ interface MediaCardProps {
   integrationId: string | null;
   onSelect: (id: string, isShiftKey: boolean, isCtrlKey: boolean) => void;
   onOpenDetail: (id: string) => void;
+  priority?: boolean;
 }
 
 export default function MediaCard({
   item,
   onSelect,
   onOpenDetail,
+  priority = false,
 }: MediaCardProps) {
   // Each card subscribes only to its own selection state
   // This prevents re-renders when other items are selected/deselected
@@ -67,7 +69,8 @@ export default function MediaCard({
                 src={item.thumbnailUrl}
                 alt={item.altText || item.filename}
                 className="w-full h-full object-cover"
-                loading="lazy"
+                loading={priority ? "eager" : "lazy"}
+                fetchPriority={priority ? "high" : "auto"}
               />
             ) : (
               <div className="w-full h-full flex items-center justify-center">
@@ -80,19 +83,18 @@ export default function MediaCard({
               </div>
             </div>
           </div>
+        ) : item.thumbnailUrl || item.url ? (
+          <img
+            src={item.thumbnailUrl || item.url}
+            alt={item.altText || item.filename}
+            className="w-full h-full object-cover"
+            loading={priority ? "eager" : "lazy"}
+            fetchPriority={priority ? "high" : "auto"}
+          />
         ) : (
-          (item.thumbnailUrl || item.url) ? (
-            <img
-              src={item.thumbnailUrl || item.url}
-              alt={item.altText || item.filename}
-              className="w-full h-full object-cover"
-              loading="lazy"
-            />
-          ) : (
-            <div className="w-full h-full flex items-center justify-center bg-neutral-100">
-              <Film className="w-8 h-8 text-muted-foreground" />
-            </div>
-          )
+          <div className="w-full h-full flex items-center justify-center bg-neutral-100">
+            <Film className="w-8 h-8 text-muted-foreground" />
+          </div>
         )}
 
         {/* Selection checkbox - always visible */}

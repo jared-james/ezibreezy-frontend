@@ -13,12 +13,14 @@ interface MediaListItemProps {
   integrationId: string | null;
   onSelect: (id: string, isShiftKey: boolean, isCtrlKey: boolean) => void;
   onOpenDetail: (id: string) => void;
+  priority?: boolean;
 }
 
 export default function MediaListItem({
   item,
   onSelect,
   onOpenDetail,
+  priority = false,
 }: MediaListItemProps) {
   // Each list item subscribes only to its own selection state
   const isSelected = useMediaRoomStore((s) => s.selectedIds.has(item.id));
@@ -80,7 +82,8 @@ export default function MediaListItem({
                 src={item.thumbnailUrl}
                 alt={item.altText || item.filename}
                 className="w-full h-full object-cover"
-                loading="lazy"
+                loading={priority ? "eager" : "lazy"}
+                fetchPriority={priority ? "high" : "auto"}
               />
             ) : (
               <div className="w-full h-full flex items-center justify-center">
@@ -93,19 +96,18 @@ export default function MediaListItem({
               </div>
             </div>
           </div>
+        ) : item.thumbnailUrl || item.url ? (
+          <img
+            src={item.thumbnailUrl || item.url}
+            alt={item.altText || item.filename}
+            className="w-full h-full object-cover"
+            loading={priority ? "eager" : "lazy"}
+            fetchPriority={priority ? "high" : "auto"}
+          />
         ) : (
-          (item.thumbnailUrl || item.url) ? (
-            <img
-              src={item.thumbnailUrl || item.url}
-              alt={item.altText || item.filename}
-              className="w-full h-full object-cover"
-              loading="lazy"
-            />
-          ) : (
-            <div className="w-full h-full flex items-center justify-center bg-neutral-100">
-              <Film className="w-6 h-6 text-muted-foreground" />
-            </div>
-          )
+          <div className="w-full h-full flex items-center justify-center bg-neutral-100">
+            <Film className="w-6 h-6 text-muted-foreground" />
+          </div>
         )}
       </div>
 
