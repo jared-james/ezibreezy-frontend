@@ -105,6 +105,8 @@ export default function EditorialCore({
     threadMessages,
     handleMediaChange,
     handleRemoveMedia,
+    handleLibraryMediaSelect,
+    selectedLibraryMediaIds,
     setThreadMessages,
     postMutation,
   } = usePostEditor({ mode });
@@ -440,6 +442,8 @@ export default function EditorialCore({
                     handleMediaChange(files, previews, null)
                   }
                   onRemoveMedia={(file) => handleRemoveMedia(file, null)}
+                  onLibraryMediaSelect={handleLibraryMediaSelect}
+                  selectedLibraryMediaIds={selectedLibraryMediaIds}
                 />
               }
             />

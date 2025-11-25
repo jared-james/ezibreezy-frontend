@@ -252,6 +252,57 @@ export function usePostEditor(options: UsePostEditorOptions = {}) {
     [setStagedMediaItems, setState]
   );
 
+  const handleLibraryMediaSelect = useCallback(
+    (libraryMedia: any) => {
+      const currentItems = useEditorialStore.getState().stagedMediaItems;
+
+      // Check if this library item is already selected
+      const existingItem = currentItems.find((item) => item.id === libraryMedia.id);
+
+      if (existingItem) {
+        // Remove it if already selected
+        const newMediaItems = currentItems.filter(
+          (item) => item.id !== libraryMedia.id
+        );
+        setStagedMediaItems(newMediaItems);
+
+        // Also remove it from any platform selections
+        const currentSelections =
+          useEditorialStore.getState().platformMediaSelections;
+        const newSelections = { ...currentSelections };
+        Object.keys(newSelections).forEach((platformId) => {
+          newSelections[platformId] = newSelections[platformId].filter(
+            (uid) => uid !== existingItem.uid
+          );
+        });
+        setState({ platformMediaSelections: newSelections });
+      } else {
+        // Add it as a new media item
+        const newMediaItem: MediaItem = {
+          uid: crypto.randomUUID(),
+          file: null, // Library media doesn't have a File object
+          preview: libraryMedia.thumbnailUrl || libraryMedia.url,
+          id: libraryMedia.id, // Already uploaded, has an ID
+          isUploading: false,
+          threadIndex: null,
+          type: libraryMedia.type.startsWith("video/") ? "video" : "image",
+        };
+
+        const updatedItems = [...currentItems, newMediaItem];
+        setStagedMediaItems(updatedItems);
+      }
+    },
+    [setStagedMediaItems, setState]
+  );
+
+  const selectedLibraryMediaIds = useMemo(() => {
+    return new Set(
+      stagedMediaItems
+        .filter((item) => item.file === null && item.id !== null)
+        .map((item) => item.id!)
+    );
+  }, [stagedMediaItems]);
+
   return {
     stagedMediaFiles: mainPostStagedMedia
       .map((m) => m.file!)
@@ -266,6 +317,8 @@ export function usePostEditor(options: UsePostEditorOptions = {}) {
     updateState: setState,
     handleMediaChange,
     handleRemoveMedia,
+    handleLibraryMediaSelect,
+    selectedLibraryMediaIds,
     setThreadMessages,
     postMutation,
     connections,
