@@ -13,41 +13,36 @@ import {
   calculateCenteredCrop,
 } from "@/lib/utils/crop-utils";
 
-// URL regex pattern to detect links in caption (matches backend pattern)
-// Handles: https://..., http://..., www.example.com, example.com
-const URL_REGEX = /(https?:\/\/[^\s]+|www\.[^\s]+|[a-zA-Z0-9][-a-zA-Z0-9]*\.[a-zA-Z]{2,}(?:\/[^\s]*)?)/gi;
+const URL_REGEX =
+  /(https?:\/\/[^\s]+|www\.[^\s]+|[a-zA-Z0-9][-a-zA-Z0-9]*\.[a-zA-Z]{2,}(?:\/[^\s]*)?)/gi;
 
-// Extract first URL from text
 function extractFirstUrl(text: string): string | null {
   const matches = text.match(URL_REGEX);
   if (!matches) return null;
 
-  // Filter out common false positives (e.g., "word.word" without TLD context)
-  const validUrl = matches.find(match => {
-    // If it starts with http/https or www, it's definitely a URL
-    if (match.startsWith('http') || match.startsWith('www.')) return true;
-    // Otherwise, check if it looks like a real domain (has common TLD)
-    const commonTlds = /\.(com|org|net|io|co|app|dev|me|info|biz|edu|gov|uk|ca|au|de|fr|jp|cn|br|in|ru|nl|it|es|pl|be|ch|at|se|no|dk|fi|nz|za|mx|ar|cl|sg|hk|kr|tw|my|ph|th|vn|id)\b/i;
+  const validUrl = matches.find((match) => {
+    if (match.startsWith("http") || match.startsWith("www.")) return true;
+    const commonTlds =
+      /\.(com|org|net|io|co|app|dev|me|info|biz|edu|gov|uk|ca|au|de|fr|jp|cn|br|in|ru|nl|it|es|pl|be|ch|at|se|no|dk|fi|nz|za|mx|ar|cl|sg|hk|kr|tw|my|ph|th|vn|id)\b/i;
     return commonTlds.test(match);
   });
 
   return validUrl || null;
 }
 
-// Get domain from URL for display
 function getDomainFromUrl(url: string): string {
   try {
-    // Add protocol if missing so URL parser works
     const urlWithProtocol = url.startsWith("http") ? url : `https://${url}`;
     const urlObj = new URL(urlWithProtocol);
     return urlObj.hostname.replace(/^www\./, "").toUpperCase();
   } catch {
-    // Fallback: extract domain-like part
-    return url.replace(/^www\./, "").split("/")[0].toUpperCase();
+    return url
+      .replace(/^www\./, "")
+      .split("/")[0]
+      .toUpperCase();
   }
 }
 
-// Remove URL from caption (Facebook strips the link when showing preview)
 function stripUrlFromCaption(caption: string, url: string): string {
   return caption.replace(url, "").trim();
 }
@@ -122,13 +117,9 @@ function FacebookPreview({
   const displayMediaSrc = croppedPreview || mediaPreview;
   const canCrop = originalMediaSrc && mediaType === "image" && onCropComplete;
 
-  // Detect URL in caption for link preview
   const detectedUrl = useMemo(() => extractFirstUrl(caption), [caption]);
-
-  // Show link preview if there's a URL and no media attached
   const showLinkPreview = detectedUrl && !displayMediaSrc;
 
-  // Strip URL from caption when showing link preview (FB behavior)
   const displayCaption = useMemo(() => {
     if (showLinkPreview && detectedUrl) {
       return stripUrlFromCaption(caption, detectedUrl);
@@ -269,7 +260,6 @@ function FacebookPreview({
         </div>
       )}
 
-      {/* Media or Link Preview section */}
       {displayMediaSrc ? (
         <div className="relative bg-[--background]">
           {mediaType === "video" ? (
@@ -291,11 +281,9 @@ function FacebookPreview({
         </div>
       ) : showLinkPreview && detectedUrl ? (
         <div className="border-t border-b border-[--border] bg-[--background]">
-          {/* Link preview placeholder image area */}
           <div className="aspect-[1.91/1] bg-[--muted] flex items-center justify-center">
             <Link2 className="w-12 h-12 text-[--muted-foreground]" />
           </div>
-          {/* Link preview metadata */}
           <div className="p-3 bg-[--surface]">
             <p className="text-xs text-[--muted-foreground] uppercase">
               {getDomainFromUrl(detectedUrl)}

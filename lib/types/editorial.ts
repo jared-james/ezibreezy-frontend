@@ -1,5 +1,14 @@
 // lib/types/editorial.ts
 
+// The MediaItem type from the store is complex and includes File objects.
+// For the draft, we only need to preserve the essential data that can be passed between pages.
+export interface DraftMediaItem {
+  uid: string;
+  preview: string;
+  type: "image" | "video";
+  file?: File; // File is optional as it might not be serializable, but useful for in-memory transfer
+}
+
 export type PostType = "text" | "image" | "video";
 
 export type PlatformId =
@@ -23,12 +32,6 @@ export interface Platform {
   name: string;
   icon: React.ComponentType<{ className?: string }>;
   accounts: Account[];
-}
-
-export interface MediaFile {
-  file: File | null;
-  preview: string | null;
-  type: "image" | "video";
 }
 
 export interface ThreadMessage {
@@ -64,7 +67,8 @@ export interface EditorialDraft {
   platformCaptions: Record<string, string>;
   activePlatforms: string[];
   selectedAccounts: SelectedAccounts;
-  media?: MediaFile;
+  stagedMediaItems?: DraftMediaItem[];
+  platformMediaSelections?: Record<string, string[]>;
   distribution?: DistributionMetadata;
   schedule?: ScheduleSettings;
   sourceClippingId?: string;

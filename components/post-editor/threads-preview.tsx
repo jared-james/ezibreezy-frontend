@@ -1,9 +1,15 @@
 // components/post-editor/threads-preview.tsx
 
 import { memo, useState } from "react";
-import { Heart, MessageCircle, Repeat2, Send, ImageIcon, Crop } from "lucide-react";
+import {
+  Heart,
+  MessageCircle,
+  Repeat2,
+  Send,
+  ImageIcon,
+  Crop,
+} from "lucide-react";
 import { cn } from "@/lib/utils";
-import { ThreadMessageAugmented } from "@/lib/types/editorial";
 import { renderCaptionWithHashtags } from "./render-caption";
 import { ImageCropperModal } from "./image-cropper-modal";
 import type { PixelCrop } from "react-image-crop";
@@ -13,7 +19,6 @@ interface ThreadsPreviewProps {
   caption: string;
   mediaPreview: string[];
   mediaType?: "text" | "image" | "video";
-  threadMessages: ThreadMessageAugmented[];
   platformUsername: string;
   displayName: string | null;
   avatarUrl: string | null;
@@ -52,7 +57,13 @@ const ProfileAvatar = ({
   );
 };
 
-const MediaGrid = ({ images, mediaType = "image" }: { images: string[]; mediaType?: "text" | "image" | "video" }) => {
+const MediaGrid = ({
+  images,
+  mediaType = "image",
+}: {
+  images: string[];
+  mediaType?: "text" | "image" | "video";
+}) => {
   if (images.length === 0) return null;
 
   return (
@@ -90,7 +101,6 @@ function ThreadsPreview({
   caption,
   mediaPreview,
   mediaType = "image",
-  threadMessages,
   platformUsername,
   displayName,
   avatarUrl,
@@ -102,12 +112,15 @@ function ThreadsPreview({
   const primaryName = displayName || accountName || "Account";
   const [isCropperOpen, setIsCropperOpen] = useState(false);
 
-  // For Threads, we apply crop to first image only
   const mainPostImages = croppedPreview
     ? [croppedPreview, ...mediaPreview.slice(1, 4)]
     : mediaPreview.slice(0, 4);
-  const hasThread = threadMessages.length > 0;
-  const canCrop = originalMediaSrc && mediaType === "image" && onCropComplete && mediaPreview.length > 0;
+
+  const canCrop =
+    originalMediaSrc &&
+    mediaType === "image" &&
+    onCropComplete &&
+    mediaPreview.length > 0;
 
   const handleCropComplete = async (
     croppedAreaPixels: PixelCrop,
@@ -118,6 +131,28 @@ function ThreadsPreview({
     if (!originalMediaSrc || !onCropComplete) return;
 
     try {
+      const getOriginalDimensions = (
+        src: string
+      ): Promise<{ width: number; height: number }> =>
+        new Promise((resolve, reject) => {
+          const img = new window.Image();
+          img.onload = () =>
+            resolve({ width: img.naturalWidth, height: img.naturalHeight });
+          img.onerror = reject;
+          img.src = src;
+        });
+
+      const originalDimensions = await getOriginalDimensions(originalMediaSrc);
+      const scalingFactor = originalDimensions.width / displayedWidth;
+
+      const scaledCroppedAreaPixels: PixelCrop = {
+        ...croppedAreaPixels,
+        x: Math.round(croppedAreaPixels.x * scalingFactor),
+        y: Math.round(croppedAreaPixels.y * scalingFactor),
+        width: Math.round(croppedAreaPixels.width * scalingFactor),
+        height: Math.round(croppedAreaPixels.height * scalingFactor),
+      };
+
       const croppedUrl = await createCroppedPreviewUrl(
         originalMediaSrc,
         croppedAreaPixels,
@@ -125,7 +160,7 @@ function ThreadsPreview({
         displayedHeight
       );
       const cropData: CropData = {
-        croppedAreaPixels,
+        croppedAreaPixels: scaledCroppedAreaPixels,
         aspectRatio,
       };
       onCropComplete(cropData, croppedUrl);
@@ -136,24 +171,24 @@ function ThreadsPreview({
 
   return (
     <div className="mx-auto w-full max-w-sm bg-[--surface] border border-[--border] rounded-lg overflow-hidden">
-      {/* Main Post */}
       <div className="relative p-4">
-        {hasThread && (
-          <div
-            className="absolute left-[35.5px] top-[62px] z-0 w-0.5 bg-[--border]"
-            style={{ bottom: "20px" }}
-            aria-hidden="true"
-          />
-        )}
-
         <div className="relative z-10 flex items-start gap-3">
-          <div className="flex shrink-0 flex-col items-center" style={{ width: 40 }}>
-            <ProfileAvatar size={40} avatarUrl={avatarUrl} primaryName={primaryName} />
+          <div
+            className="flex shrink-0 flex-col items-center"
+            style={{ width: 40 }}
+          >
+            <ProfileAvatar
+              size={40}
+              avatarUrl={avatarUrl}
+              primaryName={primaryName}
+            />
           </div>
 
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-1 text-sm">
-              <span className="truncate font-bold text-[--foreground]">{primaryName}</span>
+              <span className="truncate font-bold text-[--foreground]">
+                {primaryName}
+              </span>
               <span className="shrink-0 text-[--muted-foreground]">· now</span>
             </div>
 
@@ -182,57 +217,6 @@ function ThreadsPreview({
         </div>
       </div>
 
-      {/* Thread Messages */}
-      {threadMessages.map((message, index) => {
-        const isLastMessage = index === threadMessages.length - 1;
-
-        return (
-          <div
-            key={index}
-            className={cn("relative z-10 px-4", isLastMessage ? "pb-4" : "pb-3")}
-          >
-            {!isLastMessage && (
-              <div
-                className="absolute left-[35.5px] top-0 z-0 h-full w-0.5 bg-[--border]"
-                aria-hidden="true"
-              />
-            )}
-
-            <div className="flex items-start gap-3">
-              <div
-                className="relative z-10 flex shrink-0 flex-col items-center"
-                style={{ width: 40 }}
-              >
-                <ProfileAvatar size={40} avatarUrl={avatarUrl} primaryName={primaryName} />
-              </div>
-
-              <div className="min-w-0 flex-1">
-                <div className="flex items-center gap-1 text-sm">
-                  <span className="truncate font-bold text-[--foreground]">{primaryName}</span>
-                  <span className="shrink-0 text-[--muted-foreground]">· now</span>
-                </div>
-
-                <p className="mt-1 whitespace-pre-wrap wrap-break-word text-[0.95rem] leading-normal text-[--foreground]">
-                  {renderCaptionWithHashtags(message.content)}
-                </p>
-
-                {(message.mediaPreviews?.length || 0) > 0 && (
-                  <MediaGrid images={message.mediaPreviews || []} mediaType={message.mediaType || "image"} />
-                )}
-
-                <div className="mt-3 flex items-center gap-4 text-[--muted-foreground]">
-                  <Heart className="h-5 w-5 cursor-pointer hover:text-[--foreground]" />
-                  <MessageCircle className="h-5 w-5 cursor-pointer hover:text-[--foreground]" />
-                  <Repeat2 className="h-5 w-5 cursor-pointer hover:text-[--foreground]" />
-                  <Send className="h-5 w-5 cursor-pointer hover:text-[--foreground]" />
-                </div>
-              </div>
-            </div>
-          </div>
-        );
-      })}
-
-      {/* Footer */}
       <div className="px-3 py-2 border-t border-[--border]">
         {canCrop ? (
           <div className="flex items-center gap-4">

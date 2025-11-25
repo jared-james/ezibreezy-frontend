@@ -31,6 +31,7 @@ import {
 import ThreadPostMediaUpload from "./thread-post-media-upload";
 import { useEditorialStore } from "@/lib/store/editorial-store";
 import HashtagSelectorModal from "./hashtag-selector-modal";
+import PlatformMediaSelector from "./platform-media-selector";
 
 type SelectedAccounts = Record<string, string[]>;
 
@@ -55,7 +56,13 @@ interface CaptionEditorProps {
   ) => void;
 }
 
-const PlatformIcon = ({ platformId, className }: { platformId: string; className?: string }) => {
+const PlatformIcon = ({
+  platformId,
+  className,
+}: {
+  platformId: string;
+  className?: string;
+}) => {
   const Icon =
     platformId === "x"
       ? Twitter
@@ -198,10 +205,14 @@ export default function CaptionEditor({
   const mainCaption = useEditorialStore((state) => state.mainCaption);
   const platformCaptions = useEditorialStore((state) => state.platformCaptions);
   const platformTitles = useEditorialStore((state) => state.platformTitles);
-  const platformThreadMessages = useEditorialStore((state) => state.platformThreadMessages);
-  const mediaItems = useEditorialStore((state) => state.mediaItems);
+  const platformThreadMessages = useEditorialStore(
+    (state) => state.platformThreadMessages
+  );
+  const stagedMediaItems = useEditorialStore((state) => state.stagedMediaItems);
   const firstComment = useEditorialStore((state) => state.firstComment);
-  const facebookFirstComment = useEditorialStore((state) => state.facebookFirstComment);
+  const facebookFirstComment = useEditorialStore(
+    (state) => state.facebookFirstComment
+  );
   const currentPostType = useEditorialStore((state) => state.postType);
   const facebookPostType = useEditorialStore((state) => state.facebookPostType);
   const setState = useEditorialStore((state) => state.setState);
@@ -216,7 +227,8 @@ export default function CaptionEditor({
   const [localPlatformThreadMessages, setLocalPlatformThreadMessages] =
     useState<Record<string, ThreadMessage[]>>(platformThreadMessages);
   const [localFirstComment, setLocalFirstComment] = useState(firstComment);
-  const [localFacebookFirstComment, setLocalFacebookFirstComment] = useState(facebookFirstComment);
+  const [localFacebookFirstComment, setLocalFacebookFirstComment] =
+    useState(facebookFirstComment);
   const [showFirstComment, setShowFirstComment] = useState(
     !!firstComment && firstComment.length > 0
   );
@@ -224,25 +236,31 @@ export default function CaptionEditor({
     !!facebookFirstComment && facebookFirstComment.length > 0
   );
 
-  // Caption filter tab state - tracks which platform's caption section to show (shared via store)
-  const activeCaptionFilter = useEditorialStore((state) => state.activeCaptionFilter);
-  const setActiveCaptionFilter = useCallback((filter: string) => setState({ activeCaptionFilter: filter }), [setState]);
+  const activeCaptionFilter = useEditorialStore(
+    (state) => state.activeCaptionFilter
+  );
+  const setActiveCaptionFilter = useCallback(
+    (filter: string) => setState({ activeCaptionFilter: filter }),
+    [setState]
+  );
 
-  // Get the list of selected platform IDs
   const selectedPlatformIds = useMemo(
     () => Object.keys(selectedAccounts),
     [selectedAccounts]
   );
 
-  // Sync active filter when selected accounts change
   useEffect(() => {
     if (selectedPlatformIds.length === 0) {
       setActiveCaptionFilter("all");
-    } else if (activeCaptionFilter !== "all" && !selectedPlatformIds.includes(activeCaptionFilter)) {
-      // If current filter is no longer valid, switch to first selected platform
+    } else if (
+      activeCaptionFilter !== "all" &&
+      !selectedPlatformIds.includes(activeCaptionFilter)
+    ) {
       setActiveCaptionFilter(selectedPlatformIds[0]);
-    } else if (activeCaptionFilter === "all" && selectedPlatformIds.length === 1) {
-      // If only one platform selected, auto-select it
+    } else if (
+      activeCaptionFilter === "all" &&
+      selectedPlatformIds.length === 1
+    ) {
       setActiveCaptionFilter(selectedPlatformIds[0]);
     }
   }, [selectedPlatformIds, activeCaptionFilter, setActiveCaptionFilter]);
@@ -281,7 +299,9 @@ export default function CaptionEditor({
     if (facebookPostType === "story") {
       setShowFacebookFirstComment(false);
     } else {
-      setShowFacebookFirstComment(!!facebookFirstComment && facebookFirstComment.length > 0);
+      setShowFacebookFirstComment(
+        !!facebookFirstComment && facebookFirstComment.length > 0
+      );
     }
   }, [facebookFirstComment, facebookPostType]);
 
@@ -317,11 +337,12 @@ export default function CaptionEditor({
     setState({ platformThreadMessages: localPlatformThreadMessages });
   }, [localPlatformThreadMessages, setState]);
 
-  // Helper to augment thread messages with media data from the store
   const augmentThreadMessages = useCallback(
     (messages: ThreadMessage[]): ThreadMessageAugmented[] => {
       return messages.map((msg, index) => {
-        const threadMedia = mediaItems.filter((m) => m.threadIndex === index);
+        const threadMedia = stagedMediaItems.filter(
+          (m) => m.threadIndex === index
+        );
         return {
           ...msg,
           mediaPreviews: threadMedia
@@ -332,18 +353,27 @@ export default function CaptionEditor({
         };
       });
     },
-    [mediaItems]
+    [stagedMediaItems]
   );
 
-  // Get the current thread messages based on the active filter
   const currentThreadMessages = useMemo(() => {
-    const supportsThreading = activeCaptionFilter === "x" || activeCaptionFilter === "threads";
-    if (supportsThreading && localPlatformThreadMessages[activeCaptionFilter]?.length > 0) {
-      // Augment platform-specific thread messages with media data
-      return augmentThreadMessages(localPlatformThreadMessages[activeCaptionFilter]);
+    const supportsThreading =
+      activeCaptionFilter === "x" || activeCaptionFilter === "threads";
+    if (
+      supportsThreading &&
+      localPlatformThreadMessages[activeCaptionFilter]?.length > 0
+    ) {
+      return augmentThreadMessages(
+        localPlatformThreadMessages[activeCaptionFilter]
+      );
     }
     return localThreadMessages;
-  }, [activeCaptionFilter, localPlatformThreadMessages, localThreadMessages, augmentThreadMessages]);
+  }, [
+    activeCaptionFilter,
+    localPlatformThreadMessages,
+    localThreadMessages,
+    augmentThreadMessages,
+  ]);
 
   const [isHashtagModalOpen, setIsHashtagModalOpen] = useState(false);
   const [targetPlatformId, setTargetPlatformId] = useState<string | null>(null);
@@ -358,8 +388,8 @@ export default function CaptionEditor({
       ? "Describe the visual, context, and what you want people to feel..."
       : "Draft the main caption you want to adapt across platforms...";
 
-  // Check if we're editing platform-specific thread messages
-  const isEditingPlatformThread = activeCaptionFilter === "x" || activeCaptionFilter === "threads";
+  const isEditingPlatformThread =
+    activeCaptionFilter === "x" || activeCaptionFilter === "threads";
 
   const addThreadMessage = (platformId: string) => {
     if (currentThreadMessages.length < 20) {
@@ -369,13 +399,11 @@ export default function CaptionEditor({
       ];
 
       if (isEditingPlatformThread) {
-        // Update platform-specific thread messages
         setLocalPlatformThreadMessages((prev) => ({
           ...prev,
           [platformId]: newMessages,
         }));
       } else {
-        // Update base thread messages
         setLocalThreadMessages(newMessages);
         onThreadMessagesChange?.(newMessages);
       }
@@ -396,7 +424,11 @@ export default function CaptionEditor({
     }
   };
 
-  const updateThreadMessageContent = (index: number, content: string, platformId: string) => {
+  const updateThreadMessageContent = (
+    index: number,
+    content: string,
+    platformId: string
+  ) => {
     const newMessages = currentThreadMessages.map((msg, i) =>
       i === index ? { ...msg, content } : msg
     );
@@ -444,7 +476,8 @@ export default function CaptionEditor({
         setLocalFirstComment(newComment);
         setTargetPlatformId(null);
       } else if (targetPlatformId === "facebook_first_comment") {
-        const newComment = localFacebookFirstComment.trimEnd() + hashtagsWithPadding;
+        const newComment =
+          localFacebookFirstComment.trimEnd() + hashtagsWithPadding;
         setLocalFacebookFirstComment(newComment);
         setTargetPlatformId(null);
       } else if (targetPlatformId) {
@@ -512,7 +545,6 @@ export default function CaptionEditor({
         />
       </div>
 
-      {/* Caption Filter Tabs - only show when multiple platforms are selected */}
       {selectedPlatformIds.length > 1 && (
         <div className="mt-6 flex flex-wrap items-center gap-2">
           <button
@@ -546,7 +578,10 @@ export default function CaptionEditor({
                     : "border-border bg-surface text-muted-foreground hover:bg-surface-hover hover:text-foreground"
                 )}
               >
-                <PlatformIcon platformId={platformId} className={isActive ? "text-brand-primary" : undefined} />
+                <PlatformIcon
+                  platformId={platformId}
+                  className={isActive ? "text-brand-primary" : undefined}
+                />
               </button>
             );
           })}
@@ -554,152 +589,248 @@ export default function CaptionEditor({
       )}
 
       {Object.keys(selectedAccounts)
-        .filter((platformId) => activeCaptionFilter === "all" || activeCaptionFilter === platformId)
+        .filter(
+          (platformId) =>
+            activeCaptionFilter === "all" || activeCaptionFilter === platformId
+        )
         .map((platformId) => {
-        const platform = platforms.find((p) => p.id === platformId);
-        if (!platform) return null;
+          const platform = platforms.find((p) => p.id === platformId);
+          if (!platform) return null;
 
-        const supportsThreading =
-          platformId === "x" || platformId === "threads";
-        const supportsFirstComment = platformId === "instagram" || platformId === "facebook";
-        const supportsPostTypeSelection = platformId === "instagram" || platformId === "facebook";
-        const supportsTitle = platformId === "tiktok";
+          const supportsThreading =
+            platformId === "x" || platformId === "threads";
+          const supportsFirstComment =
+            platformId === "instagram" || platformId === "facebook";
+          const supportsPostTypeSelection =
+            platformId === "instagram" || platformId === "facebook";
+          const supportsTitle = platformId === "tiktok";
 
-        const isInstagramStory = platformId === "instagram" && currentPostType === "story";
-        const isFacebookStory = platformId === "facebook" && facebookPostType === "story";
-        const isStory = isInstagramStory || isFacebookStory;
+          const isInstagramStory =
+            platformId === "instagram" && currentPostType === "story";
+          const isFacebookStory =
+            platformId === "facebook" && facebookPostType === "story";
+          const isStory = isInstagramStory || isFacebookStory;
 
-        const currentCaption = localPlatformCaptions[platformId] || "";
+          const currentCaption = localPlatformCaptions[platformId] || "";
 
-        return (
-          <div key={platformId} className="mt-6">
-            <label
-              htmlFor={`caption-${platformId}`}
-              className="eyebrow mb-2 flex items-center gap-3"
-            >
-              <span className="flex items-center gap-2">
-                <PlatformIcon platformId={platformId} />
-                {platform.name} Caption
-              </span>
-              {platform.accounts.length > 0 && (
-                <span className="ml-auto flex items-center gap-1.5">
-                  {platform.accounts.map((account) => {
-                    const isSelected = selectedAccounts[platformId]?.includes(
-                      account.id
-                    );
-
-                    return (
-                      <button
-                        key={account.id}
-                        type="button"
-                        onClick={() => onAccountSelect(platformId, account.id)}
-                        className={cn(
-                          "h-6 w-6 rounded-full border-2 transition-all overflow-hidden",
-                          isSelected
-                            ? "border-primary"
-                            : "border-border hover:border-primary/50"
-                        )}
-                        title={account.name}
-                      >
-                        {account.img ? (
-                          <img
-                            src={account.img}
-                            alt={account.name}
-                            className="h-full w-full object-cover"
-                          />
-                        ) : (
-                          <span className="sr-only">{account.name}</span>
-                        )}
-                      </button>
-                    );
-                  })}
+          return (
+            <div key={platformId} className="mt-6">
+              <label
+                htmlFor={`caption-${platformId}`}
+                className="eyebrow mb-2 flex items-center gap-3"
+              >
+                <span className="flex items-center gap-2">
+                  <PlatformIcon platformId={platformId} />
+                  {platform.name} Caption
                 </span>
-              )}
-            </label>
+                {platform.accounts.length > 0 && (
+                  <span className="ml-auto flex items-center gap-1.5">
+                    {platform.accounts.map((account) => {
+                      const isSelected = selectedAccounts[platformId]?.includes(
+                        account.id
+                      );
 
-            <div className="space-y-4">
-              {supportsTitle && (
-                <div>
-                  <label
-                    htmlFor={`title-${platformId}`}
-                    className="eyebrow mb-2 flex items-center gap-1.5"
-                  >
-                    <Type className="h-3 w-3" />
-                    Title
-                    <span className="ml-auto text-[0.65rem] text-muted-foreground">
-                      {postType === "video" ? "Max 2200 chars" : "Max 90 chars"}
-                    </span>
-                  </label>
-                  <Input
-                    id={`title-${platformId}`}
-                    value={localPlatformTitles[platformId] || ""}
-                    onChange={(event) =>
-                      setLocalPlatformTitles((prev) => ({
-                        ...prev,
-                        [platformId]: event.target.value,
-                      }))
-                    }
-                    placeholder="Add a title for your TikTok..."
-                    maxLength={postType === "video" ? 2200 : 90}
-                  />
-                </div>
-              )}
+                      return (
+                        <button
+                          key={account.id}
+                          type="button"
+                          onClick={() =>
+                            onAccountSelect(platformId, account.id)
+                          }
+                          className={cn(
+                            "h-6 w-6 rounded-full border-2 transition-all overflow-hidden",
+                            isSelected
+                              ? "border-primary"
+                              : "border-border hover:border-primary/50"
+                          )}
+                          title={account.name}
+                        >
+                          {account.img ? (
+                            <img
+                              src={account.img}
+                              alt={account.name}
+                              className="h-full w-full object-cover"
+                            />
+                          ) : (
+                            <span className="sr-only">{account.name}</span>
+                          )}
+                        </button>
+                      );
+                    })}
+                  </span>
+                )}
+              </label>
 
-              <CaptionTextarea
-                id={`caption-${platformId}`}
-                value={isStory ? "" : currentCaption}
-                onChange={(event) =>
-                  setLocalPlatformCaptions((prev) => ({
-                    ...prev,
-                    [platformId]: event.target.value,
-                  }))
-                }
-                placeholder={
-                  isStory
-                    ? "Captions are not used for Instagram Stories."
-                    : `${platform.name} specific caption...`
-                }
-                platformId={platformId}
-                onHashtagClick={openHashtagModal}
-                disabled={isStory}
-              />
+              <div className="space-y-4">
+                {supportsTitle && (
+                  <div>
+                    <label
+                      htmlFor={`title-${platformId}`}
+                      className="eyebrow mb-2 flex items-center gap-1.5"
+                    >
+                      <Type className="h-3 w-3" />
+                      Title
+                      <span className="ml-auto text-[0.65rem] text-muted-foreground">
+                        {postType === "video"
+                          ? "Max 2200 chars"
+                          : "Max 90 chars"}
+                      </span>
+                    </label>
+                    <Input
+                      id={`title-${platformId}`}
+                      value={localPlatformTitles[platformId] || ""}
+                      onChange={(event) =>
+                        setLocalPlatformTitles((prev) => ({
+                          ...prev,
+                          [platformId]: event.target.value,
+                        }))
+                      }
+                      placeholder="Add a title for your TikTok..."
+                      maxLength={postType === "video" ? 2200 : 90}
+                    />
+                  </div>
+                )}
 
-              {supportsPostTypeSelection && platformId === "instagram" && (
-                <div className="flex justify-end">
-                  <PostTypeSelector
-                    currentType={currentPostType}
-                    onTypeChange={(type) => setState({ postType: type })}
-                  />
-                </div>
-              )}
+                <CaptionTextarea
+                  id={`caption-${platformId}`}
+                  value={isStory ? "" : currentCaption}
+                  onChange={(event) =>
+                    setLocalPlatformCaptions((prev) => ({
+                      ...prev,
+                      [platformId]: event.target.value,
+                    }))
+                  }
+                  placeholder={
+                    isStory
+                      ? "Captions are not used for Instagram Stories."
+                      : `${platform.name} specific caption...`
+                  }
+                  platformId={platformId}
+                  onHashtagClick={openHashtagModal}
+                  disabled={isStory}
+                />
 
-              {supportsPostTypeSelection && platformId === "facebook" && (
-                <div className="flex justify-end">
-                  <PostTypeSelector
-                    currentType={facebookPostType}
-                    onTypeChange={(type) => setState({ facebookPostType: type })}
-                  />
-                </div>
-              )}
+                <PlatformMediaSelector platformId={platformId} />
 
-              {supportsThreading && (
-                <>
-                  {currentThreadMessages.map((message, index) => {
-                    const mediaFiles = (message as ThreadMessageAugmented).mediaFiles || [];
+                {supportsPostTypeSelection && platformId === "instagram" && (
+                  <div className="flex justify-end">
+                    <PostTypeSelector
+                      currentType={currentPostType}
+                      onTypeChange={(type) => setState({ postType: type })}
+                    />
+                  </div>
+                )}
 
-                    return (
-                      <div
-                        key={index}
-                        className="relative pl-6 before:absolute before:left-0 before:top-0 before:h-full before:w-px before:bg-border ml-2"
-                      >
+                {supportsPostTypeSelection && platformId === "facebook" && (
+                  <div className="flex justify-end">
+                    <PostTypeSelector
+                      currentType={facebookPostType}
+                      onTypeChange={(type) =>
+                        setState({ facebookPostType: type })
+                      }
+                    />
+                  </div>
+                )}
+
+                {supportsThreading && (
+                  <>
+                    {currentThreadMessages.map((message, index) => {
+                      const mediaFiles =
+                        (message as ThreadMessageAugmented).mediaFiles || [];
+
+                      return (
+                        <div
+                          key={index}
+                          className="relative pl-6 before:absolute before:left-0 before:top-0 before:h-full before:w-px before:bg-border ml-2"
+                        >
+                          <div className="space-y-3">
+                            <div className="flex items-center justify-between">
+                              <p className="eyebrow text-[0.65rem]">
+                                Thread Post {index + 2}
+                              </p>
+                              <Button
+                                type="button"
+                                onClick={() =>
+                                  removeThreadMessage(index, platformId)
+                                }
+                                variant="ghost"
+                                size="sm"
+                                className="h-6 px-2 text-muted-foreground hover:text-error"
+                              >
+                                <Trash2 className="h-3 w-3" />
+                              </Button>
+                            </div>
+
+                            <ThreadTextarea
+                              value={message.content}
+                              onChange={(event) =>
+                                updateThreadMessageContent(
+                                  index,
+                                  event.target.value,
+                                  platformId
+                                )
+                              }
+                              placeholder="What's happening next?"
+                              threadIndex={index}
+                              onHashtagClick={openThreadHashtagModal}
+                            />
+
+                            {handleThreadMediaChange &&
+                              handleRemoveThreadMedia && (
+                                <ThreadPostMediaUpload
+                                  threadIndex={index}
+                                  mediaFiles={mediaFiles}
+                                  mediaPreviews={
+                                    (message as ThreadMessageAugmented)
+                                      .mediaPreviews || []
+                                  }
+                                  isUploading={
+                                    (message as ThreadMessageAugmented)
+                                      .isUploading || false
+                                  }
+                                  onMediaChange={handleThreadMediaChange}
+                                  onRemoveMedia={handleRemoveThreadMedia}
+                                />
+                              )}
+                          </div>
+                        </div>
+                      );
+                    })}
+
+                    {currentThreadMessages.length < 20 && (
+                      <div className="flex justify-end">
+                        <Button
+                          type="button"
+                          onClick={() => addThreadMessage(platformId)}
+                          variant="ghost"
+                          size="sm"
+                          className="gap-1 text-xs text-muted-foreground hover:text-foreground"
+                          disabled={isGlobalUploading}
+                        >
+                          <Plus className="h-3 w-3" />
+                          Add to thread
+                        </Button>
+                      </div>
+                    )}
+                  </>
+                )}
+
+                {supportsFirstComment && platformId === "instagram" && (
+                  <>
+                    {showFirstComment ? (
+                      <div className="relative pl-6 before:absolute before:left-0 before:top-0 before:h-full before:w-px before:bg-border ml-2">
                         <div className="space-y-3">
                           <div className="flex items-center justify-between">
-                            <p className="eyebrow text-[0.65rem]">
-                              Thread Post {index + 2}
+                            <p className="eyebrow flex items-center gap-1.5 text-[0.65rem]">
+                              <MessageSquare className="h-3 w-3" />
+                              First Comment
                             </p>
                             <Button
                               type="button"
-                              onClick={() => removeThreadMessage(index, platformId)}
+                              onClick={() => {
+                                setLocalFirstComment("");
+                                setShowFirstComment(false);
+                              }}
                               variant="ghost"
                               size="sm"
                               className="h-6 px-2 text-muted-foreground hover:text-error"
@@ -707,184 +838,112 @@ export default function CaptionEditor({
                               <Trash2 className="h-3 w-3" />
                             </Button>
                           </div>
-
-                          <ThreadTextarea
-                            value={message.content}
-                            onChange={(event) =>
-                              updateThreadMessageContent(
-                                index,
-                                event.target.value,
-                                platformId
-                              )
-                            }
-                            placeholder="What's happening next?"
-                            threadIndex={index}
-                            onHashtagClick={openThreadHashtagModal}
-                          />
-
-                          {handleThreadMediaChange &&
-                            handleRemoveThreadMedia && (
-                              <ThreadPostMediaUpload
-                                threadIndex={index}
-                                mediaFiles={mediaFiles}
-                                mediaPreviews={(message as ThreadMessageAugmented).mediaPreviews || []}
-                                isUploading={(message as ThreadMessageAugmented).isUploading || false}
-                                onMediaChange={handleThreadMediaChange}
-                                onRemoveMedia={handleRemoveThreadMedia}
-                              />
-                            )}
+                          <div className="relative">
+                            <Textarea
+                              rows={4}
+                              value={localFirstComment}
+                              onChange={(e) =>
+                                setLocalFirstComment(e.target.value)
+                              }
+                              placeholder="Add your hashtags or opening line here..."
+                              className="min-h-24 pr-10"
+                            />
+                            <button
+                              type="button"
+                              onClick={() =>
+                                openHashtagModal("instagram_first_comment")
+                              }
+                              className="absolute bottom-3 right-3 text-muted-foreground hover:text-brand-primary transition-colors"
+                            >
+                              <Hash className="h-4 w-4" />
+                            </button>
+                          </div>
                         </div>
                       </div>
-                    );
-                  })}
+                    ) : (
+                      <div className="flex justify-end">
+                        <Button
+                          type="button"
+                          onClick={() => setShowFirstComment(true)}
+                          variant="ghost"
+                          size="sm"
+                          className="gap-1 text-xs text-muted-foreground hover:text-foreground"
+                          disabled={currentPostType === "story"}
+                        >
+                          <Plus className="h-3 w-3" />
+                          Add first comment
+                        </Button>
+                      </div>
+                    )}
+                  </>
+                )}
 
-                  {currentThreadMessages.length < 20 && (
-                    <div className="flex justify-end">
-                      <Button
-                        type="button"
-                        onClick={() => addThreadMessage(platformId)}
-                        variant="ghost"
-                        size="sm"
-                        className="gap-1 text-xs text-muted-foreground hover:text-foreground"
-                        disabled={isGlobalUploading}
-                      >
-                        <Plus className="h-3 w-3" />
-                        Add to thread
-                      </Button>
-                    </div>
-                  )}
-                </>
-              )}
-
-              {supportsFirstComment && platformId === "instagram" && (
-                <>
-                  {showFirstComment ? (
-                    <div className="relative pl-6 before:absolute before:left-0 before:top-0 before:h-full before:w-px before:bg-border ml-2">
-                      <div className="space-y-3">
-                        <div className="flex items-center justify-between">
-                          <p className="eyebrow flex items-center gap-1.5 text-[0.65rem]">
-                            <MessageSquare className="h-3 w-3" />
-                            First Comment
-                          </p>
-                          <Button
-                            type="button"
-                            onClick={() => {
-                              setLocalFirstComment("");
-                              setShowFirstComment(false);
-                            }}
-                            variant="ghost"
-                            size="sm"
-                            className="h-6 px-2 text-muted-foreground hover:text-error"
-                          >
-                            <Trash2 className="h-3 w-3" />
-                          </Button>
-                        </div>
-                        <div className="relative">
-                          <Textarea
-                            rows={4}
-                            value={localFirstComment}
-                            onChange={(e) =>
-                              setLocalFirstComment(e.target.value)
-                            }
-                            placeholder="Add your hashtags or opening line here..."
-                            className="min-h-24 pr-10"
-                          />
-                          <button
-                            type="button"
-                            onClick={() =>
-                              openHashtagModal("instagram_first_comment")
-                            }
-                            className="absolute bottom-3 right-3 text-muted-foreground hover:text-brand-primary transition-colors"
-                          >
-                            <Hash className="h-4 w-4" />
-                          </button>
+                {supportsFirstComment && platformId === "facebook" && (
+                  <>
+                    {showFacebookFirstComment ? (
+                      <div className="relative pl-6 before:absolute before:left-0 before:top-0 before:h-full before:w-px before:bg-border ml-2">
+                        <div className="space-y-3">
+                          <div className="flex items-center justify-between">
+                            <p className="eyebrow flex items-center gap-1.5 text-[0.65rem]">
+                              <MessageSquare className="h-3 w-3" />
+                              First Comment
+                            </p>
+                            <Button
+                              type="button"
+                              onClick={() => {
+                                setLocalFacebookFirstComment("");
+                                setShowFacebookFirstComment(false);
+                              }}
+                              variant="ghost"
+                              size="sm"
+                              className="h-6 px-2 text-muted-foreground hover:text-error"
+                            >
+                              <Trash2 className="h-3 w-3" />
+                            </Button>
+                          </div>
+                          <div className="relative">
+                            <Textarea
+                              rows={4}
+                              value={localFacebookFirstComment}
+                              onChange={(e) =>
+                                setLocalFacebookFirstComment(e.target.value)
+                              }
+                              placeholder="Add your hashtags or opening line here..."
+                              className="min-h-24 pr-10"
+                            />
+                            <button
+                              type="button"
+                              onClick={() =>
+                                openHashtagModal("facebook_first_comment")
+                              }
+                              className="absolute bottom-3 right-3 text-muted-foreground hover:text-brand-primary transition-colors"
+                            >
+                              <Hash className="h-4 w-4" />
+                            </button>
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  ) : (
-                    <div className="flex justify-end">
-                      <Button
-                        type="button"
-                        onClick={() => setShowFirstComment(true)}
-                        variant="ghost"
-                        size="sm"
-                        className="gap-1 text-xs text-muted-foreground hover:text-foreground"
-                        disabled={currentPostType === "story"}
-                      >
-                        <Plus className="h-3 w-3" />
-                        Add first comment
-                      </Button>
-                    </div>
-                  )}
-                </>
-              )}
-
-              {supportsFirstComment && platformId === "facebook" && (
-                <>
-                  {showFacebookFirstComment ? (
-                    <div className="relative pl-6 before:absolute before:left-0 before:top-0 before:h-full before:w-px before:bg-border ml-2">
-                      <div className="space-y-3">
-                        <div className="flex items-center justify-between">
-                          <p className="eyebrow flex items-center gap-1.5 text-[0.65rem]">
-                            <MessageSquare className="h-3 w-3" />
-                            First Comment
-                          </p>
-                          <Button
-                            type="button"
-                            onClick={() => {
-                              setLocalFacebookFirstComment("");
-                              setShowFacebookFirstComment(false);
-                            }}
-                            variant="ghost"
-                            size="sm"
-                            className="h-6 px-2 text-muted-foreground hover:text-error"
-                          >
-                            <Trash2 className="h-3 w-3" />
-                          </Button>
-                        </div>
-                        <div className="relative">
-                          <Textarea
-                            rows={4}
-                            value={localFacebookFirstComment}
-                            onChange={(e) =>
-                              setLocalFacebookFirstComment(e.target.value)
-                            }
-                            placeholder="Add your hashtags or opening line here..."
-                            className="min-h-24 pr-10"
-                          />
-                          <button
-                            type="button"
-                            onClick={() =>
-                              openHashtagModal("facebook_first_comment")
-                            }
-                            className="absolute bottom-3 right-3 text-muted-foreground hover:text-brand-primary transition-colors"
-                          >
-                            <Hash className="h-4 w-4" />
-                          </button>
-                        </div>
+                    ) : (
+                      <div className="flex justify-end">
+                        <Button
+                          type="button"
+                          onClick={() => setShowFacebookFirstComment(true)}
+                          variant="ghost"
+                          size="sm"
+                          className="gap-1 text-xs text-muted-foreground hover:text-foreground"
+                          disabled={facebookPostType === "story"}
+                        >
+                          <Plus className="h-3 w-3" />
+                          Add first comment
+                        </Button>
                       </div>
-                    </div>
-                  ) : (
-                    <div className="flex justify-end">
-                      <Button
-                        type="button"
-                        onClick={() => setShowFacebookFirstComment(true)}
-                        variant="ghost"
-                        size="sm"
-                        className="gap-1 text-xs text-muted-foreground hover:text-foreground"
-                        disabled={facebookPostType === "story"}
-                      >
-                        <Plus className="h-3 w-3" />
-                        Add first comment
-                      </Button>
-                    </div>
-                  )}
-                </>
-              )}
+                    )}
+                  </>
+                )}
+              </div>
             </div>
-          </div>
-        );
-      })}
+          );
+        })}
 
       <HashtagSelectorModal
         isOpen={isHashtagModalOpen}

@@ -28,10 +28,15 @@ export function usePostEditor(options: UsePostEditorOptions = {}) {
   const setThreadMessages = useEditorialStore(
     (state) => state.setThreadMessages
   );
-  const mediaItems = useEditorialStore((state) => state.mediaItems);
+  const stagedMediaItems = useEditorialStore((state) => state.stagedMediaItems);
+  const setStagedMediaItems = useEditorialStore(
+    (state) => state.setStagedMediaItems
+  );
   const selectedAccounts = useEditorialStore((state) => state.selectedAccounts);
   const threadMessages = useEditorialStore((state) => state.threadMessages);
-  const platformThreadMessages = useEditorialStore((state) => state.platformThreadMessages);
+  const platformThreadMessages = useEditorialStore(
+    (state) => state.platformThreadMessages
+  );
 
   const { data: connections = [] } = useQuery({
     queryKey: ["connections"],
@@ -54,45 +59,16 @@ export function usePostEditor(options: UsePostEditorOptions = {}) {
     mutationFn: (variables: {
       file: File;
       integrationId: string;
-      threadIndex: number | null;
+      uid: string;
     }) => uploadMedia(variables.file, variables.integrationId),
     onSuccess: (data, variables) => {
-      const currentStoreState = useEditorialStore.getState();
-
-      // Helper to add mediaId to thread messages at the specified index
-      const addMediaIdToThreadMessages = (messages: typeof currentStoreState.threadMessages) =>
-        messages.map((msg, i) =>
-          i === variables.threadIndex
-            ? { ...msg, mediaIds: [...(msg.mediaIds || []), data.mediaId] }
-            : msg
-        );
-
-      // Update platformThreadMessages for both X and Threads if they have thread messages
-      let updatedPlatformThreadMessages = currentStoreState.platformThreadMessages;
-      if (variables.threadIndex !== null) {
-        const platformsToUpdate = ["x", "threads"] as const;
-        updatedPlatformThreadMessages = { ...currentStoreState.platformThreadMessages };
-
-        for (const platform of platformsToUpdate) {
-          const platformMessages = updatedPlatformThreadMessages[platform];
-          if (platformMessages && platformMessages.length > variables.threadIndex) {
-            updatedPlatformThreadMessages[platform] = addMediaIdToThreadMessages(platformMessages);
-          }
-        }
-      }
-
-      setState({
-        mediaItems: currentStoreState.mediaItems.map((item) =>
-          item.file === variables.file
-            ? { ...item, id: data.mediaId, isUploading: false }
-            : item
-        ),
-        threadMessages:
-          variables.threadIndex !== null
-            ? addMediaIdToThreadMessages(currentStoreState.threadMessages)
-            : currentStoreState.threadMessages,
-        platformThreadMessages: updatedPlatformThreadMessages,
-      });
+      const currentItems = useEditorialStore.getState().stagedMediaItems;
+      const updatedItems = currentItems.map((item) =>
+        item.uid === variables.uid
+          ? { ...item, id: data.mediaId, isUploading: false }
+          : item
+      );
+      setStagedMediaItems(updatedItems);
     },
     onError: (error: any, variables) => {
       toast.error(
@@ -100,40 +76,30 @@ export function usePostEditor(options: UsePostEditorOptions = {}) {
           error?.message || "Unknown error"
         }`
       );
-      setState({
-        mediaItems: useEditorialStore
-          .getState()
-          .mediaItems.filter((item) => item.file !== variables.file),
-      });
+      const currentItems = useEditorialStore.getState().stagedMediaItems;
+      setStagedMediaItems(
+        currentItems.filter((item) => item.uid !== variables.uid)
+      );
     },
   });
 
-  const mainPostMedia = useMemo(
-    () => mediaItems.filter((m) => m.threadIndex === null),
-    [mediaItems]
+  const mainPostStagedMedia = useMemo(
+    () => stagedMediaItems.filter((m) => m.threadIndex === null),
+    [stagedMediaItems]
   );
 
   const isGlobalUploading = useMemo(
-    () => mediaItems.some((m) => m.isUploading),
-    [mediaItems]
+    () => stagedMediaItems.some((m) => m.isUploading),
+    [stagedMediaItems]
   );
 
   const postType: "text" | "image" | "video" = useMemo(() => {
-    if (mainPostMedia.length === 0) return "text";
-
-    if (
-      mainPostMedia.some(
-        (m) =>
-          (m.file && (m.file as globalThis.File).type.startsWith("video/")) ||
-          (m.file === null &&
-            (m.preview.toLowerCase().endsWith(".mp4") ||
-              m.preview.toLowerCase().endsWith(".mov")))
-      )
-    ) {
+    if (mainPostStagedMedia.length === 0) return "text";
+    if (mainPostStagedMedia.some((m) => m.type === "video")) {
       return "video";
     }
     return "image";
-  }, [mainPostMedia]);
+  }, [mainPostStagedMedia]);
 
   const availablePlatforms = useMemo((): Platform[] => {
     if (!connections) return [];
@@ -171,30 +137,18 @@ export function usePostEditor(options: UsePostEditorOptions = {}) {
     [selectedAccounts]
   );
 
-  const mainPostMediaPreviews = useMemo(
-    () => mainPostMedia.map((m) => m.preview),
-    [mainPostMedia]
+  const stagedMediaPreviews = useMemo(
+    () => mainPostStagedMedia.map((m) => m.preview),
+    [mainPostStagedMedia]
   );
 
-  // Helper to augment thread messages with previews and media type
   const augmentThreadMessages = useCallback(
     (messages: typeof threadMessages): ThreadMessageAugmented[] => {
       return messages.map((msg, index) => {
-        const threadMedia = mediaItems.filter((m) => m.threadIndex === index);
-
-        // Determine mediaType for this specific thread message
-        let threadMediaType: "text" | "image" | "video" = "text";
-        if (threadMedia.length > 0) {
-          const hasVideo = threadMedia.some(
-            (m) =>
-              (m.file && (m.file as globalThis.File).type.startsWith("video/")) ||
-              (m.file === null &&
-                (m.preview.toLowerCase().endsWith(".mp4") ||
-                  m.preview.toLowerCase().endsWith(".mov")))
-          );
-          threadMediaType = hasVideo ? "video" : "image";
-        }
-
+        const threadMedia = stagedMediaItems.filter(
+          (m) => m.threadIndex === index
+        );
+        const hasVideo = threadMedia.some((m) => m.type === "video");
         return {
           ...msg,
           mediaPreviews: threadMedia
@@ -202,18 +156,18 @@ export function usePostEditor(options: UsePostEditorOptions = {}) {
             .filter(Boolean) as string[],
           mediaFiles: threadMedia.map((m) => m.file!).filter(Boolean) as File[],
           isUploading: threadMedia.some((m) => m.isUploading),
-          mediaType: threadMediaType,
+          mediaType:
+            threadMedia.length > 0 ? (hasVideo ? "video" : "image") : "text",
         };
       });
     },
-    [mediaItems]
+    [stagedMediaItems]
   );
 
   const threadMessagesWithPreviews: ThreadMessageAugmented[] = useMemo(() => {
     return augmentThreadMessages(threadMessages);
   }, [threadMessages, augmentThreadMessages]);
 
-  // Get thread messages for a specific platform (with fallback to base messages)
   const getThreadMessagesForPlatform = useCallback(
     (platformId: string): ThreadMessageAugmented[] => {
       const platformSpecific = platformThreadMessages[platformId];
@@ -229,133 +183,80 @@ export function usePostEditor(options: UsePostEditorOptions = {}) {
     (files: File[], previews: string[], threadIndex: number | null = null) => {
       const currentSelectedAccounts =
         useEditorialStore.getState().selectedAccounts;
-
-      let uploadIntegrationId = currentSelectedAccounts["x"]?.[0];
-
-      if (!uploadIntegrationId) {
-        const allIds = Object.values(currentSelectedAccounts).flat();
-        uploadIntegrationId = allIds[0];
-      }
+      const allIds = Object.values(currentSelectedAccounts).flat();
+      const uploadIntegrationId = allIds[0];
 
       if (files.length > 0 && !uploadIntegrationId) {
         toast.error("Please select at least one account before uploading.");
         return;
       }
 
-      const currentMediaItems = useEditorialStore.getState().mediaItems;
-      const existingMedia = currentMediaItems.filter(
-        (m) => m.threadIndex === threadIndex
-      );
-      const otherMedia = currentMediaItems.filter(
-        (m) => m.threadIndex !== threadIndex
-      );
+      const newMediaItems: MediaItem[] = files.map((file, index) => ({
+        uid: crypto.randomUUID(),
+        file,
+        preview: previews[index],
+        id: null,
+        isUploading: true,
+        threadIndex,
+        type: file.type.startsWith("video/") ? "video" : "image",
+      }));
 
-      const newMediaItems: MediaItem[] = [];
-      const newFilesForUpload: MediaItem[] = [];
-
-      files.forEach((file, index) => {
-        const existing = existingMedia.find(
-          (m) => m.file === (file as File | null)
-        );
-        if (existing) {
-          newMediaItems.push(existing);
-        } else {
-          const newItem: MediaItem = {
-            file,
-            preview: previews[index],
-            id: null,
-            isUploading: true,
-            threadIndex,
-          };
-          newMediaItems.push(newItem);
-          newFilesForUpload.push(newItem);
-        }
-      });
-
-      setState({
-        mediaItems: [...otherMedia, ...newMediaItems],
-      });
+      const currentItems = useEditorialStore.getState().stagedMediaItems;
+      const updatedItems = [...currentItems, ...newMediaItems];
+      setStagedMediaItems(updatedItems);
 
       if (mode === "editorial") {
-        newFilesForUpload.forEach((item) => {
-          if (!item.id && item.isUploading && uploadIntegrationId) {
-            uploadMediaMutation.mutate({
-              file: item.file!,
-              integrationId: uploadIntegrationId,
-              threadIndex: item.threadIndex,
-            });
-          }
+        newMediaItems.forEach((item) => {
+          uploadMediaMutation.mutate({
+            file: item.file!,
+            integrationId: uploadIntegrationId,
+            uid: item.uid,
+          });
         });
       } else {
-        const updatedMediaItems = useEditorialStore
-          .getState()
-          .mediaItems.map((item) =>
-            newFilesForUpload.some((newItem) => newItem.file === item.file)
-              ? { ...item, isUploading: false }
-              : item
-          );
-        setState({ mediaItems: updatedMediaItems });
+        const nonUploadingItems = updatedItems.map((item) => ({
+          ...item,
+          isUploading: false,
+        }));
+        setStagedMediaItems(nonUploadingItems);
       }
     },
-    [setState, uploadMediaMutation, mode]
+    [setStagedMediaItems, uploadMediaMutation, mode]
   );
 
   const handleRemoveMedia = useCallback(
     (fileToRemove: File, threadIndex: number | null = null) => {
-      const { mediaItems, threadMessages, platformThreadMessages } = useEditorialStore.getState();
-
-      const newMediaItems = mediaItems.filter(
-        (item) => item.threadIndex !== threadIndex || item.file !== fileToRemove
+      const currentItems = useEditorialStore.getState().stagedMediaItems;
+      const itemToRemove = currentItems.find(
+        (item) => item.threadIndex === threadIndex && item.file === fileToRemove
       );
 
-      const mediaItem = mediaItems.find(
-        (m) => m.file === fileToRemove && m.threadIndex === threadIndex
-      );
+      if (itemToRemove) {
+        const newMediaItems = currentItems.filter(
+          (item) => item.uid !== itemToRemove.uid
+        );
+        setStagedMediaItems(newMediaItems);
 
-      // Helper to remove mediaId from thread messages at the specified index
-      const removeMediaIdFromThreadMessages = (messages: typeof threadMessages) =>
-        messages.map((msg, i) => {
-          if (i === threadIndex) {
-            return {
-              ...msg,
-              mediaIds: msg.mediaIds?.filter((id) => id !== mediaItem?.id) || undefined,
-            };
-          }
-          return msg;
+        // Also remove it from any platform selections
+        const currentSelections =
+          useEditorialStore.getState().platformMediaSelections;
+        const newSelections = { ...currentSelections };
+        Object.keys(newSelections).forEach((platformId) => {
+          newSelections[platformId] = newSelections[platformId].filter(
+            (uid) => uid !== itemToRemove.uid
+          );
         });
-
-      let newThreadMessages = threadMessages;
-      let updatedPlatformThreadMessages = platformThreadMessages;
-
-      if (threadIndex !== null && mediaItem) {
-        newThreadMessages = removeMediaIdFromThreadMessages(threadMessages);
-
-        // Also update platformThreadMessages for X and Threads
-        const platformsToUpdate = ["x", "threads"] as const;
-        updatedPlatformThreadMessages = { ...platformThreadMessages };
-
-        for (const platform of platformsToUpdate) {
-          const platformMessages = updatedPlatformThreadMessages[platform];
-          if (platformMessages && platformMessages.length > threadIndex) {
-            updatedPlatformThreadMessages[platform] = removeMediaIdFromThreadMessages(platformMessages);
-          }
-        }
+        setState({ platformMediaSelections: newSelections });
       }
-
-      setState({
-        mediaItems: newMediaItems,
-        threadMessages: newThreadMessages,
-        platformThreadMessages: updatedPlatformThreadMessages,
-      });
     },
-    [setState]
+    [setStagedMediaItems, setState]
   );
 
   return {
-    mainPostMediaFiles: mainPostMedia
+    stagedMediaFiles: mainPostStagedMedia
       .map((m) => m.file!)
       .filter(Boolean) as File[],
-    mainPostMediaPreviews,
+    stagedMediaPreviews,
     postType,
     isGlobalUploading,
     availablePlatforms,

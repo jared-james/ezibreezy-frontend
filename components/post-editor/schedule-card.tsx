@@ -29,6 +29,7 @@ interface ScheduleCardProps {
   onPublish: () => void;
   isPublishing: boolean;
   isUploading: boolean;
+  hasMediaConflicts?: boolean;
 }
 
 const formatToAmPm = (time24: string) => {
@@ -50,6 +51,7 @@ export default function ScheduleCard({
   onPublish,
   isPublishing,
   isUploading,
+  hasMediaConflicts = false,
 }: ScheduleCardProps) {
   const isScheduling = useEditorialStore((state) => state.isScheduling);
   const scheduleDate = useEditorialStore((state) => state.scheduleDate);
@@ -234,6 +236,7 @@ export default function ScheduleCard({
           disabled={
             isPublishing ||
             isUploading ||
+            hasMediaConflicts ||
             (isScheduling && (!scheduleDate || !scheduleTime))
           }
           className="w-full gap-2"

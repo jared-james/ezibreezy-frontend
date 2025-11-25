@@ -3,7 +3,6 @@
 import { memo, useState } from "react";
 import { MessageSquare, Repeat2, ImageIcon, Crop } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { ThreadMessageAugmented } from "@/lib/types/editorial";
 import { renderCaptionWithHashtags } from "./render-caption";
 import { ImageCropperModal } from "./image-cropper-modal";
 import type { PixelCrop } from "react-image-crop";
@@ -12,7 +11,6 @@ import { createCroppedPreviewUrl, type CropData } from "@/lib/utils/crop-utils";
 interface XPreviewProps {
   caption: string;
   mediaPreview: string[];
-  threadMessages: ThreadMessageAugmented[];
   platformUsername: string;
   displayName: string | null;
   avatarUrl: string | null;
@@ -22,7 +20,13 @@ interface XPreviewProps {
   onCropComplete?: (cropData: CropData, croppedPreviewUrl: string) => void;
 }
 
-const MediaGrid = ({ images, mediaType = "image" }: { images: string[]; mediaType?: "text" | "image" | "video" }) => {
+const MediaGrid = ({
+  images,
+  mediaType = "image",
+}: {
+  images: string[];
+  mediaType?: "text" | "image" | "video";
+}) => {
   if (images.length === 0) return null;
 
   return (
@@ -113,7 +117,6 @@ const XPostFooter = ({
 function XPreview({
   caption,
   mediaPreview,
-  threadMessages,
   platformUsername,
   displayName,
   avatarUrl,
@@ -127,12 +130,15 @@ function XPreview({
   const handle = accountName ? `@${accountName}` : "";
   const [isCropperOpen, setIsCropperOpen] = useState(false);
 
-  // For X, we apply crop to first image only
   const mainPostImages = croppedPreview
     ? [croppedPreview, ...mediaPreview.slice(1, 4)]
     : mediaPreview.slice(0, 4);
-  const hasThread = threadMessages.length > 0;
-  const canCrop = originalMediaSrc && postType === "image" && onCropComplete && mediaPreview.length > 0;
+
+  const canCrop =
+    originalMediaSrc &&
+    postType === "image" &&
+    onCropComplete &&
+    mediaPreview.length > 0;
 
   const handleCropComplete = async (
     croppedAreaPixels: PixelCrop,
@@ -160,16 +166,8 @@ function XPreview({
   };
 
   return (
-    <div className="mx-auto w-full max-w-sm ">
+    <div className="mx-auto w-full max-w-sm border border-border rounded-lg overflow-hidden bg-surface">
       <div className="relative p-4">
-        {hasThread && (
-          <div
-            className="absolute left-[35.5px] top-[62px] z-0 w-px bg-border"
-            style={{ bottom: "20px" }}
-            aria-hidden="true"
-          />
-        )}
-
         <div className="relative z-10 flex items-start gap-3">
           <div
             className="flex shrink-0 flex-col items-center"
@@ -219,68 +217,6 @@ function XPreview({
         </div>
       </div>
 
-      {threadMessages.map((message, index) => {
-        const isLastMessage = index === threadMessages.length - 1;
-
-        return (
-          <div
-            key={index}
-            className={cn(
-              "relative z-10 px-4",
-              isLastMessage ? "pb-4" : "pb-3"
-            )}
-          >
-            {!isLastMessage && (
-              <div
-                className="absolute left-[35.5px] top-0 z-0 h-full w-px bg-border"
-                aria-hidden="true"
-              />
-            )}
-
-            <div className="flex items-start gap-3">
-              <div
-                className="relative z-10 flex shrink-0 flex-col items-center"
-                style={{ width: 40 }}
-              >
-                <ProfileAvatar
-                  size={40}
-                  avatarUrl={avatarUrl}
-                  primaryName={primaryName}
-                />
-              </div>
-
-              <div className="min-w-0 flex-1">
-                <div className="flex items-center gap-1 text-sm">
-                  <span className="truncate font-bold text-foreground">
-                    {primaryName}
-                  </span>
-                  {handle && (
-                    <span className="shrink text-muted-foreground truncate">
-                      {handle}
-                    </span>
-                  )}
-                  <span className="shrink-0 text-muted-foreground">· Now</span>
-                </div>
-
-                <p className="mt-1 whitespace-pre-wrap wrap-break-word text-[0.95rem] leading-normal text-foreground">
-                  {renderCaptionWithHashtags(message.content)}
-                </p>
-
-                {(message.mediaPreviews?.length || 0) > 0 && (
-                  <MediaGrid images={message.mediaPreviews || []} mediaType={message.mediaType || "image"} />
-                )}
-
-                <div className="mt-3 flex justify-between px-2">
-                  <XPostFooter icon={MessageSquare} value={0} />
-                  <XPostFooter icon={Repeat2} value={0} />
-                </div>
-              </div>
-            </div>
-          </div>
-        );
-      })}
-
-      {/* Footer with Crop button */}
       <div className="p-3 border-t border-border">
         {canCrop ? (
           <button

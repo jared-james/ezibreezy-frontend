@@ -2,7 +2,7 @@
 
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { FileText } from "lucide-react";
 import { toast } from "sonner";
 import { showError } from "@/components/ui/sonner";
@@ -61,7 +61,10 @@ export default function EditorialCore({
   const scheduleDate = useEditorialStore((state) => state.scheduleDate);
   const scheduleTime = useEditorialStore((state) => state.scheduleTime);
   const selectedAccounts = useEditorialStore((state) => state.selectedAccounts);
-  const mediaItems = useEditorialStore((state) => state.mediaItems);
+  const stagedMediaItems = useEditorialStore((state) => state.stagedMediaItems);
+  const platformMediaSelections = useEditorialStore(
+    (state) => state.platformMediaSelections
+  );
   const storeThreadMessages = useEditorialStore(
     (state) => state.threadMessages
   );
@@ -82,7 +85,6 @@ export default function EditorialCore({
   );
   const platformTitles = useEditorialStore((state) => state.platformTitles);
 
-  // Instagram Reel Settings
   const instagramCoverUrl = useEditorialStore(
     (state) => state.instagramCoverUrl
   );
@@ -94,8 +96,8 @@ export default function EditorialCore({
   );
 
   const {
-    mainPostMediaFiles,
-    mainPostMediaPreviews,
+    stagedMediaFiles,
+    stagedMediaPreviews,
     postType,
     isGlobalUploading,
     availablePlatforms,
@@ -187,29 +189,23 @@ export default function EditorialCore({
       return showError("Please wait for media to finish uploading.");
     }
 
-    const mainPostMedia = mediaItems.filter((m) => m.threadIndex === null);
-    const mainPostUploadedIds = mainPostMedia
-      .filter((m) => m.id !== null)
-      .map((m) => m.id) as string[];
-
-    if (
-      mainPostMedia.length > 0 &&
-      mainPostUploadedIds.length !== mainPostMedia.length
-    ) {
-      return showError(
-        "One or more main post media files failed to upload properly."
-      );
-    }
-
-    const threadMediaItems = mediaItems.filter((m) => m.threadIndex !== null);
-    const threadMediaUploadedCount = threadMediaItems.filter(
-      (m) => m.id !== null
-    ).length;
-
-    if (threadMediaUploadedCount !== threadMediaItems.length) {
-      return showError(
-        "One or more thread media files failed to upload properly."
-      );
+    // Ensure all selected media for publishing have been uploaded
+    for (const [platformId, selection] of Object.entries(
+      platformMediaSelections
+    )) {
+      if (
+        !selectedAccounts[platformId] ||
+        selectedAccounts[platformId].length === 0
+      )
+        continue;
+      for (const uid of selection) {
+        const mediaItem = stagedMediaItems.find((item) => item.uid === uid);
+        if (mediaItem && !mediaItem.id) {
+          return showError(
+            `Media for ${platformId} is still processing. Please wait.`
+          );
+        }
+      }
     }
 
     let scheduledAt: string | undefined;
@@ -249,7 +245,7 @@ export default function EditorialCore({
       processThreadMessages(storeThreadMessages);
 
     const mediaCrops: Record<string, PlatformCrops> = {};
-    mediaItems.forEach((item) => {
+    stagedMediaItems.forEach((item) => {
       if (item.id && item.crops) {
         mediaCrops[item.id] = item.crops;
       }
@@ -258,7 +254,10 @@ export default function EditorialCore({
     const postPromises = Object.entries(selectedAccounts).flatMap(
       ([platformId, integrationIds]) =>
         integrationIds.map((integrationId) => {
-          let platformMediaIds = mainPostUploadedIds;
+          const platformMediaUids = platformMediaSelections[platformId] || [];
+          const platformMediaIds = platformMediaUids
+            .map((uid) => stagedMediaItems.find((item) => item.uid === uid)?.id)
+            .filter(Boolean) as string[];
 
           let platformThreadMessages: {
             content: string;
@@ -279,10 +278,6 @@ export default function EditorialCore({
           if (platformId === "instagram" && platformMediaIds.length === 0) {
             showError("Instagram posts require at least one image or video.");
             throw new Error("Instagram post validation failed");
-          }
-
-          if (platformId === "x") {
-            platformMediaIds = mainPostUploadedIds.slice(0, 4);
           }
 
           const platformSpecificContent = localPlatformCaptions[platformId];
@@ -327,21 +322,17 @@ export default function EditorialCore({
             if (firstComment && firstComment.trim().length > 0) {
               payload.settings!.firstComment = firstComment.trim();
             }
-
-            // Instagram Reel Settings
             if (instagramCoverUrl) {
               payload.settings!.coverUrl = instagramCoverUrl;
             }
             if (instagramThumbOffset !== null) {
               payload.settings!.thumbOffset = instagramThumbOffset;
             }
-            // Always attach shareToFeed setting (defaults to true in store)
             payload.settings!.shareToFeed = instagramShareToFeed;
           }
 
           if (platformId === "facebook") {
             payload.settings!.facebookPostType = facebookPostType;
-
             if (
               facebookFirstComment &&
               facebookFirstComment.trim().length > 0
@@ -442,13 +433,9 @@ export default function EditorialCore({
               }}
               mediaUploadSlot={
                 <MediaUpload
-                  mediaFiles={mainPostMediaFiles}
-                  mediaPreviews={mainPostMediaPreviews}
-                  isUploading={
-                    mediaItems
-                      .filter((m) => m.threadIndex === null)
-                      .some((m) => m.isUploading) || isGlobalUploading
-                  }
+                  mediaFiles={stagedMediaFiles}
+                  mediaPreviews={stagedMediaPreviews}
+                  isUploading={isGlobalUploading}
                   onMediaChange={(files, previews) =>
                     handleMediaChange(files, previews, null)
                   }

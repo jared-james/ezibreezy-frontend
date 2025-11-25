@@ -8,10 +8,7 @@ import {
   type Clipping as GeneratedClipping,
   saveClippingAsDraft,
 } from "@/lib/api/ideas";
-import {
-  type Clipping as EditorialClipping,
-  type EditorialDraft,
-} from "@/lib/types/editorial";
+import { type EditorialDraft } from "@/lib/types/editorial";
 import { useEditorialStore } from "@/lib/store/editorial-store";
 import ModalHeader from "@/components/post-editor/modal-header";
 import EditorialCore from "@/components/post-editor/editorial-core";
@@ -23,7 +20,7 @@ import { toast } from "sonner";
 interface EditClippingModalProps {
   isOpen: boolean;
   onClose: () => void;
-  idea: EditorialClipping | GeneratedClipping;
+  idea: GeneratedClipping;
 }
 
 export default function EditClippingModal({
@@ -34,7 +31,6 @@ export default function EditClippingModal({
   const router = useRouter();
   const queryClient = useQueryClient();
 
-  // Data for saving the clipping
   const { data: clientData } = useQuery({
     queryKey: ["clientEditorData"],
     queryFn: getClientDataForEditor,
@@ -56,7 +52,10 @@ export default function EditClippingModal({
   const location = useEditorialStore((state) => state.location);
   const aiGenerated = useEditorialStore((state) => state.aiGenerated);
   const recycleInterval = useEditorialStore((state) => state.recycleInterval);
-  const mediaItems = useEditorialStore((state) => state.mediaItems);
+  const stagedMediaItems = useEditorialStore((state) => state.stagedMediaItems);
+  const platformMediaSelections = useEditorialStore(
+    (state) => state.platformMediaSelections
+  );
 
   const saveMutation = useMutation({
     mutationFn: saveClippingAsDraft,
@@ -97,24 +96,22 @@ export default function EditClippingModal({
         scheduleDate: new Date().toISOString().split("T")[0],
         scheduleTime: "12:00",
         sourceDraftId: null,
-        mediaItems: [],
+        stagedMediaItems: [],
+        platformMediaSelections: {},
       });
     } else {
       reset();
     }
-  }, [isOpen, idea.title, idea.body]);
+  }, [isOpen, idea.title, idea.body, setState, reset]);
 
   const handleOpenInEditorial = () => {
-    const mainPostMedia = mediaItems.filter((m) => m.threadIndex === null);
+    const mainPostMedia = stagedMediaItems.filter(
+      (m) => m.threadIndex === null
+    );
     const postType =
       mainPostMedia.length === 0
         ? "text"
-        : mainPostMedia.some(
-            (m) =>
-              m.file?.type.startsWith("video/") ||
-              m.preview.toLowerCase().endsWith(".mp4") ||
-              m.preview.toLowerCase().endsWith(".mov")
-          )
+        : mainPostMedia.some((m) => m.type === "video")
         ? "video"
         : "image";
 
@@ -124,14 +121,13 @@ export default function EditClippingModal({
       platformCaptions,
       activePlatforms: Object.keys(selectedAccounts),
       selectedAccounts,
-      media:
-        mainPostMedia.length > 0 && mainPostMedia[0].file
-          ? {
-              file: mainPostMedia[0].file,
-              preview: mainPostMedia[0].preview,
-              type: postType === "video" ? "video" : "image",
-            }
-          : undefined,
+      stagedMediaItems: stagedMediaItems.map((item) => ({
+        uid: item.uid,
+        preview: item.preview,
+        type: item.type,
+        file: item.file || undefined,
+      })),
+      platformMediaSelections,
       distribution: {
         labels,
         threadMessages,

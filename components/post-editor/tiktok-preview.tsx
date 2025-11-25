@@ -1,7 +1,15 @@
 // components/post-editor/tiktok-preview.tsx
 
 import { memo, useState } from "react";
-import { Heart, MessageCircle, Bookmark, Share2, Music, ImageIcon, Crop } from "lucide-react";
+import {
+  Heart,
+  MessageCircle,
+  Bookmark,
+  Share2,
+  Music,
+  ImageIcon,
+  Crop,
+} from "lucide-react";
 import { cn } from "@/lib/utils";
 import { renderCaptionWithHashtags } from "./render-caption";
 import { ImageCropperModal } from "./image-cropper-modal";
@@ -43,9 +51,7 @@ const ProfileAvatar = ({
 
   return (
     <div
-      className={cn(
-        "rounded-full bg-[--muted] border-2 border-white shrink-0"
-      )}
+      className={cn("rounded-full bg-[--muted] border-2 border-white shrink-0")}
       style={{ width: size, height: size }}
       role="img"
       aria-label="Profile image placeholder"
@@ -81,6 +87,28 @@ function TikTokPreview({
     if (!originalMediaSrc || !onCropComplete) return;
 
     try {
+      const getOriginalDimensions = (
+        src: string
+      ): Promise<{ width: number; height: number }> =>
+        new Promise((resolve, reject) => {
+          const img = new window.Image();
+          img.onload = () =>
+            resolve({ width: img.naturalWidth, height: img.naturalHeight });
+          img.onerror = reject;
+          img.src = src;
+        });
+
+      const originalDimensions = await getOriginalDimensions(originalMediaSrc);
+      const scalingFactor = originalDimensions.width / displayedWidth;
+
+      const scaledCroppedAreaPixels: PixelCrop = {
+        ...croppedAreaPixels,
+        x: Math.round(croppedAreaPixels.x * scalingFactor),
+        y: Math.round(croppedAreaPixels.y * scalingFactor),
+        width: Math.round(croppedAreaPixels.width * scalingFactor),
+        height: Math.round(croppedAreaPixels.height * scalingFactor),
+      };
+
       const croppedUrl = await createCroppedPreviewUrl(
         originalMediaSrc,
         croppedAreaPixels,
@@ -88,7 +116,7 @@ function TikTokPreview({
         displayedHeight
       );
       const cropData: CropData = {
-        croppedAreaPixels,
+        croppedAreaPixels: scaledCroppedAreaPixels,
         aspectRatio,
       };
       onCropComplete(cropData, croppedUrl);
@@ -99,9 +127,7 @@ function TikTokPreview({
 
   return (
     <div className="w-full max-w-sm mx-auto">
-      {/* Phone-like container */}
-      <div className="relative bg-black rounded-2xl overflow-hidden aspect-[9/16] max-h-[500px]">
-        {/* Video/Media area */}
+      <div className="relative bg-black rounded-2xl overflow-hidden aspect-[9/16] max-h-[500px] border border-border">
         <div className="absolute inset-0">
           {displayMediaSrc ? (
             mediaType === "video" ? (
@@ -128,10 +154,13 @@ function TikTokPreview({
           )}
         </div>
 
-        {/* Right sidebar actions */}
         <div className="absolute right-3 bottom-24 flex flex-col items-center gap-5">
           <div className="flex flex-col items-center">
-            <ProfileAvatar size={44} avatarUrl={avatarUrl} primaryName={primaryName} />
+            <ProfileAvatar
+              size={44}
+              avatarUrl={avatarUrl}
+              primaryName={primaryName}
+            />
             <div className="w-5 h-5 -mt-2.5 rounded-full bg-red-500 flex items-center justify-center">
               <span className="text-white text-xs font-bold">+</span>
             </div>
@@ -162,13 +191,10 @@ function TikTokPreview({
           </div>
         </div>
 
-        {/* Bottom content */}
         <div className="absolute bottom-4 left-3 right-16 text-white">
           <p className="font-bold text-sm">@{accountName}</p>
           {title && (
-            <p className="font-semibold text-sm mt-1 line-clamp-2">
-              {title}
-            </p>
+            <p className="font-semibold text-sm mt-1 line-clamp-2">{title}</p>
           )}
           <p className="text-sm mt-1 line-clamp-3 whitespace-pre-wrap">
             {renderCaptionWithHashtags(caption)}
@@ -180,8 +206,7 @@ function TikTokPreview({
         </div>
       </div>
 
-      {/* Footer */}
-      <div className="px-3 py-2 border-t border-[--border]">
+      <div className="px-3 py-2 border-t border-border bg-surface rounded-b-lg">
         {canCrop ? (
           <div className="flex items-center gap-4">
             <button
@@ -194,7 +219,7 @@ function TikTokPreview({
             </button>
           </div>
         ) : (
-          <p className="text-xs text-[--muted-foreground] text-center italic">
+          <p className="text-xs text-muted-foreground text-center italic">
             TikTok Preview
           </p>
         )}

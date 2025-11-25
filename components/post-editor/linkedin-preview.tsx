@@ -1,7 +1,14 @@
 // components/post-editor/linkedin-preview.tsx
 
 import { memo, useState } from "react";
-import { ThumbsUp, MessageSquare, Repeat2, Send, ImageIcon, Crop } from "lucide-react";
+import {
+  ThumbsUp,
+  MessageSquare,
+  Repeat2,
+  Send,
+  ImageIcon,
+  Crop,
+} from "lucide-react";
 import { cn } from "@/lib/utils";
 import { renderCaptionWithHashtags } from "./render-caption";
 import { ImageCropperModal } from "./image-cropper-modal";
@@ -79,6 +86,28 @@ function LinkedInPreview({
     if (!originalMediaSrc || !onCropComplete) return;
 
     try {
+      const getOriginalDimensions = (
+        src: string
+      ): Promise<{ width: number; height: number }> =>
+        new Promise((resolve, reject) => {
+          const img = new window.Image();
+          img.onload = () =>
+            resolve({ width: img.naturalWidth, height: img.naturalHeight });
+          img.onerror = reject;
+          img.src = src;
+        });
+
+      const originalDimensions = await getOriginalDimensions(originalMediaSrc);
+      const scalingFactor = originalDimensions.width / displayedWidth;
+
+      const scaledCroppedAreaPixels: PixelCrop = {
+        ...croppedAreaPixels,
+        x: Math.round(croppedAreaPixels.x * scalingFactor),
+        y: Math.round(croppedAreaPixels.y * scalingFactor),
+        width: Math.round(croppedAreaPixels.width * scalingFactor),
+        height: Math.round(croppedAreaPixels.height * scalingFactor),
+      };
+
       const croppedUrl = await createCroppedPreviewUrl(
         originalMediaSrc,
         croppedAreaPixels,
@@ -86,7 +115,7 @@ function LinkedInPreview({
         displayedHeight
       );
       const cropData: CropData = {
-        croppedAreaPixels,
+        croppedAreaPixels: scaledCroppedAreaPixels,
         aspectRatio,
       };
       onCropComplete(cropData, croppedUrl);
@@ -97,7 +126,6 @@ function LinkedInPreview({
 
   return (
     <div className="w-full bg-[--surface] border border-[--border] shadow-lg max-w-sm mx-auto rounded-lg overflow-hidden">
-      {/* Header */}
       <div className="flex items-start gap-3 p-3">
         <ProfileAvatar
           size={48}
@@ -118,14 +146,12 @@ function LinkedInPreview({
         </div>
       </div>
 
-      {/* Caption */}
       <div className="px-3 pb-3">
         <p className="text-sm text-[--foreground] whitespace-pre-wrap">
           {renderCaptionWithHashtags(caption)}
         </p>
       </div>
 
-      {/* Media */}
       <div
         className={cn(
           "aspect-video bg-[--background]",
@@ -157,7 +183,6 @@ function LinkedInPreview({
         )}
       </div>
 
-      {/* Engagement Stats */}
       <div className="flex items-center justify-between px-3 py-2 text-xs text-[--muted-foreground] border-b border-[--border]">
         <div className="flex items-center gap-1">
           <span className="flex items-center justify-center w-4 h-4 rounded-full bg-blue-500 text-white text-[10px]">
@@ -172,7 +197,6 @@ function LinkedInPreview({
         </div>
       </div>
 
-      {/* Action Buttons */}
       <div className="flex items-center justify-around py-2 text-[--muted-foreground]">
         <button className="flex items-center gap-1 px-3 py-2 hover:bg-[--surface-hover] rounded text-xs">
           <ThumbsUp className="w-4 h-4" />
@@ -192,7 +216,6 @@ function LinkedInPreview({
         </button>
       </div>
 
-      {/* Footer */}
       <div className="p-3 border-t border-[--border]">
         {canCrop ? (
           <button

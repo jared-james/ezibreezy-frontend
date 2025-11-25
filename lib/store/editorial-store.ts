@@ -8,13 +8,16 @@ import { type EditorialDraft } from "@/lib/types/editorial";
 import { FullPostDetails, UserTagDto } from "@/lib/api/publishing";
 import { format } from "date-fns";
 import type { PlatformCrops, SocialPlatform } from "@/lib/utils/crop-utils";
+import { PLATFORM_RULES } from "@/lib/utils/media-validation";
 
 export interface MediaItem {
+  uid: string;
   file: File | null;
   preview: string;
   id: string | null;
   isUploading: boolean;
   threadIndex: number | null;
+  type: "image" | "video";
   crops?: PlatformCrops;
   croppedPreviews?: Partial<Record<SocialPlatform, string>>;
 }
@@ -34,7 +37,8 @@ export interface EditorialState {
   mainCaption: string;
   platformCaptions: Record<string, string>;
   platformTitles: Record<string, string>;
-  mediaItems: MediaItem[];
+  stagedMediaItems: MediaItem[];
+  platformMediaSelections: Record<string, string[]>;
   labels: string;
   threadMessages: ThreadMessage[];
   platformThreadMessages: Record<string, ThreadMessage[]>;
@@ -51,8 +55,6 @@ export interface EditorialState {
   facebookPostType: PlatformPostType;
   userTags: UserTagDto[];
   activeCaptionFilter: string;
-
-  // Instagram Reel Specifics
   instagramCoverUrl: string | null;
   instagramThumbOffset: number | null;
   instagramShareToFeed: boolean;
@@ -66,11 +68,14 @@ export interface EditorialActions {
   reset: () => void;
   setDraft: (draft: EditorialDraft) => void;
   setCropForMedia: (
-    mediaIndex: number,
+    mediaUid: string,
     platform: SocialPlatform,
     cropData: PlatformCrops[SocialPlatform],
     croppedPreviewUrl: string
   ) => void;
+  setPlatformMediaSelection: (platformId: string, mediaUids: string[]) => void;
+  togglePlatformMediaSelection: (platformId: string, mediaUid: string) => void;
+  setStagedMediaItems: (items: MediaItem[]) => void;
 }
 
 const getTodayString = () => new Date().toISOString().split("T")[0];
@@ -83,7 +88,8 @@ export const initialState: EditorialState = {
   mainCaption: "",
   platformCaptions: {},
   platformTitles: {},
-  mediaItems: [],
+  stagedMediaItems: [],
+  platformMediaSelections: {},
   labels: "",
   threadMessages: [],
   platformThreadMessages: {},
@@ -100,7 +106,6 @@ export const initialState: EditorialState = {
   facebookPostType: "post",
   userTags: [],
   activeCaptionFilter: "all",
-
   instagramCoverUrl: null,
   instagramThumbOffset: null,
   instagramShareToFeed: true,
@@ -111,130 +116,148 @@ export const useEditorialStore = create<EditorialState & EditorialActions>(
     ...initialState,
 
     setState: (updates) => {
-      set((state) => {
-        const newState = { ...state, ...updates };
-        return newState;
-      });
+      set((state) => ({ ...state, ...updates }));
+    },
+
+    setStagedMediaItems: (items) => {
+      set({ stagedMediaItems: items });
     },
 
     setThreadMessages: (messages) => set({ threadMessages: messages }),
 
-    initializeFromDraft: (draft) => {
-      if (!get().isInitialized) {
-        const updates: Partial<EditorialState> = {
-          mainCaption: draft.mainCaption,
-          platformCaptions: draft.platformCaptions,
-          selectedAccounts: draft.selectedAccounts,
-          labels: draft.distribution?.labels || "",
-          threadMessages: draft.distribution?.threadMessages || [],
-          collaborators: draft.distribution?.collaborators || "",
-          location:
-            typeof draft.distribution?.location === "string"
-              ? { id: null, name: draft.distribution.location }
-              : { id: null, name: "" },
-          firstComment: draft.distribution?.firstComment || "",
-          isScheduling: draft.schedule?.isScheduled || false,
-          scheduleDate: draft.schedule?.date,
-          scheduleTime: draft.schedule?.time,
-          isInitialized: true,
-          recycleInterval: draft.recycleInterval || null,
-          aiGenerated: draft.aiGenerated || false,
-          sourceDraftId: draft.sourceDraftId || null,
-          postType: draft.postType === "video" ? "reel" : "post",
-          userTags: draft.distribution?.userTags || [],
-        };
-        set(updates);
+    togglePlatformMediaSelection: (platformId, mediaUid) => {
+      const state = get();
+      const rules = PLATFORM_RULES[platformId as keyof typeof PLATFORM_RULES];
+      if (!rules) return;
+
+      const currentSelectionUids =
+        state.platformMediaSelections[platformId] || [];
+      const itemToToggle = state.stagedMediaItems.find(
+        (item) => item.uid === mediaUid
+      );
+      if (!itemToToggle) return;
+
+      const isCurrentlySelected = currentSelectionUids.includes(mediaUid);
+      let newSelectionUids = [...currentSelectionUids];
+
+      if (isCurrentlySelected) {
+        newSelectionUids = newSelectionUids.filter((uid) => uid !== mediaUid);
+      } else {
+        const currentSelectionItems = newSelectionUids
+          .map((uid) => state.stagedMediaItems.find((item) => item.uid === uid))
+          .filter(Boolean) as MediaItem[];
+
+        if (rules.allowMixedMedia) {
+          const totalLimit = rules.maxImages;
+          if (currentSelectionItems.length >= totalLimit) return;
+
+          const videoCount = currentSelectionItems.filter(
+            (item) => item.type === "video"
+          ).length;
+          const imageCount = currentSelectionItems.filter(
+            (item) => item.type === "image"
+          ).length;
+
+          if (itemToToggle.type === "video" && videoCount < rules.maxVideos) {
+            newSelectionUids.push(mediaUid);
+          } else if (
+            itemToToggle.type === "image" &&
+            imageCount < rules.maxImages
+          ) {
+            newSelectionUids.push(mediaUid);
+          }
+        } else {
+          if (itemToToggle.type === "video") {
+            const hasImages = currentSelectionItems.some(
+              (item) => item.type === "image"
+            );
+            if (hasImages) {
+              newSelectionUids = [mediaUid];
+            } else if (currentSelectionItems.length < rules.maxVideos) {
+              newSelectionUids.push(mediaUid);
+            }
+          } else if (itemToToggle.type === "image") {
+            if (rules.maxImages === 0) return;
+            const hasVideo = currentSelectionItems.some(
+              (item) => item.type === "video"
+            );
+            if (hasVideo) {
+              newSelectionUids = [mediaUid];
+            } else if (currentSelectionItems.length < rules.maxImages) {
+              newSelectionUids.push(mediaUid);
+            }
+          }
+        }
       }
+
+      set({
+        platformMediaSelections: {
+          ...state.platformMediaSelections,
+          [platformId]: newSelectionUids,
+        },
+      });
+    },
+
+    setPlatformMediaSelection: (platformId, mediaUids) => {
+      set((state) => ({
+        platformMediaSelections: {
+          ...state.platformMediaSelections,
+          [platformId]: mediaUids,
+        },
+      }));
+    },
+
+    initializeFromDraft: (draft) => {
+      if (get().isInitialized) return;
+      set({
+        mainCaption: draft.mainCaption,
+        platformCaptions: draft.platformCaptions,
+        selectedAccounts: draft.selectedAccounts,
+        isInitialized: true,
+      });
     },
 
     initializeFromFullPost: (fullPost) => {
-      const isEditable =
-        fullPost.status === "draft" || fullPost.status === "scheduled";
-
       const newMediaItems: MediaItem[] = [];
       const mediaMap = fullPost.allMedia || {};
+      const allMediaIds = [
+        ...fullPost.mediaIds,
+        ...fullPost.threadMessages.flatMap((m) => m.mediaIds),
+      ];
 
-      fullPost.mediaIds.forEach((mediaId) => {
+      allMediaIds.forEach((mediaId) => {
         const mediaRecord = mediaMap[mediaId];
         if (mediaRecord) {
+          const uid = crypto.randomUUID();
           newMediaItems.push({
+            uid,
             id: mediaId,
             file: null,
             preview: mediaRecord.url,
             isUploading: false,
-            threadIndex: null,
+            threadIndex: fullPost.mediaIds.includes(mediaId) ? null : 0,
+            type: mediaRecord.type.startsWith("video") ? "video" : "image",
           });
         }
       });
-
-      const threadMessages: ThreadMessage[] = fullPost.threadMessages.map(
-        (msg, index) => {
-          msg.mediaIds.forEach((mediaId) => {
-            const mediaRecord = mediaMap[mediaId];
-            if (mediaRecord) {
-              newMediaItems.push({
-                id: mediaId,
-                file: null,
-                preview: mediaRecord.url,
-                isUploading: false,
-                threadIndex: index,
-              });
-            }
-          });
-          return {
-            content: msg.content,
-            mediaIds: msg.mediaIds,
-          };
-        }
-      );
 
       const selectedAccounts: SelectedAccounts = {
         [fullPost.integration.platform]: [fullPost.integrationId],
       };
 
-      const settings = fullPost.settings || {};
-      const canonicalContent = settings.canonicalContent || fullPost.content;
-      const postHasPlatformOverride = fullPost.content !== canonicalContent;
-
-      const updates: Partial<EditorialState> = {
-        mainCaption: canonicalContent,
-        platformCaptions: postHasPlatformOverride
-          ? { [fullPost.integration.platform]: fullPost.content }
-          : {},
-        platformTitles: fullPost.title
-          ? { [fullPost.integration.platform]: fullPost.title }
-          : {},
-        selectedAccounts,
-        mediaItems: newMediaItems,
-        threadMessages,
-        labels: settings.labels || "",
-        collaborators: settings.collaborators || "",
-        location: {
-          id: settings.locationId || null,
-          name: settings.location || "",
-        },
-        firstComment: settings.firstComment || "",
-        recycleInterval: fullPost.recycleInterval || null,
-        aiGenerated: settings.aiGenerated || false,
-        isScheduling: fullPost.status === "scheduled",
-        scheduleDate: fullPost.scheduledAt
-          ? format(new Date(fullPost.scheduledAt), "yyyy-MM-dd")
-          : getTodayString(),
-        scheduleTime: fullPost.scheduledAt
-          ? format(new Date(fullPost.scheduledAt), "HH:mm")
-          : "12:00",
-        isInitialized: true,
-        sourceDraftId: isEditable ? fullPost.id : null,
-        postType: settings.postType || "post",
-        userTags: settings.userTags || [],
-
-        // Load Instagram specific settings
-        instagramCoverUrl: settings.coverUrl || null,
-        instagramThumbOffset: settings.thumbOffset || null,
-        instagramShareToFeed: settings.shareToFeed ?? true,
+      const platformMediaSelection = {
+        [fullPost.integration.platform]: newMediaItems
+          .filter((m) => m.threadIndex === null)
+          .map((m) => m.uid),
       };
 
-      set(updates);
+      set({
+        stagedMediaItems: newMediaItems,
+        platformMediaSelections: platformMediaSelection,
+        mainCaption: fullPost.settings?.canonicalContent || fullPost.content,
+        selectedAccounts,
+        isInitialized: true,
+      });
     },
 
     reset: () => {
@@ -245,25 +268,22 @@ export const useEditorialStore = create<EditorialState & EditorialActions>(
       set({ draft });
     },
 
-    setCropForMedia: (mediaIndex, platform, cropData, croppedPreviewUrl) => {
-      const currentMediaItems = get().mediaItems;
-      const updatedMediaItems = currentMediaItems.map((item, index) => {
-        if (index === mediaIndex) {
-          return {
-            ...item,
-            crops: {
-              ...item.crops,
-              [platform]: cropData,
-            },
-            croppedPreviews: {
-              ...item.croppedPreviews,
-              [platform]: croppedPreviewUrl,
-            },
-          };
-        }
-        return item;
-      });
-      set({ mediaItems: updatedMediaItems });
+    setCropForMedia: (mediaUid, platform, cropData, croppedPreviewUrl) => {
+      set((state) => ({
+        stagedMediaItems: state.stagedMediaItems.map((item) => {
+          if (item.uid === mediaUid) {
+            return {
+              ...item,
+              crops: { ...item.crops, [platform]: cropData },
+              croppedPreviews: {
+                ...item.croppedPreviews,
+                [platform]: croppedPreviewUrl,
+              },
+            };
+          }
+          return item;
+        }),
+      }));
     },
   })
 );

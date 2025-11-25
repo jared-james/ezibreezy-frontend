@@ -13,7 +13,6 @@ import {
   Grid3X3,
   Square,
   Upload,
-  Image as LucideImage,
   Film,
   Loader2,
   Trash2,
@@ -53,8 +52,6 @@ interface InstagramPreviewProps {
     croppedPreviewUrl: string
   ) => void;
   aspectRatio?: number;
-
-  // Reel Specific Props
   coverUrl?: string | null;
   onCoverChange?: (url: string | null) => void;
   thumbOffset?: number | null;
@@ -134,11 +131,9 @@ function InstagramPreview({
   const [isCropperOpen, setIsCropperOpen] = useState(false);
   const [viewMode, setViewMode] = useState<"post" | "grid">("post");
 
-  // Reel Specific State
   const [videoDuration, setVideoDuration] = useState(0);
   const [isUploadingCover, setIsUploadingCover] = useState(false);
 
-  // Access store to get an integration ID for uploading covers
   const selectedAccounts = useEditorialStore((state) => state.selectedAccounts);
   const integrationId = selectedAccounts["instagram"]?.[0];
 
@@ -150,14 +145,12 @@ function InstagramPreview({
 
   const previewAspectRatio = postType === "story" ? 9 / 16 : aspectRatio;
 
-  // Reset view mode to 'post' if switching to 'story'
   useEffect(() => {
     if (postType === "story") {
       setViewMode("post");
     }
   }, [postType]);
 
-  // Handle Auto-Crop for Stories
   const prevPostTypeRef = useRef(postType);
   useEffect(() => {
     const applyAutoCrop = async () => {
@@ -274,11 +267,8 @@ function InstagramPreview({
     }
   }, [isTaggingSupported]);
 
-  // --- Reel / Video Handlers ---
-
   const handleVideoMetadata = (e: React.SyntheticEvent<HTMLVideoElement>) => {
     setVideoDuration(e.currentTarget.duration);
-    // Apply saved offset if exists
     if (thumbOffset && thumbOffset > 0) {
       e.currentTarget.currentTime = thumbOffset / 1000;
     }
@@ -290,7 +280,7 @@ function InstagramPreview({
       videoRef.current.currentTime = timeSeconds;
     }
     if (onThumbOffsetChange) {
-      onThumbOffsetChange(Math.floor(timeSeconds * 1000)); // Convert to ms for API
+      onThumbOffsetChange(Math.floor(timeSeconds * 1000));
     }
   };
 
@@ -315,8 +305,6 @@ function InstagramPreview({
       setIsUploadingCover(false);
     }
   };
-
-  // --- Tagging Handlers ---
 
   const handleImageClick = (e: React.MouseEvent<HTMLDivElement>) => {
     if (!isTaggingMode || !mediaContainerRef.current) return;
@@ -343,7 +331,6 @@ function InstagramPreview({
 
   return (
     <div className="w-full max-w-sm mx-auto space-y-4 transition-all duration-300">
-      {/* Main Preview Card */}
       <div className="bg-[--surface] border border-[--border] shadow-lg">
         <div className="flex items-center justify-between p-3 border-b border-[--border]">
           <div className="flex items-center gap-3">
@@ -369,7 +356,6 @@ function InstagramPreview({
         </div>
 
         {viewMode === "grid" ? (
-          // Grid view
           <div className="bg-background p-2">
             <div className="grid grid-cols-3 gap-0.5">
               {[0, 1, 2].map((i) => (
@@ -379,7 +365,6 @@ function InstagramPreview({
               <div className="aspect-3/4 relative overflow-hidden ring-2 ring-primary">
                 {displayMediaSrc ? (
                   mediaType === "video" ? (
-                    // For video grid view: Show Custom Cover > or Video at current timestamp
                     coverUrl ? (
                       <img
                         src={coverUrl}
@@ -392,7 +377,6 @@ function InstagramPreview({
                         className="w-full h-full object-cover"
                         muted
                         playsInline
-                        // Show the selected frame
                         ref={(el) => {
                           if (el && thumbOffset) {
                             el.currentTime = thumbOffset / 1000;
@@ -423,7 +407,6 @@ function InstagramPreview({
             </p>
           </div>
         ) : (
-          // Post view
           <div
             ref={mediaContainerRef}
             onClick={handleImageClick}
@@ -576,7 +559,6 @@ function InstagramPreview({
         <div className="px-3 py-2 border-t border-border">
           {isTaggingSupported || canCrop || displayMediaSrc ? (
             <div className="flex items-center gap-4">
-              {/* View Toggle - Only show if NOT a story */}
               {displayMediaSrc && postType !== "story" && (
                 <div className="flex items-center gap-1">
                   <button
@@ -608,14 +590,12 @@ function InstagramPreview({
                 </div>
               )}
 
-              {/* Divider */}
               {displayMediaSrc &&
                 postType !== "story" &&
                 (canCrop || isTaggingSupported) && (
                   <div className="h-4 w-px bg-border" />
                 )}
 
-              {/* Action Buttons */}
               {canCrop && (
                 <button
                   onClick={() => setIsCropperOpen(true)}
@@ -665,10 +645,6 @@ function InstagramPreview({
         </div>
       </div>
 
-      {/* ============================================ */}
-      {/* REEL SETTINGS SECTION                        */}
-      {/* ============================================ */}
-      {/* Logic: "Post" + Video = Reel */}
       {postType === "post" && mediaType === "video" && displayMediaSrc && (
         <div className="bg-surface border border-border rounded-lg p-4 space-y-5 animate-in fade-in-50">
           <div className="flex items-center justify-between">
@@ -678,7 +654,6 @@ function InstagramPreview({
             </h3>
           </div>
 
-          {/* Share to Feed Toggle */}
           <div className="flex items-center justify-between">
             <div className="space-y-0.5">
               <label className="text-sm font-medium text-foreground">
@@ -698,14 +673,12 @@ function InstagramPreview({
 
           <div className="h-px bg-border" />
 
-          {/* Cover Image Section */}
           <div className="space-y-3">
             <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
               Cover Image
             </label>
 
             <div className="flex gap-4 items-start">
-              {/* Preview of Cover */}
               <div className="relative w-20 aspect-[9/16] bg-muted border border-border rounded-md overflow-hidden shrink-0">
                 {coverUrl ? (
                   <>
@@ -728,7 +701,11 @@ function InstagramPreview({
                     muted
                     playsInline
                     ref={(el) => {
-                      if (el && thumbOffset !== null && thumbOffset !== undefined) {
+                      if (
+                        el &&
+                        thumbOffset !== null &&
+                        thumbOffset !== undefined
+                      ) {
                         el.currentTime = thumbOffset / 1000;
                       }
                     }}
@@ -741,7 +718,6 @@ function InstagramPreview({
               </div>
 
               <div className="flex-1 space-y-4">
-                {/* Upload Button */}
                 <div>
                   <label className="inline-flex items-center gap-2 px-3 py-2 bg-surface border border-border hover:bg-surface-hover rounded-md text-xs font-medium cursor-pointer transition-colors">
                     {isUploadingCover ? (
@@ -763,7 +739,6 @@ function InstagramPreview({
                   </p>
                 </div>
 
-                {/* Frame Slider */}
                 {!coverUrl && (
                   <div className="space-y-2">
                     <div className="flex justify-between text-[10px] text-muted-foreground">
