@@ -679,7 +679,7 @@ function InstagramPreview({
             </label>
 
             <div className="flex gap-4 items-start">
-              <div className="relative w-20 aspect-[9/16] bg-muted border border-border rounded-md overflow-hidden shrink-0">
+              <div className="relative w-20 aspect-9/16 bg-muted border border-border rounded-md overflow-hidden shrink-0">
                 {coverUrl ? (
                   <>
                     <img

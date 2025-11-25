@@ -127,7 +127,7 @@ function TikTokPreview({
 
   return (
     <div className="w-full max-w-sm mx-auto">
-      <div className="relative bg-black rounded-2xl overflow-hidden aspect-[9/16] max-h-[500px] border border-border">
+      <div className="relative bg-black rounded-2xl overflow-hidden aspect-9/16 max-h-[500px] border border-border">
         <div className="absolute inset-0">
           {displayMediaSrc ? (
             mediaType === "video" ? (
@@ -186,7 +186,7 @@ function TikTokPreview({
             <span className="text-white text-xs">Share</span>
           </div>
 
-          <div className="w-10 h-10 rounded-full border-2 border-white/30 bg-gradient-to-br from-gray-800 to-gray-900 flex items-center justify-center animate-spin-slow">
+          <div className="w-10 h-10 rounded-full border-2 border-white/30 bg-linear-to-br from-gray-800 to-gray-900 flex items-center justify-center animate-spin-slow">
             <Music className="w-4 h-4 text-white" />
           </div>
         </div>

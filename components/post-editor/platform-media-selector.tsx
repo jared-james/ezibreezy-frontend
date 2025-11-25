@@ -125,7 +125,7 @@ export default function PlatformMediaSelector({
           )}
         </div>
       </div>
-      <div className="grid grid-cols-5 gap-3">
+      <div className="grid grid-cols-10 gap-1.5">
         {stagedMediaItems.map((item) => (
           <MediaThumbnail
             key={item.uid}

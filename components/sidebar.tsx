@@ -59,7 +59,7 @@ export default function Sidebar() {
               `}
             >
               <Icon className="w-4 h-4" />
-              <span className="mt-[1px]">{item.name}</span>
+              <span className="mt-px">{item.name}</span>
             </Link>
           );
         })}

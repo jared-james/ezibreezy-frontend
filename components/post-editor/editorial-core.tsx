@@ -2,7 +2,7 @@
 
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect } from "react";
 import { FileText } from "lucide-react";
 import { toast } from "sonner";
 import { showError } from "@/components/ui/sonner";
@@ -440,7 +440,6 @@ export default function EditorialCore({
                     handleMediaChange(files, previews, null)
                   }
                   onRemoveMedia={(file) => handleRemoveMedia(file, null)}
-                  activePlatforms={activePlatforms}
                 />
               }
             />

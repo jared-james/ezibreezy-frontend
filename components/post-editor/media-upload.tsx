@@ -8,8 +8,6 @@ import {
   X,
   Loader2,
   Plus,
-  AlertCircle,
-  GripHorizontal,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -19,7 +17,6 @@ interface MediaUploadProps {
   isUploading: boolean;
   onMediaChange: (files: File[], previews: string[]) => void;
   onRemoveMedia: (fileToRemove: File) => void;
-  activePlatforms?: Set<string>;
 }
 
 export default function MediaUpload({
@@ -28,14 +25,10 @@ export default function MediaUpload({
   isUploading,
   onMediaChange,
   onRemoveMedia,
-  activePlatforms,
 }: MediaUploadProps) {
   const [isDraggingFiles, setIsDraggingFiles] = useState(false);
-  const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
 
-  const isXActive = activePlatforms?.has("x");
   const MAX_FILES = 10;
-  const MAX_X_FILES = 4;
 
   const handleFiles = useCallback(
     (newFiles: File[]) => {
@@ -72,14 +65,12 @@ export default function MediaUpload({
       e.preventDefault();
       setIsDraggingFiles(false);
 
-      if (draggedIndex !== null) return;
-
       const droppedFiles = Array.from(e.dataTransfer.files);
       if (droppedFiles.length > 0) {
         handleFiles(droppedFiles);
       }
     },
-    [handleFiles, draggedIndex]
+    [handleFiles]
   );
 
   const handleFileSelect = useCallback(
@@ -90,27 +81,6 @@ export default function MediaUpload({
     },
     [handleFiles]
   );
-
-  const handleSortDragStart = (e: React.DragEvent, index: number) => {
-    e.stopPropagation();
-    setDraggedIndex(index);
-    e.dataTransfer.effectAllowed = "move";
-    e.dataTransfer.setData("text/plain", index.toString());
-  };
-
-  const handleSortDragOver = (e: React.DragEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    e.dataTransfer.dropEffect = "move";
-  };
-
-  const handleSortDrop = (e: React.DragEvent, dropIndex: number) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setDraggedIndex(null);
-    // Note: Reordering logic would need to be implemented in the hook/store
-    // For now, this is disabled to simplify the refactor.
-  };
 
   const handleRemove = useCallback(
     (indexToRemove: number) => {
@@ -131,23 +101,11 @@ export default function MediaUpload({
         <div className="grid grid-cols-5 gap-2">
           {mediaPreviews.map((preview, index) => {
             const isVideo = mediaFiles[index]?.type.startsWith("video/");
-            const isExcludedFromX = isXActive && index >= MAX_X_FILES;
-            const isBeingDragged = draggedIndex === index;
 
             return (
               <div
                 key={preview}
-                draggable={!isUploading}
-                onDragStart={(e) => handleSortDragStart(e, index)}
-                onDragOver={handleSortDragOver}
-                onDrop={(e) => handleSortDrop(e, index)}
-                className={cn(
-                  "relative group aspect-square bg-black/5 rounded-md overflow-hidden border border-[--border] cursor-grab transition-all duration-200",
-                  isExcludedFromX ? "opacity-60 grayscale" : "",
-                  isBeingDragged
-                    ? "opacity-0"
-                    : "opacity-100 hover:ring-2 hover:ring-[--foreground]"
-                )}
+                className="relative group aspect-square bg-black/5 rounded-md overflow-hidden border border-[--border] transition-all duration-200 hover:ring-2 hover:ring-[--foreground]"
               >
                 {isVideo ? (
                   <video
@@ -163,22 +121,9 @@ export default function MediaUpload({
                   />
                 )}
 
-                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none bg-black/40 text-white p-1 rounded">
-                  <GripHorizontal className="w-5 h-5" />
-                </div>
-
                 {isUploading && (
-                  <div className="absolute inset-0 bg-black/50 flex items-center justify-center z-10 cursor-wait">
+                  <div className="absolute inset-0 bg-black/50 flex items-center justify-center z-10">
                     <Loader2 className="w-4 h-4 text-white animate-spin" />
-                  </div>
-                )}
-
-                {isExcludedFromX && (
-                  <div className="absolute inset-0 bg-black/20 flex items-end justify-center p-1 pointer-events-none">
-                    <div className="bg-red-500/90 text-white text-[9px] px-1.5 py-0.5 rounded-full flex items-center gap-1 w-full justify-center">
-                      <AlertCircle className="w-2.5 h-2.5" />
-                      <span className="font-bold">No X</span>
-                    </div>
                   </div>
                 )}
 

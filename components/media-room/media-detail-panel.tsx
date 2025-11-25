@@ -441,7 +441,7 @@ function MediaItemEditor({
                 </div>
               </div>
 
-              <div className="flex flex-wrap gap-2 min-h-[44px] bg-neutral-50 border border-border rounded-sm p-2">
+              <div className="flex flex-wrap gap-2 min-h-11 bg-neutral-50 border border-border rounded-sm p-2">
                 {media.tags.length === 0 ? (
                   <span className="text-sm text-muted-foreground italic px-1 self-center">
                     No tags attached
