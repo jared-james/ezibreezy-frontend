@@ -2,15 +2,7 @@
   "permissions": {
     "allow": [
       "Bash(ls:*)",
-      "Bash(mkdir:*)",
-      "Bash(pnpm add:*)",
-      "Bash(tree:*)",
-      "Bash(rm:*)",
-      "Bash(npm run build:*)",
-      "Bash(pnpm remove:*)",
-      "Bash(npx tsc:*)",
-      "Bash(npx eslint:*)",
-      "Bash(xargs -I {} bash -c \"echo ''''=== {} ==='''' && grep -E ''''^import.*from'''' ''''{}''''\")"
+      "Bash(tree:*)"
     ],
     "deny": [],
     "ask": []
