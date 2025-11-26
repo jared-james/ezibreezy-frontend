@@ -194,19 +194,30 @@ export function PlatformCaptionSection({
                 const isSelected = selectedAccounts[platformId]?.includes(
                   account.id
                 );
+                const selectedCount = selectedAccounts[platformId]?.length || 0;
+                const isLastSelected = isSelected && selectedCount === 1;
 
                 return (
                   <button
                     key={account.id}
                     type="button"
-                    onClick={() => onAccountSelect(platformId, account.id)}
+                    onClick={() => {
+                      if (!isLastSelected) {
+                        onAccountSelect(platformId, account.id);
+                      }
+                    }}
                     className={cn(
                       "h-10 w-10 rounded-full border-2 transition-all overflow-hidden",
                       isSelected
                         ? "border-primary"
-                        : "border-border hover:border-primary/50"
+                        : "border-border hover:border-primary/50",
+                      isLastSelected ? "cursor-not-allowed" : "cursor-pointer"
                     )}
-                    title={account.name}
+                    title={
+                      isLastSelected
+                        ? `${account.name} (Cannot deselect the last account)`
+                        : account.name
+                    }
                   >
                     {account.img ? (
                       <img
