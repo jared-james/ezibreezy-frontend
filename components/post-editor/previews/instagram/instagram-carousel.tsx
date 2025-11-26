@@ -1,6 +1,6 @@
 // components/post-editor/previews/instagram/instagram-carousel.tsx
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { ChevronLeft, ChevronRight, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { MediaItem } from "@/lib/store/editorial-store";
@@ -58,20 +58,17 @@ export function InstagramCarousel({
   const currentMediaTags = currentMedia?.id ? tags[currentMedia.id] || [] : [];
   const currentMediaProductTags = currentMedia?.id ? productTags[currentMedia.id] || [] : [];
 
+  // Notify parent of index changes via useEffect to avoid setState during render
+  useEffect(() => {
+    onCurrentIndexChange?.(currentIndex);
+  }, [currentIndex, onCurrentIndexChange]);
+
   const nextSlide = () => {
-    setCurrentIndex((prev) => {
-      const newIndex = (prev + 1) % mediaItems.length;
-      onCurrentIndexChange?.(newIndex);
-      return newIndex;
-    });
+    setCurrentIndex((prev) => (prev + 1) % mediaItems.length);
   };
 
   const prevSlide = () => {
-    setCurrentIndex((prev) => {
-      const newIndex = (prev - 1 + mediaItems.length) % mediaItems.length;
-      onCurrentIndexChange?.(newIndex);
-      return newIndex;
-    });
+    setCurrentIndex((prev) => (prev - 1 + mediaItems.length) % mediaItems.length);
   };
 
   const handleImageClick = (e: React.MouseEvent<HTMLDivElement>) => {
