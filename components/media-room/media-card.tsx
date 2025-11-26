@@ -73,11 +73,30 @@ export default function MediaCard({
                 fetchPriority={priority ? "high" : "auto"}
               />
             ) : (
-              <div className="w-full h-full flex items-center justify-center">
-                <Film className="w-8 h-8 text-muted-foreground" />
-              </div>
+              <video
+                /* 
+                  #t=0.001 forces the browser to seek to the start immediately, 
+                  effectively rendering the first frame as a thumbnail.
+                */
+                src={`${item.url}#t=0.001`}
+                className="w-full h-full object-cover"
+                preload="metadata"
+                muted
+                playsInline
+                loop
+                /* Optional: Play on hover for quick preview */
+                onMouseEnter={(e) => e.currentTarget.play()}
+                onMouseLeave={(e) => {
+                  e.currentTarget.pause();
+                  // Optional: Reset to start on mouse leave
+                  // e.currentTarget.currentTime = 0;
+                }}
+              />
             )}
-            <div className="absolute inset-0 flex items-center justify-center">
+
+            {/* Play Overlay */}
+            {/* pointer-events-none added so hover effects reach the video tag below */}
+            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
               <div className="bg-black/60 rounded-full p-2">
                 <Play className="w-5 h-5 text-white fill-white" />
               </div>
@@ -101,7 +120,7 @@ export default function MediaCard({
         <button
           onClick={handleCheckboxClick}
           className={cn(
-            "absolute top-2 left-2 w-5 h-5 border-2 rounded-sm flex items-center justify-center transition-all",
+            "absolute top-2 left-2 w-5 h-5 border-2 rounded-sm flex items-center justify-center transition-all z-10",
             isSelected
               ? "bg-brand-primary border-brand-primary"
               : "bg-white/90 border-brand-primary hover:border-brand-primary"
@@ -114,7 +133,7 @@ export default function MediaCard({
 
         {/* Type badge */}
         {(isVideo || isGif) && (
-          <div className="absolute bottom-2 left-2 px-1.5 py-0.5 bg-black/70 text-white text-[9px] font-bold uppercase tracking-wider rounded">
+          <div className="absolute bottom-2 left-2 px-1.5 py-0.5 bg-black/70 text-white text-[9px] font-bold uppercase tracking-wider rounded pointer-events-none">
             {isGif ? "GIF" : "Video"}
           </div>
         )}
