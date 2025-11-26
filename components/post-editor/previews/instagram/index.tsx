@@ -92,14 +92,18 @@ function InstagramPreview({
     ? singleMediaItem.preview
     : singleMediaItem?.originalUrlForCropping;
 
-  const isTaggingSupported =
-    !!displayMediaSrc && postType === "post" && mediaType !== "video";
   const previewAspectRatio = postType === "story" ? 9 / 16 : aspectRatio;
 
   // Determine if we have multiple media items
   const hasMultipleMedia = mediaItems.length > 1;
   const isCarousel = hasMultipleMedia && postType === "post";
   const isStoryCarousel = hasMultipleMedia && postType === "story";
+
+  // For carousels, tagging is supported if ANY image exists
+  // For single media, tagging is supported if it's a post with an image
+  const isTaggingSupported = isCarousel
+    ? postType === "post" && mediaItems.some((item) => item.type === "image")
+    : !!displayMediaSrc && postType === "post" && mediaType !== "video";
 
   // Effects
   useEffect(() => {
@@ -384,20 +388,23 @@ function InstagramPreview({
         </div>
       </div>
 
-      {/* Reel Options Panel */}
-      {postType === "post" && mediaType === "video" && displayMediaSrc && (
-        <InstagramReelOptions
-          integrationId={integrationId}
-          shareToFeed={shareToFeed}
-          onShareToFeedChange={onShareToFeedChange}
-          coverUrl={coverUrl}
-          onCoverChange={onCoverChange}
-          displayMediaSrc={displayMediaSrc}
-          thumbOffset={thumbOffset}
-          onThumbOffsetChange={onThumbOffsetChange}
-          videoDuration={videoDuration}
-        />
-      )}
+      {/* Reel Options Panel - Only for single video posts, not carousels */}
+      {postType === "post" &&
+        mediaType === "video" &&
+        displayMediaSrc &&
+        !isCarousel && (
+          <InstagramReelOptions
+            integrationId={integrationId}
+            shareToFeed={shareToFeed}
+            onShareToFeedChange={onShareToFeedChange}
+            coverUrl={coverUrl}
+            onCoverChange={onCoverChange}
+            displayMediaSrc={displayMediaSrc}
+            thumbOffset={thumbOffset}
+            onThumbOffsetChange={onThumbOffsetChange}
+            videoDuration={videoDuration}
+          />
+        )}
 
       {/* Cropper Modal */}
       {originalMediaSrc && (

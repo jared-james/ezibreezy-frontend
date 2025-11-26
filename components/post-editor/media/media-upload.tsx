@@ -3,7 +3,7 @@
 "use client";
 
 import { useCallback, useState, useMemo } from "react";
-import { Upload, X, Loader2, Plus, FolderOpen } from "lucide-react";
+import { Upload, X, Loader2, Plus, FolderOpen, Video } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useQuery } from "@tanstack/react-query";
 import { getConnections } from "@/lib/api/integrations";
@@ -168,6 +168,12 @@ export default function MediaUpload({
                   <div className="absolute top-1 left-1 px-1.5 py-0.5 bg-black/60 rounded text-[9px] font-medium text-white flex items-center gap-1 pointer-events-none">
                     {index + 1}
                   </div>
+
+                  {isVideo && (
+                    <div className="absolute bottom-1 right-1 p-1 bg-black/70 rounded pointer-events-none">
+                      <Video className="w-4 h-4 text-white" />
+                    </div>
+                  )}
                 </div>
               );
             })}

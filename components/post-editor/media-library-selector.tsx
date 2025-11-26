@@ -3,7 +3,7 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import { Loader2, ImageOff, Check, Play } from "lucide-react";
+import { Loader2, ImageOff, Check, Video } from "lucide-react";
 import { useMediaList } from "@/lib/hooks/use-media";
 import type { MediaFilters, MediaItem } from "@/lib/api/media";
 import { cn } from "@/lib/utils";
@@ -98,12 +98,21 @@ export default function MediaLibrarySelector({
             >
               {isVideo ? (
                 <>
-                  <video
-                    src={item.url}
-                    className="w-full h-full object-cover pointer-events-none"
-                  />
-                  <div className="absolute inset-0 flex items-center justify-center bg-black/20 pointer-events-none">
-                    <Play className="w-6 h-6 text-white" />
+                  {item.thumbnailUrl ? (
+                    <img
+                      src={item.thumbnailUrl}
+                      alt={item.altText || item.filename}
+                      className="w-full h-full object-cover pointer-events-none"
+                    />
+                  ) : (
+                    <video
+                      src={item.url}
+                      className="w-full h-full object-cover pointer-events-none"
+                      preload="metadata"
+                    />
+                  )}
+                  <div className="absolute top-2 right-2 p-1.5 bg-black/70 rounded-md pointer-events-none">
+                    <Video className="w-4 h-4 text-white" />
                   </div>
                 </>
               ) : (
