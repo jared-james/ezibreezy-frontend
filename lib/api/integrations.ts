@@ -31,6 +31,13 @@ export interface LocationSearchResult {
   rating: number | null;
 }
 
+export interface InstagramUserSearchResult {
+  id: string;
+  username: string;
+  name: string;
+  thumbnailUrl: string;
+}
+
 export const getConnections = async (): Promise<Connection[]> => {
   const response = await apiClient.get<Connection[]>(
     "/integrations/connections"
@@ -56,6 +63,19 @@ export const searchLocations = async (
     "/integrations/locations/search",
     {
       params: { q: query, integrationId },
+    }
+  );
+  return response.data;
+};
+
+export const searchInstagramUser = async (
+  username: string,
+  integrationId: string
+): Promise<InstagramUserSearchResult> => {
+  const response = await apiClient.get<InstagramUserSearchResult>(
+    "/integrations/instagram/user-search",
+    {
+      params: { username, integrationId },
     }
   );
   return response.data;

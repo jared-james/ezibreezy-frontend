@@ -23,7 +23,7 @@ export interface ProductTagDto {
 export interface PostSettings {
   labels?: string;
   hashtags?: string;
-  collaborators?: string;
+  collaborators?: string | string[]; // Instagram: array of usernames
 
   location?: string;
   locationId?: string;

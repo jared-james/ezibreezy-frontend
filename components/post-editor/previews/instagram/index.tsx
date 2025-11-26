@@ -19,6 +19,7 @@ import { useEditorialStore, MediaItem } from "@/lib/store/editorial-store";
 import { getMediaViewUrl } from "@/lib/api/media";
 import { toast } from "sonner";
 import LocationSearchInput from "../../location-search-input";
+import CollaboratorSearchInput from "../../collaborator-search-input";
 
 // Sub-components
 import { InstagramHeader } from "./instagram-header";
@@ -80,6 +81,7 @@ function InstagramPreview({
   const setCropForMedia = useEditorialStore((state) => state.setCropForMedia);
   const setState = useEditorialStore((state) => state.setState);
   const location = useEditorialStore((state) => state.location);
+  const instagramCollaborators = useEditorialStore((state) => state.instagramCollaborators);
 
   // Local State
   const [isTaggingMode, setIsTaggingMode] = useState(false);
@@ -508,6 +510,19 @@ function InstagramPreview({
             onAltTextClick={handleAltTextClick}
           />
         </div>
+
+        {/* Collaborator Search - Only for Instagram posts (not stories) */}
+        {postType !== "story" && (
+          <div className="px-3 py-2 border-t border-border">
+            <CollaboratorSearchInput
+              selectedCollaborators={instagramCollaborators}
+              onCollaboratorsChange={(collaborators) =>
+                setState({ instagramCollaborators: collaborators })
+              }
+              integrationId={integrationId || null}
+            />
+          </div>
+        )}
 
         {/* Location Input */}
         <div className="px-3 py-2 border-t border-border">

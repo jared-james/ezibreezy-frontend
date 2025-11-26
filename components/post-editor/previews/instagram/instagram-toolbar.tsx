@@ -47,43 +47,46 @@ export function InstagramToolbar({
   }
 
   return (
-    <div className="flex items-center gap-4">
-      {/* View Switcher */}
+    <div className="space-y-3">
+      {/* View Switcher - First Line */}
       {!isStory && (
-        <div className="flex items-center gap-1">
-          <button
-            onClick={() => onViewModeChange("post")}
-            title="Post View"
-            className={cn(
-              "flex items-center gap-1.5 px-2 py-1 rounded-sm text-xs font-medium transition-colors",
-              viewMode === "post"
-                ? "bg-primary text-primary-foreground"
-                : "text-muted-foreground hover:text-foreground"
-            )}
-          >
-            <Square className="h-3.5 w-3.5" />
-            Post
-          </button>
-          <button
-            onClick={() => onViewModeChange("grid")}
-            title="Grid View"
-            className={cn(
-              "flex items-center gap-1.5 px-2 py-1 rounded-sm text-xs font-medium transition-colors",
-              viewMode === "grid"
-                ? "bg-primary text-primary-foreground"
-                : "text-muted-foreground hover:text-foreground"
-            )}
-          >
-            <Grid3X3 className="h-3.5 w-3.5" />
-            Grid
-          </button>
-        </div>
+        <>
+          <div className="flex items-center gap-1">
+            <button
+              onClick={() => onViewModeChange("post")}
+              title="Post View"
+              className={cn(
+                "flex items-center gap-1.5 px-2 py-1 rounded-sm text-xs font-medium transition-colors",
+                viewMode === "post"
+                  ? "bg-primary text-primary-foreground"
+                  : "text-muted-foreground hover:text-foreground"
+              )}
+            >
+              <Square className="h-3.5 w-3.5" />
+              View Post
+            </button>
+            <button
+              onClick={() => onViewModeChange("grid")}
+              title="Grid View"
+              className={cn(
+                "flex items-center gap-1.5 px-2 py-1 rounded-sm text-xs font-medium transition-colors",
+                viewMode === "grid"
+                  ? "bg-primary text-primary-foreground"
+                  : "text-muted-foreground hover:text-foreground"
+              )}
+            >
+              <Grid3X3 className="h-3.5 w-3.5" />
+              View Grid
+            </button>
+          </div>
+
+          {/* Divider */}
+          <div className="border-t border-border" />
+        </>
       )}
 
-      {/* Divider */}
-      {!isStory && (canCrop || isTaggingSupported || isProductTaggingSupported || canEditAltText) && (
-        <div className="h-4 w-px bg-border" />
-      )}
+      {/* Action Buttons - Second Line */}
+      <div className="flex items-center gap-4">
 
       {/* Crop Button */}
       {canCrop && (
@@ -177,6 +180,7 @@ export function InstagramToolbar({
           Alt
         </button>
       )}
+      </div>
     </div>
   );
 }

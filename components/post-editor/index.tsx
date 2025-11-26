@@ -74,6 +74,7 @@ export default function EditorialCore({
   const firstComment = useEditorialStore((state) => state.firstComment);
   const postTypeFromStore = useEditorialStore((state) => state.postType);
   const userTags = useEditorialStore((state) => state.userTags);
+  const instagramCollaborators = useEditorialStore((state) => state.instagramCollaborators);
 
   const facebookPostType = useEditorialStore((state) => state.facebookPostType);
   const facebookFirstComment = useEditorialStore(
@@ -329,6 +330,13 @@ export default function EditorialCore({
               payload.settings!.thumbOffset = instagramThumbOffset;
             }
             payload.settings!.shareToFeed = instagramShareToFeed;
+
+            // Add collaborators as array of usernames
+            if (instagramCollaborators.length > 0) {
+              payload.settings!.collaborators = instagramCollaborators.map(
+                (c) => c.username
+              );
+            }
           }
 
           if (platformId === "facebook") {

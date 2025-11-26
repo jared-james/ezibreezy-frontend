@@ -9,6 +9,7 @@ import { FullPostDetails, UserTagDto, ProductTagDto } from "@/lib/api/publishing
 import { format } from "date-fns";
 import type { PlatformCrops, SocialPlatform } from "@/lib/utils/crop-utils";
 import { PLATFORM_RULES } from "@/lib/utils/media-validation";
+import { InstagramUserSearchResult } from "@/lib/api/integrations";
 
 export interface MediaItem {
   uid: string;
@@ -45,6 +46,7 @@ export interface EditorialState {
   threadMessages: ThreadMessage[];
   platformThreadMessages: Record<string, ThreadMessage[]>;
   collaborators: string;
+  instagramCollaborators: InstagramUserSearchResult[];
   location: LocationState;
   firstComment: string;
   facebookFirstComment: string;
@@ -97,6 +99,7 @@ export const initialState: EditorialState = {
   threadMessages: [],
   platformThreadMessages: {},
   collaborators: "",
+  instagramCollaborators: [],
   location: { id: null, name: "" },
   firstComment: "",
   facebookFirstComment: "",

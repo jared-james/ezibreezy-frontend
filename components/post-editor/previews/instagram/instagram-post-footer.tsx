@@ -40,9 +40,6 @@ export function InstagramPostFooter({
             With <span className="font-semibold">{collaborators}</span>
           </p>
         )}
-
-        <p className="text-xs text-muted-foreground">View all 0 comments</p>
-        <p className="text-[0.65rem] uppercase text-muted-foreground">Now</p>
       </div>
     </>
   );
