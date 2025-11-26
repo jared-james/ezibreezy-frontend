@@ -24,7 +24,7 @@ export interface PostSettings {
   firstComment?: string;
   canonicalContent?: string;
   postType?: "post" | "reel" | "story";
-  userTags?: UserTagDto[];
+  userTags?: Record<string, UserTagDto[]>; // Changed: now keyed by mediaId
   facebookPostType?: "post" | "reel" | "story";
   facebookFirstComment?: string;
 
@@ -47,7 +47,7 @@ export interface CreatePostPayload {
   aiGenerated?: boolean;
   sourceDraftId?: string;
   postType?: "post" | "reel" | "story";
-  userTags?: UserTagDto[];
+  userTags?: Record<string, UserTagDto[]>; // Changed: now keyed by mediaId
   mediaCrops?: Record<string, PlatformCrops>;
 }
 

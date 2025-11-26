@@ -24,18 +24,21 @@ import { InstagramPostFooter } from "./instagram-post-footer";
 import { InstagramMediaDisplay } from "./instagram-media-display";
 import { InstagramToolbar } from "./instagram-toolbar";
 import { InstagramReelOptions } from "./instagram-reel-options";
+import { InstagramCarousel } from "./instagram-carousel";
+import { InstagramStoryCarousel } from "./instagram-story-carousel";
 
 interface InstagramPreviewProps {
   caption: string;
   singleMediaItem: MediaItem | null;
+  mediaItems?: MediaItem[];
   mediaType?: "image" | "video" | "text";
   platformUsername: string;
   displayName: string | null;
   avatarUrl: string | null;
   collaborators: string;
   postType: "post" | "reel" | "story";
-  userTags: UserTagDto[];
-  onUserTagsChange: (tags: UserTagDto[]) => void;
+  userTags: Record<string, UserTagDto[]>; // Changed: keyed by mediaId
+  onUserTagsChange: (tags: Record<string, UserTagDto[]>) => void;
   aspectRatio?: number;
   coverUrl?: string | null;
   onCoverChange?: (url: string | null) => void;
@@ -48,6 +51,7 @@ interface InstagramPreviewProps {
 function InstagramPreview({
   caption,
   singleMediaItem,
+  mediaItems = [],
   mediaType = "image",
   platformUsername,
   displayName,
@@ -91,6 +95,11 @@ function InstagramPreview({
   const isTaggingSupported =
     !!displayMediaSrc && postType === "post" && mediaType !== "video";
   const previewAspectRatio = postType === "story" ? 9 / 16 : aspectRatio;
+
+  // Determine if we have multiple media items
+  const hasMultipleMedia = mediaItems.length > 1;
+  const isCarousel = hasMultipleMedia && postType === "post";
+  const isStoryCarousel = hasMultipleMedia && postType === "story";
 
   // Effects
   useEffect(() => {
@@ -268,17 +277,67 @@ function InstagramPreview({
             coverUrl={coverUrl}
             thumbOffset={thumbOffset}
           />
+        ) : isStoryCarousel ? (
+          <InstagramStoryCarousel
+            mediaItems={mediaItems}
+            aspectRatio={previewAspectRatio}
+            onVideoMetadataLoaded={setVideoDuration}
+          />
+        ) : isCarousel ? (
+          <InstagramCarousel
+            mediaItems={mediaItems}
+            aspectRatio={previewAspectRatio}
+            isTaggingMode={isTaggingMode}
+            tags={userTags}
+            onAddTag={(mediaId, tag) => {
+              const newTags = { ...userTags };
+              newTags[mediaId] = [...(newTags[mediaId] || []), tag];
+              onUserTagsChange(newTags);
+            }}
+            onRemoveTag={(mediaId, idx) => {
+              const newTags = { ...userTags };
+              if (newTags[mediaId]) {
+                newTags[mediaId] = newTags[mediaId].filter((_, i) => i !== idx);
+                if (newTags[mediaId].length === 0) {
+                  delete newTags[mediaId];
+                }
+              }
+              onUserTagsChange(newTags);
+            }}
+            onVideoMetadataLoaded={setVideoDuration}
+          />
         ) : (
           <InstagramMediaDisplay
             displayMediaSrc={displayMediaSrc}
             mediaType={mediaType}
             aspectRatio={previewAspectRatio}
             isTaggingMode={isTaggingMode}
-            tags={userTags}
-            onAddTag={(tag) => onUserTagsChange([...userTags, tag])}
-            onRemoveTag={(idx) =>
-              onUserTagsChange(userTags.filter((_, i) => i !== idx))
-            }
+            mediaId={singleMediaItem?.id || null}
+            tags={singleMediaItem?.id ? userTags[singleMediaItem.id] || [] : []}
+            onAddTag={(tag) => {
+              if (singleMediaItem?.id) {
+                const newTags = { ...userTags };
+                newTags[singleMediaItem.id] = [
+                  ...(newTags[singleMediaItem.id] || []),
+                  tag,
+                ];
+                onUserTagsChange(newTags);
+              }
+            }}
+            onRemoveTag={(idx) => {
+              if (singleMediaItem?.id) {
+                const newTags = { ...userTags };
+                if (newTags[singleMediaItem.id]) {
+                  newTags[singleMediaItem.id] = newTags[singleMediaItem.id].filter(
+                    (_, i) => i !== idx
+                  );
+                  if (newTags[singleMediaItem.id].length === 0) {
+                    delete newTags[singleMediaItem.id];
+                  }
+                }
+                onUserTagsChange(newTags);
+              }
+            }}
             coverUrl={coverUrl}
             onVideoMetadataLoaded={setVideoDuration}
             isStory={postType === "story"}

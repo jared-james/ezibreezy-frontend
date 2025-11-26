@@ -139,7 +139,7 @@ function PreviewPanel({
     [platformCaptions, validActiveTab, mainCaption]
   );
 
-  const handleUserTagsChange = (tags: UserTagDto[]) => {
+  const handleUserTagsChange = (tags: Record<string, UserTagDto[]>) => {
     setState({ userTags: tags });
   };
 
@@ -214,6 +214,7 @@ function PreviewPanel({
           <InstagramPreview
             caption={currentCaption}
             singleMediaItem={singleMediaItem || null}
+            mediaItems={activeMediaItems}
             mediaType={mediaPostType}
             platformUsername={activeAccount.platformUsername}
             displayName={activeAccount.name}

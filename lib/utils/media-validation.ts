@@ -14,13 +14,13 @@ export interface MediaConflict {
 export const PLATFORM_RULES = {
   instagram: {
     name: "Instagram",
-    allowMixedMedia: false,
+    allowMixedMedia: true, // Temporarily enabled for API testing
     maxVideos: 10,
     maxImages: 10,
   },
   facebook: {
     name: "Facebook",
-    allowMixedMedia: false,
+    allowMixedMedia: true, // Temporarily enabled for API testing
     maxVideos: 10,
     maxImages: 10,
   },

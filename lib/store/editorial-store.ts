@@ -54,7 +54,7 @@ export interface EditorialState {
   sourceDraftId: string | null;
   postType: PlatformPostType;
   facebookPostType: PlatformPostType;
-  userTags: UserTagDto[];
+  userTags: Record<string, UserTagDto[]>; // Changed: now keyed by mediaId
   activeCaptionFilter: string;
   instagramCoverUrl: string | null;
   instagramThumbOffset: number | null;
@@ -105,7 +105,7 @@ export const initialState: EditorialState = {
   sourceDraftId: null,
   postType: "post",
   facebookPostType: "post",
-  userTags: [],
+  userTags: {}, // Changed: now an empty object
   activeCaptionFilter: "all",
   instagramCoverUrl: null,
   instagramThumbOffset: null,

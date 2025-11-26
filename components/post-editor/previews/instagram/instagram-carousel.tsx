@@ -1,37 +1,33 @@
-// components/post-editor/previews/instagram/instagram-media-display.tsx
+// components/post-editor/previews/instagram/instagram-carousel.tsx
 
-import { useRef, useState } from "react";
+import { useState, useRef } from "react";
+import { ChevronLeft, ChevronRight, X } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { ImageIcon, X } from "lucide-react";
+import { MediaItem } from "@/lib/store/editorial-store";
 import { UserTagDto } from "@/lib/api/publishing";
 
-interface InstagramMediaDisplayProps {
-  displayMediaSrc?: string;
-  mediaType: "image" | "video" | "text";
+interface InstagramCarouselProps {
+  mediaItems: MediaItem[];
   aspectRatio: number;
   isTaggingMode: boolean;
-  mediaId: string | null; // Added: need media ID for tagging
-  tags: UserTagDto[]; // Kept as array since this is for a single media item
-  onAddTag: (tag: UserTagDto) => void;
-  onRemoveTag: (index: number) => void;
-  coverUrl?: string | null;
+  tags: Record<string, UserTagDto[]>; // Changed: keyed by mediaId
+  onAddTag: (mediaId: string, tag: UserTagDto) => void;
+  onRemoveTag: (mediaId: string, index: number) => void;
   onVideoMetadataLoaded?: (duration: number) => void;
   isStory?: boolean;
 }
 
-export function InstagramMediaDisplay({
-  displayMediaSrc,
-  mediaType,
+export function InstagramCarousel({
+  mediaItems,
   aspectRatio,
   isTaggingMode,
-  mediaId,
   tags,
   onAddTag,
   onRemoveTag,
-  coverUrl,
   onVideoMetadataLoaded,
   isStory = false,
-}: InstagramMediaDisplayProps) {
+}: InstagramCarouselProps) {
+  const [currentIndex, setCurrentIndex] = useState(0);
   const containerRef = useRef<HTMLDivElement>(null);
   const imageRef = useRef<HTMLImageElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -41,20 +37,32 @@ export function InstagramMediaDisplay({
     username: string;
   } | null>(null);
 
+  const currentMedia = mediaItems[currentIndex];
+  const displayMediaSrc =
+    currentMedia?.croppedPreviews?.instagram || currentMedia?.preview;
+
+  // Get tags for the current media item
+  const currentMediaTags = currentMedia?.id ? tags[currentMedia.id] || [] : [];
+
+  const nextSlide = () => {
+    setCurrentIndex((prev) => (prev + 1) % mediaItems.length);
+  };
+
+  const prevSlide = () => {
+    setCurrentIndex((prev) => (prev - 1 + mediaItems.length) % mediaItems.length);
+  };
+
   const handleImageClick = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (!isTaggingMode || !containerRef.current) return;
+    // Only allow tagging on images, not videos
+    if (!isTaggingMode || !containerRef.current || currentMedia.type === "video") return;
 
     // Can only tag if media has been uploaded (has an ID)
-    if (!mediaId) return;
+    if (!currentMedia.id) return;
 
-    // Get the actual media element (image or video)
-    const mediaElement = imageRef.current || videoRef.current;
+    const mediaElement = imageRef.current;
     if (!mediaElement) return;
 
-    // Get the media element's bounding box
     const mediaRect = mediaElement.getBoundingClientRect();
-
-    // Check if click is within the actual media bounds
     const clickX = e.clientX;
     const clickY = e.clientY;
 
@@ -64,18 +72,18 @@ export function InstagramMediaDisplay({
       clickY < mediaRect.top ||
       clickY > mediaRect.bottom
     ) {
-      return; // Click is outside the actual media, ignore it
+      return;
     }
 
-    // Calculate position relative to the media element
     const x = (clickX - mediaRect.left) / mediaRect.width;
     const y = (clickY - mediaRect.top) / mediaRect.height;
+
     setNewTag({ x, y, username: "" });
   };
 
   const finalizeTag = () => {
-    if (newTag && newTag.username.trim() && mediaId) {
-      onAddTag({
+    if (newTag && newTag.username.trim() && currentMedia.id) {
+      onAddTag(currentMedia.id, {
         ...newTag,
         username: newTag.username.trim().replace(/^@/, ""),
       });
@@ -93,13 +101,13 @@ export function InstagramMediaDisplay({
       onClick={handleImageClick}
       className={cn(
         "relative bg-[--background]",
-        displayMediaSrc ? "" : "aspect-square flex items-center justify-center",
         isTaggingMode && "cursor-crosshair"
       )}
-      style={displayMediaSrc ? { aspectRatio } : undefined}
+      style={{ aspectRatio }}
     >
-      {displayMediaSrc ? (
-        mediaType === "video" ? (
+      {/* Media Display */}
+      {displayMediaSrc &&
+        (currentMedia.type === "video" ? (
           <video
             ref={videoRef}
             src={displayMediaSrc}
@@ -115,28 +123,48 @@ export function InstagramMediaDisplay({
             onLoadedMetadata={(e) =>
               onVideoMetadataLoaded?.(e.currentTarget.duration)
             }
-            poster={coverUrl || undefined}
           />
         ) : (
+          // eslint-disable-next-line @next/next/no-img-element
           <img
             ref={imageRef}
             src={displayMediaSrc}
-            alt="Media Preview"
+            alt={`Media ${currentIndex + 1}`}
             className={cn(
               "w-full h-full",
               isStory ? "object-cover" : "object-contain"
             )}
           />
-        )
-      ) : (
-        <div className="flex flex-col items-center justify-center text-[--muted-foreground] text-center p-12">
-          <ImageIcon className="w-8 h-8 mb-2" />
-          <p>No Image/Video Attached</p>
-        </div>
+        ))}
+
+      {/* Navigation Arrows - Only show if more than 1 item */}
+      {mediaItems.length > 1 && !isStory && (
+        <>
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              prevSlide();
+            }}
+            className="absolute left-2 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white rounded-full p-1.5 shadow-lg transition-all z-10"
+            aria-label="Previous"
+          >
+            <ChevronLeft className="w-5 h-5 text-gray-800" />
+          </button>
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              nextSlide();
+            }}
+            className="absolute right-2 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white rounded-full p-1.5 shadow-lg transition-all z-10"
+            aria-label="Next"
+          >
+            <ChevronRight className="w-5 h-5 text-gray-800" />
+          </button>
+        </>
       )}
 
-      {/* Tagging Overlay UI */}
-      {isTaggingMode && (
+      {/* Tagging Overlay - Only show on images */}
+      {isTaggingMode && currentMedia.type === "image" && (
         <div className="absolute inset-0 bg-black/30 p-2 flex flex-col justify-between pointer-events-none">
           <p className="text-center text-xs font-semibold text-white bg-black/50 rounded-full px-3 py-1 self-center">
             Click on the photo to tag a user
@@ -144,7 +172,8 @@ export function InstagramMediaDisplay({
         </div>
       )}
 
-      {tags.map((tag, index) => (
+      {/* Existing User Tags for Current Media */}
+      {currentMediaTags.map((tag, index) => (
         <div
           key={index}
           className="absolute group"
@@ -159,7 +188,9 @@ export function InstagramMediaDisplay({
             <button
               onClick={(e) => {
                 e.stopPropagation();
-                onRemoveTag(index);
+                if (currentMedia.id) {
+                  onRemoveTag(currentMedia.id, index);
+                }
               }}
               className="opacity-0 group-hover:opacity-100 ml-1 hover:text-red-400"
             >
@@ -170,6 +201,7 @@ export function InstagramMediaDisplay({
         </div>
       ))}
 
+      {/* New Tag Input */}
       {newTag && (
         <div
           className="absolute pointer-events-auto"
@@ -186,7 +218,7 @@ export function InstagramMediaDisplay({
                 e.stopPropagation();
                 cancelTag();
               }}
-              onMouseDown={(e) => e.preventDefault()} // Prevent blur from firing
+              onMouseDown={(e) => e.preventDefault()}
               type="button"
             >
               <X className="h-3 w-3 text-gray-500" />
@@ -210,7 +242,6 @@ export function InstagramMediaDisplay({
                   }
                 }}
                 onBlur={(e) => {
-                  // Only finalize if the blur wasn't caused by clicking the X button
                   if (!e.relatedTarget?.closest('.cancel-tag-btn')) {
                     finalizeTag();
                   }
