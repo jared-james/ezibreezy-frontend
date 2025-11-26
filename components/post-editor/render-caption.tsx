@@ -5,7 +5,8 @@ import React from "react";
 export function renderCaptionWithHashtags(text: string): React.ReactNode {
   if (!text) return text;
 
-  const hashtagRegex = /(#\w+)/g;
+  // Updated regex: includes hyphens via [\w-]+
+  const hashtagRegex = /(#[\w-]+)/g;
   const parts = text.split(hashtagRegex);
 
   return parts.map((part, index) => {
