@@ -188,7 +188,7 @@ export function PlatformCaptionSection({
           {platform.accounts.length > 0 && (
             <>
               <span className="text-[0.65rem] text-muted-foreground uppercase tracking-wide">
-                Connected Accounts
+                Select Accounts
               </span>
               {platform.accounts.map((account) => {
                 const isSelected = selectedAccounts[platformId]?.includes(

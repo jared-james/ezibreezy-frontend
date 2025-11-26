@@ -38,17 +38,19 @@ export function FirstCommentSection({
   if (!showFirstComment) {
     return (
       <div className="flex justify-end">
-        <Button
+        <button
           type="button"
           onClick={() => setShowFirstComment(true)}
-          variant="ghost"
-          size="sm"
-          className="gap-1 text-xs text-muted-foreground hover:text-foreground"
           disabled={isStoryMode}
+          className={cn(
+            "flex items-center gap-2 rounded-full border px-4 py-2 text-sm font-medium transition-colors",
+            "border-border bg-transparent text-muted-foreground hover:bg-surface-hover",
+            isStoryMode && "opacity-50 cursor-not-allowed"
+          )}
         >
-          <Plus className="h-3 w-3" />
+          <Plus className="h-4 w-4" />
           Add first comment
-        </Button>
+        </button>
       </div>
     );
   }
