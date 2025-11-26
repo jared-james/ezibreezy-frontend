@@ -126,15 +126,21 @@ export default function MediaCard({
         <button
           onClick={handleCheckboxClick}
           className={cn(
-            "absolute top-2 left-2 w-5 h-5 border-2 rounded-sm flex items-center justify-center transition-all z-30",
-            isSelected
-              ? "bg-brand-primary border-brand-primary"
-              : "bg-white/90 border-brand-primary hover:border-brand-primary"
+            "absolute top-0 right-0 p-2 z-30"
           )}
         >
-          {isSelected && (
-            <Check className="w-3 h-3 text-brand-primary-foreground" />
-          )}
+          <div
+            className={cn(
+              "w-5 h-5 border-2 rounded-sm flex items-center justify-center transition-all",
+              isSelected
+                ? "bg-brand-primary border-brand-primary"
+                : "bg-white/90 border-brand-primary hover:border-brand-primary"
+            )}
+          >
+            {isSelected && (
+              <Check className="w-3 h-3 text-brand-primary-foreground" />
+            )}
+          </div>
         </button>
 
         {/* Type badge */}
