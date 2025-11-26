@@ -1,3 +1,5 @@
+// app/(app)/settings/integrations/components/instagram-connect-modal.tsx
+
 // components/instagram-connect-modal.tsx
 "use client";
 
