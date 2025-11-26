@@ -172,43 +172,57 @@ export function PlatformCaptionSection({
           <PlatformIcon platformId={platformId} />
           {platform.name} Caption
         </span>
-        {platform.accounts.length > 0 && (
-          <span className="ml-auto flex items-center gap-2">
-            <span className="text-[0.65rem] text-muted-foreground uppercase tracking-wide">
-              Connected Accounts
-            </span>
-            {platform.accounts.map((account) => {
-              const isSelected = selectedAccounts[platformId]?.includes(
-                account.id
-              );
+        <span className="ml-auto flex items-center gap-3">
+          {supportsPostTypeSelection && platformId === "instagram" && (
+            <PostTypeSelector
+              currentType={currentPostType}
+              onTypeChange={(type) => setState({ postType: type })}
+            />
+          )}
+          {supportsPostTypeSelection && platformId === "facebook" && (
+            <PostTypeSelector
+              currentType={facebookPostType}
+              onTypeChange={(type) => setState({ facebookPostType: type })}
+            />
+          )}
+          {platform.accounts.length > 0 && (
+            <>
+              <span className="text-[0.65rem] text-muted-foreground uppercase tracking-wide">
+                Connected Accounts
+              </span>
+              {platform.accounts.map((account) => {
+                const isSelected = selectedAccounts[platformId]?.includes(
+                  account.id
+                );
 
-              return (
-                <button
-                  key={account.id}
-                  type="button"
-                  onClick={() => onAccountSelect(platformId, account.id)}
-                  className={cn(
-                    "h-10 w-10 rounded-full border-2 transition-all overflow-hidden",
-                    isSelected
-                      ? "border-primary"
-                      : "border-border hover:border-primary/50"
-                  )}
-                  title={account.name}
-                >
-                  {account.img ? (
-                    <img
-                      src={account.img}
-                      alt={account.name}
-                      className="h-full w-full object-cover"
-                    />
-                  ) : (
-                    <span className="sr-only">{account.name}</span>
-                  )}
-                </button>
-              );
-            })}
-          </span>
-        )}
+                return (
+                  <button
+                    key={account.id}
+                    type="button"
+                    onClick={() => onAccountSelect(platformId, account.id)}
+                    className={cn(
+                      "h-10 w-10 rounded-full border-2 transition-all overflow-hidden",
+                      isSelected
+                        ? "border-primary"
+                        : "border-border hover:border-primary/50"
+                    )}
+                    title={account.name}
+                  >
+                    {account.img ? (
+                      <img
+                        src={account.img}
+                        alt={account.name}
+                        className="h-full w-full object-cover"
+                      />
+                    ) : (
+                      <span className="sr-only">{account.name}</span>
+                    )}
+                  </button>
+                );
+              })}
+            </>
+          )}
+        </span>
       </label>
 
       <div className="space-y-4">
@@ -261,24 +275,6 @@ export function PlatformCaptionSection({
         />
 
         <PlatformMediaSelector platformId={platformId} />
-
-        {supportsPostTypeSelection && platformId === "instagram" && (
-          <div className="flex justify-end">
-            <PostTypeSelector
-              currentType={currentPostType}
-              onTypeChange={(type) => setState({ postType: type })}
-            />
-          </div>
-        )}
-
-        {supportsPostTypeSelection && platformId === "facebook" && (
-          <div className="flex justify-end">
-            <PostTypeSelector
-              currentType={facebookPostType}
-              onTypeChange={(type) => setState({ facebookPostType: type })}
-            />
-          </div>
-        )}
 
         {supportsThreading && (
           <ThreadSection
