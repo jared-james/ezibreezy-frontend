@@ -1,3 +1,5 @@
+// app/(app)/settings/integrations/components/disconnect-confirm-modal.tsx
+
 "use client";
 
 import { X, AlertTriangle, Trash2, Loader2 } from "lucide-react";

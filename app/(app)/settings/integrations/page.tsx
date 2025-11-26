@@ -125,6 +125,7 @@ export default function IntegrationsPage() {
               getPlatformForConnection={getPlatformForConnection}
               getSourceLabel={getSourceLabel}
               onDisconnect={handleDisconnect}
+              onResync={openConnectModal}
             />
           </div>
         )}

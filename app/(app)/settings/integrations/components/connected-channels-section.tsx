@@ -3,7 +3,7 @@
 "use client";
 
 import { useState } from "react";
-import { AlertTriangle, Trash2, ArrowRight } from "lucide-react";
+import { AlertTriangle, Trash2, ArrowRight, RefreshCw } from "lucide-react";
 import { Connection } from "@/lib/api/integrations";
 import { cn } from "@/lib/utils";
 import { PlatformDefinition } from "../types";
@@ -16,6 +16,7 @@ interface ConnectedChannelsSectionProps {
   ) => PlatformDefinition | undefined;
   getSourceLabel: (account: Connection) => string | null;
   onDisconnect: (platformId: string, accountId: string) => void;
+  onResync: (platform: PlatformDefinition) => void;
 }
 
 export const ConnectedChannelsSection: React.FC<
@@ -25,8 +26,8 @@ export const ConnectedChannelsSection: React.FC<
   getPlatformForConnection,
   getSourceLabel,
   onDisconnect,
+  onResync,
 }) => {
-  // State to track which account is currently being asked for confirmation
   const [accountToDisconnect, setAccountToDisconnect] = useState<{
     platformId: string;
     accountId: string;
@@ -66,6 +67,7 @@ export const ConnectedChannelsSection: React.FC<
                   requiresReauth && "bg-error/5"
                 )}
               >
+                {/* ... existing icon and image code ... */}
                 <div
                   className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-surface border border-border text-foreground shadow-sm"
                   title={platform.name}
@@ -105,29 +107,44 @@ export const ConnectedChannelsSection: React.FC<
                   </div>
                 </div>
 
-                <button
-                  className="shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-sm border border-error/20 bg-error/5 text-error transition-all hover:bg-error/10 hover:border-error/40"
-                  onClick={() =>
-                    setAccountToDisconnect({
-                      platformId: platform.id,
-                      accountId: account.id,
-                      name: accountName,
-                    })
-                  }
-                  aria-label={`Disconnect ${platform.name}`}
-                >
-                  <span className="font-serif text-xs uppercase tracking-[0.12em] hidden sm:inline-block">
-                    Disconnect
-                  </span>
-                  <Trash2 className="w-4 h-4 sm:hidden" />
-                </button>
+                {/* ACTION BUTTONS */}
+                <div className="flex items-center gap-2">
+                  {/* NEW: Re-sync Button */}
+                  <button
+                    className="shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-sm border border-border bg-surface hover:bg-surface-hover transition-all text-muted-foreground hover:text-foreground"
+                    onClick={() => onResync(platform)}
+                    title={`Re-sync ${platform.name}`}
+                  >
+                    <RefreshCw className="w-3.5 h-3.5" />
+                    <span className="font-serif text-xs uppercase tracking-[0.12em] hidden sm:inline-block">
+                      Re-sync
+                    </span>
+                  </button>
+
+                  {/* Existing Disconnect Button */}
+                  <button
+                    className="shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-sm border border-error/20 bg-error/5 text-error transition-all hover:bg-error/10 hover:border-error/40"
+                    onClick={() =>
+                      setAccountToDisconnect({
+                        platformId: platform.id,
+                        accountId: account.id,
+                        name: accountName,
+                      })
+                    }
+                    aria-label={`Disconnect ${platform.name}`}
+                  >
+                    <span className="font-serif text-xs uppercase tracking-[0.12em] hidden sm:inline-block">
+                      Disconnect
+                    </span>
+                    <Trash2 className="w-4 h-4 sm:hidden" />
+                  </button>
+                </div>
               </div>
             );
           })}
         </div>
       )}
 
-      {/* Confirmation Modal */}
       <DisconnectConfirmModal
         isOpen={!!accountToDisconnect}
         onClose={() => setAccountToDisconnect(null)}
