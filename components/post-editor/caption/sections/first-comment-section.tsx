@@ -3,6 +3,7 @@
 import { Plus, Trash2, Hash, MessageSquare } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import { cn } from "@/lib/utils";
 
 interface FirstCommentSectionProps {
   platformId: "instagram" | "facebook";
@@ -12,6 +13,7 @@ interface FirstCommentSectionProps {
   setFirstComment: (comment: string) => void;
   openHashtagModal: (platformId: string) => void;
   isStoryMode?: boolean;
+  maxLength?: number;
 }
 
 export function FirstCommentSection({
@@ -22,11 +24,16 @@ export function FirstCommentSection({
   setFirstComment,
   openHashtagModal,
   isStoryMode = false,
+  maxLength,
 }: FirstCommentSectionProps) {
   const hashtagModalId =
     platformId === "instagram"
       ? "instagram_first_comment"
       : "facebook_first_comment";
+
+  const currentLength = firstComment.length;
+  const isAtLimit = maxLength && currentLength >= maxLength;
+  const isNearLimit = maxLength && currentLength >= maxLength * 0.9;
 
   if (!showFirstComment) {
     return (
@@ -73,8 +80,27 @@ export function FirstCommentSection({
             value={firstComment}
             onChange={(e) => setFirstComment(e.target.value)}
             placeholder="Add your hashtags or opening line here..."
-            className="min-h-24 pr-10"
+            className={cn(
+              "min-h-24 pr-10 pb-7",
+              isAtLimit && "border-red-500 focus-visible:ring-red-500"
+            )}
+            maxLength={maxLength}
           />
+
+          <div className="absolute bottom-2 left-2 text-[10px] pointer-events-none font-mono">
+            {maxLength && (
+              <span
+                className={cn(
+                  "transition-colors",
+                  isNearLimit ? "text-amber-500" : "text-muted-foreground",
+                  isAtLimit && "text-red-500 font-bold"
+                )}
+              >
+                {currentLength.toLocaleString()} / {maxLength.toLocaleString()}
+              </span>
+            )}
+          </div>
+
           <button
             type="button"
             onClick={() => openHashtagModal(hashtagModalId)}

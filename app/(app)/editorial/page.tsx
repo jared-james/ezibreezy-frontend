@@ -26,12 +26,12 @@ export default function EditorialPage() {
   }, [draft, initializeFromDraft, setState, reset]);
 
   return (
-    <div className="mx-auto flex h-full w-full max-w-7xl flex-col">
-      <div className="mb-8 border-b-4 border-[--foreground] border-double pb-6">
+    <div className="mx-auto flex w-full max-w-7xl flex-col">
+      <div className="mb-8 border-b-4 border-double pb-6 shrink-0">
         <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
           <div>
             <p className="eyebrow mb-2">The Workroom</p>
-            <h1 className="font-serif text-4xl font-bold uppercase tracking-tight text-[--foreground] md:text-5xl">
+            <h1 className="font-serif text-4xl font-bold uppercase tracking-tight md:text-5xl">
               Editorial Desk
             </h1>
           </div>

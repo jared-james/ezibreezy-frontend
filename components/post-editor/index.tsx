@@ -74,7 +74,9 @@ export default function EditorialCore({
   const firstComment = useEditorialStore((state) => state.firstComment);
   const postTypeFromStore = useEditorialStore((state) => state.postType);
   const userTags = useEditorialStore((state) => state.userTags);
-  const instagramCollaborators = useEditorialStore((state) => state.instagramCollaborators);
+  const instagramCollaborators = useEditorialStore(
+    (state) => state.instagramCollaborators
+  );
 
   const facebookPostType = useEditorialStore((state) => state.facebookPostType);
   const facebookFirstComment = useEditorialStore(
@@ -407,12 +409,10 @@ export default function EditorialCore({
 
   return (
     <>
-      <div className="grid min-h-0 flex-1 grid-cols-1 gap-8 lg:grid-cols-12">
+      <div className="grid flex-1 grid-cols-1 gap-8 lg:grid-cols-12">
         <div className="flex flex-col gap-4 lg:col-span-7">
-          <div className="flex items-center justify-between border-b-2 border-[--foreground] pb-2">
-            <h2 className="font-serif text-xl font-bold text-[--foreground]">
-              The Draft
-            </h2>
+          <div className="flex items-center justify-between border-b-2 pb-2">
+            <h2 className="font-serif text-xl font-bold ">The Draft</h2>
             <FileText className="h-4 w-4 text-[--muted]" />
           </div>
 

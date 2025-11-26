@@ -54,7 +54,6 @@ export default function CaptionEditor({
   isGlobalUploading = false,
   onLocalCaptionsChange,
 }: CaptionEditorProps) {
-  // Custom hooks for state management
   const captionState = useCaptionState(threadMessages, onLocalCaptionsChange);
 
   const activeCaptionFilter = useEditorialStore(
@@ -70,7 +69,6 @@ export default function CaptionEditor({
     [selectedAccounts]
   );
 
-  // Auto-manage active caption filter based on selected platforms
   useEffect(() => {
     if (selectedPlatformIds.length === 0) {
       setActiveCaptionFilter("all");
@@ -87,7 +85,6 @@ export default function CaptionEditor({
     }
   }, [selectedPlatformIds, activeCaptionFilter, setActiveCaptionFilter]);
 
-  // Thread messages management
   const threadMessagesHook = useThreadMessages(
     captionState.localThreadMessages,
     captionState.localPlatformThreadMessages,
@@ -97,7 +94,6 @@ export default function CaptionEditor({
     onThreadMessagesChange
   );
 
-  // Hashtag modal management
   const hashtagModal = useHashtagModal(
     captionState.localMainCaption,
     captionState.setLocalMainCaption,
@@ -197,9 +193,7 @@ export default function CaptionEditor({
               setLocalFirstComment={captionState.setLocalFirstComment}
               showFirstComment={captionState.showFirstComment}
               setShowFirstComment={captionState.setShowFirstComment}
-              localFacebookFirstComment={
-                captionState.localFacebookFirstComment
-              }
+              localFacebookFirstComment={captionState.localFacebookFirstComment}
               setLocalFacebookFirstComment={
                 captionState.setLocalFacebookFirstComment
               }

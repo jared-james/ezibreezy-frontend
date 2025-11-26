@@ -1,4 +1,4 @@
-// components/post-editor/caption/sections/platform-caption-section.tsx
+"use client";
 
 import { Type } from "lucide-react";
 import { Input } from "@/components/ui/input";
@@ -24,10 +24,12 @@ interface PlatformCaptionSectionProps {
   postType: "text" | "image" | "video";
   currentPostType: "post" | "story" | "reel";
   facebookPostType: "post" | "story" | "reel";
-  setState: (state: Partial<{
-    postType: "post" | "story" | "reel";
-    facebookPostType: "post" | "story" | "reel";
-  }>) => void;
+  setState: (
+    state: Partial<{
+      postType: "post" | "story" | "reel";
+      facebookPostType: "post" | "story" | "reel";
+    }>
+  ) => void;
   localPlatformTitles: Record<string, string>;
   setLocalPlatformTitles: (
     update: (prev: Record<string, string>) => Record<string, string>
@@ -57,6 +59,19 @@ interface PlatformCaptionSectionProps {
   showFacebookFirstComment: boolean;
   setShowFacebookFirstComment: (show: boolean) => void;
 }
+
+const PLATFORM_LIMITS = {
+  facebook: { post: 5000, story: 5000, comment: 5000 },
+  instagram: { caption: 2200, story: 120, comment: 2196 },
+  x: { free: 280, premium: 25000 },
+  linkedin: { post: 3000, comment: 1248 },
+  pinterest: { description: 500 },
+  tiktok: { caption: 2200 },
+  threads: { post: 500, topic: 50 },
+  bluesky: { post: 300 },
+  google_business: { post: 1500 },
+  youtube: { shorts: 5000 },
+};
 
 export function PlatformCaptionSection({
   platformId,
@@ -101,6 +116,49 @@ export function PlatformCaptionSection({
   const isFacebookStory =
     platformId === "facebook" && facebookPostType === "story";
   const isStory = isInstagramStory || isFacebookStory;
+
+  let characterLimit: number | undefined;
+  let commentLimit: number | undefined;
+  let warningLimit: number | undefined;
+
+  switch (platformId) {
+    case "facebook":
+      characterLimit = PLATFORM_LIMITS.facebook.post;
+      commentLimit = PLATFORM_LIMITS.facebook.comment;
+      break;
+    case "instagram":
+      characterLimit = isInstagramStory
+        ? PLATFORM_LIMITS.instagram.story
+        : PLATFORM_LIMITS.instagram.caption;
+      commentLimit = PLATFORM_LIMITS.instagram.comment;
+      break;
+    case "x":
+      characterLimit = PLATFORM_LIMITS.x.premium;
+      warningLimit = PLATFORM_LIMITS.x.free;
+      break;
+    case "linkedin":
+      characterLimit = PLATFORM_LIMITS.linkedin.post;
+      commentLimit = PLATFORM_LIMITS.linkedin.comment;
+      break;
+    case "tiktok":
+      characterLimit = PLATFORM_LIMITS.tiktok.caption;
+      break;
+    case "threads":
+      characterLimit = PLATFORM_LIMITS.threads.post;
+      break;
+    case "youtube":
+      characterLimit = PLATFORM_LIMITS.youtube.shorts;
+      break;
+    case "bluesky":
+      characterLimit = PLATFORM_LIMITS.bluesky.post;
+      break;
+    case "pinterest":
+      characterLimit = PLATFORM_LIMITS.pinterest.description;
+      break;
+    case "google_business":
+      characterLimit = PLATFORM_LIMITS.google_business.post;
+      break;
+  }
 
   return (
     <div className="mt-6">
@@ -178,7 +236,13 @@ export function PlatformCaptionSection({
 
         <CaptionTextarea
           id={`caption-${platformId}`}
-          value={isStory ? "" : currentCaption}
+          value={
+            isStory && platformId === "instagram"
+              ? currentCaption
+              : isStory
+              ? ""
+              : currentCaption
+          }
           onChange={(event) =>
             setLocalPlatformCaptions((prev) => ({
               ...prev,
@@ -186,13 +250,17 @@ export function PlatformCaptionSection({
             }))
           }
           placeholder={
-            isStory
-              ? "Captions are not used for Instagram Stories."
+            isStory && platformId === "instagram"
+              ? "Enter story notification text..."
+              : isStory
+              ? "Captions are not used for this story type."
               : `${platform.name} specific caption...`
           }
           platformId={platformId}
           onHashtagClick={openHashtagModal}
-          disabled={isStory}
+          disabled={isStory && platformId !== "instagram"}
+          maxLength={characterLimit}
+          warningLimit={warningLimit}
         />
 
         <PlatformMediaSelector platformId={platformId} />
@@ -238,6 +306,7 @@ export function PlatformCaptionSection({
             setFirstComment={setLocalFirstComment}
             openHashtagModal={openHashtagModal}
             isStoryMode={currentPostType === "story"}
+            maxLength={commentLimit}
           />
         )}
 
@@ -250,6 +319,7 @@ export function PlatformCaptionSection({
             setFirstComment={setLocalFacebookFirstComment}
             openHashtagModal={openHashtagModal}
             isStoryMode={facebookPostType === "story"}
+            maxLength={commentLimit}
           />
         )}
       </div>
