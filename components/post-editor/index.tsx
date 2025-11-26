@@ -37,6 +37,7 @@ export default function EditorialCore({
   isSavingClipping = false,
   onOpenInEditorial,
 }: EditorialCoreProps) {
+  // ... (Store selectors remain unchanged)
   const [user, setUser] = useState<any>(null);
   const [confirmationStatus, setConfirmationStatus] = useState<
     "sent" | "scheduled" | null
@@ -93,7 +94,6 @@ export default function EditorialCore({
   const instagramShareToFeed = useEditorialStore(
     (state) => state.instagramShareToFeed
   );
-
   const {
     stagedMediaFiles,
     stagedMediaPreviews,
@@ -122,6 +122,8 @@ export default function EditorialCore({
     };
     fetchUser();
   }, []);
+
+  // ... (handleCloseConfirmation, togglePlatform, handleAccountSelect, handlePublish remain unchanged)
 
   const handleCloseConfirmation = () => {
     setConfirmationStatus(null);
@@ -171,6 +173,7 @@ export default function EditorialCore({
   };
 
   const handlePublish = async () => {
+    // ... (same as existing)
     setState({
       mainCaption: localMainCaption,
       platformCaptions: localPlatformCaptions,
@@ -447,7 +450,10 @@ export default function EditorialCore({
                   onMediaChange={(files, previews) =>
                     handleMediaChange(files, previews, null)
                   }
-                  onRemoveMedia={(file) => handleRemoveMedia(file, null)}
+                  // FIX: Pass index and null for file if needed to support library items
+                  onRemoveMedia={(file, index) =>
+                    handleRemoveMedia(file, null, index)
+                  }
                   onLibraryMediaSelect={handleLibraryMediaSelect}
                   selectedLibraryMediaIds={selectedLibraryMediaIds}
                 />

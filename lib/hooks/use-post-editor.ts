@@ -224,25 +224,43 @@ export function usePostEditor(options: UsePostEditorOptions = {}) {
     [setStagedMediaItems, uploadMediaMutation, mode]
   );
 
+  // FIX: Added support for index-based removal to handle library items that lack a File object
   const handleRemoveMedia = useCallback(
-    (fileToRemove: File, threadIndex: number | null = null) => {
+    (
+      fileToRemove: File | null,
+      threadIndex: number | null = null,
+      indexToRemove?: number
+    ) => {
       const currentItems = useEditorialStore.getState().stagedMediaItems;
-      const itemToRemove = currentItems.find(
-        (item) => item.threadIndex === threadIndex && item.file === fileToRemove
-      );
+      let itemToRemove: MediaItem | undefined;
+
+      if (typeof indexToRemove === "number") {
+        // Filter to find the item in the correct thread context (e.g., Main Post vs Thread 1)
+        const itemsInContext = currentItems.filter(
+          (item) => item.threadIndex === threadIndex
+        );
+        itemToRemove = itemsInContext[indexToRemove];
+      } else if (fileToRemove) {
+        // Fallback for file-based removal
+        itemToRemove = currentItems.find(
+          (item) =>
+            item.threadIndex === threadIndex && item.file === fileToRemove
+        );
+      }
 
       if (itemToRemove) {
         const newMediaItems = currentItems.filter(
-          (item) => item.uid !== itemToRemove.uid
+          (item) => item.uid !== itemToRemove!.uid
         );
         setStagedMediaItems(newMediaItems);
 
+        // Also remove from platform-specific selections
         const currentSelections =
           useEditorialStore.getState().platformMediaSelections;
         const newSelections = { ...currentSelections };
         Object.keys(newSelections).forEach((platformId) => {
           newSelections[platformId] = newSelections[platformId].filter(
-            (uid) => uid !== itemToRemove.uid
+            (uid) => uid !== itemToRemove!.uid
           );
         });
         setState({ platformMediaSelections: newSelections });
@@ -260,6 +278,7 @@ export function usePostEditor(options: UsePostEditorOptions = {}) {
       );
 
       if (existingItem) {
+        // Toggle OFF (Remove)
         const newMediaItems = currentItems.filter(
           (item) => item.id !== libraryMedia.id
         );
@@ -275,14 +294,14 @@ export function usePostEditor(options: UsePostEditorOptions = {}) {
         });
         setState({ platformMediaSelections: newSelections });
       } else {
+        // Toggle ON (Add)
         const newMediaItem: MediaItem = {
           uid: crypto.randomUUID(),
           file: null,
           preview: libraryMedia.thumbnailUrl || libraryMedia.url,
-          // Don't set originalUrlForCropping here - it will be fetched via pre-signed URL when needed
           id: libraryMedia.id,
           isUploading: false,
-          threadIndex: null,
+          threadIndex: null, // Library items always go to Main Post currently
           type: libraryMedia.type.startsWith("video/") ? "video" : "image",
           altText: libraryMedia.altText || null,
         };

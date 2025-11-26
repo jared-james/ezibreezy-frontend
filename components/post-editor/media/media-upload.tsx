@@ -1,8 +1,8 @@
-// components/post-editor/media-upload.tsx
+// components/post-editor/media/media-upload.tsx
 
 "use client";
 
-import { useCallback, useState, useMemo } from "react";
+import { useCallback, useState, useMemo, useEffect } from "react";
 import { Upload, X, Loader2, Plus, FolderOpen, Video } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useQuery } from "@tanstack/react-query";
@@ -16,7 +16,8 @@ interface MediaUploadProps {
   mediaPreviews: string[];
   isUploading: boolean;
   onMediaChange: (files: File[], previews: string[]) => void;
-  onRemoveMedia: (fileToRemove: File) => void;
+  // CHANGED: Allow passing index to remove mixed types
+  onRemoveMedia: (fileToRemove: File | null, indexToRemove?: number) => void;
   onLibraryMediaSelect?: (mediaItem: LibraryMediaItem) => void;
   selectedLibraryMediaIds?: Set<string>;
 }
@@ -45,6 +46,17 @@ export default function MediaUpload({
 
   const MAX_FILES = 10;
 
+  // Cleanup object URLs on unmount
+  useEffect(() => {
+    return () => {
+      mediaPreviews.forEach((preview) => {
+        if (preview.startsWith("blob:")) {
+          URL.revokeObjectURL(preview);
+        }
+      });
+    };
+  }, []);
+
   const handleFiles = useCallback(
     (newFiles: File[]) => {
       const validFiles = newFiles.filter(
@@ -53,8 +65,9 @@ export default function MediaUpload({
 
       if (validFiles.length === 0) return;
 
-      const currentFileCount = mediaFiles.length;
-      const remainingSlots = MAX_FILES - currentFileCount;
+      // Use total count (files + library items)
+      const currentTotalCount = mediaPreviews.length;
+      const remainingSlots = MAX_FILES - currentTotalCount;
       if (remainingSlots <= 0) return;
 
       const filesToAdd = validFiles.slice(0, remainingSlots);
@@ -62,7 +75,7 @@ export default function MediaUpload({
 
       onMediaChange(filesToAdd, newPreviews);
     },
-    [mediaFiles, onMediaChange]
+    [mediaPreviews.length, onMediaChange]
   );
 
   const handleFileDragOver = useCallback((e: React.DragEvent) => {
@@ -97,24 +110,44 @@ export default function MediaUpload({
     [handleFiles]
   );
 
+  // FIX: Index-based removal
   const handleRemove = useCallback(
     (indexToRemove: number) => {
-      const fileToRemove = mediaFiles[indexToRemove];
-      if (fileToRemove) {
-        onRemoveMedia(fileToRemove);
+      const fileToRemove = mediaFiles[indexToRemove] || null;
+
+      const previewToRemove = mediaPreviews[indexToRemove];
+      if (previewToRemove && previewToRemove.startsWith("blob:")) {
+        URL.revokeObjectURL(previewToRemove);
       }
+
+      onRemoveMedia(fileToRemove, indexToRemove);
     },
-    [mediaFiles, onRemoveMedia]
+    [mediaFiles, mediaPreviews, onRemoveMedia]
   );
 
+  // FIX: Diffing logic to prevent overwrite
   const handleLibraryConfirm = useCallback(
     (selectedMedia: LibraryMediaItem[]) => {
+      const selectedIdsSet = new Set(selectedMedia.map((m) => m.id));
+
+      // 1. Add items that are selected in modal but NOT in editorial
       selectedMedia.forEach((media) => {
-        onLibraryMediaSelect?.(media);
+        if (!selectedLibraryMediaIds.has(media.id)) {
+          onLibraryMediaSelect?.(media);
+        }
       });
+
+      // 2. Remove items that are in editorial but NOT selected in modal anymore
+      // We pass a dummy object with just ID to trigger the toggle-off logic in usePostEditor
+      selectedLibraryMediaIds.forEach((existingId) => {
+        if (!selectedIdsSet.has(existingId)) {
+          onLibraryMediaSelect?.({ id: existingId } as LibraryMediaItem);
+        }
+      });
+
       setIsMediaRoomOpen(false);
     },
-    [onLibraryMediaSelect]
+    [onLibraryMediaSelect, selectedLibraryMediaIds]
   );
 
   const hasMedia = mediaPreviews.length > 0;
@@ -126,7 +159,11 @@ export default function MediaUpload({
         <div className="space-y-3">
           <div className="grid grid-cols-5 gap-2">
             {mediaPreviews.map((preview, index) => {
-              const isVideo = mediaFiles[index]?.type.startsWith("video/");
+              // Check type safe-ishly
+              const isVideo =
+                mediaFiles[index]?.type.startsWith("video/") ||
+                preview.includes(".mp4") ||
+                preview.includes(".mov");
 
               return (
                 <div
@@ -198,6 +235,7 @@ export default function MediaUpload({
               type="button"
               variant="outline"
               onClick={() => setIsMediaRoomOpen(true)}
+              disabled={isFull}
               className="gap-2 border-brand-primary text-brand-primary hover:bg-brand-primary hover:text-white"
             >
               <FolderOpen className="h-4 w-4" />
@@ -217,7 +255,7 @@ export default function MediaUpload({
     );
   }
 
-  // Empty state with drag & drop + browse library button
+  // Empty state
   return (
     <>
       <div
