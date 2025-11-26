@@ -2,10 +2,12 @@
 
 "use client";
 
+import { useState } from "react";
 import { AlertTriangle, Trash2, ArrowRight } from "lucide-react";
 import { Connection } from "@/lib/api/integrations";
 import { cn } from "@/lib/utils";
 import { PlatformDefinition } from "../types";
+import { DisconnectConfirmModal } from "./disconnect-confirm-modal";
 
 interface ConnectedChannelsSectionProps {
   connections: Connection[];
@@ -24,6 +26,13 @@ export const ConnectedChannelsSection: React.FC<
   getSourceLabel,
   onDisconnect,
 }) => {
+  // State to track which account is currently being asked for confirmation
+  const [accountToDisconnect, setAccountToDisconnect] = useState<{
+    platformId: string;
+    accountId: string;
+    name: string;
+  } | null>(null);
+
   return (
     <section className="mt-8">
       <div className="flex items-center gap-2 mb-4">
@@ -47,6 +56,7 @@ export const ConnectedChannelsSection: React.FC<
             const Icon = platform.icon;
             const sourceLabel = getSourceLabel(account);
             const requiresReauth = account.requiresReauth;
+            const accountName = account.name || `@${account.platformUsername}`;
 
             return (
               <div
@@ -76,7 +86,7 @@ export const ConnectedChannelsSection: React.FC<
                 <div className="flex-1 min-w-0">
                   <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-3">
                     <span className="font-serif text-sm font-bold text-foreground truncate">
-                      {account.name || `@${account.platformUsername}`}
+                      {accountName}
                     </span>
 
                     <div className="flex items-center gap-2">
@@ -97,7 +107,13 @@ export const ConnectedChannelsSection: React.FC<
 
                 <button
                   className="shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-sm border border-error/20 bg-error/5 text-error transition-all hover:bg-error/10 hover:border-error/40"
-                  onClick={() => onDisconnect(platform.id, account.id)}
+                  onClick={() =>
+                    setAccountToDisconnect({
+                      platformId: platform.id,
+                      accountId: account.id,
+                      name: accountName,
+                    })
+                  }
                   aria-label={`Disconnect ${platform.name}`}
                 >
                   <span className="font-serif text-xs uppercase tracking-[0.12em] hidden sm:inline-block">
@@ -110,6 +126,21 @@ export const ConnectedChannelsSection: React.FC<
           })}
         </div>
       )}
+
+      {/* Confirmation Modal */}
+      <DisconnectConfirmModal
+        isOpen={!!accountToDisconnect}
+        onClose={() => setAccountToDisconnect(null)}
+        accountName={accountToDisconnect?.name || "this account"}
+        onConfirm={() => {
+          if (accountToDisconnect) {
+            onDisconnect(
+              accountToDisconnect.platformId,
+              accountToDisconnect.accountId
+            );
+          }
+        }}
+      />
     </section>
   );
 };
