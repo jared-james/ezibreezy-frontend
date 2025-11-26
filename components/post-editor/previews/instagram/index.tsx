@@ -80,6 +80,7 @@ function InstagramPreview({
   const [viewMode, setViewMode] = useState<"post" | "grid">("post");
   const [isFetchingOriginal, setIsFetchingOriginal] = useState(false);
   const [videoDuration, setVideoDuration] = useState(0);
+  const [currentCarouselIndex, setCurrentCarouselIndex] = useState(0);
 
   const selectedAccounts = useEditorialStore((state) => state.selectedAccounts);
   const integrationId = selectedAccounts["instagram"]?.[0];
@@ -87,10 +88,6 @@ function InstagramPreview({
   // Derived Values
   const displayMediaSrc =
     singleMediaItem?.croppedPreviews?.instagram || singleMediaItem?.preview;
-  const canCrop = !!singleMediaItem?.id && mediaType === "image";
-  const originalMediaSrc = singleMediaItem?.file
-    ? singleMediaItem.preview
-    : singleMediaItem?.originalUrlForCropping;
 
   const previewAspectRatio = postType === "story" ? 9 / 16 : aspectRatio;
 
@@ -98,6 +95,20 @@ function InstagramPreview({
   const hasMultipleMedia = mediaItems.length > 1;
   const isCarousel = hasMultipleMedia && postType === "post";
   const isStoryCarousel = hasMultipleMedia && postType === "story";
+
+  // For carousel mode, get the current media item
+  const currentCarouselMedia = isCarousel ? mediaItems[currentCarouselIndex] : null;
+
+  // Determine which media to use for cropping: carousel item or single item
+  const activeMediaForCrop = currentCarouselMedia || singleMediaItem;
+
+  // Can crop if we have an uploaded image (either single or in carousel)
+  const canCrop = !!activeMediaForCrop?.id && activeMediaForCrop?.type === "image";
+
+  // For cropper modal: use the active media item
+  const originalMediaSrc = activeMediaForCrop?.file
+    ? activeMediaForCrop.preview
+    : activeMediaForCrop?.originalUrlForCropping;
 
   // For carousels, tagging is supported if ANY image exists
   // For single media, tagging is supported if it's a post with an image
@@ -118,17 +129,24 @@ function InstagramPreview({
     }
   }, [isTaggingSupported]);
 
-  // Auto-crop logic for Stories
+  // Auto-crop logic for Stories (only for single media, not carousel)
   const prevPostTypeRef = useRef(postType);
   useEffect(() => {
     const applyAutoCrop = async () => {
-      if (!originalMediaSrc) return;
+      // Skip auto-crop if we're in carousel mode
+      if (!singleMediaItem || isCarousel) return;
+
+      const singleMediaSrc = singleMediaItem.file
+        ? singleMediaItem.preview
+        : singleMediaItem.originalUrlForCropping;
+
+      if (!singleMediaSrc) return;
 
       // Logic: If switching TO story from post
       if (prevPostTypeRef.current !== "story" && postType === "story") {
         try {
           const img = new window.Image();
-          img.src = originalMediaSrc;
+          img.src = singleMediaSrc;
           await new Promise<void>((resolve, reject) => {
             img.onload = () => resolve();
             img.onerror = reject;
@@ -142,7 +160,7 @@ function InstagramPreview({
             STORY_ASPECT_RATIO
           );
           const croppedUrl = await createCroppedPreviewUrl(
-            originalMediaSrc,
+            singleMediaSrc,
             cropPixels,
             displayedWidth,
             displayedHeight
@@ -167,16 +185,17 @@ function InstagramPreview({
       prevPostTypeRef.current = postType;
     };
     applyAutoCrop();
-  }, [postType, aspectRatio, originalMediaSrc]);
+  }, [postType, aspectRatio, singleMediaItem, isCarousel]);
 
   // Handlers
   const onCropComplete = (
     cropData: CropData | undefined,
     croppedPreviewUrl: string
   ) => {
-    if (singleMediaItem) {
+    // Use activeMediaForCrop (handles both carousel and single media)
+    if (activeMediaForCrop) {
       setCropForMedia(
-        singleMediaItem.uid,
+        activeMediaForCrop.uid,
         "instagram",
         cropData,
         croppedPreviewUrl
@@ -230,9 +249,12 @@ function InstagramPreview({
   };
 
   const handleCropClick = async () => {
-    if (!canCrop || !singleMediaItem || !singleMediaItem.id) return;
+    // Use activeMediaForCrop which already handles carousel vs single media
+    if (!activeMediaForCrop || !activeMediaForCrop.id || activeMediaForCrop.type !== "image") {
+      return;
+    }
 
-    if (singleMediaItem.originalUrlForCropping) {
+    if (activeMediaForCrop.originalUrlForCropping) {
       setIsCropperOpen(true);
       return;
     }
@@ -241,14 +263,14 @@ function InstagramPreview({
     try {
       if (!integrationId) throw new Error("Instagram account not selected.");
       const { downloadUrl } = await getMediaViewUrl(
-        singleMediaItem.id,
+        activeMediaForCrop.id,
         integrationId
       );
 
       // Update store so next time we don't fetch
       const currentItems = useEditorialStore.getState().stagedMediaItems;
       const updatedItems = currentItems.map((item) =>
-        item.uid === singleMediaItem.uid
+        item.uid === activeMediaForCrop.uid
           ? { ...item, originalUrlForCropping: downloadUrl }
           : item
       );
@@ -309,6 +331,7 @@ function InstagramPreview({
               onUserTagsChange(newTags);
             }}
             onVideoMetadataLoaded={setVideoDuration}
+            onCurrentIndexChange={setCurrentCarouselIndex}
           />
         ) : (
           <InstagramMediaDisplay
@@ -414,6 +437,8 @@ function InstagramPreview({
           imageSrc={originalMediaSrc}
           platform="instagram"
           postType={postType}
+          initialCrop={activeMediaForCrop?.crops?.instagram?.croppedAreaPixels}
+          initialAspectRatio={activeMediaForCrop?.crops?.instagram?.aspectRatio}
           onCropComplete={handleCropComplete}
         />
       )}

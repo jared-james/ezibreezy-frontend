@@ -279,7 +279,7 @@ export function usePostEditor(options: UsePostEditorOptions = {}) {
           uid: crypto.randomUUID(),
           file: null,
           preview: libraryMedia.thumbnailUrl || libraryMedia.url,
-          originalUrlForCropping: libraryMedia.url,
+          // Don't set originalUrlForCropping here - it will be fetched via pre-signed URL when needed
           id: libraryMedia.id,
           isUploading: false,
           threadIndex: null,

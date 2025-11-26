@@ -15,6 +15,7 @@ interface InstagramCarouselProps {
   onRemoveTag: (mediaId: string, index: number) => void;
   onVideoMetadataLoaded?: (duration: number) => void;
   isStory?: boolean;
+  onCurrentIndexChange?: (index: number) => void;
 }
 
 export function InstagramCarousel({
@@ -26,6 +27,7 @@ export function InstagramCarousel({
   onRemoveTag,
   onVideoMetadataLoaded,
   isStory = false,
+  onCurrentIndexChange,
 }: InstagramCarouselProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -45,11 +47,19 @@ export function InstagramCarousel({
   const currentMediaTags = currentMedia?.id ? tags[currentMedia.id] || [] : [];
 
   const nextSlide = () => {
-    setCurrentIndex((prev) => (prev + 1) % mediaItems.length);
+    setCurrentIndex((prev) => {
+      const newIndex = (prev + 1) % mediaItems.length;
+      onCurrentIndexChange?.(newIndex);
+      return newIndex;
+    });
   };
 
   const prevSlide = () => {
-    setCurrentIndex((prev) => (prev - 1 + mediaItems.length) % mediaItems.length);
+    setCurrentIndex((prev) => {
+      const newIndex = (prev - 1 + mediaItems.length) % mediaItems.length;
+      onCurrentIndexChange?.(newIndex);
+      return newIndex;
+    });
   };
 
   const handleImageClick = (e: React.MouseEvent<HTMLDivElement>) => {
