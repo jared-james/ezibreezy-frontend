@@ -14,6 +14,12 @@ export interface UserTagDto {
   y: number;
 }
 
+export interface ProductTagDto {
+  productId: string;
+  x: number;
+  y: number;
+}
+
 export interface PostSettings {
   labels?: string;
   hashtags?: string;
@@ -25,6 +31,7 @@ export interface PostSettings {
   canonicalContent?: string;
   postType?: "post" | "reel" | "story";
   userTags?: Record<string, UserTagDto[]>; // Changed: now keyed by mediaId
+  productTags?: Record<string, ProductTagDto[]>; // Keyed by mediaId
   facebookPostType?: "post" | "reel" | "story";
   facebookFirstComment?: string;
 
@@ -48,6 +55,7 @@ export interface CreatePostPayload {
   sourceDraftId?: string;
   postType?: "post" | "reel" | "story";
   userTags?: Record<string, UserTagDto[]>; // Changed: now keyed by mediaId
+  productTags?: Record<string, ProductTagDto[]>; // Keyed by mediaId
   mediaCrops?: Record<string, PlatformCrops>;
 }
 

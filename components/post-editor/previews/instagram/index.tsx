@@ -3,9 +3,11 @@
 "use client";
 
 import { memo, useState, useRef, useEffect } from "react";
-import { UserTagDto } from "@/lib/api/publishing";
+import { UserTagDto, ProductTagDto } from "@/lib/api/publishing";
+import { Product } from "@/lib/api/commerce";
 import { ImageCropperModal } from "../../modals/image-cropper-modal";
 import { AltTextModal } from "../../modals/alt-text-modal";
+import { ProductSelectorModal } from "../../modals/product-selector-modal";
 import type { PixelCrop } from "react-image-crop";
 import {
   createCroppedPreviewUrl,
@@ -40,6 +42,8 @@ interface InstagramPreviewProps {
   postType: "post" | "reel" | "story";
   userTags: Record<string, UserTagDto[]>; // Changed: keyed by mediaId
   onUserTagsChange: (tags: Record<string, UserTagDto[]>) => void;
+  productTags: Record<string, ProductTagDto[]>; // Keyed by mediaId
+  onProductTagsChange: (tags: Record<string, ProductTagDto[]>) => void;
   aspectRatio?: number;
   coverUrl?: string | null;
   onCoverChange?: (url: string | null) => void;
@@ -61,6 +65,8 @@ function InstagramPreview({
   postType,
   userTags,
   onUserTagsChange,
+  productTags,
+  onProductTagsChange,
   aspectRatio = 1,
   coverUrl,
   onCoverChange,
@@ -77,6 +83,13 @@ function InstagramPreview({
 
   // Local State
   const [isTaggingMode, setIsTaggingMode] = useState(false);
+  const [isProductTaggingMode, setIsProductTaggingMode] = useState(false);
+  const [isProductSelectorOpen, setIsProductSelectorOpen] = useState(false);
+  const [pendingProductTag, setPendingProductTag] = useState<{
+    mediaId: string;
+    x: number;
+    y: number;
+  } | null>(null);
   const [isCropperOpen, setIsCropperOpen] = useState(false);
   const [isAltTextModalOpen, setIsAltTextModalOpen] = useState(false);
   const [altTextInitialIndex, setAltTextInitialIndex] = useState(0);
@@ -100,13 +113,16 @@ function InstagramPreview({
   const isStoryCarousel = hasMultipleMedia && postType === "story";
 
   // For carousel mode, get the current media item
-  const currentCarouselMedia = isCarousel ? mediaItems[currentCarouselIndex] : null;
+  const currentCarouselMedia = isCarousel
+    ? mediaItems[currentCarouselIndex]
+    : null;
 
   // Determine which media to use for cropping: carousel item or single item
   const activeMediaForCrop = currentCarouselMedia || singleMediaItem;
 
   // Can crop if we have an uploaded image (either single or in carousel)
-  const canCrop = !!activeMediaForCrop?.id && activeMediaForCrop?.type === "image";
+  const canCrop =
+    !!activeMediaForCrop?.id && activeMediaForCrop?.type === "image";
 
   // For cropper modal: use the active media item
   const originalMediaSrc = activeMediaForCrop?.file
@@ -118,6 +134,9 @@ function InstagramPreview({
   const isTaggingSupported = isCarousel
     ? postType === "post" && mediaItems.some((item) => item.type === "image")
     : !!displayMediaSrc && postType === "post" && mediaType !== "video";
+
+  // Product tagging follows the same rules as user tagging
+  const isProductTaggingSupported = isTaggingSupported;
 
   // Alt text editing: Filter to only uploaded images
   const editableMediaItems = isCarousel
@@ -140,6 +159,12 @@ function InstagramPreview({
       setIsTaggingMode(false);
     }
   }, [isTaggingSupported]);
+
+  useEffect(() => {
+    if (!isProductTaggingSupported) {
+      setIsProductTaggingMode(false);
+    }
+  }, [isProductTaggingSupported]);
 
   // Auto-crop logic for Stories (only for single media, not carousel)
   const prevPostTypeRef = useRef(postType);
@@ -262,7 +287,11 @@ function InstagramPreview({
 
   const handleCropClick = async () => {
     // Use activeMediaForCrop which already handles carousel vs single media
-    if (!activeMediaForCrop || !activeMediaForCrop.id || activeMediaForCrop.type !== "image") {
+    if (
+      !activeMediaForCrop ||
+      !activeMediaForCrop.id ||
+      activeMediaForCrop.type !== "image"
+    ) {
       return;
     }
 
@@ -312,6 +341,38 @@ function InstagramPreview({
     setIsAltTextModalOpen(true);
   };
 
+  // Product Tagging Handlers
+  const handleProductTagClick = (mediaId: string, x: number, y: number) => {
+    setPendingProductTag({ mediaId, x, y });
+    setIsProductSelectorOpen(true);
+  };
+
+  const handleProductSelected = (product: Product) => {
+    if (!pendingProductTag) return;
+
+    const { mediaId, x, y } = pendingProductTag;
+    const newTags = { ...productTags };
+    newTags[mediaId] = [
+      ...(newTags[mediaId] || []),
+      { productId: product.id, x, y },
+    ];
+    onProductTagsChange(newTags);
+
+    setPendingProductTag(null);
+    setIsProductSelectorOpen(false);
+  };
+
+  const handleRemoveProductTag = (mediaId: string, index: number) => {
+    const newTags = { ...productTags };
+    if (newTags[mediaId]) {
+      newTags[mediaId] = newTags[mediaId].filter((_, i) => i !== index);
+      if (newTags[mediaId].length === 0) {
+        delete newTags[mediaId];
+      }
+    }
+    onProductTagsChange(newTags);
+  };
+
   return (
     <div className="w-full max-w-sm mx-auto space-y-4 transition-all duration-300">
       <div className="bg-[--surface] border border-[--border] shadow-lg">
@@ -357,6 +418,10 @@ function InstagramPreview({
               }
               onUserTagsChange(newTags);
             }}
+            isProductTaggingMode={isProductTaggingMode}
+            productTags={productTags}
+            onProductTagClick={handleProductTagClick}
+            onRemoveProductTag={handleRemoveProductTag}
             onVideoMetadataLoaded={setVideoDuration}
             onCurrentIndexChange={setCurrentCarouselIndex}
           />
@@ -382,14 +447,28 @@ function InstagramPreview({
               if (singleMediaItem?.id) {
                 const newTags = { ...userTags };
                 if (newTags[singleMediaItem.id]) {
-                  newTags[singleMediaItem.id] = newTags[singleMediaItem.id].filter(
-                    (_, i) => i !== idx
-                  );
+                  newTags[singleMediaItem.id] = newTags[
+                    singleMediaItem.id
+                  ].filter((_, i) => i !== idx);
                   if (newTags[singleMediaItem.id].length === 0) {
                     delete newTags[singleMediaItem.id];
                   }
                 }
                 onUserTagsChange(newTags);
+              }
+            }}
+            isProductTaggingMode={isProductTaggingMode}
+            productTags={
+              singleMediaItem?.id ? productTags[singleMediaItem.id] || [] : []
+            }
+            onProductTagClick={(x, y) => {
+              if (singleMediaItem?.id) {
+                handleProductTagClick(singleMediaItem.id, x, y);
+              }
+            }}
+            onRemoveProductTag={(idx) => {
+              if (singleMediaItem?.id) {
+                handleRemoveProductTag(singleMediaItem.id, idx);
               }
             }}
             coverUrl={coverUrl}
@@ -418,6 +497,11 @@ function InstagramPreview({
             isTaggingSupported={isTaggingSupported}
             isTaggingMode={isTaggingMode}
             onToggleTagging={() => setIsTaggingMode(!isTaggingMode)}
+            isProductTaggingSupported={isProductTaggingSupported}
+            isProductTaggingMode={isProductTaggingMode}
+            onToggleProductTagging={() =>
+              setIsProductTaggingMode(!isProductTaggingMode)
+            }
             displayMediaSrc={displayMediaSrc}
             isStory={postType === "story"}
             canEditAltText={canEditAltText}
@@ -481,6 +565,17 @@ function InstagramPreview({
           initialMediaIndex={altTextInitialIndex}
         />
       )}
+
+      {/* Product Selector Modal */}
+      <ProductSelectorModal
+        open={isProductSelectorOpen}
+        onClose={() => {
+          setIsProductSelectorOpen(false);
+          setPendingProductTag(null);
+        }}
+        onSelectProduct={handleProductSelected}
+        integrationId={integrationId || null} // <--- PASS IT HERE
+      />
     </div>
   );
 }

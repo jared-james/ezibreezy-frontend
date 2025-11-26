@@ -5,7 +5,7 @@
 import { create } from "zustand";
 import type { SelectedAccounts, ThreadMessage } from "@/lib/types/editorial";
 import { type EditorialDraft } from "@/lib/types/editorial";
-import { FullPostDetails, UserTagDto } from "@/lib/api/publishing";
+import { FullPostDetails, UserTagDto, ProductTagDto } from "@/lib/api/publishing";
 import { format } from "date-fns";
 import type { PlatformCrops, SocialPlatform } from "@/lib/utils/crop-utils";
 import { PLATFORM_RULES } from "@/lib/utils/media-validation";
@@ -56,6 +56,7 @@ export interface EditorialState {
   postType: PlatformPostType;
   facebookPostType: PlatformPostType;
   userTags: Record<string, UserTagDto[]>; // Changed: now keyed by mediaId
+  productTags: Record<string, ProductTagDto[]>; // Keyed by mediaId
   activeCaptionFilter: string;
   instagramCoverUrl: string | null;
   instagramThumbOffset: number | null;
@@ -107,6 +108,7 @@ export const initialState: EditorialState = {
   postType: "post",
   facebookPostType: "post",
   userTags: {}, // Changed: now an empty object
+  productTags: {}, // Empty object keyed by mediaId
   activeCaptionFilter: "all",
   instagramCoverUrl: null,
   instagramThumbOffset: null,

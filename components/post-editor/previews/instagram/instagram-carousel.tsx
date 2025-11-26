@@ -4,7 +4,8 @@ import { useState, useRef } from "react";
 import { ChevronLeft, ChevronRight, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { MediaItem } from "@/lib/store/editorial-store";
-import { UserTagDto } from "@/lib/api/publishing";
+import { UserTagDto, ProductTagDto } from "@/lib/api/publishing";
+import { Product } from "@/lib/api/commerce";
 
 interface InstagramCarouselProps {
   mediaItems: MediaItem[];
@@ -13,6 +14,11 @@ interface InstagramCarouselProps {
   tags: Record<string, UserTagDto[]>; // Changed: keyed by mediaId
   onAddTag: (mediaId: string, tag: UserTagDto) => void;
   onRemoveTag: (mediaId: string, index: number) => void;
+  isProductTaggingMode?: boolean;
+  productTags?: Record<string, ProductTagDto[]>;
+  onAddProductTag?: (mediaId: string, tag: ProductTagDto, product: Product) => void;
+  onRemoveProductTag?: (mediaId: string, index: number) => void;
+  onProductTagClick?: (mediaId: string, x: number, y: number) => void;
   onVideoMetadataLoaded?: (duration: number) => void;
   isStory?: boolean;
   onCurrentIndexChange?: (index: number) => void;
@@ -25,6 +31,11 @@ export function InstagramCarousel({
   tags,
   onAddTag,
   onRemoveTag,
+  isProductTaggingMode = false,
+  productTags = {},
+  onAddProductTag,
+  onRemoveProductTag,
+  onProductTagClick,
   onVideoMetadataLoaded,
   isStory = false,
   onCurrentIndexChange,
@@ -45,6 +56,7 @@ export function InstagramCarousel({
 
   // Get tags for the current media item
   const currentMediaTags = currentMedia?.id ? tags[currentMedia.id] || [] : [];
+  const currentMediaProductTags = currentMedia?.id ? productTags[currentMedia.id] || [] : [];
 
   const nextSlide = () => {
     setCurrentIndex((prev) => {
@@ -63,6 +75,34 @@ export function InstagramCarousel({
   };
 
   const handleImageClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    // Handle product tagging mode
+    if (isProductTaggingMode && onProductTagClick && currentMedia.type === "image") {
+      if (!currentMedia.id) return;
+
+      const mediaElement = imageRef.current;
+      if (!mediaElement) return;
+
+      const mediaRect = mediaElement.getBoundingClientRect();
+      const clickX = e.clientX;
+      const clickY = e.clientY;
+
+      if (
+        clickX < mediaRect.left ||
+        clickX > mediaRect.right ||
+        clickY < mediaRect.top ||
+        clickY > mediaRect.bottom
+      ) {
+        return;
+      }
+
+      const x = (clickX - mediaRect.left) / mediaRect.width;
+      const y = (clickY - mediaRect.top) / mediaRect.height;
+
+      onProductTagClick(currentMedia.id, x, y);
+      return;
+    }
+
+    // Handle user tagging mode
     // Only allow tagging on images, not videos
     if (!isTaggingMode || !containerRef.current || currentMedia.type === "video") return;
 
@@ -111,7 +151,7 @@ export function InstagramCarousel({
       onClick={handleImageClick}
       className={cn(
         "relative bg-[--background]",
-        isTaggingMode && "cursor-crosshair"
+        (isTaggingMode || isProductTaggingMode) && "cursor-crosshair"
       )}
       style={{ aspectRatio }}
     >
@@ -182,6 +222,15 @@ export function InstagramCarousel({
         </div>
       )}
 
+      {/* Product Tagging Overlay - Only show on images */}
+      {isProductTaggingMode && currentMedia.type === "image" && (
+        <div className="absolute inset-0 bg-black/30 p-2 flex flex-col justify-between pointer-events-none">
+          <p className="text-center text-xs font-semibold text-white bg-black/50 rounded-full px-3 py-1 self-center">
+            Click on the photo to tag a product
+          </p>
+        </div>
+      )}
+
       {/* Existing User Tags for Current Media */}
       {currentMediaTags.map((tag, index) => (
         <div
@@ -207,6 +256,37 @@ export function InstagramCarousel({
               <X className="h-3 w-3" />
             </button>
             <div className="absolute left-1/2 -bottom-1.5 -translate-x-1/2 w-0 h-0 border-l-[6px] border-l-transparent border-r-[6px] border-r-transparent border-t-[6px] border-t-black/85" />
+          </div>
+        </div>
+      ))}
+
+      {/* Existing Product Tags for Current Media */}
+      {currentMediaProductTags.map((tag, index) => (
+        <div
+          key={`product-${index}`}
+          className="absolute group"
+          style={{
+            left: `${tag.x * 100}%`,
+            top: `${tag.y * 100}%`,
+            transform: "translate(-50%, -100%)",
+          }}
+        >
+          <div className="relative flex items-center gap-1 rounded-md px-2 py-1 text-xs font-semibold text-white shadow-lg bg-blue-600/90">
+            <span className="max-w-[120px] truncate">Product</span>
+            {onRemoveProductTag && (
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  if (currentMedia.id) {
+                    onRemoveProductTag(currentMedia.id, index);
+                  }
+                }}
+                className="opacity-0 group-hover:opacity-100 ml-1 hover:text-red-400"
+              >
+                <X className="h-3 w-3" />
+              </button>
+            )}
+            <div className="absolute left-1/2 -bottom-1.5 -translate-x-1/2 w-0 h-0 border-l-[6px] border-l-transparent border-r-[6px] border-r-transparent border-t-[6px] border-t-blue-600/90" />
           </div>
         </div>
       ))}

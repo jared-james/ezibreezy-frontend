@@ -1,7 +1,7 @@
 // components/post-editor/previews/instagram/instagram-toolbar.tsx
 
 import { cn } from "@/lib/utils";
-import { Square, Grid3X3, Crop, UserPlus, Loader2, FileText } from "lucide-react";
+import { Square, Grid3X3, Crop, UserPlus, Loader2, FileText, ShoppingBag } from "lucide-react";
 
 interface InstagramToolbarProps {
   viewMode: "post" | "grid";
@@ -12,6 +12,9 @@ interface InstagramToolbarProps {
   isTaggingSupported: boolean;
   isTaggingMode: boolean;
   onToggleTagging: () => void;
+  isProductTaggingSupported?: boolean;
+  isProductTaggingMode?: boolean;
+  onToggleProductTagging?: () => void;
   displayMediaSrc?: string;
   isStory: boolean;
   canEditAltText?: boolean;
@@ -27,6 +30,9 @@ export function InstagramToolbar({
   isTaggingSupported,
   isTaggingMode,
   onToggleTagging,
+  isProductTaggingSupported = false,
+  isProductTaggingMode = false,
+  onToggleProductTagging,
   displayMediaSrc,
   isStory,
   canEditAltText = false,
@@ -75,7 +81,7 @@ export function InstagramToolbar({
       )}
 
       {/* Divider */}
-      {!isStory && (canCrop || isTaggingSupported || canEditAltText) && (
+      {!isStory && (canCrop || isTaggingSupported || isProductTaggingSupported || canEditAltText) && (
         <div className="h-4 w-px bg-border" />
       )}
 
@@ -122,6 +128,35 @@ export function InstagramToolbar({
         >
           <UserPlus className="h-3.5 w-3.5" />
           {isTaggingMode ? "Done" : "Tag"}
+        </button>
+      )}
+
+      {/* Product Tag Button */}
+      {isProductTaggingSupported && onToggleProductTagging && (
+        <button
+          onClick={() => {
+            if (viewMode === "grid") return;
+            onToggleProductTagging();
+          }}
+          title={
+            viewMode === "grid"
+              ? "Switch to Post view to tag products"
+              : isProductTaggingMode
+              ? "Done Tagging Products"
+              : "Tag Products"
+          }
+          disabled={viewMode === "grid"}
+          className={cn(
+            "flex items-center gap-1.5 text-xs transition-colors",
+            viewMode === "grid"
+              ? "text-muted-foreground/40 cursor-not-allowed"
+              : isProductTaggingMode
+              ? "text-brand-primary font-medium"
+              : "text-muted-foreground hover:text-foreground"
+          )}
+        >
+          <ShoppingBag className="h-3.5 w-3.5" />
+          {isProductTaggingMode ? "Done" : "Products"}
         </button>
       )}
 

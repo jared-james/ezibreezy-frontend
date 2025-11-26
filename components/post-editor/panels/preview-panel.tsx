@@ -25,7 +25,7 @@ import {
   useEditorialStore,
   MediaItem,
 } from "@/lib/store/editorial-store";
-import { UserTagDto } from "@/lib/api/publishing";
+import { UserTagDto, ProductTagDto } from "@/lib/api/publishing";
 import { useQuery } from "@tanstack/react-query";
 
 const platformIcons: Record<string, React.ElementType> = {
@@ -62,6 +62,7 @@ function PreviewPanel({
   collaborators,
 }: PreviewPanelProps) {
   const userTags = useEditorialStore((state) => state.userTags);
+  const productTags = useEditorialStore((state) => state.productTags);
   const postType = useEditorialStore((state) => state.postType);
   const facebookPostType = useEditorialStore((state) => state.facebookPostType);
   const platformTitles = useEditorialStore((state) => state.platformTitles);
@@ -141,6 +142,10 @@ function PreviewPanel({
 
   const handleUserTagsChange = (tags: Record<string, UserTagDto[]>) => {
     setState({ userTags: tags });
+  };
+
+  const handleProductTagsChange = (tags: Record<string, ProductTagDto[]>) => {
+    setState({ productTags: tags });
   };
 
   if (activePlatforms.length === 0) {
@@ -223,6 +228,8 @@ function PreviewPanel({
             postType={postType}
             userTags={userTags}
             onUserTagsChange={handleUserTagsChange}
+            productTags={productTags}
+            onProductTagsChange={handleProductTagsChange}
             aspectRatio={instagramAspectRatio}
             coverUrl={instagramCoverUrl}
             onCoverChange={(url) => setState({ instagramCoverUrl: url })}

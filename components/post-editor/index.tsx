@@ -218,6 +218,7 @@ export default function EditorialCore({
     }
 
     const location = useEditorialStore.getState().location;
+    const productTags = useEditorialStore.getState().productTags;
     const baseSettings: PostSettings = {
       labels: localLabels,
       collaborators: localCollaborators,
@@ -226,6 +227,7 @@ export default function EditorialCore({
       canonicalContent: localMainCaption,
       postType: postTypeFromStore,
       userTags,
+      productTags,
     };
 
     const processThreadMessages = (messages: typeof storeThreadMessages) =>
