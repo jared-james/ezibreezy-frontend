@@ -17,44 +17,63 @@ export const PLATFORM_RULES = {
     allowMixedMedia: true, // Temporarily enabled for API testing
     maxVideos: 10,
     maxImages: 10,
+    supportsCarousel: true,
   },
   facebook: {
     name: "Facebook",
     allowMixedMedia: true, // Temporarily enabled for API testing
     maxVideos: 10,
     maxImages: 10,
+    supportsCarousel: true,
   },
   linkedin: {
     name: "LinkedIn",
     allowMixedMedia: false,
     maxVideos: 9,
     maxImages: 9,
+    supportsCarousel: false,
   },
   x: {
     name: "X",
     allowMixedMedia: true,
     maxVideos: 4,
     maxImages: 4,
+    supportsCarousel: false,
   },
   threads: {
     name: "Threads",
     allowMixedMedia: false,
     maxVideos: 10,
     maxImages: 10,
+    supportsCarousel: false,
   },
   tiktok: {
     name: "TikTok",
     allowMixedMedia: false,
     maxVideos: 1,
     maxImages: 0,
+    supportsCarousel: false,
   },
   youtube: {
     name: "YouTube",
     allowMixedMedia: false,
     maxVideos: 1,
     maxImages: 0,
+    supportsCarousel: false,
   },
 } as const;
+
+export function shouldShowMediaOrdering(
+  platformId: string,
+  selectedItemCount: number
+): boolean {
+  const rules = PLATFORM_RULES[platformId as keyof typeof PLATFORM_RULES];
+
+  if (!rules) return false;
+
+  // Show ordering UI only if platform supports carousel AND multiple items selected
+  return rules.supportsCarousel && selectedItemCount > 1;
+}
 
 function isVideo(mediaItem: MediaItem): boolean {
   return mediaItem.type === "video";

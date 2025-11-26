@@ -1,3 +1,5 @@
+// components/post-editor/caption/sections/platform-caption-section.tsx
+
 "use client";
 
 import { Type } from "lucide-react";

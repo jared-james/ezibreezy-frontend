@@ -1,3 +1,5 @@
+// components/post-editor/caption/components/caption-textarea.tsx
+
 import { Hash } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
