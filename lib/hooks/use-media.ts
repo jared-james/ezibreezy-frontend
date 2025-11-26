@@ -14,7 +14,9 @@ import {
   getMedia,
   updateMedia,
   deleteMedia,
+  archiveMedia,
   bulkDeleteMedia,
+  bulkArchiveMedia,
   bulkMoveMedia,
   bulkTagMedia,
   bulkUntagMedia,
@@ -33,10 +35,11 @@ import {
   detachTagsFromMedia,
   uploadMedia,
   type MediaFilters,
-  type MediaListResponse, // Ensure this is exported from api/media.ts
+  type MediaListResponse,
   type MediaItemWithUsage,
 } from "@/lib/api/media";
 import { toast } from "sonner";
+import { generateVideoThumbnail } from "@/lib/utils/video-thumbnail";
 
 export function useMediaList(
   integrationId: string | null,
@@ -67,33 +70,27 @@ export function useMediaItem(id: string | null, integrationId: string | null) {
     queryFn: () => getMedia(id!, integrationId!),
     enabled: !!id && !!integrationId,
     staleTime: 30000,
-    // INSTANT LOAD LOGIC:
     initialData: () => {
       if (!id || !integrationId) return undefined;
 
-      // 1. Get all active queries that start with "media" and this integration
       const queries = queryClient.getQueriesData<{
         pages: MediaListResponse[];
       }>({
-        // Infinite Query Structure
         queryKey: ["media", integrationId],
       });
 
-      // 2. Search through every cached list to find our item
       for (const [_, queryData] of queries) {
         if (!queryData?.pages) continue;
 
         for (const page of queryData.pages) {
           const foundItem = page.data.find((item) => item.id === id);
           if (foundItem) {
-            // 3. Return it immediately so the modal opens instantly
-            // Note: foundItem lacks 'usedInPosts' which fetch will fill in background
             return {
               ...foundItem,
               folder: foundItem.folderId
                 ? { id: foundItem.folderId, name: "Loading..." }
                 : null,
-              usedInPosts: [], // Will populate after background fetch
+              usedInPosts: [],
             } as MediaItemWithUsage;
           }
         }
@@ -108,7 +105,19 @@ export function useUploadMedia(integrationId: string | null) {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (file: File) => uploadMedia(file, integrationId!),
+    mutationFn: async (file: File) => {
+      let thumbnail: File | undefined;
+
+      if (file.type.startsWith("video/")) {
+        try {
+          thumbnail = await generateVideoThumbnail(file);
+        } catch (e) {
+          console.warn("Failed to generate client-side thumbnail", e);
+        }
+      }
+
+      return uploadMedia(file, integrationId!, thumbnail);
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["media", integrationId] });
       toast.success("Media uploaded successfully");
@@ -155,6 +164,21 @@ export function useDeleteMedia(integrationId: string | null) {
   });
 }
 
+export function useArchiveMedia(integrationId: string | null) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (id: string) => archiveMedia(id, integrationId!),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["media"] });
+      toast.success("Media archived successfully");
+    },
+    onError: (error: Error) => {
+      toast.error(`Archive failed: ${error.message}`);
+    },
+  });
+}
+
 export function useBulkDeleteMedia(integrationId: string | null) {
   const queryClient = useQueryClient();
 
@@ -167,6 +191,22 @@ export function useBulkDeleteMedia(integrationId: string | null) {
     },
     onError: (error: Error) => {
       toast.error(`Delete failed: ${error.message}`);
+    },
+  });
+}
+
+export function useBulkArchiveMedia(integrationId: string | null) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (mediaIds: string[]) =>
+      bulkArchiveMedia(integrationId!, mediaIds),
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ["media"] });
+      toast.success(`Archived ${data.archived} items`);
+    },
+    onError: (error: Error) => {
+      toast.error(`Archive failed: ${error.message}`);
     },
   });
 }

@@ -10,11 +10,12 @@ import {
   Tag,
   Loader2,
   ChevronDown,
+  Archive,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useMediaRoomStore } from "@/lib/store/media-room-store";
 import {
-  useBulkDeleteMedia,
+  useBulkArchiveMedia,
   useBulkMoveMedia,
   useBulkTagMedia,
   useTagList,
@@ -39,11 +40,11 @@ export default function BulkActionBar({ integrationId }: BulkActionBarProps) {
   const selectedIds = useMediaRoomStore((s) => s.selectedIds);
   const clearSelection = useMediaRoomStore((s) => s.clearSelection);
 
-  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [showArchiveConfirm, setShowArchiveConfirm] = useState(false);
   const [showFolderDropdown, setShowFolderDropdown] = useState(false);
   const [showTagDropdown, setShowTagDropdown] = useState(false);
 
-  const bulkDelete = useBulkDeleteMedia(integrationId);
+  const bulkArchive = useBulkArchiveMedia(integrationId);
   const bulkMove = useBulkMoveMedia(integrationId);
   const bulkTag = useBulkTagMedia(integrationId);
   const { data: tags = [] } = useTagList(integrationId);
@@ -54,11 +55,11 @@ export default function BulkActionBar({ integrationId }: BulkActionBarProps) {
 
   if (selectedCount === 0) return null;
 
-  const handleDelete = () => {
-    bulkDelete.mutate(selectedArray, {
+  const handleArchive = () => {
+    bulkArchive.mutate(selectedArray, {
       onSuccess: () => {
         clearSelection();
-        setShowDeleteConfirm(false);
+        setShowArchiveConfirm(false);
       },
     });
   };
@@ -87,7 +88,7 @@ export default function BulkActionBar({ integrationId }: BulkActionBarProps) {
   };
 
   const isLoading =
-    bulkDelete.isPending || bulkMove.isPending || bulkTag.isPending;
+    bulkArchive.isPending || bulkMove.isPending || bulkTag.isPending;
 
   return (
     <>
@@ -191,16 +192,16 @@ export default function BulkActionBar({ integrationId }: BulkActionBarProps) {
               )}
             </div>
 
-            {/* Delete */}
+            {/* Archive (labeled as Delete) */}
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => setShowDeleteConfirm(true)}
+              onClick={() => setShowArchiveConfirm(true)}
               disabled={isLoading}
               className="gap-2 bg-red-600 text-white hover:bg-red-700 border-0 px-4 py-2 h-auto font-medium"
             >
               <Trash2 className="h-4 w-4" />
-              Delete
+              Archive
             </Button>
 
             {isLoading && (
@@ -212,29 +213,36 @@ export default function BulkActionBar({ integrationId }: BulkActionBarProps) {
         </div>
       </div>
 
-      {/* Delete confirmation */}
-      <AlertDialog open={showDeleteConfirm} onOpenChange={setShowDeleteConfirm}>
+      {/* Archive confirmation */}
+      <AlertDialog
+        open={showArchiveConfirm}
+        onOpenChange={setShowArchiveConfirm}
+      >
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle className="font-serif">
-              Delete {selectedCount} Items
+              Archive {selectedCount} Items
             </AlertDialogTitle>
             <AlertDialogDescription className="font-serif">
-              Are you sure you want to delete {selectedCount} media{" "}
-              {selectedCount === 1 ? "item" : "items"}? This action cannot be
-              undone.
+              This will delete the high-quality source files to free up storage
+              space, but keep thumbnails and database records for{" "}
+              {selectedCount} {selectedCount === 1 ? "item" : "items"}.
+              <br />
+              <br />
+              <strong>Note:</strong> You will not be able to use these files for
+              new posts, but they will still appear in your history.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction
-              onClick={handleDelete}
-              className="bg-error text-error-foreground hover:bg-error-hover"
+              onClick={handleArchive}
+              className="bg-brand-primary text-brand-primary-foreground hover:bg-brand-primary-hover"
             >
-              {bulkDelete.isPending ? (
+              {bulkArchive.isPending ? (
                 <Loader2 className="h-4 w-4 animate-spin" />
               ) : (
-                "Delete All"
+                "Archive All"
               )}
             </AlertDialogAction>
           </AlertDialogFooter>

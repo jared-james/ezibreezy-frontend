@@ -17,6 +17,7 @@ import {
   Music2,
 } from "lucide-react";
 import { createPost, type CreatePostPayload } from "@/lib/api/publishing";
+import { generateVideoThumbnail } from "@/lib/utils/video-thumbnail";
 
 interface UsePostEditorOptions {
   mode?: "editorial" | "clipping";
@@ -58,11 +59,23 @@ export function usePostEditor(options: UsePostEditorOptions = {}) {
   });
 
   const uploadMediaMutation = useMutation({
-    mutationFn: (variables: {
+    mutationFn: async (variables: {
       file: File;
       integrationId: string;
       uid: string;
-    }) => uploadMedia(variables.file, variables.integrationId),
+    }) => {
+      let thumbnail: File | undefined;
+
+      if (variables.file.type.startsWith("video/")) {
+        try {
+          thumbnail = await generateVideoThumbnail(variables.file);
+        } catch (e) {
+          console.warn("Failed to generate client-side thumbnail", e);
+        }
+      }
+
+      return uploadMedia(variables.file, variables.integrationId, thumbnail);
+    },
     onSuccess: (data, variables) => {
       const currentItems = useEditorialStore.getState().stagedMediaItems;
       const updatedItems = currentItems.map((item) =>

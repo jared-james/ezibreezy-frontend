@@ -40,6 +40,7 @@ export interface MediaItem {
   updatedAt: string;
   tags: MediaTag[];
   usageCount: number;
+  isArchived: boolean;
 }
 
 export interface MediaItemWithUsage extends MediaItem {
@@ -96,11 +97,16 @@ export interface BreadcrumbItem {
 
 export const uploadMedia = async (
   file: File,
-  integrationId: string
+  integrationId: string,
+  thumbnail?: File
 ): Promise<UploadMediaResponse> => {
   const formData = new FormData();
   formData.append("file", file);
   formData.append("integrationId", integrationId);
+
+  if (thumbnail) {
+    formData.append("thumbnail", thumbnail);
+  }
 
   const response = await apiClient.post<UploadMediaResponse>(
     "/media/upload",
@@ -172,6 +178,16 @@ export const deleteMedia = async (
   await apiClient.delete(`/media/${id}?integrationId=${integrationId}`);
 };
 
+export const archiveMedia = async (
+  id: string,
+  integrationId: string
+): Promise<MediaItem> => {
+  const response = await apiClient.post<MediaItem>(
+    `/media/${id}/archive?integrationId=${integrationId}`
+  );
+  return response.data;
+};
+
 // ============================================================================
 // Bulk Operations
 // ============================================================================
@@ -182,6 +198,17 @@ export const bulkDeleteMedia = async (
 ): Promise<{ success: boolean; deleted: number }> => {
   const response = await apiClient.post(
     `/media/bulk-delete?integrationId=${integrationId}`,
+    { mediaIds }
+  );
+  return response.data;
+};
+
+export const bulkArchiveMedia = async (
+  integrationId: string,
+  mediaIds: string[]
+): Promise<{ success: boolean; archived: number }> => {
+  const response = await apiClient.post(
+    `/media/bulk-archive?integrationId=${integrationId}`,
     { mediaIds }
   );
   return response.data;

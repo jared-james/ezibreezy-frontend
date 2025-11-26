@@ -2,7 +2,7 @@
 
 "use client";
 
-import { Play, Check, Film, Pencil } from "lucide-react";
+import { Play, Check, Film, Pencil, Archive } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import type { MediaItem } from "@/lib/api/media";
@@ -23,14 +23,13 @@ export default function MediaCard({
   priority = false,
 }: MediaCardProps) {
   // Each card subscribes only to its own selection state
-  // This prevents re-renders when other items are selected/deselected
   const isSelected = useMediaRoomStore((s) => s.selectedIds.has(item.id));
 
   const isVideo = item.type.startsWith("video/");
   const isGif = item.type === "image/gif";
+  const isArchived = item.isArchived;
 
   const handleClick = () => {
-    // Click on card selects it
     onSelect(item.id, false, false);
   };
 
@@ -45,6 +44,7 @@ export default function MediaCard({
   };
 
   const formatFileSize = (bytes: number) => {
+    if (bytes === 0 && isArchived) return "Archived";
     if (bytes < 1024) return `${bytes} B`;
     if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
     return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
@@ -57,11 +57,21 @@ export default function MediaCard({
         "group relative flex flex-col bg-surface border cursor-pointer transition-all duration-200 overflow-hidden rounded-sm",
         isSelected
           ? "border-brand-primary ring-2 ring-brand-primary"
-          : "border-border hover:border-brand-primary"
+          : "border-border hover:border-brand-primary",
+        isArchived && "opacity-80"
       )}
     >
       {/* Thumbnail area */}
       <div className="relative aspect-square overflow-hidden bg-neutral-100">
+        {/* Archived Overlay */}
+        {isArchived && (
+          <div className="absolute inset-0 z-20 bg-neutral-900/10 backdrop-grayscale flex items-center justify-center pointer-events-none">
+            <div className="bg-neutral-900/80 p-1.5 rounded-full">
+              <Archive className="w-4 h-4 text-white" />
+            </div>
+          </div>
+        )}
+
         {isVideo ? (
           <div className="relative w-full h-full bg-black/5">
             {item.thumbnailUrl && item.thumbnailUrl.trim() !== "" ? (
@@ -74,33 +84,29 @@ export default function MediaCard({
               />
             ) : (
               <video
-                /* 
-                  #t=0.001 forces the browser to seek to the start immediately, 
-                  effectively rendering the first frame as a thumbnail.
-                */
                 src={`${item.url}#t=0.001`}
                 className="w-full h-full object-cover"
                 preload="metadata"
                 muted
                 playsInline
                 loop
-                /* Optional: Play on hover for quick preview */
-                onMouseEnter={(e) => e.currentTarget.play()}
+                onMouseEnter={(e) => {
+                  if (!isArchived) e.currentTarget.play();
+                }}
                 onMouseLeave={(e) => {
-                  e.currentTarget.pause();
-                  // Optional: Reset to start on mouse leave
-                  // e.currentTarget.currentTime = 0;
+                  if (!isArchived) e.currentTarget.pause();
                 }}
               />
             )}
 
-            {/* Play Overlay */}
-            {/* pointer-events-none added so hover effects reach the video tag below */}
-            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-              <div className="bg-black/60 rounded-full p-2">
-                <Play className="w-5 h-5 text-white fill-white" />
+            {/* Play Overlay (Only if not archived) */}
+            {!isArchived && (
+              <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                <div className="bg-black/60 rounded-full p-2">
+                  <Play className="w-5 h-5 text-white fill-white" />
+                </div>
               </div>
-            </div>
+            )}
           </div>
         ) : item.thumbnailUrl || item.url ? (
           <img
@@ -120,7 +126,7 @@ export default function MediaCard({
         <button
           onClick={handleCheckboxClick}
           className={cn(
-            "absolute top-2 left-2 w-5 h-5 border-2 rounded-sm flex items-center justify-center transition-all z-10",
+            "absolute top-2 left-2 w-5 h-5 border-2 rounded-sm flex items-center justify-center transition-all z-30",
             isSelected
               ? "bg-brand-primary border-brand-primary"
               : "bg-white/90 border-brand-primary hover:border-brand-primary"
@@ -133,7 +139,7 @@ export default function MediaCard({
 
         {/* Type badge */}
         {(isVideo || isGif) && (
-          <div className="absolute bottom-2 left-2 px-1.5 py-0.5 bg-black/70 text-white text-[9px] font-bold uppercase tracking-wider rounded pointer-events-none">
+          <div className="absolute bottom-2 left-2 px-1.5 py-0.5 bg-black/70 text-white text-[9px] font-bold uppercase tracking-wider rounded pointer-events-none z-20">
             {isGif ? "GIF" : "Video"}
           </div>
         )}
@@ -142,7 +148,10 @@ export default function MediaCard({
       {/* Always visible info bar */}
       <div className="px-2 py-2 bg-surface border-t border-border">
         <p
-          className="text-foreground text-[11px] font-medium truncate"
+          className={cn(
+            "text-foreground text-[11px] font-medium truncate",
+            isArchived && "text-muted-foreground italic"
+          )}
           title={item.filename}
         >
           {item.filename}

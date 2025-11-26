@@ -5,7 +5,6 @@
 import { useState } from "react";
 import {
   X,
-  Trash2,
   Download,
   Loader2,
   Tag,
@@ -18,6 +17,8 @@ import {
   HardDrive,
   Scaling,
   Save,
+  Archive,
+  ArchiveRestore,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -28,7 +29,7 @@ import { toast } from "sonner";
 import {
   useMediaItem,
   useUpdateMedia,
-  useDeleteMedia,
+  useArchiveMedia,
   useTagList,
   useAttachTags,
   useDetachTags,
@@ -83,8 +84,6 @@ export default function MediaDetailPanel({
             <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
           </div>
         ) : media ? (
-          // Using key={media.id} forces a remount of the editor when the selected media changes.
-          // This automatically resets the internal form state without useEffects.
           <MediaItemEditor
             key={media.id}
             media={media}
@@ -114,12 +113,10 @@ function MediaItemEditor({
   integrationId,
   onClose,
 }: MediaItemEditorProps) {
-  // Initialize state directly from props.
-  // Because of the parent key={media.id}, this component unmounts/remounts on ID change.
   const [filename, setFilename] = useState(media.filename);
   const [altText, setAltText] = useState(media.altText || "");
 
-  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [showArchiveConfirm, setShowArchiveConfirm] = useState(false);
   const [showTagDropdown, setShowTagDropdown] = useState(false);
   const [showFolderDropdown, setShowFolderDropdown] = useState(false);
   const [isDownloading, setIsDownloading] = useState(false);
@@ -128,7 +125,7 @@ function MediaItemEditor({
   const { data: folders = [] } = useFolderList(integrationId, "root");
 
   const updateMedia = useUpdateMedia(integrationId);
-  const deleteMedia = useDeleteMedia(integrationId);
+  const archiveMedia = useArchiveMedia(integrationId);
   const attachTags = useAttachTags(integrationId);
   const detachTags = useDetachTags(integrationId);
 
@@ -147,7 +144,7 @@ function MediaItemEditor({
 
   const handleDownload = async (e: React.MouseEvent) => {
     e.preventDefault();
-    if (!integrationId) return;
+    if (!integrationId || media.isArchived) return;
 
     setIsDownloading(true);
     try {
@@ -174,10 +171,10 @@ function MediaItemEditor({
     }
   };
 
-  const handleDelete = () => {
-    deleteMedia.mutate(media.id, {
+  const handleArchive = () => {
+    archiveMedia.mutate(media.id, {
       onSuccess: () => {
-        onClose();
+        setShowArchiveConfirm(false);
       },
     });
   };
@@ -197,6 +194,7 @@ function MediaItemEditor({
   };
 
   const formatFileSize = (bytes: number) => {
+    if (bytes === 0 && media.isArchived) return "Archived";
     if (bytes < 1024) return `${bytes} B`;
     if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
     return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
@@ -209,7 +207,21 @@ function MediaItemEditor({
       {/* Top: Media Preview */}
       <div className="relative w-full bg-neutral-100/50 flex items-center justify-center shrink-0 h-[40vh] border-b border-border group">
         <div className="relative w-full h-full flex items-center justify-center p-8">
-          {isVideo ? (
+          {media.isArchived ? (
+            <div className="relative max-w-full max-h-full">
+              <img
+                src={media.url} // This is now the thumbnail url
+                alt={media.altText || media.filename}
+                className="max-w-full max-h-full object-contain shadow-sm rounded-sm opacity-70 grayscale-[0.5]"
+              />
+              <div className="absolute inset-0 flex items-center justify-center">
+                <span className="bg-neutral-900/80 text-white px-4 py-2 rounded-sm font-bold uppercase tracking-widest text-sm backdrop-blur-sm flex items-center gap-2">
+                  <Archive className="h-4 w-4" />
+                  Archived
+                </span>
+              </div>
+            </div>
+          ) : isVideo ? (
             <video
               src={media.url}
               controls
@@ -224,28 +236,41 @@ function MediaItemEditor({
           )}
         </div>
 
-        <a
-          href={media.url}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="absolute bottom-4 right-4 p-2 bg-foreground text-background rounded-sm hover:bg-foreground/80 transition-colors shadow-sm opacity-0 group-hover:opacity-100 duration-200"
-          title="Open full size"
-        >
-          <Maximize2 className="h-4 w-4" />
-        </a>
+        {!media.isArchived && (
+          <a
+            href={media.url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="absolute bottom-4 right-4 p-2 bg-foreground text-background rounded-sm hover:bg-foreground/80 transition-colors shadow-sm opacity-0 group-hover:opacity-100 duration-200"
+            title="Open full size"
+          >
+            <Maximize2 className="h-4 w-4" />
+          </a>
+        )}
       </div>
 
       {/* Bottom: Details & Controls */}
       <div className="flex-1 overflow-y-auto bg-surface flex flex-col">
         {/* 1. Header & Actions */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-border bg-white sticky top-0 z-20">
-          <h2 className="font-serif text-xl font-bold">Media Details</h2>
+          <h2 className="font-serif text-xl font-bold flex items-center gap-2">
+            Media Details
+            {media.isArchived && (
+              <span className="text-xs font-sans font-normal bg-neutral-100 text-neutral-500 px-2 py-0.5 rounded-full">
+                Archived
+              </span>
+            )}
+          </h2>
           <div className="flex items-center gap-3">
+            {/* Download Button */}
             <Button
               variant="outline"
               onClick={handleDownload}
-              disabled={isDownloading}
+              disabled={isDownloading || media.isArchived}
               className="h-9 gap-2"
+              title={
+                media.isArchived ? "Original file is archived" : "Download"
+              }
             >
               {isDownloading ? (
                 <Loader2 className="h-3.5 w-3.5 animate-spin" />
@@ -254,7 +279,22 @@ function MediaItemEditor({
               )}
               Download
             </Button>
-            <Button
+
+            {/* Archive Button */}
+            {!media.isArchived && (
+              <Button
+                variant="primary"
+                size="sm"
+                onClick={() => setShowArchiveConfirm(true)}
+                className="h-9 gap-2 bg-brand-primary text-brand-primary-foreground hover:bg-brand-primary-hover"
+              >
+                <Archive className="h-3.5 w-3.5" />
+                Archive
+              </Button>
+            )}
+
+            {/* Delete Button - Commented out, use Archive instead */}
+            {/* <Button
               variant="destructive"
               size="sm"
               onClick={() => setShowDeleteConfirm(true)}
@@ -262,7 +302,7 @@ function MediaItemEditor({
             >
               <Trash2 className="h-3.5 w-3.5" />
               Delete
-            </Button>
+            </Button> */}
           </div>
         </div>
 
@@ -512,33 +552,35 @@ function MediaItemEditor({
         </div>
       </div>
 
-      <AlertDialog open={showDeleteConfirm} onOpenChange={setShowDeleteConfirm}>
+      {/* Archive Confirmation Dialog */}
+      <AlertDialog
+        open={showArchiveConfirm}
+        onOpenChange={setShowArchiveConfirm}
+      >
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle className="font-serif">
-              Delete Media
+              Archive Media?
             </AlertDialogTitle>
             <AlertDialogDescription className="font-serif">
-              Are you sure you want to delete this media? This action cannot be
-              undone.
-              {media.usageCount > 0 ? (
-                <span className="block mt-4 p-3 bg-red-50 border border-red-100 text-red-600 rounded-sm font-medium text-sm">
-                  ⚠️ Warning: This media is currently used in {media.usageCount}{" "}
-                  post(s). Deleting it may break images in those posts.
-                </span>
-              ) : null}
+              This will delete the high-quality source file to free up storage
+              space, but keep the thumbnail and database record.
+              <br />
+              <br />
+              <strong>Note:</strong> You will not be able to use this file for
+              new posts, but it will still appear in your history.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction
-              onClick={handleDelete}
-              className="bg-error text-error-foreground hover:bg-error-hover"
+              onClick={handleArchive}
+              className="bg-brand-primary text-brand-primary-foreground hover:bg-brand-primary-hover"
             >
-              {deleteMedia.isPending ? (
+              {archiveMedia.isPending ? (
                 <Loader2 className="h-4 w-4 animate-spin" />
               ) : (
-                "Delete Permanently"
+                "Confirm Archive"
               )}
             </AlertDialogAction>
           </AlertDialogFooter>

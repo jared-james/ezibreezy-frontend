@@ -121,8 +121,8 @@ export default function MediaGrid({ integrationId }: MediaGridProps) {
     );
   }
 
-  // Flatten the pages from Infinite Query
-  const mediaItems = data?.pages.flatMap((page) => page.data) || [];
+  // Flatten the pages from Infinite Query and filter out archived items
+  const mediaItems = data?.pages.flatMap((page) => page.data).filter(item => !item.isArchived) || [];
 
   if (mediaItems.length === 0) {
     return (
