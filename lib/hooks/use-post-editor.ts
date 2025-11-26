@@ -1,7 +1,7 @@
 // lib/hooks/use-post-editor.ts
 
 import { useMemo, useCallback } from "react";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { useEditorialStore, MediaItem } from "@/lib/store/editorial-store";
 import { uploadMedia } from "@/lib/api/media";
@@ -24,6 +24,8 @@ interface UsePostEditorOptions {
 
 export function usePostEditor(options: UsePostEditorOptions = {}) {
   const { mode = "editorial" } = options;
+  const queryClient = useQueryClient();
+
   const setState = useEditorialStore((state) => state.setState);
   const setThreadMessages = useEditorialStore(
     (state) => state.setThreadMessages
@@ -69,6 +71,8 @@ export function usePostEditor(options: UsePostEditorOptions = {}) {
           : item
       );
       setStagedMediaItems(updatedItems);
+
+      queryClient.invalidateQueries({ queryKey: ["media"] });
     },
     onError: (error: any, variables) => {
       toast.error(
@@ -224,7 +228,6 @@ export function usePostEditor(options: UsePostEditorOptions = {}) {
     [setStagedMediaItems, uploadMediaMutation, mode]
   );
 
-  // FIX: Added support for index-based removal to handle library items that lack a File object
   const handleRemoveMedia = useCallback(
     (
       fileToRemove: File | null,
@@ -235,13 +238,11 @@ export function usePostEditor(options: UsePostEditorOptions = {}) {
       let itemToRemove: MediaItem | undefined;
 
       if (typeof indexToRemove === "number") {
-        // Filter to find the item in the correct thread context (e.g., Main Post vs Thread 1)
         const itemsInContext = currentItems.filter(
           (item) => item.threadIndex === threadIndex
         );
         itemToRemove = itemsInContext[indexToRemove];
       } else if (fileToRemove) {
-        // Fallback for file-based removal
         itemToRemove = currentItems.find(
           (item) =>
             item.threadIndex === threadIndex && item.file === fileToRemove
@@ -254,7 +255,6 @@ export function usePostEditor(options: UsePostEditorOptions = {}) {
         );
         setStagedMediaItems(newMediaItems);
 
-        // Also remove from platform-specific selections
         const currentSelections =
           useEditorialStore.getState().platformMediaSelections;
         const newSelections = { ...currentSelections };
@@ -278,7 +278,6 @@ export function usePostEditor(options: UsePostEditorOptions = {}) {
       );
 
       if (existingItem) {
-        // Toggle OFF (Remove)
         const newMediaItems = currentItems.filter(
           (item) => item.id !== libraryMedia.id
         );
@@ -294,14 +293,13 @@ export function usePostEditor(options: UsePostEditorOptions = {}) {
         });
         setState({ platformMediaSelections: newSelections });
       } else {
-        // Toggle ON (Add)
         const newMediaItem: MediaItem = {
           uid: crypto.randomUUID(),
           file: null,
           preview: libraryMedia.thumbnailUrl || libraryMedia.url,
           id: libraryMedia.id,
           isUploading: false,
-          threadIndex: null, // Library items always go to Main Post currently
+          threadIndex: null,
           type: libraryMedia.type.startsWith("video/") ? "video" : "image",
           altText: libraryMedia.altText || null,
         };
@@ -325,6 +323,7 @@ export function usePostEditor(options: UsePostEditorOptions = {}) {
     stagedMediaFiles: mainPostStagedMedia
       .map((m) => m.file!)
       .filter(Boolean) as File[],
+    stagedMediaItems: mainPostStagedMedia,
     stagedMediaPreviews,
     postType,
     isGlobalUploading,

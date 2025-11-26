@@ -3,26 +3,37 @@
 "use client";
 
 import { useCallback, useState, useMemo, useEffect } from "react";
-import { Upload, X, Loader2, Plus, FolderOpen, Video } from "lucide-react";
+import {
+  Upload,
+  X,
+  Loader2,
+  Plus,
+  FolderOpen,
+  Video,
+  CheckCircle,
+  File as FileIcon,
+} from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useQuery } from "@tanstack/react-query";
 import { getConnections } from "@/lib/api/integrations";
 import MediaRoomModal from "../modals/media-room-modal";
 import type { MediaItem as LibraryMediaItem } from "@/lib/api/media";
 import { Button } from "@/components/ui/button";
+import { MediaItem } from "@/lib/store/editorial-store";
 
 interface MediaUploadProps {
+  items?: MediaItem[];
   mediaFiles: File[];
   mediaPreviews: string[];
   isUploading: boolean;
   onMediaChange: (files: File[], previews: string[]) => void;
-  // CHANGED: Allow passing index to remove mixed types
   onRemoveMedia: (fileToRemove: File | null, indexToRemove?: number) => void;
   onLibraryMediaSelect?: (mediaItem: LibraryMediaItem) => void;
   selectedLibraryMediaIds?: Set<string>;
 }
 
 export default function MediaUpload({
+  items = [],
   mediaFiles,
   mediaPreviews,
   isUploading,
@@ -46,7 +57,6 @@ export default function MediaUpload({
 
   const MAX_FILES = 10;
 
-  // Cleanup object URLs on unmount
   useEffect(() => {
     return () => {
       mediaPreviews.forEach((preview) => {
@@ -65,7 +75,6 @@ export default function MediaUpload({
 
       if (validFiles.length === 0) return;
 
-      // Use total count (files + library items)
       const currentTotalCount = mediaPreviews.length;
       const remainingSlots = MAX_FILES - currentTotalCount;
       if (remainingSlots <= 0) return;
@@ -92,7 +101,6 @@ export default function MediaUpload({
     (e: React.DragEvent) => {
       e.preventDefault();
       setIsDraggingFiles(false);
-
       const droppedFiles = Array.from(e.dataTransfer.files);
       if (droppedFiles.length > 0) {
         handleFiles(droppedFiles);
@@ -110,41 +118,31 @@ export default function MediaUpload({
     [handleFiles]
   );
 
-  // FIX: Index-based removal
   const handleRemove = useCallback(
     (indexToRemove: number) => {
       const fileToRemove = mediaFiles[indexToRemove] || null;
-
       const previewToRemove = mediaPreviews[indexToRemove];
       if (previewToRemove && previewToRemove.startsWith("blob:")) {
         URL.revokeObjectURL(previewToRemove);
       }
-
       onRemoveMedia(fileToRemove, indexToRemove);
     },
     [mediaFiles, mediaPreviews, onRemoveMedia]
   );
 
-  // FIX: Diffing logic to prevent overwrite
   const handleLibraryConfirm = useCallback(
     (selectedMedia: LibraryMediaItem[]) => {
       const selectedIdsSet = new Set(selectedMedia.map((m) => m.id));
-
-      // 1. Add items that are selected in modal but NOT in editorial
       selectedMedia.forEach((media) => {
         if (!selectedLibraryMediaIds.has(media.id)) {
           onLibraryMediaSelect?.(media);
         }
       });
-
-      // 2. Remove items that are in editorial but NOT selected in modal anymore
-      // We pass a dummy object with just ID to trigger the toggle-off logic in usePostEditor
       selectedLibraryMediaIds.forEach((existingId) => {
         if (!selectedIdsSet.has(existingId)) {
           onLibraryMediaSelect?.({ id: existingId } as LibraryMediaItem);
         }
       });
-
       setIsMediaRoomOpen(false);
     },
     [onLibraryMediaSelect, selectedLibraryMediaIds]
@@ -153,17 +151,29 @@ export default function MediaUpload({
   const hasMedia = mediaPreviews.length > 0;
   const isFull = mediaPreviews.length >= MAX_FILES;
 
-  if (hasMedia) {
-    return (
-      <>
-        <div className="space-y-3">
+  const uploadingItems = items.filter((i) => i.isUploading);
+  const showUploadStatus = uploadingItems.length > 0;
+
+  const formatSize = (bytes: number) => {
+    if (bytes === 0) return "0 B";
+    const k = 1024;
+    const sizes = ["B", "KB", "MB", "GB"];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
+  };
+
+  return (
+    <>
+      {hasMedia ? (
+        <div className="space-y-4">
           <div className="grid grid-cols-5 gap-2">
             {mediaPreviews.map((preview, index) => {
-              // Check type safe-ishly
               const isVideo =
                 mediaFiles[index]?.type.startsWith("video/") ||
                 preview.includes(".mp4") ||
                 preview.includes(".mov");
+              const itemState = items[index];
+              const isItemUploading = itemState?.isUploading;
 
               return (
                 <div
@@ -184,7 +194,7 @@ export default function MediaUpload({
                     />
                   )}
 
-                  {isUploading && (
+                  {isItemUploading && (
                     <div className="absolute inset-0 bg-black/50 flex items-center justify-center z-10">
                       <Loader2 className="w-4 h-4 text-white animate-spin" />
                     </div>
@@ -196,8 +206,8 @@ export default function MediaUpload({
                       e.stopPropagation();
                       handleRemove(index);
                     }}
-                    disabled={isUploading}
-                    className="absolute top-1 right-1 p-0.5 bg-black/60 hover:bg-red-600 text-white rounded-full transition-colors z-20 opacity-0 group-hover:opacity-100 cursor-pointer"
+                    disabled={isItemUploading}
+                    className="absolute top-1 right-1 p-0.5 bg-black/60 hover:bg-red-600 text-white rounded-full transition-colors z-20 opacity-0 group-hover:opacity-100 cursor-pointer disabled:opacity-0"
                   >
                     <X className="w-3 h-3" />
                   </button>
@@ -230,6 +240,33 @@ export default function MediaUpload({
             )}
           </div>
 
+          {showUploadStatus && (
+            <div className="border rounded-md border-border bg-surface overflow-hidden">
+              <div className="bg-muted/30 px-3 py-1.5 border-b border-border text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+                Uploading {uploadingItems.length} item
+                {uploadingItems.length !== 1 ? "s" : ""}...
+              </div>
+              <div className="max-h-32 overflow-y-auto">
+                {uploadingItems.map((item) => (
+                  <div
+                    key={item.uid}
+                    className="flex items-center gap-3 px-3 py-2 border-b border-border last:border-0 text-sm"
+                  >
+                    <Loader2 className="w-4 h-4 animate-spin text-brand-primary shrink-0" />
+                    <div className="flex-1 min-w-0">
+                      <p className="truncate font-medium">
+                        {item.file?.name || "Uploading..."}
+                      </p>
+                    </div>
+                    <span className="text-xs text-muted-foreground tabular-nums shrink-0">
+                      {item.file ? formatSize(item.file.size) : ""}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
           <div className="flex items-center justify-center pt-2">
             <Button
               type="button"
@@ -243,69 +280,56 @@ export default function MediaUpload({
             </Button>
           </div>
         </div>
+      ) : (
+        <div
+          onDragOver={handleFileDragOver}
+          onDragLeave={handleFileDragLeave}
+          onDrop={handleFileDrop}
+          className={cn(
+            "border-2 border-dashed rounded-lg transition-colors p-8",
+            isDraggingFiles
+              ? "border-[--foreground] bg-[--surface-hover]"
+              : "border-[--border] hover:border-[--foreground]/50"
+          )}
+        >
+          <label className="block cursor-pointer">
+            <input
+              type="file"
+              accept="image/*,video/*"
+              multiple
+              onChange={handleFileSelect}
+              className="hidden"
+            />
+            <div className="text-center">
+              <Upload className="w-10 h-10 mx-auto mb-4 text-[--muted]" />
+              <p className="font-serif text-base text-[--foreground] mb-2">
+                Drag & drop or click to upload
+              </p>
+              <p className="text-sm text-[--muted] mb-4">
+                Up to {MAX_FILES} items
+              </p>
+            </div>
+          </label>
 
-        <MediaRoomModal
-          isOpen={isMediaRoomOpen}
-          onClose={() => setIsMediaRoomOpen(false)}
-          onConfirmSelection={handleLibraryConfirm}
-          integrationId={integrationId}
-          preSelectedIds={selectedLibraryMediaIds}
-        />
-      </>
-    );
-  }
-
-  // Empty state
-  return (
-    <>
-      <div
-        onDragOver={handleFileDragOver}
-        onDragLeave={handleFileDragLeave}
-        onDrop={handleFileDrop}
-        className={cn(
-          "border-2 border-dashed rounded-lg transition-colors p-8",
-          isDraggingFiles
-            ? "border-[--foreground] bg-[--surface-hover]"
-            : "border-[--border] hover:border-[--foreground]/50"
-        )}
-      >
-        <label className="block cursor-pointer">
-          <input
-            type="file"
-            accept="image/*,video/*"
-            multiple
-            onChange={handleFileSelect}
-            className="hidden"
-          />
-          <div className="text-center">
-            <Upload className="w-10 h-10 mx-auto mb-4 text-[--muted]" />
-            <p className="font-serif text-base text-[--foreground] mb-2">
-              Drag & drop or click to upload
-            </p>
-            <p className="text-sm text-[--muted] mb-4">
-              Up to {MAX_FILES} items
-            </p>
+          <div className="flex items-center gap-3 my-4">
+            <div className="flex-1 border-t border-border" />
+            <span className="text-xs text-muted-foreground uppercase">Or</span>
+            <div className="flex-1 border-t border-border" />
           </div>
-        </label>
 
-        <div className="flex items-center gap-3 my-4">
-          <div className="flex-1 border-t border-border" />
-          <span className="text-xs text-muted-foreground uppercase">Or</span>
-          <div className="flex-1 border-t border-border" />
+          <div className="flex justify-center">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setIsMediaRoomOpen(true)}
+              className="gap-2 border-brand-primary text-brand-primary hover:bg-brand-primary hover:text-white"
+            >
+              <FolderOpen className="h-4 w-4" />
+              Browse Media Library
+            </Button>
+          </div>
         </div>
-
-        <div className="flex justify-center">
-          <Button
-            type="button"
-            variant="outline"
-            onClick={() => setIsMediaRoomOpen(true)}
-            className="gap-2 border-brand-primary text-brand-primary hover:bg-brand-primary hover:text-white"
-          >
-            <FolderOpen className="h-4 w-4" />
-            Browse Media Library
-          </Button>
-        </div>
-      </div>
+      )}
 
       <MediaRoomModal
         isOpen={isMediaRoomOpen}

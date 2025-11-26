@@ -37,7 +37,6 @@ export default function EditorialCore({
   isSavingClipping = false,
   onOpenInEditorial,
 }: EditorialCoreProps) {
-  // ... (Store selectors remain unchanged)
   const [user, setUser] = useState<any>(null);
   const [confirmationStatus, setConfirmationStatus] = useState<
     "sent" | "scheduled" | null
@@ -94,8 +93,10 @@ export default function EditorialCore({
   const instagramShareToFeed = useEditorialStore(
     (state) => state.instagramShareToFeed
   );
+
   const {
     stagedMediaFiles,
+    stagedMediaItems: editorStagedMediaItems,
     stagedMediaPreviews,
     postType,
     isGlobalUploading,
@@ -122,8 +123,6 @@ export default function EditorialCore({
     };
     fetchUser();
   }, []);
-
-  // ... (handleCloseConfirmation, togglePlatform, handleAccountSelect, handlePublish remain unchanged)
 
   const handleCloseConfirmation = () => {
     setConfirmationStatus(null);
@@ -173,7 +172,6 @@ export default function EditorialCore({
   };
 
   const handlePublish = async () => {
-    // ... (same as existing)
     setState({
       mainCaption: localMainCaption,
       platformCaptions: localPlatformCaptions,
@@ -192,7 +190,6 @@ export default function EditorialCore({
       return showError("Please wait for media to finish uploading.");
     }
 
-    // Ensure all selected media for publishing have been uploaded
     for (const [platformId, selection] of Object.entries(
       platformMediaSelections
     )) {
@@ -336,7 +333,6 @@ export default function EditorialCore({
             }
             payload.settings!.shareToFeed = instagramShareToFeed;
 
-            // Add collaborators as array of usernames
             if (instagramCollaborators.length > 0) {
               payload.settings!.collaborators = instagramCollaborators.map(
                 (c) => c.username
@@ -444,13 +440,13 @@ export default function EditorialCore({
               }}
               mediaUploadSlot={
                 <MediaUpload
+                  items={editorStagedMediaItems}
                   mediaFiles={stagedMediaFiles}
                   mediaPreviews={stagedMediaPreviews}
                   isUploading={isGlobalUploading}
                   onMediaChange={(files, previews) =>
                     handleMediaChange(files, previews, null)
                   }
-                  // FIX: Pass index and null for file if needed to support library items
                   onRemoveMedia={(file, index) =>
                     handleRemoveMedia(file, null, index)
                   }
