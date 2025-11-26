@@ -30,11 +30,7 @@ export async function GET(
   }
 
   try {
-    const searchParams = request.nextUrl.searchParams;
-    const queryString = searchParams.toString();
-    const backendUrl = `${BACKEND_URL}/integrations/${platform}/connect${
-      queryString ? `?${queryString}` : ""
-    }`;
+    const backendUrl = `${BACKEND_URL}/integrations/${platform}/connect`;
 
     const response = await fetch(backendUrl, {
       headers: {
