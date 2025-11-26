@@ -1,7 +1,7 @@
 // components/post-editor/previews/instagram/instagram-toolbar.tsx
 
 import { cn } from "@/lib/utils";
-import { Square, Grid3X3, Crop, UserPlus, Loader2 } from "lucide-react";
+import { Square, Grid3X3, Crop, UserPlus, Loader2, FileText } from "lucide-react";
 
 interface InstagramToolbarProps {
   viewMode: "post" | "grid";
@@ -14,6 +14,8 @@ interface InstagramToolbarProps {
   onToggleTagging: () => void;
   displayMediaSrc?: string;
   isStory: boolean;
+  canEditAltText?: boolean;
+  onAltTextClick?: () => void;
 }
 
 export function InstagramToolbar({
@@ -27,6 +29,8 @@ export function InstagramToolbar({
   onToggleTagging,
   displayMediaSrc,
   isStory,
+  canEditAltText = false,
+  onAltTextClick,
 }: InstagramToolbarProps) {
   if (!displayMediaSrc) {
     return (
@@ -71,7 +75,7 @@ export function InstagramToolbar({
       )}
 
       {/* Divider */}
-      {!isStory && (canCrop || isTaggingSupported) && (
+      {!isStory && (canCrop || isTaggingSupported || canEditAltText) && (
         <div className="h-4 w-px bg-border" />
       )}
 
@@ -118,6 +122,24 @@ export function InstagramToolbar({
         >
           <UserPlus className="h-3.5 w-3.5" />
           {isTaggingMode ? "Done" : "Tag"}
+        </button>
+      )}
+
+      {/* Alt Text Button */}
+      {canEditAltText && onAltTextClick && (
+        <button
+          onClick={onAltTextClick}
+          title="Edit Alt Text"
+          disabled={viewMode === "grid"}
+          className={cn(
+            "flex items-center gap-1.5 text-xs transition-colors",
+            viewMode === "grid"
+              ? "text-muted-foreground/40 cursor-not-allowed"
+              : "text-muted-foreground hover:text-foreground"
+          )}
+        >
+          <FileText className="h-3.5 w-3.5" />
+          Alt
         </button>
       )}
     </div>

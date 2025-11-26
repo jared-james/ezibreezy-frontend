@@ -5,6 +5,7 @@
 import { memo, useState, useRef, useEffect } from "react";
 import { UserTagDto } from "@/lib/api/publishing";
 import { ImageCropperModal } from "../../modals/image-cropper-modal";
+import { AltTextModal } from "../../modals/alt-text-modal";
 import type { PixelCrop } from "react-image-crop";
 import {
   createCroppedPreviewUrl,
@@ -77,6 +78,8 @@ function InstagramPreview({
   // Local State
   const [isTaggingMode, setIsTaggingMode] = useState(false);
   const [isCropperOpen, setIsCropperOpen] = useState(false);
+  const [isAltTextModalOpen, setIsAltTextModalOpen] = useState(false);
+  const [altTextInitialIndex, setAltTextInitialIndex] = useState(0);
   const [viewMode, setViewMode] = useState<"post" | "grid">("post");
   const [isFetchingOriginal, setIsFetchingOriginal] = useState(false);
   const [videoDuration, setVideoDuration] = useState(0);
@@ -115,6 +118,15 @@ function InstagramPreview({
   const isTaggingSupported = isCarousel
     ? postType === "post" && mediaItems.some((item) => item.type === "image")
     : !!displayMediaSrc && postType === "post" && mediaType !== "video";
+
+  // Alt text editing: Filter to only uploaded images
+  const editableMediaItems = isCarousel
+    ? mediaItems.filter((item) => item.type === "image" && !!item.id)
+    : singleMediaItem?.type === "image" && singleMediaItem?.id
+    ? [singleMediaItem]
+    : [];
+
+  const canEditAltText = editableMediaItems.length > 0;
 
   // Effects
   useEffect(() => {
@@ -285,6 +297,21 @@ function InstagramPreview({
     }
   };
 
+  const handleAltTextClick = () => {
+    // Set initial index based on current view
+    if (isCarousel) {
+      // Find the index of current carousel item in editable items
+      const currentMedia = mediaItems[currentCarouselIndex];
+      const editableIndex = editableMediaItems.findIndex(
+        (item) => item.uid === currentMedia.uid
+      );
+      setAltTextInitialIndex(editableIndex >= 0 ? editableIndex : 0);
+    } else {
+      setAltTextInitialIndex(0);
+    }
+    setIsAltTextModalOpen(true);
+  };
+
   return (
     <div className="w-full max-w-sm mx-auto space-y-4 transition-all duration-300">
       <div className="bg-[--surface] border border-[--border] shadow-lg">
@@ -380,7 +407,7 @@ function InstagramPreview({
           />
         )}
 
-        {/* Toolbar (Crop, Tag, View Switch) */}
+        {/* Toolbar (Crop, Tag, Alt, View Switch) */}
         <div className="px-3 py-2 border-t border-border">
           <InstagramToolbar
             viewMode={viewMode}
@@ -393,6 +420,8 @@ function InstagramPreview({
             onToggleTagging={() => setIsTaggingMode(!isTaggingMode)}
             displayMediaSrc={displayMediaSrc}
             isStory={postType === "story"}
+            canEditAltText={canEditAltText}
+            onAltTextClick={handleAltTextClick}
           />
         </div>
 
@@ -440,6 +469,16 @@ function InstagramPreview({
           initialCrop={activeMediaForCrop?.crops?.instagram?.croppedAreaPixels}
           initialAspectRatio={activeMediaForCrop?.crops?.instagram?.aspectRatio}
           onCropComplete={handleCropComplete}
+        />
+      )}
+
+      {/* Alt Text Modal */}
+      {editableMediaItems.length > 0 && (
+        <AltTextModal
+          open={isAltTextModalOpen}
+          onClose={() => setIsAltTextModalOpen(false)}
+          mediaItems={editableMediaItems}
+          initialMediaIndex={altTextInitialIndex}
         />
       )}
     </div>

@@ -21,6 +21,7 @@ export interface MediaItem {
   type: "image" | "video";
   crops?: PlatformCrops;
   croppedPreviews?: Partial<Record<SocialPlatform, string>>;
+  altText?: string | null;
 }
 
 export interface LocationState {

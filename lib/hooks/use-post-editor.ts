@@ -284,6 +284,7 @@ export function usePostEditor(options: UsePostEditorOptions = {}) {
           isUploading: false,
           threadIndex: null,
           type: libraryMedia.type.startsWith("video/") ? "video" : "image",
+          altText: libraryMedia.altText || null,
         };
 
         const updatedItems = [...currentItems, newMediaItem];
