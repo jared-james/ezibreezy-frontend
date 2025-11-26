@@ -18,26 +18,26 @@ export function PostTypeSelector({
         type="button"
         onClick={() => onTypeChange("post")}
         className={cn(
-          "flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-medium transition-colors",
+          "flex items-center gap-2 rounded-full border px-4 py-2 text-sm font-medium transition-colors",
           currentType === "post"
             ? "border-brand-primary bg-brand-primary/10 text-brand-primary"
             : "border-border bg-transparent text-muted-foreground hover:bg-surface-hover"
         )}
       >
-        <Book className="h-3 w-3" />
+        <Book className="h-4 w-4" />
         Post
       </button>
       <button
         type="button"
         onClick={() => onTypeChange("story")}
         className={cn(
-          "flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-medium transition-colors",
+          "flex items-center gap-2 rounded-full border px-4 py-2 text-sm font-medium transition-colors",
           currentType === "story"
             ? "border-brand-primary bg-brand-primary/10 text-brand-primary"
             : "border-border bg-transparent text-muted-foreground hover:bg-surface-hover"
         )}
       >
-        <Clapperboard className="h-3 w-3" />
+        <Clapperboard className="h-4 w-4" />
         Story
       </button>
     </div>

@@ -173,7 +173,10 @@ export function PlatformCaptionSection({
           {platform.name} Caption
         </span>
         {platform.accounts.length > 0 && (
-          <span className="ml-auto flex items-center gap-1.5">
+          <span className="ml-auto flex items-center gap-2">
+            <span className="text-[0.65rem] text-muted-foreground uppercase tracking-wide">
+              Connected Accounts
+            </span>
             {platform.accounts.map((account) => {
               const isSelected = selectedAccounts[platformId]?.includes(
                 account.id
@@ -185,7 +188,7 @@ export function PlatformCaptionSection({
                   type="button"
                   onClick={() => onAccountSelect(platformId, account.id)}
                   className={cn(
-                    "h-6 w-6 rounded-full border-2 transition-all overflow-hidden",
+                    "h-10 w-10 rounded-full border-2 transition-all overflow-hidden",
                     isSelected
                       ? "border-primary"
                       : "border-border hover:border-primary/50"
@@ -238,13 +241,7 @@ export function PlatformCaptionSection({
 
         <CaptionTextarea
           id={`caption-${platformId}`}
-          value={
-            isStory && platformId === "instagram"
-              ? currentCaption
-              : isStory
-              ? ""
-              : currentCaption
-          }
+          value={isStory ? "" : currentCaption}
           onChange={(event) =>
             setLocalPlatformCaptions((prev) => ({
               ...prev,
@@ -252,15 +249,13 @@ export function PlatformCaptionSection({
             }))
           }
           placeholder={
-            isStory && platformId === "instagram"
-              ? "Enter story notification text..."
-              : isStory
-              ? "Captions are not used for this story type."
+            isStory
+              ? "Captions are not used for stories."
               : `${platform.name} specific caption...`
           }
           platformId={platformId}
           onHashtagClick={openHashtagModal}
-          disabled={isStory && platformId !== "instagram"}
+          disabled={isStory}
           maxLength={characterLimit}
           warningLimit={warningLimit}
         />
