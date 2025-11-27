@@ -45,13 +45,6 @@ interface PlatformCaptionSectionProps {
   removeThreadMessage: (index: number, platformId: string) => void;
   addThreadMessage: (platformId: string) => void;
   openThreadHashtagModal: (threadIndex: number) => void;
-  handleThreadMediaChange?: (
-    files: File[],
-    previews: string[],
-    threadIndex: number
-  ) => void;
-  handleRemoveThreadMedia?: (fileToRemove: File, threadIndex: number) => void;
-  isGlobalUploading?: boolean;
   localFirstComment: string;
   setLocalFirstComment: (comment: string) => void;
   showFirstComment: boolean;
@@ -94,9 +87,6 @@ export function PlatformCaptionSection({
   removeThreadMessage,
   addThreadMessage,
   openThreadHashtagModal,
-  handleThreadMediaChange,
-  handleRemoveThreadMedia,
-  isGlobalUploading = false,
   localFirstComment,
   setLocalFirstComment,
   showFirstComment,
@@ -295,9 +285,6 @@ export function PlatformCaptionSection({
             removeThreadMessage={removeThreadMessage}
             addThreadMessage={addThreadMessage}
             openThreadHashtagModal={openThreadHashtagModal}
-            handleThreadMediaChange={handleThreadMediaChange}
-            handleRemoveThreadMedia={handleRemoveThreadMedia}
-            isGlobalUploading={isGlobalUploading}
           />
         )}
 

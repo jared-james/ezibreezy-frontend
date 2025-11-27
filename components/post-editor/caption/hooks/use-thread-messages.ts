@@ -2,7 +2,11 @@
 
 import { useCallback, useMemo } from "react";
 import { useEditorialStore } from "@/lib/store/editorial-store";
-import { ThreadMessage, ThreadMessageAugmented } from "@/lib/types/editorial";
+import {
+  ThreadMessage,
+  ThreadMessageAugmented,
+  DraftMediaItem,
+} from "@/lib/types/editorial";
 
 export function useThreadMessages(
   localThreadMessages: ThreadMessage[],
@@ -18,10 +22,14 @@ export function useThreadMessages(
 
   const augmentThreadMessages = useCallback(
     (messages: ThreadMessage[]): ThreadMessageAugmented[] => {
-      return messages.map((msg, index) => {
-        const threadMedia = stagedMediaItems.filter(
-          (m) => m.threadIndex === index
-        );
+      return messages.map((msg) => {
+        // Find media based on UIDs stored in the message
+        const threadMedia = (msg.mediaIds || [])
+          .map((uid) => stagedMediaItems.find((item) => item.uid === uid))
+          .filter(Boolean) as any[]; // Cast as any to match DraftMediaItem | MediaItem overlap if needed, usually MediaItem
+
+        const hasVideo = threadMedia.some((m) => m.type === "video");
+
         return {
           ...msg,
           mediaPreviews: threadMedia
@@ -29,6 +37,8 @@ export function useThreadMessages(
             .filter(Boolean) as string[],
           mediaFiles: threadMedia.map((m) => m.file!).filter(Boolean) as File[],
           isUploading: threadMedia.some((m) => m.isUploading),
+          mediaType:
+            threadMedia.length > 0 ? (hasVideo ? "video" : "image") : "text",
         };
       });
     },
@@ -63,7 +73,10 @@ export function useThreadMessages(
     (platformId: string) => {
       if (currentThreadMessages.length < 20) {
         const newMessages = [
-          ...currentThreadMessages,
+          ...currentThreadMessages.map((m) => ({
+            content: m.content,
+            mediaIds: m.mediaIds,
+          })), // Strip augmented data
           { content: "", mediaIds: [] },
         ];
 
@@ -90,7 +103,10 @@ export function useThreadMessages(
 
   const removeThreadMessage = useCallback(
     (index: number, platformId: string) => {
-      const newMessages = currentThreadMessages.filter((_, i) => i !== index);
+      // Strip augmented data when saving back to state
+      const newMessages = currentThreadMessages
+        .filter((_, i) => i !== index)
+        .map((m) => ({ content: m.content, mediaIds: m.mediaIds }));
 
       if (isEditingPlatformThread) {
         setLocalPlatformThreadMessages({
@@ -114,9 +130,11 @@ export function useThreadMessages(
 
   const updateThreadMessageContent = useCallback(
     (index: number, content: string, platformId: string) => {
-      const newMessages = currentThreadMessages.map((msg, i) =>
-        i === index ? { ...msg, content } : msg
-      );
+      const newMessages = currentThreadMessages.map((msg, i) => {
+        // Strip augmented data, update content
+        const baseMsg = { content: msg.content, mediaIds: msg.mediaIds };
+        return i === index ? { ...baseMsg, content } : baseMsg;
+      });
 
       if (isEditingPlatformThread) {
         setLocalPlatformThreadMessages({

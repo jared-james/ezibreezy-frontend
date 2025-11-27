@@ -5,8 +5,11 @@
 import { create } from "zustand";
 import type { SelectedAccounts, ThreadMessage } from "@/lib/types/editorial";
 import { type EditorialDraft } from "@/lib/types/editorial";
-import { FullPostDetails, UserTagDto, ProductTagDto } from "@/lib/api/publishing";
-import { format } from "date-fns";
+import {
+  FullPostDetails,
+  UserTagDto,
+  ProductTagDto,
+} from "@/lib/api/publishing";
 import type { PlatformCrops, SocialPlatform } from "@/lib/utils/crop-utils";
 import { PLATFORM_RULES } from "@/lib/utils/media-validation";
 import { InstagramUserSearchResult } from "@/lib/api/integrations";
@@ -18,7 +21,6 @@ export interface MediaItem {
   originalUrlForCropping?: string;
   id: string | null;
   isUploading: boolean;
-  threadIndex: number | null;
   type: "image" | "video";
   crops?: PlatformCrops;
   croppedPreviews?: Partial<Record<SocialPlatform, string>>;
@@ -57,8 +59,8 @@ export interface EditorialState {
   sourceDraftId: string | null;
   postType: PlatformPostType;
   facebookPostType: PlatformPostType;
-  userTags: Record<string, UserTagDto[]>; // Changed: now keyed by mediaId
-  productTags: Record<string, ProductTagDto[]>; // Keyed by mediaId
+  userTags: Record<string, UserTagDto[]>;
+  productTags: Record<string, ProductTagDto[]>;
   activeCaptionFilter: string;
   instagramCoverUrl: string | null;
   instagramThumbOffset: number | null;
@@ -80,6 +82,11 @@ export interface EditorialActions {
   ) => void;
   setPlatformMediaSelection: (platformId: string, mediaUids: string[]) => void;
   togglePlatformMediaSelection: (platformId: string, mediaUid: string) => void;
+  toggleThreadMediaSelection: (
+    platformId: string,
+    threadIndex: number,
+    mediaUid: string
+  ) => void;
   setStagedMediaItems: (items: MediaItem[]) => void;
 }
 
@@ -110,8 +117,8 @@ export const initialState: EditorialState = {
   sourceDraftId: null,
   postType: "post",
   facebookPostType: "post",
-  userTags: {}, // Changed: now an empty object
-  productTags: {}, // Empty object keyed by mediaId
+  userTags: {},
+  productTags: {},
   activeCaptionFilter: "all",
   instagramCoverUrl: null,
   instagramThumbOffset: null,
@@ -205,6 +212,94 @@ export const useEditorialStore = create<EditorialState & EditorialActions>(
       });
     },
 
+    toggleThreadMediaSelection: (platformId, threadIndex, mediaUid) => {
+      const state = get();
+      const rules = PLATFORM_RULES[platformId as keyof typeof PLATFORM_RULES];
+      if (!rules) return;
+
+      // Ensure we are working with platform-specific messages
+      const currentMessages = state.platformThreadMessages[platformId] || [];
+
+      // Safety check: ensure thread index exists
+      if (!currentMessages[threadIndex]) return;
+
+      const message = currentMessages[threadIndex];
+      const currentMediaIds = message.mediaIds || [];
+      const itemToToggle = state.stagedMediaItems.find(
+        (item) => item.uid === mediaUid
+      );
+      if (!itemToToggle) return;
+
+      let newMediaIds = [...currentMediaIds];
+      const isCurrentlySelected = newMediaIds.includes(mediaUid);
+
+      if (isCurrentlySelected) {
+        newMediaIds = newMediaIds.filter((uid) => uid !== mediaUid);
+      } else {
+        const currentSelectionItems = newMediaIds
+          .map((uid) => state.stagedMediaItems.find((item) => item.uid === uid))
+          .filter(Boolean) as MediaItem[];
+
+        // Apply platform rules (reuse similar logic to main post)
+        if (rules.allowMixedMedia) {
+          const totalLimit = rules.maxImages;
+          if (currentSelectionItems.length < totalLimit) {
+            // Check video/image specific limits if needed, usually threads are 1 video OR 4 images for X
+            // But X allows mixed media in some contexts, keeping it simple:
+            const videoCount = currentSelectionItems.filter(
+              (item) => item.type === "video"
+            ).length;
+            const imageCount = currentSelectionItems.filter(
+              (item) => item.type === "image"
+            ).length;
+
+            if (itemToToggle.type === "video" && videoCount < rules.maxVideos) {
+              newMediaIds.push(mediaUid);
+            } else if (
+              itemToToggle.type === "image" &&
+              imageCount < rules.maxImages
+            ) {
+              newMediaIds.push(mediaUid);
+            }
+          }
+        } else {
+          // Strict separation (Threads/X typical behavior)
+          if (itemToToggle.type === "video") {
+            const hasImages = currentSelectionItems.some(
+              (item) => item.type === "image"
+            );
+            if (hasImages) {
+              newMediaIds = [mediaUid]; // Replace images with video
+            } else if (currentSelectionItems.length < rules.maxVideos) {
+              newMediaIds.push(mediaUid);
+            }
+          } else if (itemToToggle.type === "image") {
+            const hasVideo = currentSelectionItems.some(
+              (item) => item.type === "video"
+            );
+            if (hasVideo) {
+              newMediaIds = [mediaUid]; // Replace video with image
+            } else if (currentSelectionItems.length < rules.maxImages) {
+              newMediaIds.push(mediaUid);
+            }
+          }
+        }
+      }
+
+      const newMessages = [...currentMessages];
+      newMessages[threadIndex] = {
+        ...message,
+        mediaIds: newMediaIds,
+      };
+
+      set({
+        platformThreadMessages: {
+          ...state.platformThreadMessages,
+          [platformId]: newMessages,
+        },
+      });
+    },
+
     setPlatformMediaSelection: (platformId, mediaUids) => {
       set((state) => ({
         platformMediaSelections: {
@@ -227,35 +322,55 @@ export const useEditorialStore = create<EditorialState & EditorialActions>(
     initializeFromFullPost: (fullPost) => {
       const newMediaItems: MediaItem[] = [];
       const mediaMap = fullPost.allMedia || {};
-      const allMediaIds = [
-        ...fullPost.mediaIds,
-        ...fullPost.threadMessages.flatMap((m) => m.mediaIds),
-      ];
+      const idToUidMap = new Map<string, string>();
+
+      // 1. Process all media IDs referenced in the post
+      const allMediaIds = Array.from(
+        new Set([
+          ...fullPost.mediaIds,
+          ...fullPost.threadMessages.flatMap((m) => m.mediaIds),
+        ])
+      );
 
       allMediaIds.forEach((mediaId) => {
         const mediaRecord = mediaMap[mediaId];
         if (mediaRecord) {
           const uid = crypto.randomUUID();
+          idToUidMap.set(mediaId, uid);
+
           newMediaItems.push({
             uid,
             id: mediaId,
             file: null,
             preview: mediaRecord.url,
             isUploading: false,
-            threadIndex: fullPost.mediaIds.includes(mediaId) ? null : 0,
             type: mediaRecord.type.startsWith("video") ? "video" : "image",
           });
         }
       });
 
+      // 2. Setup main post selections
       const selectedAccounts: SelectedAccounts = {
         [fullPost.integration.platform]: [fullPost.integrationId],
       };
 
       const platformMediaSelection = {
-        [fullPost.integration.platform]: newMediaItems
-          .filter((m) => m.threadIndex === null)
-          .map((m) => m.uid),
+        [fullPost.integration.platform]: fullPost.mediaIds
+          .map((id) => idToUidMap.get(id))
+          .filter(Boolean) as string[],
+      };
+
+      // 3. Setup thread messages with UIDs
+      // We assume fullPost.threadMessages are for this platform
+      const threadMessages = fullPost.threadMessages.map((msg) => ({
+        content: msg.content,
+        mediaIds: msg.mediaIds
+          .map((id) => idToUidMap.get(id))
+          .filter(Boolean) as string[],
+      }));
+
+      const platformThreadMessages = {
+        [fullPost.integration.platform]: threadMessages,
       };
 
       set({
@@ -263,6 +378,8 @@ export const useEditorialStore = create<EditorialState & EditorialActions>(
         platformMediaSelections: platformMediaSelection,
         mainCaption: fullPost.settings?.canonicalContent || fullPost.content,
         selectedAccounts,
+        threadMessages, // Set as global default too
+        platformThreadMessages,
         isInitialized: true,
       });
     },

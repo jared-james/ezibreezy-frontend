@@ -28,12 +28,6 @@ interface CaptionEditorProps {
   mediaUploadSlot?: React.ReactNode;
   threadMessages?: ThreadMessageAugmented[];
   onThreadMessagesChange?: (messages: ThreadMessage[]) => void;
-  handleThreadMediaChange?: (
-    files: File[],
-    previews: string[],
-    threadIndex: number
-  ) => void;
-  handleRemoveThreadMedia?: (fileToRemove: File, threadIndex: number) => void;
   isGlobalUploading?: boolean;
   onLocalCaptionsChange?: (
     mainCaption: string,
@@ -49,8 +43,6 @@ export default function CaptionEditor({
   mediaUploadSlot,
   threadMessages = [],
   onThreadMessagesChange,
-  handleThreadMediaChange,
-  handleRemoveThreadMedia,
   isGlobalUploading = false,
   onLocalCaptionsChange,
 }: CaptionEditorProps) {
@@ -186,9 +178,6 @@ export default function CaptionEditor({
               removeThreadMessage={threadMessagesHook.removeThreadMessage}
               addThreadMessage={threadMessagesHook.addThreadMessage}
               openThreadHashtagModal={hashtagModal.openThreadHashtagModal}
-              handleThreadMediaChange={handleThreadMediaChange}
-              handleRemoveThreadMedia={handleRemoveThreadMedia}
-              isGlobalUploading={isGlobalUploading}
               localFirstComment={captionState.localFirstComment}
               setLocalFirstComment={captionState.setLocalFirstComment}
               showFirstComment={captionState.showFirstComment}

@@ -235,10 +235,17 @@ export default function EditorialCore({
 
     const processThreadMessages = (messages: typeof storeThreadMessages) =>
       messages
-        .map((msg) => ({
-          content: msg.content.trim(),
-          mediaIds: msg.mediaIds?.filter(Boolean) || undefined,
-        }))
+        .map((msg) => {
+          // Map stored UIDs to actual backend IDs
+          const backendMediaIds = (msg.mediaIds || [])
+            .map((uid) => stagedMediaItems.find((item) => item.uid === uid)?.id)
+            .filter(Boolean) as string[];
+
+          return {
+            content: msg.content.trim(),
+            mediaIds: backendMediaIds.length > 0 ? backendMediaIds : undefined,
+          };
+        })
         .filter(
           (msg) =>
             msg.content.length > 0 || (msg.mediaIds && msg.mediaIds.length > 0)
@@ -429,10 +436,6 @@ export default function EditorialCore({
               postType={postType}
               threadMessages={threadMessages}
               onThreadMessagesChange={setThreadMessages}
-              handleThreadMediaChange={(files, previews, index) =>
-                handleMediaChange(files, previews, index)
-              }
-              handleRemoveThreadMedia={handleRemoveMedia}
               isGlobalUploading={isGlobalUploading}
               onLocalCaptionsChange={(mainCaption, platformCaptions) => {
                 setLocalMainCaption(mainCaption);
@@ -445,10 +448,10 @@ export default function EditorialCore({
                   mediaPreviews={stagedMediaPreviews}
                   isUploading={isGlobalUploading}
                   onMediaChange={(files, previews) =>
-                    handleMediaChange(files, previews, null)
+                    handleMediaChange(files, previews)
                   }
                   onRemoveMedia={(file, index) =>
-                    handleRemoveMedia(file, null, index)
+                    handleRemoveMedia(file, index)
                   }
                   onLibraryMediaSelect={handleLibraryMediaSelect}
                   selectedLibraryMediaIds={selectedLibraryMediaIds}

@@ -4,7 +4,7 @@ import { Plus, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ThreadMessageAugmented } from "@/lib/types/editorial";
 import { ThreadTextarea } from "../components/thread-textarea";
-import ThreadPostMediaUpload from "../../media/thread-post-media-upload";
+import ThreadMediaSelector from "../../media/thread-media-selector";
 
 interface ThreadSectionProps {
   currentThreadMessages: ThreadMessageAugmented[];
@@ -17,13 +17,6 @@ interface ThreadSectionProps {
   removeThreadMessage: (index: number, platformId: string) => void;
   addThreadMessage: (platformId: string) => void;
   openThreadHashtagModal: (threadIndex: number) => void;
-  handleThreadMediaChange?: (
-    files: File[],
-    previews: string[],
-    threadIndex: number
-  ) => void;
-  handleRemoveThreadMedia?: (fileToRemove: File, threadIndex: number) => void;
-  isGlobalUploading?: boolean;
 }
 
 export function ThreadSection({
@@ -33,14 +26,12 @@ export function ThreadSection({
   removeThreadMessage,
   addThreadMessage,
   openThreadHashtagModal,
-  handleThreadMediaChange,
-  handleRemoveThreadMedia,
-  isGlobalUploading = false,
 }: ThreadSectionProps) {
   return (
     <>
       {currentThreadMessages.map((message, index) => {
-        const mediaFiles = message.mediaFiles || [];
+        // mediaIds contains the UIDs of selected media
+        const selectedMediaIds = message.mediaIds || [];
 
         return (
           <div
@@ -77,16 +68,11 @@ export function ThreadSection({
                 onHashtagClick={openThreadHashtagModal}
               />
 
-              {handleThreadMediaChange && handleRemoveThreadMedia && (
-                <ThreadPostMediaUpload
-                  threadIndex={index}
-                  mediaFiles={mediaFiles}
-                  mediaPreviews={message.mediaPreviews || []}
-                  isUploading={message.isUploading || false}
-                  onMediaChange={handleThreadMediaChange}
-                  onRemoveMedia={handleRemoveThreadMedia}
-                />
-              )}
+              <ThreadMediaSelector
+                platformId={platformId}
+                threadIndex={index}
+                selectedMediaIds={selectedMediaIds}
+              />
             </div>
           </div>
         );
@@ -100,7 +86,6 @@ export function ThreadSection({
             variant="ghost"
             size="sm"
             className="gap-1 text-xs text-muted-foreground hover:text-foreground"
-            disabled={isGlobalUploading}
           >
             <Plus className="h-3 w-3" />
             Add to thread

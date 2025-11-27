@@ -40,6 +40,9 @@ export function usePostEditor(options: UsePostEditorOptions = {}) {
   const platformThreadMessages = useEditorialStore(
     (state) => state.platformThreadMessages
   );
+  const toggleThreadMediaSelection = useEditorialStore(
+    (state) => state.toggleThreadMediaSelection
+  );
 
   const { data: connections = [] } = useQuery({
     queryKey: ["connections"],
@@ -100,23 +103,20 @@ export function usePostEditor(options: UsePostEditorOptions = {}) {
     },
   });
 
-  const mainPostStagedMedia = useMemo(
-    () => stagedMediaItems.filter((m) => m.threadIndex === null),
-    [stagedMediaItems]
-  );
-
+  // All media is now "main post" media in terms of the global list.
+  // Thread specific selection is handled by reference via UIDs.
   const isGlobalUploading = useMemo(
     () => stagedMediaItems.some((m) => m.isUploading),
     [stagedMediaItems]
   );
 
   const postType: "text" | "image" | "video" = useMemo(() => {
-    if (mainPostStagedMedia.length === 0) return "text";
-    if (mainPostStagedMedia.some((m) => m.type === "video")) {
+    if (stagedMediaItems.length === 0) return "text";
+    if (stagedMediaItems.some((m) => m.type === "video")) {
       return "video";
     }
     return "image";
-  }, [mainPostStagedMedia]);
+  }, [stagedMediaItems]);
 
   const availablePlatforms = useMemo((): Platform[] => {
     if (!connections) return [];
@@ -155,16 +155,18 @@ export function usePostEditor(options: UsePostEditorOptions = {}) {
   );
 
   const stagedMediaPreviews = useMemo(
-    () => mainPostStagedMedia.map((m) => m.preview),
-    [mainPostStagedMedia]
+    () => stagedMediaItems.map((m) => m.preview),
+    [stagedMediaItems]
   );
 
   const augmentThreadMessages = useCallback(
     (messages: typeof threadMessages): ThreadMessageAugmented[] => {
-      return messages.map((msg, index) => {
-        const threadMedia = stagedMediaItems.filter(
-          (m) => m.threadIndex === index
-        );
+      return messages.map((msg) => {
+        // Find media items based on the UIDs stored in msg.mediaIds
+        const threadMedia = (msg.mediaIds || [])
+          .map((uid) => stagedMediaItems.find((item) => item.uid === uid))
+          .filter(Boolean) as MediaItem[];
+
         const hasVideo = threadMedia.some((m) => m.type === "video");
         return {
           ...msg,
@@ -197,7 +199,7 @@ export function usePostEditor(options: UsePostEditorOptions = {}) {
   );
 
   const handleMediaChange = useCallback(
-    (files: File[], previews: string[], threadIndex: number | null = null) => {
+    (files: File[], previews: string[]) => {
       const currentSelectedAccounts =
         useEditorialStore.getState().selectedAccounts;
       const allIds = Object.values(currentSelectedAccounts).flat();
@@ -214,7 +216,6 @@ export function usePostEditor(options: UsePostEditorOptions = {}) {
         preview: previews[index],
         id: null,
         isUploading: true,
-        threadIndex,
         type: file.type.startsWith("video/") ? "video" : "image",
       }));
 
@@ -242,24 +243,14 @@ export function usePostEditor(options: UsePostEditorOptions = {}) {
   );
 
   const handleRemoveMedia = useCallback(
-    (
-      fileToRemove: File | null,
-      threadIndex: number | null = null,
-      indexToRemove?: number
-    ) => {
+    (fileToRemove: File | null, indexToRemove?: number) => {
       const currentItems = useEditorialStore.getState().stagedMediaItems;
       let itemToRemove: MediaItem | undefined;
 
       if (typeof indexToRemove === "number") {
-        const itemsInContext = currentItems.filter(
-          (item) => item.threadIndex === threadIndex
-        );
-        itemToRemove = itemsInContext[indexToRemove];
+        itemToRemove = currentItems[indexToRemove];
       } else if (fileToRemove) {
-        itemToRemove = currentItems.find(
-          (item) =>
-            item.threadIndex === threadIndex && item.file === fileToRemove
-        );
+        itemToRemove = currentItems.find((item) => item.file === fileToRemove);
       }
 
       if (itemToRemove) {
@@ -268,15 +259,40 @@ export function usePostEditor(options: UsePostEditorOptions = {}) {
         );
         setStagedMediaItems(newMediaItems);
 
-        const currentSelections =
-          useEditorialStore.getState().platformMediaSelections;
-        const newSelections = { ...currentSelections };
+        // Cleanup: Remove this UID from all platform selections AND thread messages
+        const state = useEditorialStore.getState();
+
+        // 1. Clean Platform Selections
+        const newSelections = { ...state.platformMediaSelections };
         Object.keys(newSelections).forEach((platformId) => {
           newSelections[platformId] = newSelections[platformId].filter(
             (uid) => uid !== itemToRemove!.uid
           );
         });
-        setState({ platformMediaSelections: newSelections });
+
+        // 2. Clean Thread Messages
+        const cleanThreadMessages = (messages: typeof threadMessages) =>
+          messages.map((msg) => ({
+            ...msg,
+            mediaIds: (msg.mediaIds || []).filter(
+              (uid) => uid !== itemToRemove!.uid
+            ),
+          }));
+
+        const newThreadMessages = cleanThreadMessages(state.threadMessages);
+
+        const newPlatformThreadMessages = { ...state.platformThreadMessages };
+        Object.keys(newPlatformThreadMessages).forEach((pid) => {
+          newPlatformThreadMessages[pid] = cleanThreadMessages(
+            newPlatformThreadMessages[pid]
+          );
+        });
+
+        setState({
+          platformMediaSelections: newSelections,
+          threadMessages: newThreadMessages,
+          platformThreadMessages: newPlatformThreadMessages,
+        });
       }
     },
     [setStagedMediaItems, setState]
@@ -295,16 +311,40 @@ export function usePostEditor(options: UsePostEditorOptions = {}) {
           (item) => item.id !== libraryMedia.id
         );
         setStagedMediaItems(newMediaItems);
+        // Cleanup logic handled by handleRemoveMedia in effect, but simplified here for toggle behavior
+        // If we untoggle from library, we essentially remove it globally.
 
-        const currentSelections =
-          useEditorialStore.getState().platformMediaSelections;
-        const newSelections = { ...currentSelections };
+        // Same cleanup logic as handleRemoveMedia
+        const state = useEditorialStore.getState();
+        const newSelections = { ...state.platformMediaSelections };
         Object.keys(newSelections).forEach((platformId) => {
           newSelections[platformId] = newSelections[platformId].filter(
             (uid) => uid !== existingItem.uid
           );
         });
-        setState({ platformMediaSelections: newSelections });
+
+        // Clean Thread Messages
+        const cleanThreadMessages = (messages: typeof threadMessages) =>
+          messages.map((msg) => ({
+            ...msg,
+            mediaIds: (msg.mediaIds || []).filter(
+              (uid) => uid !== existingItem.uid
+            ),
+          }));
+
+        const newThreadMessages = cleanThreadMessages(state.threadMessages);
+        const newPlatformThreadMessages = { ...state.platformThreadMessages };
+        Object.keys(newPlatformThreadMessages).forEach((pid) => {
+          newPlatformThreadMessages[pid] = cleanThreadMessages(
+            newPlatformThreadMessages[pid]
+          );
+        });
+
+        setState({
+          platformMediaSelections: newSelections,
+          threadMessages: newThreadMessages,
+          platformThreadMessages: newPlatformThreadMessages,
+        });
       } else {
         const newMediaItem: MediaItem = {
           uid: crypto.randomUUID(),
@@ -312,7 +352,6 @@ export function usePostEditor(options: UsePostEditorOptions = {}) {
           preview: libraryMedia.thumbnailUrl || libraryMedia.url,
           id: libraryMedia.id,
           isUploading: false,
-          threadIndex: null,
           type: libraryMedia.type.startsWith("video/") ? "video" : "image",
           altText: libraryMedia.altText || null,
         };
@@ -333,10 +372,10 @@ export function usePostEditor(options: UsePostEditorOptions = {}) {
   }, [stagedMediaItems]);
 
   return {
-    stagedMediaFiles: mainPostStagedMedia
+    stagedMediaFiles: stagedMediaItems
       .map((m) => m.file!)
       .filter(Boolean) as File[],
-    stagedMediaItems: mainPostStagedMedia,
+    stagedMediaItems,
     stagedMediaPreviews,
     postType,
     isGlobalUploading,
@@ -352,5 +391,6 @@ export function usePostEditor(options: UsePostEditorOptions = {}) {
     setThreadMessages,
     postMutation,
     connections,
+    toggleThreadMediaSelection,
   };
 }
