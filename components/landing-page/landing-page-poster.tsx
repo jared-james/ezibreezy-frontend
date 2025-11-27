@@ -3,14 +3,16 @@
 "use client";
 
 import { Sparkles, PenTool, BrainCircuit, Fingerprint } from "lucide-react";
-import InteractiveWhiteboard from "./interactive-whiteboard";
+// Changed import
+import InstagramGridBoard from "./instagram-grid";
 
 export default function LandingPagePoster() {
   return (
     <section className="bg-background border-b border-foreground relative overflow-hidden">
-      <div className="px-6 py-24 mx-auto w-full max-w-6xl relative z-0">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 items-stretch">
-          <div className="lg:col-span-7 flex flex-col justify-center h-full">
+      <div className="px-6 py-24 mx-auto w-full max-w-7xl relative z-0">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-24 items-start">
+          {/* Left Column: Content */}
+          <div className="flex flex-col justify-center h-full">
             <p className="eyebrow mb-4 text-brand-primary font-bold">
               The Final Word
             </p>
@@ -51,7 +53,7 @@ export default function LandingPagePoster() {
                   The internet is drowning in beige, robotic text. We refuse to
                   contribute to the noise. We are building the antidote to "AI
                   Slop." An <strong>Idea Engine</strong> that doesn't just read
-                  a prompt—it studies your strategy.
+                  a prompt, it studies your strategy.
                 </p>
                 <p>
                   It doesn't matter if you are a{" "}
@@ -120,7 +122,26 @@ export default function LandingPagePoster() {
             </div>
           </div>
 
-          <InteractiveWhiteboard />
+          {/* Right Column: Interactive Grid Planner */}
+          <div className="w-full mt-8 lg:mt-0 lg:pt-24 flex flex-col items-center">
+            {/* Sticky Wrapper */}
+            <div className="sticky top-24 w-full max-w-md">
+              {/* THE GRID COMPONENT */}
+              <InstagramGridBoard />
+
+              {/* Decoration under the board */}
+              <div className="mt-8 flex justify-between items-center px-6 opacity-60">
+                <div className="flex gap-4 text-[10px] font-mono uppercase tracking-widest text-foreground">
+                  <span>Fig. 02</span>
+                  <span>//</span>
+                  <span>Grid_Preview</span>
+                </div>
+                <div className="text-[10px] font-mono uppercase tracking-widest text-foreground">
+                  System: Online
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </section>
