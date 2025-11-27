@@ -226,6 +226,7 @@ export default function LandingPageHero() {
                         const totalBars = BARCODE_PATTERN.length;
                         const threshold = Math.floor(totalBars * 0.7);
                         const isActive = index <= threshold;
+                        const isLastActiveBar = index === threshold;
 
                         // Calculate delay to spread animation evenly over 2 seconds
                         const barDelay = (index / threshold) * ANIMATION_DURATION;
@@ -240,17 +241,46 @@ export default function LandingPageHero() {
                             }}
                             animate={
                               isActive
-                                ? {
-                                    opacity: 1,
-                                    backgroundColor: "var(--brand-primary)",
-                                    boxShadow: "0px 0px 6px rgb(36 99 57 / 0.4)",
-                                  }
+                                ? isLastActiveBar
+                                  ? {
+                                      opacity: [1, 0.4, 1],
+                                      backgroundColor: "var(--brand-primary)",
+                                      boxShadow: [
+                                        "0px 0px 6px rgb(36 99 57 / 0.4)",
+                                        "0px 0px 12px rgb(36 99 57 / 0.8)",
+                                        "0px 0px 6px rgb(36 99 57 / 0.4)",
+                                      ],
+                                    }
+                                  : {
+                                      opacity: 1,
+                                      backgroundColor: "var(--brand-primary)",
+                                      boxShadow: "0px 0px 6px rgb(36 99 57 / 0.4)",
+                                    }
                                 : {}
                             }
-                            transition={{
-                              duration: 0.1,
-                              delay: (barDelay / 1000) + 0.5, // Convert to seconds and add 500ms initial delay
-                            }}
+                            transition={
+                              isLastActiveBar
+                                ? {
+                                    duration: 0.1,
+                                    delay: (barDelay / 1000) + 0.5,
+                                    opacity: {
+                                      duration: 1,
+                                      repeat: Infinity,
+                                      ease: "easeInOut",
+                                      delay: (barDelay / 1000) + 0.5 + 0.3, // Start pulsing after initial animation
+                                    },
+                                    boxShadow: {
+                                      duration: 1,
+                                      repeat: Infinity,
+                                      ease: "easeInOut",
+                                      delay: (barDelay / 1000) + 0.5 + 0.3,
+                                    },
+                                  }
+                                : {
+                                    duration: 0.1,
+                                    delay: (barDelay / 1000) + 0.5,
+                                  }
+                            }
                             style={{
                               width: `${bar.width}px`,
                               height: "100%",
