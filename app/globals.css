@@ -118,6 +118,18 @@
   --sidebar-border: oklch(0.922 0 0);
 
   --sidebar-ring: oklch(0.708 0 0);
+
+  /* Editorial look & landing-page specific tokens */
+  --background-editorial: #fdfbf7;
+  --background-editorial-foreground: oklch(0.145 0 0);
+
+  /* Optional: pattern asset (you can swap file anytime) */
+  --background-editorial-pattern: url("/patterns/editorial-squares.svg");
+
+  /* Editorial yellow highlight */
+  --editorial-yellow: #eab308;
+  --editorial-yellow-hover: #d4a006;
+  --editorial-yellow-foreground: #000000;
 }
 
 @theme inline {
@@ -207,6 +219,16 @@
   --color-popover: var(--popover);
   --color-card-foreground: var(--card-foreground);
   --radius-md: calc(var(--radius) - 2px);
+
+  --color-background-editorial: var(--background-editorial);
+  --color-background-editorial-foreground: var(
+    --background-editorial-foreground
+  );
+  --color-background-editorial-pattern: var(--background-editorial-pattern);
+
+  --color-editorial-yellow: var(--editorial-yellow);
+  --color-editorial-yellow-hover: var(--editorial-yellow-hover);
+  --color-editorial-yellow-foreground: var(--editorial-yellow-foreground);
 }
 
 .dark {
