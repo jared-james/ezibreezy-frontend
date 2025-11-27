@@ -85,7 +85,6 @@ function TikTokPreview({
 
   const croppedPreview = singleMediaItem?.croppedPreviews?.tiktok;
 
-  // Use mediaUrl for video source if available (ensures videos play)
   const displayMediaSrc =
     croppedPreview ||
     (singleMediaItem?.type === "video" && singleMediaItem.mediaUrl
@@ -195,114 +194,125 @@ function TikTokPreview({
   };
 
   return (
-    <div className="w-full max-w-sm mx-auto">
-      <div className="relative bg-black rounded-2xl overflow-hidden aspect-9/16 max-h-[500px] border border-border">
-        <div className="absolute inset-0">
-          {displayMediaSrc ? (
-            mediaType === "video" ? (
-              <video
-                src={displayMediaSrc}
-                // UPDATED: Use object-contain to letterbox non-9:16 videos against the black background
-                className="w-full h-full object-contain"
-                muted
-                loop
-                autoPlay
-                playsInline
-                onLoadedMetadata={(e) =>
-                  setVideoDuration(e.currentTarget.duration)
-                }
-              />
-            ) : (
-              <img
-                src={displayMediaSrc}
-                alt="Media Preview"
-                // UPDATED: Use object-contain for images too, as TikTok letterboxes non-9:16 content
-                className="w-full h-full object-contain"
-              />
-            )
-          ) : (
-            <div className="w-full h-full flex flex-col items-center justify-center text-white/60">
-              <ImageIcon className="w-12 h-12 mb-2" />
-              <p className="text-sm">No media attached</p>
-            </div>
-          )}
-        </div>
-
-        <div className="absolute right-3 bottom-24 flex flex-col items-center gap-5">
-          <div className="flex flex-col items-center">
-            <ProfileAvatar
-              size={44}
-              avatarUrl={avatarUrl}
-              primaryName={primaryName}
-            />
-            <div className="w-5 h-5 -mt-2.5 rounded-full bg-red-500 flex items-center justify-center">
-              <span className="text-white text-xs font-bold">+</span>
-            </div>
-          </div>
-
-          <div className="flex flex-col items-center gap-1">
-            <Heart className="w-7 h-7 text-white" />
-            <span className="text-white text-xs">0</span>
-          </div>
-
-          <div className="flex flex-col items-center gap-1">
-            <MessageCircle className="w-7 h-7 text-white" />
-            <span className="text-white text-xs">0</span>
-          </div>
-
-          <div className="flex flex-col items-center gap-1">
-            <Bookmark className="w-7 h-7 text-white" />
-            <span className="text-white text-xs">0</span>
-          </div>
-
-          <div className="flex flex-col items-center gap-1">
-            <Share2 className="w-7 h-7 text-white" />
-            <span className="text-white text-xs">Share</span>
-          </div>
-
-          <div className="w-10 h-10 rounded-full border-2 border-white/30 bg-linear-to-br from-gray-800 to-gray-900 flex items-center justify-center animate-spin-slow">
-            <Music className="w-4 h-4 text-white" />
-          </div>
-        </div>
-
-        <div className="absolute bottom-4 left-3 right-16 text-white">
-          <p className="font-bold text-sm">@{accountName}</p>
-          {title && (
-            <p className="font-semibold text-sm mt-1 line-clamp-2">{title}</p>
-          )}
-          <p className="text-sm mt-1 line-clamp-3 whitespace-pre-wrap">
-            {renderCaptionWithHashtags(caption)}
-          </p>
-          <div className="flex items-center gap-2 mt-2">
-            <Music className="w-3 h-3" />
-            <p className="text-xs truncate">Original sound - {primaryName}</p>
-          </div>
-        </div>
-      </div>
-
-      <div className="px-3 py-2 border-t border-border bg-surface rounded-b-lg">
-        {canCrop ? (
-          <div className="flex items-center gap-4">
-            <button
-              onClick={handleCropClick}
-              title="Crop Image"
-              className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
-              disabled={isFetchingOriginal}
-            >
-              {isFetchingOriginal ? (
-                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+    <div className="w-full max-w-sm mx-auto space-y-4 transition-all duration-300">
+      <div className="bg-[--surface] border border-[--border] shadow-lg rounded-[2rem] overflow-hidden">
+        <div className="relative bg-black aspect-9/16 overflow-hidden">
+          <div className="absolute inset-0">
+            {displayMediaSrc ? (
+              mediaType === "video" ? (
+                <video
+                  src={displayMediaSrc}
+                  className="w-full h-full object-contain"
+                  muted
+                  loop
+                  autoPlay
+                  playsInline
+                  onLoadedMetadata={(e) =>
+                    setVideoDuration(e.currentTarget.duration)
+                  }
+                />
               ) : (
-                <Crop className="h-3.5 w-3.5" />
-              )}
-              Crop
-            </button>
+                <img
+                  src={displayMediaSrc}
+                  alt="Media Preview"
+                  className="w-full h-full object-contain"
+                />
+              )
+            ) : (
+              <div className="w-full h-full flex flex-col items-center justify-center text-white/60">
+                <ImageIcon className="w-12 h-12 mb-2" />
+                <p className="text-sm">No media attached</p>
+              </div>
+            )}
           </div>
-        ) : (
-          <p className="text-xs text-muted-foreground text-center italic">
-            TikTok Preview
-          </p>
-        )}
+
+          <div className="absolute right-3 bottom-24 flex flex-col items-center gap-5">
+            <div className="flex flex-col items-center">
+              <ProfileAvatar
+                size={44}
+                avatarUrl={avatarUrl}
+                primaryName={primaryName}
+              />
+              <div className="w-5 h-5 -mt-2.5 rounded-full bg-red-500 flex items-center justify-center">
+                <span className="text-white text-xs font-bold">+</span>
+              </div>
+            </div>
+
+            <div className="flex flex-col items-center gap-1">
+              <Heart className="w-7 h-7 text-white" />
+              <span className="text-white text-xs">0</span>
+            </div>
+
+            <div className="flex flex-col items-center gap-1">
+              <MessageCircle className="w-7 h-7 text-white" />
+              <span className="text-white text-xs">0</span>
+            </div>
+
+            <div className="flex flex-col items-center gap-1">
+              <Bookmark className="w-7 h-7 text-white" />
+              <span className="text-white text-xs">0</span>
+            </div>
+
+            <div className="flex flex-col items-center gap-1">
+              <Share2 className="w-7 h-7 text-white" />
+              <span className="text-white text-xs">Share</span>
+            </div>
+
+            <div className="w-10 h-10 rounded-full border-2 border-white/30 bg-linear-to-br from-gray-800 to-gray-900 flex items-center justify-center animate-spin-slow">
+              <Music className="w-4 h-4 text-white" />
+            </div>
+          </div>
+
+          <div className="absolute bottom-4 left-3 right-16 text-white">
+            <p className="font-bold text-sm">@{accountName}</p>
+            {title && (
+              <p className="font-semibold text-sm mt-1 line-clamp-2">{title}</p>
+            )}
+            <p className="text-sm mt-1 line-clamp-3 whitespace-pre-wrap">
+              {renderCaptionWithHashtags(caption)}
+            </p>
+            <div className="flex items-center gap-2 mt-2">
+              <Music className="w-3 h-3" />
+              <p className="text-xs truncate">Original sound - {primaryName}</p>
+            </div>
+          </div>
+        </div>
+
+        <div className="px-3 py-2 border-t border-border bg-surface">
+          {canCrop ? (
+            <div className="flex items-center gap-4">
+              <button
+                onClick={handleCropClick}
+                title="Crop Image"
+                className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
+                disabled={isFetchingOriginal}
+              >
+                {isFetchingOriginal ? (
+                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                ) : (
+                  <Crop className="h-3.5 w-3.5" />
+                )}
+                Crop
+              </button>
+            </div>
+          ) : (
+            <p className="text-xs text-muted-foreground text-center italic">
+              TikTok Preview
+            </p>
+          )}
+        </div>
       </div>
+
+      {mediaType === "video" && displayMediaSrc && (
+        <TikTokVideoOptions
+          displayMediaSrc={displayMediaSrc}
+          videoCoverTimestamp={tiktokVideoCoverTimestamp}
+          onVideoCoverTimestampChange={(timestamp) =>
+            setState({ tiktokVideoCoverTimestamp: timestamp })
+          }
+          videoDuration={videoDuration || 0}
+        />
+      )}
 
       {originalMediaSrc && (
         <ImageCropperModal
@@ -312,19 +322,6 @@ function TikTokPreview({
           platform="tiktok"
           onCropComplete={handleCropComplete}
         />
-      )}
-
-      {mediaType === "video" && displayMediaSrc && (
-        <div className="mt-4">
-          <TikTokVideoOptions
-            displayMediaSrc={displayMediaSrc}
-            videoCoverTimestamp={tiktokVideoCoverTimestamp}
-            onVideoCoverTimestampChange={(timestamp) =>
-              setState({ tiktokVideoCoverTimestamp: timestamp })
-            }
-            videoDuration={videoDuration || 0}
-          />
-        </div>
       )}
     </div>
   );
