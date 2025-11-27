@@ -3,15 +3,7 @@
 "use client";
 
 import { memo, useState } from "react";
-import {
-  ThumbsUp,
-  MessageSquare,
-  Repeat2,
-  Send,
-  ImageIcon,
-  Crop,
-  Loader2,
-} from "lucide-react";
+import { ImageIcon, Crop, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { renderCaptionWithHashtags } from "../../render-caption";
 import { ImageCropperModal } from "../../modals/image-cropper-modal";
@@ -21,62 +13,56 @@ import { useEditorialStore, MediaItem } from "@/lib/store/editorial-store";
 import { getMediaViewUrl } from "@/lib/api/media";
 import { toast } from "sonner";
 
+// Sub-components
+import { LinkedInHeader } from "./linkedin-header";
+import { LinkedInPostFooter } from "./linkedin-post-footer";
+import { LinkedInCarousel } from "./linkedin-carousel";
+
 interface LinkedInPreviewProps {
   caption: string;
   singleMediaItem: MediaItem | null;
+  mediaItems?: MediaItem[];
   mediaType?: "image" | "video" | "text";
   platformUsername: string;
   displayName: string | null;
   avatarUrl: string | null;
+  aspectRatio?: number;
 }
-
-const ProfileAvatar = ({
-  size,
-  avatarUrl,
-  primaryName,
-}: {
-  size: number;
-  avatarUrl: string | null;
-  primaryName: string;
-}) => {
-  if (avatarUrl) {
-    return (
-      <img
-        src={avatarUrl}
-        alt={`${primaryName} profile picture`}
-        className="rounded-full border border-[--border] shrink-0 object-cover"
-        style={{ width: size, height: size }}
-      />
-    );
-  }
-
-  return (
-    <div
-      className={cn(
-        "rounded-full bg-[--muted] border border-[--border] shrink-0"
-      )}
-      style={{ width: size, height: size }}
-      role="img"
-      aria-label="Profile image placeholder"
-    />
-  );
-};
 
 function LinkedInPreview({
   caption,
   singleMediaItem,
+  mediaItems = [],
   mediaType = "image",
   platformUsername,
   displayName,
   avatarUrl,
+  aspectRatio = 1.91,
 }: LinkedInPreviewProps) {
   const accountName = platformUsername.replace(/^@/, "");
   const primaryName = displayName || accountName || "Account";
   const [isCropperOpen, setIsCropperOpen] = useState(false);
   const [isFetchingOriginal, setIsFetchingOriginal] = useState(false);
+  const [currentCarouselIndex, setCurrentCarouselIndex] = useState(0);
+
   const setCropForMedia = useEditorialStore((state) => state.setCropForMedia);
   const integrationId =
     useEditorialStore.getState().selectedAccounts["linkedin"]?.[0];
+
+  // Determine if we have multiple media items
+  const hasMultipleMedia = mediaItems.length > 1;
+  const isCarousel = hasMultipleMedia;
+
+  // LinkedIn uses 1:1 for carousels, 1.91:1 for single posts
+  const previewAspectRatio = isCarousel ? 1 : aspectRatio;
+
+  // For carousel mode, get the current media item
+  const currentCarouselMedia = isCarousel
+    ? mediaItems[currentCarouselIndex]
+    : null;
+
+  // Determine which media to use for cropping: carousel item or single item
+  const activeMediaForCrop = currentCarouselMedia || singleMediaItem;
 
   const croppedPreview = singleMediaItem?.croppedPreviews?.linkedin;
 
@@ -87,18 +73,22 @@ function LinkedInPreview({
       ? singleMediaItem.mediaUrl
       : singleMediaItem?.preview);
 
-  const canCrop = singleMediaItem?.id && mediaType === "image";
-  const originalMediaSrc = singleMediaItem?.file
-    ? singleMediaItem.preview
-    : singleMediaItem?.originalUrlForCropping;
+  // Can crop if we have an uploaded image (either single or in carousel)
+  const canCrop =
+    !!activeMediaForCrop?.id && activeMediaForCrop?.type === "image";
+
+  const originalMediaSrc = activeMediaForCrop?.file
+    ? activeMediaForCrop.preview
+    : activeMediaForCrop?.originalUrlForCropping;
 
   const onCropComplete = (
     cropData: CropData | undefined,
     croppedPreviewUrl: string
   ) => {
-    if (singleMediaItem) {
+    // Use activeMediaForCrop (handles both carousel and single media)
+    if (activeMediaForCrop) {
       setCropForMedia(
-        singleMediaItem.uid,
+        activeMediaForCrop.uid,
         "linkedin",
         cropData,
         croppedPreviewUrl
@@ -154,9 +144,16 @@ function LinkedInPreview({
   };
 
   const handleCropClick = async () => {
-    if (!canCrop || !singleMediaItem || !singleMediaItem.id) return;
+    // Use activeMediaForCrop which already handles carousel vs single media
+    if (
+      !activeMediaForCrop ||
+      !activeMediaForCrop.id ||
+      activeMediaForCrop.type !== "image"
+    ) {
+      return;
+    }
 
-    if (singleMediaItem.originalUrlForCropping) {
+    if (activeMediaForCrop.originalUrlForCropping) {
       setIsCropperOpen(true);
       return;
     }
@@ -166,13 +163,14 @@ function LinkedInPreview({
       if (!integrationId) throw new Error("LinkedIn account not selected.");
 
       const { downloadUrl } = await getMediaViewUrl(
-        singleMediaItem.id,
+        activeMediaForCrop.id,
         integrationId
       );
 
+      // Update store so next time we don't fetch
       const currentItems = useEditorialStore.getState().stagedMediaItems;
       const updatedItems = currentItems.map((item) =>
-        item.uid === singleMediaItem.uid
+        item.uid === activeMediaForCrop.uid
           ? { ...item, originalUrlForCropping: downloadUrl }
           : item
       );
@@ -191,123 +189,96 @@ function LinkedInPreview({
 
   return (
     <div className="w-full bg-[--surface] border border-[--border] shadow-lg max-w-sm mx-auto rounded-lg overflow-hidden">
-      <div className="flex items-start gap-3 p-3">
-        <ProfileAvatar
-          size={48}
-          avatarUrl={avatarUrl}
-          primaryName={primaryName}
-        />
-        <div className="flex-1 min-w-0">
-          <p className="font-semibold text-sm text-[--foreground] truncate">
-            {primaryName}
-          </p>
-          <p className="text-xs text-[--muted-foreground] truncate">
-            @{accountName}
-          </p>
-          <p className="text-xs text-[--muted-foreground]">Now · 🌐</p>
-        </div>
-        <div className="text-[--muted-foreground]">
-          <span className="text-lg">···</span>
-        </div>
-      </div>
+      {/* Header */}
+      <LinkedInHeader
+        avatarUrl={avatarUrl}
+        primaryName={primaryName}
+        accountName={accountName}
+      />
 
+      {/* Caption */}
       <div className="px-3 pb-3">
         <p className="text-sm text-[--foreground] whitespace-pre-wrap">
           {renderCaptionWithHashtags(caption)}
         </p>
       </div>
 
-      <div
-        className={cn(
-          "aspect-video bg-[--background]",
-          displayMediaSrc ? "" : "flex items-center justify-center"
-        )}
-      >
-        {displayMediaSrc ? (
-          mediaType === "video" ? (
-            <video
-              src={displayMediaSrc}
-              className="w-full h-full object-cover"
-              muted
-              loop
-              autoPlay
-              playsInline
-            />
+      {/* Media Content */}
+      {isCarousel ? (
+        <LinkedInCarousel
+          mediaItems={mediaItems}
+          aspectRatio={previewAspectRatio}
+          onCurrentIndexChange={setCurrentCarouselIndex}
+        />
+      ) : (
+        <div
+          className={cn(
+            "bg-gray-100",
+            displayMediaSrc ? "" : "flex items-center justify-center"
+          )}
+          style={{ aspectRatio: previewAspectRatio }}
+        >
+          {displayMediaSrc ? (
+            mediaType === "video" ? (
+              <video
+                src={displayMediaSrc}
+                className="w-full h-full object-contain"
+                muted
+                loop
+                autoPlay
+                playsInline
+              />
+            ) : (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={displayMediaSrc}
+                alt="Media Preview"
+                className="w-full h-full object-contain"
+              />
+            )
           ) : (
-            <img
-              src={displayMediaSrc}
-              alt="Media Preview"
-              className="w-full h-full object-cover"
-            />
-          )
-        ) : (
-          <div className="flex flex-col items-center justify-center text-[--muted-foreground] text-center p-8">
-            <ImageIcon className="w-8 h-8 mb-2" />
-            <p className="text-sm">No media attached</p>
-          </div>
-        )}
-      </div>
-
-      <div className="flex items-center justify-between px-3 py-2 text-xs text-[--muted-foreground] border-b border-[--border]">
-        <div className="flex items-center gap-1">
-          <span className="flex items-center justify-center w-4 h-4 rounded-full bg-blue-500 text-white text-[10px]">
-            👍
-          </span>
-          <span>0</span>
+            <div className="flex flex-col items-center justify-center text-[--muted-foreground] text-center p-8">
+              <ImageIcon className="w-8 h-8 mb-2" />
+              <p className="text-sm">No media attached</p>
+            </div>
+          )}
         </div>
-        <div className="flex items-center gap-2">
-          <span>0 comments</span>
-          <span>·</span>
-          <span>0 reposts</span>
-        </div>
-      </div>
+      )}
 
-      <div className="flex items-center justify-around py-2 text-[--muted-foreground]">
-        <button className="flex items-center gap-1 px-3 py-2 hover:bg-[--surface-hover] rounded text-xs">
-          <ThumbsUp className="w-4 h-4" />
-          <span>Like</span>
-        </button>
-        <button className="flex items-center gap-1 px-3 py-2 hover:bg-[--surface-hover] rounded text-xs">
-          <MessageSquare className="w-4 h-4" />
-          <span>Comment</span>
-        </button>
-        <button className="flex items-center gap-1 px-3 py-2 hover:bg-[--surface-hover] rounded text-xs">
-          <Repeat2 className="w-4 h-4" />
-          <span>Repost</span>
-        </button>
-        <button className="flex items-center gap-1 px-3 py-2 hover:bg-[--surface-hover] rounded text-xs">
-          <Send className="w-4 h-4" />
-          <span>Send</span>
-        </button>
-      </div>
+      {/* Post Footer */}
+      <LinkedInPostFooter />
 
-      <div className="p-3 border-t border-[--border]">
+      {/* Toolbar */}
+      <div className="px-3 py-2 border-t border-[--border]">
         {canCrop ? (
           <button
             onClick={handleCropClick}
-            className="flex items-center gap-2 justify-center w-full font-serif font-bold text-sm text-brand-primary hover:text-brand-accent"
+            className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
             disabled={isFetchingOriginal}
           >
             {isFetchingOriginal ? (
-              <Loader2 className="h-4 w-4 animate-spin" />
+              <Loader2 className="h-3.5 w-3.5 animate-spin" />
             ) : (
-              <Crop className="h-4 w-4" />
+              <Crop className="h-3.5 w-3.5" />
             )}
-            Crop
+            Crop {isCarousel && `(${currentCarouselIndex + 1}/${mediaItems?.length})`}
           </button>
         ) : (
-          <p className="text-xs text-[--muted-foreground] text-center italic">
+          <p className="text-xs text-muted-foreground text-center italic">
             LinkedIn Preview
           </p>
         )}
       </div>
 
+      {/* Cropper Modal */}
       {originalMediaSrc && (
         <ImageCropperModal
           open={isCropperOpen}
           onClose={() => setIsCropperOpen(false)}
           imageSrc={originalMediaSrc}
           platform="linkedin"
+          initialCrop={activeMediaForCrop?.crops?.linkedin?.croppedAreaPixels}
+          initialAspectRatio={activeMediaForCrop?.crops?.linkedin?.aspectRatio}
           onCropComplete={handleCropComplete}
         />
       )}

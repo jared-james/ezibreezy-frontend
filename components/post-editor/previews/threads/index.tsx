@@ -1,17 +1,9 @@
+// components/post-editor/previews/threads/index.tsx
+
 "use client";
 
 import { memo, useState } from "react";
-import {
-  Heart,
-  MessageCircle,
-  Repeat2,
-  Send,
-  ImageIcon,
-  Crop,
-  Loader2,
-  Link as LinkIcon,
-} from "lucide-react";
-import { cn } from "@/lib/utils";
+import { Crop, Loader2, Link as LinkIcon, ImageIcon } from "lucide-react";
 import { renderCaptionWithHashtags } from "../../render-caption";
 import { ImageCropperModal } from "../../modals/image-cropper-modal";
 import type { PixelCrop } from "react-image-crop";
@@ -21,6 +13,11 @@ import { getMediaViewUrl } from "@/lib/api/media";
 import { toast } from "sonner";
 import LocationSearchInput from "../../location-search-input";
 import { Input } from "@/components/ui/input";
+
+import { ThreadsHeader } from "./threads-header";
+import { ThreadsCarousel } from "./threads-carousel";
+import { ThreadsPostFooter } from "./threads-post-footer";
+import { cn } from "@/lib/utils";
 
 interface ThreadsPreviewProps {
   caption: string;
@@ -62,68 +59,10 @@ const ProfileAvatar = ({
   );
 };
 
-interface GridItem {
-  src: string;
-  type: "image" | "video";
-}
-
-const MediaGrid = ({ items }: { items: GridItem[] }) => {
-  if (items.length === 0) return null;
-
-  return (
-    <div
-      className={cn(
-        "mt-3 overflow-hidden rounded-xl border border-[--border] bg-[--muted]",
-        // For single item, let it size naturally up to a max height
-        // For grid, force a fixed container height
-        items.length === 1
-          ? "max-h-[500px] w-fit"
-          : "h-64 grid grid-cols-2 gap-0.5 w-full"
-      )}
-    >
-      {items.slice(0, 4).map((item, index) => (
-        <div
-          key={index}
-          className={cn(
-            "relative overflow-hidden bg-black flex items-center justify-center",
-            items.length === 1 ? "w-full h-full" : "w-full h-full"
-          )}
-        >
-          {item.type === "video" ? (
-            <video
-              src={item.src}
-              className={cn(
-                "block",
-                items.length === 1
-                  ? "max-h-[500px] w-auto max-w-full object-contain"
-                  : "w-full h-full object-cover"
-              )}
-              muted
-              loop
-              autoPlay
-              playsInline
-            />
-          ) : (
-            <img
-              src={item.src}
-              alt={`Media ${index + 1}`}
-              className={cn(
-                "block",
-                items.length === 1
-                  ? "max-h-[500px] w-auto max-w-full object-contain"
-                  : "w-full h-full object-cover"
-              )}
-            />
-          )}
-        </div>
-      ))}
-    </div>
-  );
-};
-
 function ThreadsPreview({
   caption,
   mediaPreview,
+  mediaType = "image",
   platformUsername,
   displayName,
   avatarUrl,
@@ -133,12 +72,12 @@ function ThreadsPreview({
   const primaryName = displayName || accountName || "Account";
   const [isCropperOpen, setIsCropperOpen] = useState(false);
   const [isFetchingOriginal, setIsFetchingOriginal] = useState(false);
+
   const setCropForMedia = useEditorialStore((state) => state.setCropForMedia);
   const setState = useEditorialStore((state) => state.setState);
+
   const integrationId =
     useEditorialStore.getState().selectedAccounts["threads"]?.[0];
-
-  // Threads-specific state
   const threadsTopicTag = useEditorialStore((state) => state.threadsTopicTag);
   const threadsLinkAttachment = useEditorialStore(
     (state) => state.threadsLinkAttachment
@@ -147,31 +86,18 @@ function ThreadsPreview({
 
   const croppedPreview = singleMediaItem?.croppedPreviews?.threads;
 
-  // Determine the source and type for the first item (singleMediaItem)
-  const firstItemIsVideo = singleMediaItem?.type === "video";
   const firstMediaSrc =
-    firstItemIsVideo && singleMediaItem?.mediaUrl
+    mediaType === "video" && singleMediaItem?.mediaUrl
       ? singleMediaItem.mediaUrl
       : croppedPreview || mediaPreview[0];
 
-  // Construct the items array for the grid
-  const gridItems: GridItem[] = [];
-
-  if (firstMediaSrc) {
-    gridItems.push({
-      src: firstMediaSrc,
-      type: firstItemIsVideo ? "video" : "image",
-    });
-  }
-
-  // Add subsequent items as images (thumbnails)
-  // We assume secondary items in the preview array are thumbnails if they are videos
-  mediaPreview.slice(1, 4).forEach((src) => {
-    gridItems.push({ src, type: "image" });
-  });
+  const carouselItems = [firstMediaSrc, ...mediaPreview.slice(1)].filter(
+    Boolean
+  );
 
   const canCrop =
-    singleMediaItem?.id && !firstItemIsVideo && gridItems.length > 0;
+    singleMediaItem?.id && mediaType === "image" && mediaPreview.length > 0;
+
   const originalMediaSrc = singleMediaItem?.file
     ? singleMediaItem.preview
     : singleMediaItem?.originalUrlForCropping;
@@ -227,11 +153,11 @@ function ThreadsPreview({
         displayedWidth,
         displayedHeight
       );
-      const cropData: CropData = {
-        croppedAreaPixels: scaledCroppedAreaPixels,
-        aspectRatio,
-      };
-      onCropComplete(cropData, croppedUrl);
+
+      onCropComplete(
+        { croppedAreaPixels: scaledCroppedAreaPixels, aspectRatio },
+        croppedUrl
+      );
     } catch (error) {
       console.error("Failed to crop image:", error);
     }
@@ -248,7 +174,6 @@ function ThreadsPreview({
     setIsFetchingOriginal(true);
     try {
       if (!integrationId) throw new Error("Threads account not selected.");
-
       const { downloadUrl } = await getMediaViewUrl(
         singleMediaItem.id,
         integrationId
@@ -261,13 +186,10 @@ function ThreadsPreview({
           : item
       );
       useEditorialStore.getState().setStagedMediaItems(updatedItems);
-
       setIsCropperOpen(true);
     } catch (error) {
-      console.error("Failed to get view URL for cropping:", error);
-      toast.error(
-        "Could not load original image for cropping. Please try again."
-      );
+      console.error(error);
+      toast.error("Could not load original image for cropping.");
     } finally {
       setIsFetchingOriginal(false);
     }
@@ -275,144 +197,126 @@ function ThreadsPreview({
 
   const handleTopicTagChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     let value = e.target.value;
-    if (value.startsWith("#")) {
-      value = value.slice(1);
-    }
+    if (value.startsWith("#")) value = value.slice(1);
     value = value.replace(/[.&]/g, "");
-    if (value.length <= 50) {
-      setState({ threadsTopicTag: value });
-    }
-  };
-
-  const handleLinkAttachmentChange = (
-    e: React.ChangeEvent<HTMLInputElement>
-  ) => {
-    setState({ threadsLinkAttachment: e.target.value });
+    if (value.length <= 50) setState({ threadsTopicTag: value });
   };
 
   return (
-    <div className="mx-auto w-full max-w-sm bg-[--surface] border border-[--border] rounded-lg overflow-visible">
-      <div className="relative p-4">
-        <div className="relative z-10 flex items-start gap-3">
-          <div
-            className="flex shrink-0 flex-col items-center"
-            style={{ width: 40 }}
-          >
+    <div className="mx-auto w-full max-w-sm space-y-4">
+      <div className="bg-[--surface] border border-[--border] rounded-lg shadow-sm overflow-hidden">
+        <div className="p-4 flex gap-3">
+          <div className="flex-shrink-0 flex flex-col items-center">
             <ProfileAvatar
-              size={40}
+              size={36}
               avatarUrl={avatarUrl}
               primaryName={primaryName}
             />
+            {/* Thread line visual */}
+            <div className="w-0.5 grow mt-2 bg-border rounded-full" />
           </div>
 
-          <div className="min-w-0 flex-1">
-            <div className="flex items-center gap-1 text-sm">
-              <span className="truncate font-bold text-[--foreground]">
-                {primaryName}
-              </span>
-              <span className="shrink-0 text-[--muted-foreground]">· now</span>
-            </div>
+          <div className="flex-1 min-w-0 pb-2">
+            <ThreadsHeader primaryName={primaryName} />
 
-            <p className="mt-1 whitespace-pre-wrap wrap-break-word text-[0.95rem] leading-normal text-[--foreground]">
+            <div className="mt-1 text-[0.95rem] whitespace-pre-wrap leading-normal text-foreground">
               {renderCaptionWithHashtags(caption)}
-            </p>
+            </div>
 
-            {gridItems.length > 0 ? (
-              <MediaGrid items={gridItems} />
+            {carouselItems.length > 0 ? (
+              <ThreadsCarousel
+                mediaUrls={carouselItems}
+                mediaType={mediaType}
+              />
+            ) : caption.length === 0 ? (
+              <div className="mt-3 flex items-center gap-2 rounded-md bg-muted/50 p-2 text-sm text-muted-foreground">
+                <ImageIcon className="h-4 w-4" />
+                No media attached.
+              </div>
+            ) : null}
+
+            <ThreadsPostFooter />
+          </div>
+        </div>
+
+        {/* Toolbar Section */}
+        <div className="bg-[--background] border-t border-[--border]">
+          <div className="px-3 py-2">
+            {canCrop ? (
+              <button
+                onClick={handleCropClick}
+                className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
+                disabled={isFetchingOriginal}
+              >
+                {isFetchingOriginal ? (
+                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                ) : (
+                  <Crop className="h-3.5 w-3.5" />
+                )}
+                Crop
+              </button>
             ) : (
-              caption.length === 0 && (
-                <div className="mt-3 flex items-center gap-2 rounded-md bg-[--background] p-2 text-sm text-[--muted-foreground]">
-                  <ImageIcon className="h-4 w-4" />
-                  No media attached.
-                </div>
-              )
+              <p className="text-xs text-muted-foreground text-center italic">
+                Threads Preview
+              </p>
             )}
+          </div>
 
-            <div className="mt-3 flex items-center gap-4 text-[--muted-foreground]">
-              <Heart className="h-5 w-5 cursor-pointer hover:text-[--foreground]" />
-              <MessageCircle className="h-5 w-5 cursor-pointer hover:text-[--foreground]" />
-              <Repeat2 className="h-5 w-5 cursor-pointer hover:text-[--foreground]" />
-              <Send className="h-5 w-5 cursor-pointer hover:text-[--foreground]" />
+          <div className="px-3 py-2 border-t border-[--border]">
+            <label
+              htmlFor="topic-tag"
+              className="eyebrow mb-2 flex items-center"
+            >
+              Topic Tag
+            </label>
+            <div className="relative">
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">
+                #
+              </span>
+              <Input
+                id="topic-tag"
+                value={threadsTopicTag}
+                onChange={handleTopicTagChange}
+                placeholder="Topic (max 50 chars)"
+                className="h-9 pl-7"
+                maxLength={50}
+              />
             </div>
           </div>
-        </div>
-      </div>
 
-      <div className="px-3 py-2 border-t border-[--border]">
-        {canCrop ? (
-          <div className="flex items-center gap-4">
-            <button
-              onClick={handleCropClick}
-              title="Crop Image"
-              className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
-              disabled={isFetchingOriginal}
-            >
-              {isFetchingOriginal ? (
-                <Loader2 className="h-3.5 w-3.5 animate-spin" />
-              ) : (
-                <Crop className="h-3.5 w-3.5" />
-              )}
-              Crop
-            </button>
+          {carouselItems.length === 0 && (
+            <div className="px-3 py-2 border-t border-[--border]">
+              <label
+                htmlFor="link-attachment"
+                className="eyebrow mb-2 flex items-center"
+              >
+                <LinkIcon className="mr-1.5 h-3 w-3" />
+                Link Attachment
+              </label>
+              <Input
+                id="link-attachment"
+                type="url"
+                value={threadsLinkAttachment}
+                onChange={(e) =>
+                  setState({ threadsLinkAttachment: e.target.value })
+                }
+                placeholder="https://example.com"
+                className="h-9"
+              />
+            </div>
+          )}
+
+          <div className="px-3 py-2 border-t border-[--border]">
+            <LocationSearchInput
+              initialLocation={location}
+              onLocationSelect={(newLocation) =>
+                setState({ location: newLocation || { id: null, name: "" } })
+              }
+              integrationId={integrationId || null}
+              isEnabled={true}
+            />
           </div>
-        ) : (
-          <p className="text-xs text-[--muted-foreground] text-center italic">
-            Threads Preview
-          </p>
-        )}
-      </div>
-
-      <div className="px-3 py-2 border-t border-[--border]">
-        <label htmlFor="topic-tag" className="eyebrow mb-2 flex items-center">
-          Topic Tag
-        </label>
-        <Input
-          id="topic-tag"
-          value={threadsTopicTag}
-          onChange={handleTopicTagChange}
-          placeholder="Enter topic (max 50 chars)"
-          className="h-9"
-          maxLength={50}
-        />
-        <p className="mt-1 text-xs text-muted-foreground">
-          {threadsTopicTag.length}/50 characters • No periods or ampersands
-        </p>
-      </div>
-
-      {gridItems.length === 0 && (
-        <div className="px-3 py-2 border-t border-[--border]">
-          <label
-            htmlFor="link-attachment"
-            className="eyebrow mb-2 flex items-center"
-          >
-            <LinkIcon className="mr-1.5 h-3 w-3" />
-            Link Attachment
-          </label>
-          <Input
-            id="link-attachment"
-            type="url"
-            value={threadsLinkAttachment}
-            onChange={handleLinkAttachmentChange}
-            placeholder="https://example.com"
-            className="h-9"
-          />
-          <p className="mt-1 text-xs text-muted-foreground">
-            Only available for text-only posts
-          </p>
         </div>
-      )}
-
-      <div className="px-3 py-2 border-t border-[--border] overflow-visible">
-        <LocationSearchInput
-          initialLocation={location}
-          onLocationSelect={(newLocation) =>
-            setState({
-              location: newLocation || { id: null, name: "" },
-            })
-          }
-          integrationId={integrationId || null}
-          isEnabled={true}
-        />
       </div>
 
       {originalMediaSrc && (

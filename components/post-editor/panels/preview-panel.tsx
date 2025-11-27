@@ -245,14 +245,18 @@ function PreviewPanel({
         );
       }
       case "linkedin": {
+        const linkedinAspectRatio =
+          singleMediaItem?.crops?.linkedin?.aspectRatio ?? 1.91;
         return (
           <LinkedInPreview
             caption={currentCaption}
             singleMediaItem={singleMediaItem || null}
+            mediaItems={activeMediaItems}
             mediaType={mediaPostType}
             platformUsername={activeAccount.platformUsername}
             displayName={activeAccount.name}
             avatarUrl={activeAccount.avatarUrl}
+            aspectRatio={linkedinAspectRatio}
           />
         );
       }
@@ -291,6 +295,7 @@ function PreviewPanel({
             caption={currentCaption}
             title={platformTitles["tiktok"]}
             singleMediaItem={singleMediaItem || null}
+            mediaItems={activeMediaItems}
             mediaType={mediaPostType}
             platformUsername={activeAccount.platformUsername}
             displayName={activeAccount.name}
