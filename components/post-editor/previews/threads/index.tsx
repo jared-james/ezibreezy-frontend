@@ -1,4 +1,4 @@
-// components/post-editor/threads-preview.tsx
+// components/post-editor/previews/threads/index.tsx
 
 import { memo, useState } from "react";
 import {
@@ -260,7 +260,7 @@ function ThreadsPreview({
   };
 
   return (
-    <div className="mx-auto w-full max-w-sm bg-[--surface] border border-[--border] rounded-lg overflow-hidden">
+    <div className="mx-auto w-full max-w-sm bg-[--surface] border border-[--border] rounded-lg overflow-visible">
       <div className="relative p-4">
         <div className="relative z-10 flex items-start gap-3">
           <div
@@ -374,7 +374,7 @@ function ThreadsPreview({
       )}
 
       {/* Location Search - Reuse existing component */}
-      <div className="px-3 py-2 border-t border-[--border]">
+      <div className="px-3 py-2 border-t border-[--border] overflow-visible">
         <LocationSearchInput
           initialLocation={location}
           onLocationSelect={(newLocation) =>

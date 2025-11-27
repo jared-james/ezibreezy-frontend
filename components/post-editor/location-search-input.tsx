@@ -2,7 +2,8 @@
 
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
+import { createPortal } from "react-dom";
 import { useQuery } from "@tanstack/react-query";
 import { MapPin, X, Loader2, Search } from "lucide-react";
 import { useDebounce } from "use-debounce";
@@ -24,17 +25,31 @@ export default function LocationSearchInput({
   isEnabled,
 }: LocationSearchInputProps) {
   const [query, setQuery] = useState(initialLocation.name);
-  const [debouncedQuery] = useDebounce(query, 500);
+  const [debouncedQuery] = useDebounce(query, 300);
   const [isFocused, setIsFocused] = useState(false);
   const [selectedLocation, setSelectedLocation] = useState<{
     id: string | null;
     name: string;
   }>(initialLocation);
+  const inputRef = useRef<HTMLInputElement>(null);
+  const [dropdownPosition, setDropdownPosition] = useState({ top: 0, left: 0, width: 0 });
 
   useEffect(() => {
     setSelectedLocation(initialLocation);
     setQuery(initialLocation.name);
   }, [initialLocation]);
+
+  // Update dropdown position when it should be shown
+  useEffect(() => {
+    if (isFocused && inputRef.current) {
+      const rect = inputRef.current.getBoundingClientRect();
+      setDropdownPosition({
+        top: rect.bottom + window.scrollY,
+        left: rect.left + window.scrollX,
+        width: rect.width,
+      });
+    }
+  }, [isFocused, query]);
 
   const {
     data: searchResults = [],
@@ -42,11 +57,13 @@ export default function LocationSearchInput({
     isError,
   } = useQuery({
     queryKey: ["locations", debouncedQuery, integrationId],
-    queryFn: () => {
+    queryFn: async () => {
       if (!debouncedQuery || !integrationId || selectedLocation.id) {
         return [];
       }
-      return searchLocations(debouncedQuery, integrationId);
+      const results = await searchLocations(debouncedQuery, integrationId);
+      console.log("[LocationSearch] Query:", debouncedQuery, "Results:", results);
+      return results;
     },
     enabled: !!debouncedQuery && !!integrationId && !selectedLocation.id,
   });
@@ -73,7 +90,18 @@ export default function LocationSearchInput({
   };
 
   const showResults =
-    isFocused && !selectedLocation.id && debouncedQuery.length > 2;
+    isFocused && !selectedLocation.id && debouncedQuery.length >= 1;
+
+  console.log("[LocationSearch] DEBUG:", {
+    showResults,
+    isFocused,
+    selectedLocationId: selectedLocation.id,
+    debouncedQuery,
+    debouncedQueryLength: debouncedQuery.length,
+    searchResultsCount: searchResults.length,
+    isLoading,
+    isError,
+  });
 
   if (!isEnabled) {
     return null;
@@ -87,6 +115,7 @@ export default function LocationSearchInput({
       <div className="relative">
         <MapPin className="absolute left-3 top-1/2 h-3 w-3 -translate-y-1/2 text-muted-foreground" />
         <Input
+          ref={inputRef}
           id="location"
           value={query}
           onChange={handleInputChange}
@@ -107,40 +136,51 @@ export default function LocationSearchInput({
         )}
       </div>
 
-      {showResults && (
-        <div className="absolute z-10 mt-1 w-full rounded-md border border-border bg-surface shadow-lg">
-          <ul className="max-h-60 overflow-y-auto p-1">
-            {isLoading && (
-              <li className="flex items-center justify-center p-4 text-sm text-muted-foreground">
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Searching...
-              </li>
-            )}
-            {isError && (
-              <li className="p-4 text-center text-sm text-error">
-                Could not fetch locations.
-              </li>
-            )}
-            {!isLoading && searchResults.length === 0 && (
-              <li className="p-4 text-center text-sm text-muted-foreground">
-                No results for &quot;{debouncedQuery}&quot;.
-              </li>
-            )}
-            {searchResults.map((loc) => (
-              <li
-                key={loc.id}
-                onMouseDown={(e) => e.preventDefault()}
-                onClick={() => handleSelect(loc)}
-                className="cursor-pointer rounded p-3 hover:bg-surface-hover"
-              >
-                <p className="font-semibold text-sm text-foreground">
-                  {loc.name}
-                </p>
-                <p className="text-xs text-muted-foreground">{loc.address}</p>
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
+      {showResults && typeof window !== "undefined" &&
+        createPortal(
+          <div
+            style={{
+              position: "fixed",
+              top: `${dropdownPosition.top}px`,
+              left: `${dropdownPosition.left}px`,
+              width: `${dropdownPosition.width}px`,
+              zIndex: 9999,
+            }}
+            className="mt-1 rounded-md border border-gray-200 bg-white shadow-lg dark:border-gray-700 dark:bg-gray-800"
+          >
+            <ul className="max-h-60 overflow-y-auto p-1">
+              {isLoading && (
+                <li className="flex items-center justify-center p-4 text-sm text-muted-foreground">
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Searching...
+                </li>
+              )}
+              {isError && (
+                <li className="p-4 text-center text-sm text-error">
+                  Could not fetch locations.
+                </li>
+              )}
+              {!isLoading && searchResults.length === 0 && (
+                <li className="p-4 text-center text-sm text-muted-foreground">
+                  Location not found
+                </li>
+              )}
+              {searchResults.map((loc) => (
+                <li
+                  key={loc.id}
+                  onMouseDown={(e) => e.preventDefault()}
+                  onClick={() => handleSelect(loc)}
+                  className="cursor-pointer rounded p-3 hover:bg-gray-100 dark:hover:bg-gray-700"
+                >
+                  <p className="font-semibold text-sm text-foreground">
+                    {loc.name}
+                  </p>
+                  <p className="text-xs text-muted-foreground">{loc.address}</p>
+                </li>
+              ))}
+            </ul>
+          </div>,
+          document.body
+        )}
     </div>
   );
 }

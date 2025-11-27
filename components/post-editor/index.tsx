@@ -371,6 +371,9 @@ export default function EditorialCore({
           }
 
           if (platformId === "threads") {
+            // Remove legacy location field - Threads uses locationId only
+            delete payload.settings!.location;
+
             // Topic Tag
             if (threadsTopicTag && threadsTopicTag.trim().length > 0) {
               payload.settings!.topicTag = threadsTopicTag.trim();
