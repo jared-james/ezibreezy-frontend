@@ -524,19 +524,21 @@ function InstagramPreview({
           </div>
         )}
 
-        {/* Location Input */}
-        <div className="px-3 py-2 border-t border-border">
-          <LocationSearchInput
-            initialLocation={location}
-            onLocationSelect={(newLocation) =>
-              setState({
-                location: newLocation || { id: null, name: "" },
-              })
-            }
-            integrationId={integrationId || null}
-            isEnabled={true}
-          />
-        </div>
+        {/* Location Input - Only for Instagram posts (not stories) */}
+        {postType !== "story" && (
+          <div className="px-3 py-2 border-t border-border">
+            <LocationSearchInput
+              initialLocation={location}
+              onLocationSelect={(newLocation) =>
+                setState({
+                  location: newLocation || { id: null, name: "" },
+                })
+              }
+              integrationId={integrationId || null}
+              isEnabled={true}
+            />
+          </div>
+        )}
       </div>
 
       {/* Reel Options Panel - Only for single video posts, not carousels */}
