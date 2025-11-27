@@ -86,7 +86,7 @@ export default function LandingPageEditorialSection() {
           {/* COLUMN 2: THE SOLUTION (The Manifesto) */}
           <div className="lg:col-span-7">
             <h2 className="mb-8 font-serif text-5xl font-black leading-[0.9] tracking-tight md:text-6xl">
-              A complete newsroom.
+              A complete solution.
               <br />
               <span className="italic font-light">Zero gatekeeping.</span>
             </h2>

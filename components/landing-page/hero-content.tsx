@@ -54,13 +54,21 @@ export default function HeroContent() {
           <span className="mr-3 -mt-1.5 float-left font-serif text-5xl font-bold">
             W
           </span>
-          e are building the editorial desk for the modern creator. Think
-          through what you want to say, capture it quickly, and turn it into
-          posts without the burnout.
+          e are building the editorial desk for the modern creator. polished,
+          intuitive, and unmistakably enjoyable to create in.
         </p>
+
         <p className="mt-6 border-l-4 border-foreground pl-4 text-base italic text-foreground/60">
-          &ldquo;Finally, a tool that respects the creative process instead of
-          just the algorithm.&rdquo;
+          “Finally, a{" "}
+          <span className="line-through decoration-foreground/40 opacity-50">
+            cross-posting omni-channel marketing platform
+          </span>
+          ...{" "}
+          <span className="font-bold text-foreground/80 not-italic">
+            *ahem*
+          </span>{" "}
+          ... one simple space to ideate, design, approve, schedule, and
+          publish, and feel confident while building your brand.”
         </p>
       </div>
 
