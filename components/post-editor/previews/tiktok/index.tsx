@@ -1,3 +1,5 @@
+// components/post-editor/previews/tiktok/index.tsx
+
 "use client";
 
 import { memo, useState } from "react";
@@ -194,7 +196,7 @@ function TikTokPreview({
   };
 
   return (
-    <div className="w-full max-w-sm mx-auto space-y-4 transition-all duration-300">
+    <div className="w-full max-w-[300px] mx-auto space-y-4 transition-all duration-300">
       <div className="bg-[--surface] border border-[--border] shadow-lg rounded-[2rem] overflow-hidden">
         <div className="relative bg-black aspect-9/16 overflow-hidden">
           <div className="absolute inset-0">

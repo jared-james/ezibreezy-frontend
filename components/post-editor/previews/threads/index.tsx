@@ -1,5 +1,3 @@
-// components/post-editor/previews/threads/index.tsx
-
 "use client";
 
 import { memo, useState } from "react";
@@ -11,6 +9,7 @@ import {
   ImageIcon,
   Crop,
   Loader2,
+  Link as LinkIcon,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { renderCaptionWithHashtags } from "../../render-caption";
@@ -22,7 +21,6 @@ import { getMediaViewUrl } from "@/lib/api/media";
 import { toast } from "sonner";
 import LocationSearchInput from "../../location-search-input";
 import { Input } from "@/components/ui/input";
-import { Link as LinkIcon } from "lucide-react";
 
 interface ThreadsPreviewProps {
   caption: string;
@@ -64,28 +62,42 @@ const ProfileAvatar = ({
   );
 };
 
-const MediaGrid = ({
-  images,
-  mediaType = "image",
-}: {
-  images: string[];
-  mediaType?: "text" | "image" | "video";
-}) => {
-  if (images.length === 0) return null;
+interface GridItem {
+  src: string;
+  type: "image" | "video";
+}
+
+const MediaGrid = ({ items }: { items: GridItem[] }) => {
+  if (items.length === 0) return null;
 
   return (
     <div
       className={cn(
         "mt-3 overflow-hidden rounded-xl border border-[--border] bg-[--muted]",
-        images.length === 1 ? "max-h-[300px]" : "h-48 grid grid-cols-2 gap-0.5"
+        // For single item, let it size naturally up to a max height
+        // For grid, force a fixed container height
+        items.length === 1
+          ? "max-h-[500px] w-fit"
+          : "h-64 grid grid-cols-2 gap-0.5 w-full"
       )}
     >
-      {images.slice(0, 4).map((src, index) => (
-        <div key={index} className="relative overflow-hidden">
-          {mediaType === "video" ? (
+      {items.slice(0, 4).map((item, index) => (
+        <div
+          key={index}
+          className={cn(
+            "relative overflow-hidden bg-black flex items-center justify-center",
+            items.length === 1 ? "w-full h-full" : "w-full h-full"
+          )}
+        >
+          {item.type === "video" ? (
             <video
-              src={src}
-              className="w-full h-full object-cover"
+              src={item.src}
+              className={cn(
+                "block",
+                items.length === 1
+                  ? "max-h-[500px] w-auto max-w-full object-contain"
+                  : "w-full h-full object-cover"
+              )}
               muted
               loop
               autoPlay
@@ -93,9 +105,14 @@ const MediaGrid = ({
             />
           ) : (
             <img
-              src={src}
+              src={item.src}
               alt={`Media ${index + 1}`}
-              className="w-full h-full object-cover"
+              className={cn(
+                "block",
+                items.length === 1
+                  ? "max-h-[500px] w-auto max-w-full object-contain"
+                  : "w-full h-full object-cover"
+              )}
             />
           )}
         </div>
@@ -107,7 +124,6 @@ const MediaGrid = ({
 function ThreadsPreview({
   caption,
   mediaPreview,
-  mediaType = "image",
   platformUsername,
   displayName,
   avatarUrl,
@@ -131,20 +147,31 @@ function ThreadsPreview({
 
   const croppedPreview = singleMediaItem?.croppedPreviews?.threads;
 
-  // UPDATED: Calculate the first media source.
-  // If it's a video, prefer mediaUrl. If not, prefer cropped preview, then fallback to standard preview.
+  // Determine the source and type for the first item (singleMediaItem)
+  const firstItemIsVideo = singleMediaItem?.type === "video";
   const firstMediaSrc =
-    mediaType === "video" && singleMediaItem?.mediaUrl
+    firstItemIsVideo && singleMediaItem?.mediaUrl
       ? singleMediaItem.mediaUrl
       : croppedPreview || mediaPreview[0];
 
-  // Construct the images array ensuring the first item uses the correct source
-  const mainPostImages = [firstMediaSrc, ...mediaPreview.slice(1, 4)].filter(
-    Boolean
-  );
+  // Construct the items array for the grid
+  const gridItems: GridItem[] = [];
+
+  if (firstMediaSrc) {
+    gridItems.push({
+      src: firstMediaSrc,
+      type: firstItemIsVideo ? "video" : "image",
+    });
+  }
+
+  // Add subsequent items as images (thumbnails)
+  // We assume secondary items in the preview array are thumbnails if they are videos
+  mediaPreview.slice(1, 4).forEach((src) => {
+    gridItems.push({ src, type: "image" });
+  });
 
   const canCrop =
-    singleMediaItem?.id && mediaType === "image" && mediaPreview.length > 0;
+    singleMediaItem?.id && !firstItemIsVideo && gridItems.length > 0;
   const originalMediaSrc = singleMediaItem?.file
     ? singleMediaItem.preview
     : singleMediaItem?.originalUrlForCropping;
@@ -246,19 +273,12 @@ function ThreadsPreview({
     }
   };
 
-  // Handlers for Threads-specific inputs
   const handleTopicTagChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     let value = e.target.value;
-
-    // Strip leading # if present
     if (value.startsWith("#")) {
       value = value.slice(1);
     }
-
-    // Remove periods and ampersands
     value = value.replace(/[.&]/g, "");
-
-    // Limit to 50 characters
     if (value.length <= 50) {
       setState({ threadsTopicTag: value });
     }
@@ -297,8 +317,8 @@ function ThreadsPreview({
               {renderCaptionWithHashtags(caption)}
             </p>
 
-            {mainPostImages.length > 0 ? (
-              <MediaGrid images={mainPostImages} mediaType={mediaType} />
+            {gridItems.length > 0 ? (
+              <MediaGrid items={gridItems} />
             ) : (
               caption.length === 0 && (
                 <div className="mt-3 flex items-center gap-2 rounded-md bg-[--background] p-2 text-sm text-[--muted-foreground]">
@@ -342,7 +362,6 @@ function ThreadsPreview({
         )}
       </div>
 
-      {/* Topic Tag Input - Always visible */}
       <div className="px-3 py-2 border-t border-[--border]">
         <label htmlFor="topic-tag" className="eyebrow mb-2 flex items-center">
           Topic Tag
@@ -360,8 +379,7 @@ function ThreadsPreview({
         </p>
       </div>
 
-      {/* Link Attachment Input - Only show when no media */}
-      {mainPostImages.length === 0 && (
+      {gridItems.length === 0 && (
         <div className="px-3 py-2 border-t border-[--border]">
           <label
             htmlFor="link-attachment"
@@ -384,7 +402,6 @@ function ThreadsPreview({
         </div>
       )}
 
-      {/* Location Search - Reuse existing component */}
       <div className="px-3 py-2 border-t border-[--border] overflow-visible">
         <LocationSearchInput
           initialLocation={location}
