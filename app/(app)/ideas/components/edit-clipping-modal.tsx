@@ -1,5 +1,7 @@
 // app/(app)/ideas/components/edit-clipping-modal.tsx
+// COMMENTED OUT - Modal functionality being refactored to avoid excessive editorial updates
 
+/*
 "use client";
 
 import { useEffect } from "react";
@@ -187,4 +189,18 @@ export default function EditClippingModal({
       </div>
     </div>
   );
+}
+*/
+
+// Temporary stub to prevent build errors
+import type { Clipping as GeneratedClipping } from "@/lib/api/ideas";
+
+interface EditClippingModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  idea: GeneratedClipping;
+}
+
+export default function EditClippingModal({}: EditClippingModalProps) {
+  return null;
 }

@@ -11,7 +11,7 @@ import {
   Lightbulb,
   Loader2,
 } from "lucide-react";
-import EditClippingModal from "./edit-clipping-modal";
+// import EditClippingModal from "./edit-clipping-modal"; // COMMENTED OUT - refactoring modal functionality
 import {
   type Clipping as GeneratedClipping,
   saveClippingAsDraft,
@@ -27,9 +27,9 @@ interface LatestBriefingProps {
 }
 
 export default function LatestBriefing({ clippings }: LatestBriefingProps) {
-  const [selectedIdea, setSelectedIdea] = useState<GeneratedClipping | null>(
-    null
-  );
+  // const [selectedIdea, setSelectedIdea] = useState<GeneratedClipping | null>( // COMMENTED OUT - modal removed
+  //   null
+  // );
   const queryClient = useQueryClient();
 
   // Fetch user context for IDs
@@ -138,7 +138,8 @@ export default function LatestBriefing({ clippings }: LatestBriefingProps) {
                   >
                     <RefreshCw className="h-4 w-4" />
                   </Button>
-                  <Button
+                  {/* COMMENTED OUT - modal functionality being refactored */}
+                  {/* <Button
                     type="button"
                     size="icon"
                     variant="outline"
@@ -147,7 +148,7 @@ export default function LatestBriefing({ clippings }: LatestBriefingProps) {
                     disabled={saveMutation.isPending}
                   >
                     <PenLine className="h-4 w-4" />
-                  </Button>
+                  </Button> */}
                 </div>
                 <Button
                   type="button"
@@ -174,13 +175,14 @@ export default function LatestBriefing({ clippings }: LatestBriefingProps) {
         </div>
       </div>
 
-      {selectedIdea && (
+      {/* COMMENTED OUT - modal functionality being refactored */}
+      {/* {selectedIdea && (
         <EditClippingModal
           isOpen={!!selectedIdea}
           onClose={() => setSelectedIdea(null)}
           idea={selectedIdea}
         />
-      )}
+      )} */}
     </>
   );
 }

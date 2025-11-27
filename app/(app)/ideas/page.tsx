@@ -9,34 +9,36 @@ import AIBriefing from "./components/ai-briefing";
 import LatestBriefing from "./components/latest-briefing";
 import NewClipping from "./components/new-clipping";
 import IdeaClippings from "./components/idea-clippings";
-import EditClippingModal from "./components/edit-clipping-modal";
+// import EditClippingModal from "./components/edit-clipping-modal"; // COMMENTED OUT - refactoring modal functionality
 import type { Clipping as GeneratedClipping } from "@/lib/api/ideas";
-import type { Clipping } from "@/lib/types/editorial";
+// import type { Clipping } from "@/lib/types/editorial";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
-const mockClipping: Clipping = {
-  id: "mock-1",
-  title: "Holiday Marketing Campaign Ideas",
-  body: "Share 5 creative ways small businesses can boost holiday sales without breaking the bank. Focus on social media tactics, email marketing, and customer engagement strategies that deliver real ROI.",
-  tags: [],
-  created_at: new Date().toISOString(),
-  updated_at: new Date().toISOString(),
-  user_id: "mock-user",
-};
+// COMMENTED OUT - test modal removed during refactor
+// const mockClipping: Clipping = {
+//   id: "mock-1",
+//   title: "Holiday Marketing Campaign Ideas",
+//   body: "Share 5 creative ways small businesses can boost holiday sales without breaking the bank. Focus on social media tactics, email marketing, and customer engagement strategies that deliver real ROI.",
+//   tags: [],
+//   created_at: new Date().toISOString(),
+//   updated_at: new Date().toISOString(),
+//   user_id: "mock-user",
+// };
 
 type MainTab = "ai" | "manual" | "archive";
 
 export default function IdeasPage() {
   const [mainTab, setMainTab] = useState<MainTab>("ai");
   const [latestBriefing, setLatestBriefing] = useState<GeneratedClipping[]>([]);
-  const [showDevModal, setShowDevModal] = useState(false);
+  // const [showDevModal, setShowDevModal] = useState(false); // COMMENTED OUT - test modal removed
 
   return (
     <div className="mx-auto flex h-full w-full max-w-7xl flex-col">
       <PageHeading />
 
-      <div className="mb-4 flex justify-end">
+      {/* COMMENTED OUT - test modal removed during refactor */}
+      {/* <div className="mb-4 flex justify-end">
         <Button
           onClick={() => setShowDevModal(true)}
           size="sm"
@@ -45,7 +47,7 @@ export default function IdeasPage() {
           <Settings className="h-4 w-4" />
           Test Modal
         </Button>
-      </div>
+      </div> */}
 
       <div className="mb-8 flex items-center border-b border-border">
         <button
@@ -102,11 +104,12 @@ export default function IdeasPage() {
 
       {mainTab === "archive" && <IdeaClippings />}
 
-      <EditClippingModal
+      {/* COMMENTED OUT - test modal removed during refactor */}
+      {/* <EditClippingModal
         isOpen={showDevModal}
         onClose={() => setShowDevModal(false)}
         idea={mockClipping}
-      />
+      /> */}
     </div>
   );
 }
