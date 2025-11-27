@@ -10,7 +10,7 @@ export default function LandingPageFooter() {
 
   useEffect(() => {
     const user = "support";
-    const domain = "thegridmaster";
+    const domain = "ezibreezy";
     const tld = "com";
     setEmail(`${user}@${domain}.${tld}`);
   }, []);

@@ -8,11 +8,9 @@ import {
   Youtube,
   Music2,
   AtSign,
-  Hash,
   Users,
   ShieldCheck,
   Globe,
-  Moon,
   Layers,
   Zap,
   Pin,
@@ -53,7 +51,7 @@ export default function LandingPageSpotlight() {
         {/* THE BENTO GRID */}
         <div className="grid grid-cols-1 md:grid-cols-6 lg:grid-cols-12 gap-4 auto-rows-[minmax(300px,auto)]">
           {/* MEDIA ROOM */}
-          <div className="md:col-span-6 lg:col-span-7 bg-surface border-2 border-foreground p-8 relative group overflow-hidden hover:shadow-[8px_8px_0_0_var(--foreground)] transition-all duration-300">
+          <div className="md:col-span-6 lg:col-span-7 bg-surface border-2 border-foreground p-8 relative group overflow-hidden">
             <div className="relative z-10 flex h-full flex-col justify-between">
               <div>
                 <div className="flex items-center gap-2 mb-4">
@@ -94,52 +92,65 @@ export default function LandingPageSpotlight() {
             </div>
           </div>
 
-          {/* UNIVERSAL BROADCAST */}
-          <div className="md:col-span-6 lg:col-span-5 bg-surface-hover border-2 border-foreground p-8 relative group hover:shadow-[8px_8px_0_0_var(--foreground)] transition-all duration-300 flex flex-col">
-            <div className="mb-auto">
+          {/* --- UNIVERSAL BROADCAST --- */}
+          <div className="md:col-span-6 lg:col-span-5 bg-surface-hover border-2 border-foreground p-8 relative flex flex-row gap-6">
+            {/* Left Side: Text Content */}
+            <div className="flex-1 flex flex-col">
               <div className="flex items-center gap-2 mb-4">
                 <span className="w-2 h-2 bg-foreground rounded-full" />
                 <span className="font-mono text-[10px] uppercase tracking-widest text-foreground/60">
                   Connectivity
                 </span>
               </div>
-              <h3 className="font-serif text-3xl font-medium mb-4">
+              <h3 className="font-serif text-3xl font-medium mb-4 leading-tight">
                 Universal Signal
               </h3>
-              <p className="font-serif text-base text-foreground/70">
+              <p className="font-serif text-base text-foreground/70 mb-auto pr-4">
                 Connect everything. No per-channel pricing. Your plan includes
                 access to the full network.
               </p>
+
+              <div className="mt-8 hidden sm:block">
+                <p className="font-mono text-[10px] uppercase tracking-widest opacity-40">
+                  Network Status: Active
+                </p>
+              </div>
             </div>
 
-            <div className="mt-8 grid grid-cols-5 gap-3">
-              {[
-                { icon: Twitter, label: "X" },
-                { icon: Instagram, label: "IG" },
-                { icon: Linkedin, label: "LI" },
-                { icon: Facebook, label: "FB" },
-                { icon: Youtube, label: "YT" },
-                { icon: Music2, label: "TT" },
-                { icon: AtSign, label: "TH" },
-                { icon: Pin, label: "PIN" },
-                { icon: Store, label: "GMB" },
-                { icon: Cloud, label: "BS" },
-              ].map((p, i) => (
-                <div
-                  key={i}
-                  className="aspect-square flex flex-col items-center justify-center border-2 border-foreground bg-surface hover:bg-foreground hover:text-background-editorial transition-colors cursor-default group/icon"
-                >
-                  <p.icon className="w-6 h-6 mb-1" />
-                  <span className="font-mono text-[8px] uppercase font-bold opacity-50 group-hover/icon:opacity-100">
-                    {p.label}
-                  </span>
-                </div>
-              ))}
+            {/* Right Side: 2-Column Icon Stack */}
+            <div className="shrink-0">
+              <div className="grid grid-cols-2 gap-3">
+                {[
+                  { icon: Twitter, label: "X" },
+                  { icon: Instagram, label: "IG" },
+                  { icon: Linkedin, label: "LI" },
+                  { icon: Facebook, label: "FB" },
+                  { icon: Youtube, label: "YT" },
+                  { icon: Music2, label: "TT" },
+                  { icon: AtSign, label: "TH" },
+                  { icon: Pin, label: "PIN" },
+                  { icon: Store, label: "GMB" },
+                  { icon: Cloud, label: "BS" },
+                ].map((p, i) => (
+                  <div
+                    key={i}
+                    className="
+                      relative w-14 h-14 rounded-full border-2 border-foreground bg-surface
+                      flex items-center justify-center 
+                      shadow-[3px_3px_0_0_var(--foreground)]
+                      cursor-default
+                    "
+                  >
+                    <p.icon className="w-6 h-6" />
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
+          {/* ------------------------------------------- */}
 
           {/* MANAGEMENT SUITE */}
-          <div className="md:col-span-6 lg:col-span-4 bg-surface border-2 border-foreground p-8 relative group hover:translate-y-1 transition-transform">
+          <div className="md:col-span-6 lg:col-span-4 bg-surface border-2 border-foreground p-8 relative">
             <div className="flex items-center gap-2 mb-4">
               <span className="w-2 h-2 bg-brand-primary rounded-full" />
               <span className="font-mono text-[10px] uppercase tracking-widest text-foreground/60">
@@ -170,7 +181,7 @@ export default function LandingPageSpotlight() {
           </div>
 
           {/* CLIENT ACCESS */}
-          <div className="md:col-span-6 lg:col-span-4 bg-surface border-2 border-foreground p-8 relative group hover:shadow-[8px_8px_0_0_var(--foreground)] transition-all duration-300">
+          <div className="md:col-span-6 lg:col-span-4 bg-surface border-2 border-foreground p-8 relative">
             <div className="flex items-center gap-2 mb-4">
               <Globe className="w-4 h-4" />
               <span className="font-mono text-[10px] uppercase tracking-widest text-foreground/60">
@@ -184,7 +195,7 @@ export default function LandingPageSpotlight() {
 
             <p className="font-serif text-sm text-foreground/70 mb-6">
               Share a live, read-only link to your calendar. Clients see the
-              schedule—no account needed.
+              schedule, no account needed.
             </p>
 
             <div className="rounded-sm p-4 flex items-center gap-3 bg-surface-hover border border-foreground/20">
@@ -202,10 +213,11 @@ export default function LandingPageSpotlight() {
           </div>
 
           {/* IDEA ENGINE */}
-          <div className="md:col-span-6 lg:col-span-4 bg-brand-primary border-2 border-foreground p-8 relative group hover:shadow-[8px_8px_0_0_var(--foreground)] transition-all duration-300 text-brand-primary-foreground">
+          <div className="md:col-span-6 lg:col-span-4 bg-brand-primary border-2 border-foreground p-8 relative text-brand-primary-foreground">
             <div className="flex items-center gap-2 mb-4">
               <Zap className="w-4 h-4" />
-              <span className="font-mono text-[10px] uppercase tracking-widest text-foreground/60">
+              {/* FIXED: White text with opacity for hierarchy */}
+              <span className="font-mono text-[10px] uppercase tracking-widest text-brand-primary-foreground/70">
                 Generation
               </span>
             </div>
@@ -214,16 +226,23 @@ export default function LandingPageSpotlight() {
               Idea Engine
             </h3>
 
-            <p className="font-serif text-sm text-foreground/80">
-              Don't start from zero. Our briefing system transforms raw notes
-              into polished drafts tailored to your voice.
+            <p className="font-serif text-sm text-brand-primary-foreground/90 leading-relaxed">
+              Don't start from zero. Our system turns raw notes into drafts that
+              actually sound like <em>you</em>.
+              <br />
+              <br />
+              <span className="opacity-80">
+                (We know you're rolling your eyes. We'll accept your apology
+                later. It won't sound like a robot, unless <em>you</em> sound
+                like a robot. In which case, we can help with that too, I
+                guess.)
+              </span>
             </p>
 
             <div className="absolute bottom-4 right-4 opacity-10 rotate-12">
               <span className="font-serif text-9xl font-black">AI</span>
             </div>
           </div>
-
           {/* EXTRAS STRIP */}
           <div className="col-span-1 md:col-span-6 lg:col-span-12 bg-foreground text-background-editorial border-2 border-foreground relative overflow-hidden group p-0">
             <div className="h-1 w-full bg-brand-primary absolute top-0 left-0" />
@@ -271,10 +290,10 @@ export default function LandingPageSpotlight() {
                   <Check className="w-6 h-6" />
                 </div>
                 <h4 className="font-serif font-bold text-xl uppercase tracking-tight">
-                  One Fair Price
+                  Fair pricing
                 </h4>
                 <p className="font-mono text-xs uppercase tracking-widest mt-1 opacity-80">
-                  Includes Everything
+                  Includes Everything, Because we can.
                 </p>
               </div>
             </div>
