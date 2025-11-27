@@ -137,20 +137,17 @@ export function InstagramMediaDisplay({
       onClick={handleImageClick}
       className={cn(
         "relative bg-[--background]",
-        displayMediaSrc ? "" : "aspect-square flex items-center justify-center",
+        displayMediaSrc && isStory ? "aspect-9/16" : displayMediaSrc ? "" : "aspect-square flex items-center justify-center",
         (isTaggingMode || isProductTaggingMode) && "cursor-crosshair"
       )}
-      style={displayMediaSrc ? { aspectRatio } : undefined}
+      style={displayMediaSrc && !isStory ? { aspectRatio } : undefined}
     >
       {displayMediaSrc ? (
         mediaType === "video" ? (
           <video
             ref={videoRef}
             src={displayMediaSrc}
-            className={cn(
-              "w-full h-full",
-              isStory ? "object-cover" : "object-contain"
-            )}
+            className="w-full h-full object-contain"
             muted
             controls={false}
             autoPlay
@@ -166,10 +163,7 @@ export function InstagramMediaDisplay({
             ref={imageRef}
             src={displayMediaSrc}
             alt="Media Preview"
-            className={cn(
-              "w-full h-full",
-              isStory ? "object-cover" : "object-contain"
-            )}
+            className="w-full h-full object-contain"
           />
         )
       ) : (

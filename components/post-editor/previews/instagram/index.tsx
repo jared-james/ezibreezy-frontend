@@ -384,8 +384,8 @@ function InstagramPreview({
   };
 
   return (
-    <div className="w-full max-w-sm mx-auto space-y-4 transition-all duration-300">
-      <div className="bg-[--surface] border border-[--border] shadow-lg">
+    <div className="w-full max-w-[300px] mx-auto space-y-4 transition-all duration-300">
+      <div className="bg-[--surface] border border-[--border] shadow-lg rounded-4xl overflow-hidden">
         {/* Header */}
         <InstagramHeader
           avatarUrl={avatarUrl}
@@ -404,7 +404,6 @@ function InstagramPreview({
         ) : isStoryCarousel ? (
           <InstagramStoryCarousel
             mediaItems={mediaItems}
-            aspectRatio={previewAspectRatio}
             onVideoMetadataLoaded={setVideoDuration}
           />
         ) : isCarousel ? (

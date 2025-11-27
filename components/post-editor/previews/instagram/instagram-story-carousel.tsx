@@ -8,13 +8,11 @@ import { MediaItem } from "@/lib/store/editorial-store";
 
 interface InstagramStoryCarouselProps {
   mediaItems: MediaItem[];
-  aspectRatio: number;
   onVideoMetadataLoaded?: (duration: number) => void;
 }
 
 export function InstagramStoryCarousel({
   mediaItems,
-  aspectRatio,
   onVideoMetadataLoaded,
 }: InstagramStoryCarouselProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -129,7 +127,7 @@ export function InstagramStoryCarousel({
   };
 
   return (
-    <div className="relative bg-black" style={{ aspectRatio }}>
+    <div className="relative bg-black aspect-9/16">
       {/* Progress Bars */}
       <div className="absolute top-2 left-0 right-0 z-20 flex gap-1 px-2">
         {mediaItems.map((_, index) => (
@@ -160,7 +158,7 @@ export function InstagramStoryCarousel({
             <video
               ref={videoRef}
               src={displayMediaSrc}
-              className="w-full h-full object-cover"
+              className="w-full h-full object-contain"
               muted
               controls={false}
               autoPlay
@@ -174,7 +172,7 @@ export function InstagramStoryCarousel({
             <img
               src={displayMediaSrc}
               alt={`Story ${currentIndex + 1}`}
-              className="w-full h-full object-cover"
+              className="w-full h-full object-contain"
             />
           ))}
       </div>
