@@ -34,13 +34,6 @@ const MediaThumbnail = ({
   // Use the actual media URL for the video player, fall back to preview (blob) for new uploads
   const videoSrc = item.mediaUrl || item.preview;
 
-  console.log(`[PlatformMediaSelector] Rendering Item ${item.uid}:`, {
-    type: item.type,
-    preview: item.preview,
-    mediaUrl: item.mediaUrl,
-    isVideo,
-  });
-
   return (
     <button
       type="button"

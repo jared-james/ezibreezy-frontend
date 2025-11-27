@@ -66,12 +66,7 @@ export default function LocationSearchInput({
         return [];
       }
       const results = await searchLocations(debouncedQuery, integrationId);
-      console.log(
-        "[LocationSearch] Query:",
-        debouncedQuery,
-        "Results:",
-        results
-      );
+
       return results;
     },
     enabled: !!debouncedQuery && !!integrationId && !selectedLocation.id,

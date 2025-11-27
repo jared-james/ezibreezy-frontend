@@ -12,8 +12,6 @@ interface SignupPayload {
 }
 
 export async function signupForWaitlist(payload: SignupPayload) {
-  console.log("API_KEY", API_KEY);
-
   if (!BACKEND_URL || !API_KEY) {
     console.error("API configuration missing for waitlist signup.");
     return { success: false, error: "Server configuration error." };
