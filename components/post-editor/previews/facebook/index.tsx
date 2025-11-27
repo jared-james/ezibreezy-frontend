@@ -3,14 +3,7 @@
 "use client";
 
 import { memo, useState, useRef, useEffect, useMemo } from "react";
-import {
-  ThumbsUp,
-  MessageCircle,
-  Share2,
-  Crop,
-  Link2,
-  Loader2,
-} from "lucide-react";
+import { Crop, Link2, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { renderCaptionWithHashtags } from "../../render-caption";
 import { ImageCropperModal } from "../../modals/image-cropper-modal";
@@ -24,6 +17,11 @@ import {
 import { useEditorialStore, MediaItem } from "@/lib/store/editorial-store";
 import { getMediaViewUrl } from "@/lib/api/media";
 import { toast } from "sonner";
+
+// Sub-components
+import { FacebookHeader } from "./facebook-header";
+import { FacebookPostFooter } from "./facebook-post-footer";
+import { FacebookCarousel } from "./facebook-carousel";
 
 const URL_REGEX =
   /(https?:\/\/[^\s]+|www\.[^\s]+|[a-zA-Z0-9][-a-zA-Z0-9]*\.[a-zA-Z]{2,}(?:\/[^\s]*)?)/gi;
@@ -62,6 +60,7 @@ function stripUrlFromCaption(caption: string, url: string): string {
 interface FacebookPreviewProps {
   caption: string;
   singleMediaItem: MediaItem | null;
+  mediaItems?: MediaItem[];
   mediaType?: "image" | "video" | "text";
   platformUsername: string;
   displayName: string | null;
@@ -70,41 +69,10 @@ interface FacebookPreviewProps {
   aspectRatio?: number;
 }
 
-const ProfileAvatar = ({
-  size,
-  avatarUrl,
-  primaryName,
-}: {
-  size: number;
-  avatarUrl: string | null;
-  primaryName: string;
-}) => {
-  if (avatarUrl) {
-    return (
-      <img
-        src={avatarUrl}
-        alt={`${primaryName} profile picture`}
-        className="rounded-full border border-[--border] shrink-0 object-cover"
-        style={{ width: size, height: size }}
-      />
-    );
-  }
-
-  return (
-    <div
-      className={cn(
-        "rounded-full bg-[--muted] border border-[--border] shrink-0"
-      )}
-      style={{ width: size, height: size }}
-      role="img"
-      aria-label="Profile image placeholder"
-    />
-  );
-};
-
 function FacebookPreview({
   caption,
   singleMediaItem,
+  mediaItems = [],
   mediaType = "image",
   platformUsername,
   displayName,
@@ -117,9 +85,26 @@ function FacebookPreview({
 
   const [isCropperOpen, setIsCropperOpen] = useState(false);
   const [isFetchingOriginal, setIsFetchingOriginal] = useState(false);
+  const [currentCarouselIndex, setCurrentCarouselIndex] = useState(0);
+
   const setCropForMedia = useEditorialStore((state) => state.setCropForMedia);
   const integrationId =
     useEditorialStore.getState().selectedAccounts["facebook"]?.[0];
+
+  // Determine if we have multiple media items
+  const hasMultipleMedia = mediaItems.length > 1;
+  const isCarousel = hasMultipleMedia;
+
+  // Facebook uses 1:1 for carousels, 1.91:1 for single posts
+  const previewAspectRatio = isCarousel ? 1 : aspectRatio;
+
+  // For carousel mode, get the current media item
+  const currentCarouselMedia = isCarousel
+    ? mediaItems[currentCarouselIndex]
+    : null;
+
+  // Determine which media to use for cropping: carousel item or single item
+  const activeMediaForCrop = currentCarouselMedia || singleMediaItem;
 
   const croppedPreview = singleMediaItem?.croppedPreviews?.facebook;
 
@@ -130,13 +115,16 @@ function FacebookPreview({
       ? singleMediaItem.mediaUrl
       : singleMediaItem?.preview);
 
-  const canCrop = singleMediaItem?.id && mediaType === "image";
-  const originalMediaSrc = singleMediaItem?.file
-    ? singleMediaItem.preview
-    : singleMediaItem?.originalUrlForCropping;
+  // Can crop if we have an uploaded image (either single or in carousel)
+  const canCrop =
+    !!activeMediaForCrop?.id && activeMediaForCrop?.type === "image";
+
+  const originalMediaSrc = activeMediaForCrop?.file
+    ? activeMediaForCrop.preview
+    : activeMediaForCrop?.originalUrlForCropping;
 
   const detectedUrl = useMemo(() => extractFirstUrl(caption), [caption]);
-  const showLinkPreview = detectedUrl && !displayMediaSrc;
+  const showLinkPreview = detectedUrl && !displayMediaSrc && !isCarousel;
 
   const displayCaption = useMemo(() => {
     if (showLinkPreview && detectedUrl) {
@@ -149,9 +137,10 @@ function FacebookPreview({
     cropData: CropData | undefined,
     croppedPreviewUrl: string
   ) => {
-    if (singleMediaItem) {
+    // Use activeMediaForCrop (handles both carousel and single media)
+    if (activeMediaForCrop) {
       setCropForMedia(
-        singleMediaItem.uid,
+        activeMediaForCrop.uid,
         "facebook",
         cropData,
         croppedPreviewUrl
@@ -162,7 +151,7 @@ function FacebookPreview({
   const prevPostTypeRef = useRef(postType);
   useEffect(() => {
     const applyAutoCrop = async () => {
-      if (!originalMediaSrc) return;
+      if (!originalMediaSrc || isCarousel) return;
 
       if (prevPostTypeRef.current !== "story" && postType === "story") {
         try {
@@ -210,7 +199,7 @@ function FacebookPreview({
     };
 
     applyAutoCrop();
-  }, [postType, aspectRatio, onCropComplete, originalMediaSrc]);
+  }, [postType, aspectRatio, isCarousel, originalMediaSrc]);
 
   const handleCropComplete = async (
     croppedAreaPixels: PixelCrop,
@@ -262,9 +251,16 @@ function FacebookPreview({
   };
 
   const handleCropClick = async () => {
-    if (!canCrop || !singleMediaItem || !singleMediaItem.id) return;
+    // Use activeMediaForCrop which already handles carousel vs single media
+    if (
+      !activeMediaForCrop ||
+      !activeMediaForCrop.id ||
+      activeMediaForCrop.type !== "image"
+    ) {
+      return;
+    }
 
-    if (singleMediaItem.originalUrlForCropping) {
+    if (activeMediaForCrop.originalUrlForCropping) {
       setIsCropperOpen(true);
       return;
     }
@@ -274,13 +270,14 @@ function FacebookPreview({
       if (!integrationId) throw new Error("Facebook account not selected.");
 
       const { downloadUrl } = await getMediaViewUrl(
-        singleMediaItem.id,
+        activeMediaForCrop.id,
         integrationId
       );
 
+      // Update store so next time we don't fetch
       const currentItems = useEditorialStore.getState().stagedMediaItems;
       const updatedItems = currentItems.map((item) =>
-        item.uid === singleMediaItem.uid
+        item.uid === activeMediaForCrop.uid
           ? { ...item, originalUrlForCropping: downloadUrl }
           : item
       );
@@ -299,27 +296,10 @@ function FacebookPreview({
 
   return (
     <div className="w-full bg-[--surface] border border-[--border] shadow-lg max-w-sm mx-auto rounded-lg overflow-hidden">
-      <div className="flex items-center gap-3 p-3">
-        <ProfileAvatar
-          size={40}
-          avatarUrl={avatarUrl}
-          primaryName={primaryName}
-        />
-        <div className="flex-1 min-w-0">
-          <p className="font-semibold text-sm text-[--foreground]">
-            {primaryName}
-          </p>
-          <div className="flex items-center gap-1 text-xs text-[--muted-foreground]">
-            <span>Just now</span>
-            <span>·</span>
-            <span>🌐</span>
-          </div>
-        </div>
-        <div className="text-[--muted-foreground]">
-          <span className="text-lg">···</span>
-        </div>
-      </div>
+      {/* Header */}
+      <FacebookHeader avatarUrl={avatarUrl} primaryName={primaryName} />
 
+      {/* Caption */}
       {postType !== "story" && displayCaption && (
         <div className="px-3 pb-3">
           <p className="text-sm text-[--foreground] whitespace-pre-wrap">
@@ -328,22 +308,33 @@ function FacebookPreview({
         </div>
       )}
 
-      {displayMediaSrc ? (
-        <div className="relative bg-[--background]">
+      {/* Media Content */}
+      {isCarousel ? (
+        <FacebookCarousel
+          mediaItems={mediaItems}
+          aspectRatio={previewAspectRatio}
+          onCurrentIndexChange={setCurrentCarouselIndex}
+        />
+      ) : displayMediaSrc ? (
+        <div
+          className="relative bg-gray-100"
+          style={{ aspectRatio: previewAspectRatio }}
+        >
           {mediaType === "video" ? (
             <video
               src={displayMediaSrc}
-              className="w-full h-auto block"
+              className="w-full h-full object-contain"
               muted
               loop
               autoPlay
               playsInline
             />
           ) : (
+            // eslint-disable-next-line @next/next/no-img-element
             <img
               src={displayMediaSrc}
               alt="Media Preview"
-              className="w-full h-auto block"
+              className="w-full h-full object-contain"
             />
           )}
         </div>
@@ -363,62 +354,32 @@ function FacebookPreview({
         </div>
       ) : null}
 
-      {postType !== "story" && (
-        <div className="flex items-center justify-between px-3 py-2 text-xs text-[--muted-foreground]">
-          <div className="flex items-center gap-1">
-            <span className="flex items-center justify-center w-5 h-5 rounded-full bg-blue-500 text-white text-[10px]">
-              👍
-            </span>
-            <span>0</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <span>0 comments</span>
-            <span>0 shares</span>
-          </div>
-        </div>
-      )}
+      {/* Post Footer - Icons only, no stats */}
+      {postType !== "story" && <FacebookPostFooter />}
 
-      {postType !== "story" && (
-        <div className="flex items-center justify-around py-1 border-t border-[--border] text-[--muted-foreground]">
-          <button className="flex items-center gap-2 px-4 py-2 hover:bg-[--surface-hover] rounded flex-1 justify-center text-sm">
-            <ThumbsUp className="w-5 h-5" />
-            <span>Like</span>
-          </button>
-          <button className="flex items-center gap-2 px-4 py-2 hover:bg-[--surface-hover] rounded flex-1 justify-center text-sm">
-            <MessageCircle className="w-5 h-5" />
-            <span>Comment</span>
-          </button>
-          <button className="flex items-center gap-2 px-4 py-2 hover:bg-[--surface-hover] rounded flex-1 justify-center text-sm">
-            <Share2 className="w-5 h-5" />
-            <span>Share</span>
-          </button>
-        </div>
-      )}
-
+      {/* Toolbar */}
       <div className="px-3 py-2 border-t border-[--border]">
         {canCrop ? (
-          <div className="flex items-center gap-4">
-            <button
-              onClick={handleCropClick}
-              title="Crop Image"
-              className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
-              disabled={isFetchingOriginal}
-            >
-              {isFetchingOriginal ? (
-                <Loader2 className="h-3.5 w-3.5 animate-spin" />
-              ) : (
-                <Crop className="h-3.5 w-3.5" />
-              )}
-              Crop
-            </button>
-          </div>
+          <button
+            onClick={handleCropClick}
+            className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
+            disabled={isFetchingOriginal}
+          >
+            {isFetchingOriginal ? (
+              <Loader2 className="h-3.5 w-3.5 animate-spin" />
+            ) : (
+              <Crop className="h-3.5 w-3.5" />
+            )}
+            Crop {isCarousel && `(${currentCarouselIndex + 1}/${mediaItems?.length})`}
+          </button>
         ) : (
-          <p className="text-xs text-[--muted-foreground] text-center italic">
+          <p className="text-xs text-muted-foreground text-center italic">
             Facebook Preview
           </p>
         )}
       </div>
 
+      {/* Cropper Modal */}
       {originalMediaSrc && (
         <ImageCropperModal
           open={isCropperOpen}
@@ -426,6 +387,8 @@ function FacebookPreview({
           imageSrc={originalMediaSrc}
           platform="facebook"
           postType={postType}
+          initialCrop={activeMediaForCrop?.crops?.facebook?.croppedAreaPixels}
+          initialAspectRatio={activeMediaForCrop?.crops?.facebook?.aspectRatio}
           onCropComplete={handleCropComplete}
         />
       )}

@@ -267,6 +267,7 @@ function PreviewPanel({
           <FacebookPreview
             caption={currentCaption}
             singleMediaItem={singleMediaItem || null}
+            mediaItems={activeMediaItems}
             mediaType={mediaPostType}
             platformUsername={activeAccount.platformUsername}
             displayName={activeAccount.name}
