@@ -1,45 +1,127 @@
 // components/landing-page/landing-page-poster.tsx
 
-import Image from "next/image";
+"use client";
+
+import { Sparkles, PenTool, BrainCircuit, Fingerprint } from "lucide-react";
+import InteractiveWhiteboard from "./interactive-whiteboard";
 
 export default function LandingPagePoster() {
   return (
-    <section className="bg-background px-6 py-24">
-      <div className="mx-auto w-full max-w-6xl">
-        <div className="w-full border-t-2 border-foreground mb-16" />
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-12 md:gap-16 items-start">
-          <div className="relative mx-auto w-full max-w-md h-64 md:h-80">
-            <Image
-              src="/background_logo_02.png"
-              alt="Vintage-style illustration"
-              fill
-              className="object-contain grayscale opacity-80"
-              style={{ filter: "contrast(1.2)" }}
-            />
-            <p className="mt-4 text-center font-serif text-xs italic text-muted-foreground">
-              A simple idea deserves a beautiful execution.
-            </p>
-          </div>
-
-          <div>
-            <p className="eyebrow mb-4 text-center md:text-left">
-              Editorial Note
+    <section className="bg-background border-b border-foreground relative overflow-hidden">
+      <div className="px-6 py-24 mx-auto w-full max-w-6xl relative z-0">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 items-stretch">
+          <div className="lg:col-span-7 flex flex-col justify-center h-full">
+            <p className="eyebrow mb-4 text-brand-primary font-bold">
+              The Final Word
             </p>
 
-            <h2 className="font-serif text-4xl md:text-5xl font-bold leading-tight mb-6 text-center md:text-left tracking-tight">
-              Modern Scheduling <br /> & Content Timing
+            <h2 className="font-serif text-5xl md:text-6xl font-black leading-[0.95] mb-8 tracking-tighter">
+              A workflow that respects your taste.
             </h2>
 
-            <p className="article-body max-w-md">
-              Know exactly when to post across every platform. Your calendar
-              adapts to peak performance windows, audience patterns, and
-              consistency goals, ensuring your work lands when it matters most.
-            </p>
-          </div>
-        </div>
+            <div className="prose prose-lg text-foreground/80 font-serif mb-10 leading-relaxed">
+              <p>
+                It is time to build your brand and service your clients in a way
+                that feels{" "}
+                <span className="italic font-bold text-foreground">
+                  enjoyable
+                </span>
+                , not exhausting.
+              </p>
+              <br />
+              <p>
+                We believe software shouldn't just be a utility bucket for your
+                files. It should be a creative partner. One that understands the
+                difference between "content" and "connection."
+              </p>
+            </div>
 
-        <div className="border-b-4 border-double border-foreground mt-16" />
+            <div className="bg-surface-hover border-l-4 border-brand-primary p-6 md:p-8 relative mt-4 shadow-[4px_4px_0_0_rgba(0,0,0,0.1)]">
+              <div className="absolute -top-3 left-6 bg-brand-primary text-brand-primary-foreground px-2 py-0.5 font-mono text-[10px] uppercase tracking-widest font-bold border border-foreground">
+                Active Development
+              </div>
+
+              <h3 className="font-serif text-2xl font-bold mb-4 flex items-center gap-2">
+                <BrainCircuit className="w-5 h-5 text-brand-primary" />
+                Contextual Intelligence.
+              </h3>
+
+              <div className="space-y-4 text-sm font-serif text-foreground/80 leading-relaxed">
+                <p>
+                  The internet is drowning in beige, robotic text. We refuse to
+                  contribute to the noise. We are building the antidote to "AI
+                  Slop." An <strong>Idea Engine</strong> that doesn't just read
+                  a prompt—it studies your strategy.
+                </p>
+                <p>
+                  It doesn't matter if you are a{" "}
+                  <span className="font-bold text-foreground">
+                    Custom Home Builder
+                  </span>
+                  , a{" "}
+                  <span className="font-bold text-foreground">
+                    Fine Dining Sous Chef
+                  </span>
+                  , a{" "}
+                  <span className="font-bold text-foreground">
+                    Bootstrapped SaaS Founder
+                  </span>
+                  , an{" "}
+                  <span className="font-bold text-foreground">
+                    Interior Designer
+                  </span>
+                  , a{" "}
+                  <span className="font-bold text-foreground">
+                    Performance Coach
+                  </span>
+                  , a{" "}
+                  <span className="font-bold text-foreground">
+                    Boutique Hotelier
+                  </span>
+                  , a{" "}
+                  <span className="font-bold text-foreground">
+                    Wedding Photographer
+                  </span>
+                  , a{" "}
+                  <span className="font-bold text-foreground">
+                    Sustainable Fashion Brand
+                  </span>
+                  , a{" "}
+                  <span className="font-bold text-foreground">
+                    Real Estate Agent
+                  </span>
+                  , or an{" "}
+                  <span className="font-bold text-foreground">
+                    Indie Game Developer
+                  </span>
+                  ...
+                </p>
+                <p className="font-medium text-foreground">
+                  Our system understands the nuance of <em>your</em> industry.
+                  No more generic fluff. Just razor-sharp drafts that sound like
+                  you on your best day.
+                </p>
+              </div>
+
+              <div className="mt-6 pt-4 border-t border-dashed border-foreground/20 flex flex-wrap items-center gap-4 text-xs font-mono uppercase tracking-wider opacity-60">
+                <span className="flex items-center gap-1.5">
+                  <Fingerprint className="w-3 h-3" />
+                  True Voice
+                </span>
+                <span className="flex items-center gap-1.5">
+                  <Sparkles className="w-3 h-3" />
+                  Deep Context
+                </span>
+                <span className="flex items-center gap-1.5">
+                  <PenTool className="w-3 h-3" />
+                  Zero Fluff
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <InteractiveWhiteboard />
+        </div>
       </div>
     </section>
   );
