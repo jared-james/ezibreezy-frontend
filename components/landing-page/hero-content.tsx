@@ -1,0 +1,184 @@
+// components/landing-page/hero-content.tsx
+
+"use client";
+
+import { useState } from "react";
+import {
+  ArrowRight,
+  Star,
+  Scissors,
+  Loader2,
+  CheckCircle2,
+} from "lucide-react";
+// import { signupForWaitlist } from "@/app/actions/early-access"; // DISABLED FOR SIMULATION
+import { toast } from "sonner";
+import { motion, AnimatePresence } from "framer-motion";
+
+export default function HeroContent() {
+  const [email, setEmail] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [isSuccess, setIsSuccess] = useState(false);
+
+  const handleJoin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!email) return;
+
+    setIsLoading(true);
+
+    // --- SIMULATION START ---
+    setTimeout(() => {
+      setIsLoading(false);
+      setIsSuccess(true);
+      toast.success("Dispatched successfully.");
+    }, 2000);
+    // --- SIMULATION END ---
+  };
+
+  return (
+    <div className="flex flex-col justify-center lg:col-span-7">
+      {/* "Late Breaking" Tag */}
+      <div className="mb-8 inline-flex w-fit items-center gap-2 border-2 border-foreground bg-brand-primary px-3 py-1 text-brand-primary-foreground shadow-[4px_4px_0_0_var(--brand-primary)]">
+        <Star className="h-4 w-4 fill-current" />
+        <span className="text-xs font-bold uppercase tracking-widest">
+          Late Breaking News
+        </span>
+      </div>
+
+      <h2 className="mb-8 font-serif text-5xl font-bold leading-[1.1] tracking-tight md:text-6xl">
+        Social media shouldn&apos;t feel like a second job.
+      </h2>
+
+      {/* Editorial Copy */}
+      <div className="prose prose-lg mb-10 max-w-xl font-serif leading-relaxed text-foreground/80">
+        <p>
+          <span className="mr-3 -mt-1.5 float-left font-serif text-5xl font-bold">
+            W
+          </span>
+          e are building the editorial desk for the modern creator. Think
+          through what you want to say, capture it quickly, and turn it into
+          posts without the burnout.
+        </p>
+        <p className="mt-6 border-l-4 border-foreground pl-4 text-base italic text-foreground/60">
+          &ldquo;Finally, a tool that respects the creative process instead of
+          just the algorithm.&rdquo;
+        </p>
+      </div>
+
+      {/* Email Capture Section */}
+      <div className="mt-2 max-w-md overflow-hidden p-1">
+        {/* The "Cut Line" */}
+        <div className="mb-2 flex items-center gap-2 text-foreground/40">
+          <Scissors className="h-4 w-4 -rotate-90" />
+          <div className="flex-1 border-b border-dashed border-foreground/40" />
+          <span className="font-mono text-[10px] uppercase tracking-widest">
+            {isSuccess ? "Dispatched" : "Detach & Return"}
+          </span>
+        </div>
+
+        <div className="relative min-h-[100px]">
+          <AnimatePresence mode="wait">
+            {!isSuccess ? (
+              <motion.form
+                key="signup-form"
+                onSubmit={handleJoin}
+                className="group relative"
+                // The Exit Animation (The Train Leaving)
+                exit={{
+                  x: "100%",
+                  opacity: 0,
+                  transition: {
+                    duration: 0.8,
+                    ease: "backIn",
+                  },
+                }}
+              >
+                <div className="relative border-2 border-dashed border-foreground bg-surface p-4 transition-all hover:bg-surface-hover">
+                  <div className="flex flex-col items-stretch gap-3 sm:flex-row">
+                    <div className="flex flex-1 flex-col justify-end">
+                      <label
+                        htmlFor="email"
+                        className="mb-1 pl-1 font-mono text-[10px] uppercase tracking-widest text-foreground/50"
+                      >
+                        Subscriber Email
+                      </label>
+                      <input
+                        id="email"
+                        type="email"
+                        placeholder="write.here@example.com"
+                        value={email}
+                        disabled={isLoading}
+                        onChange={(e) => setEmail(e.target.value)}
+                        className="w-full border-b-2 border-dotted border-foreground/30 bg-transparent px-1 py-1 font-serif text-lg placeholder:text-foreground/20 focus:border-foreground focus:outline-none focus:ring-0 transition-colors disabled:opacity-50"
+                        required
+                      />
+                    </div>
+
+                    <button
+                      type="submit"
+                      disabled={isLoading}
+                      className={`
+                        relative flex min-w-[140px] items-center justify-center gap-2 overflow-hidden px-6 py-3 text-xs font-bold uppercase tracking-wider transition-all
+                        border-2 border-transparent
+                        ${
+                          isLoading
+                            ? "bg-foreground/10 text-foreground cursor-wait border-foreground border-dashed"
+                            : "bg-foreground text-background hover:bg-foreground/90 shadow-[4px_4px_0_0_var(--brand-primary)]"
+                        }
+                      `}
+                    >
+                      {isLoading && (
+                        <div
+                          className="absolute inset-0 opacity-20"
+                          style={{
+                            backgroundImage:
+                              "repeating-linear-gradient(45deg, transparent, transparent 10px, currentColor 10px, currentColor 20px)",
+                          }}
+                        />
+                      )}
+
+                      <span className="relative z-10 flex items-center gap-2">
+                        {isLoading ? (
+                          <>
+                            <Loader2 className="h-3 w-3 animate-spin" />
+                            DISPATCHING...
+                          </>
+                        ) : (
+                          <>
+                            DISPATCH <ArrowRight className="h-4 w-4" />
+                          </>
+                        )}
+                      </span>
+                    </button>
+                  </div>
+                </div>
+              </motion.form>
+            ) : (
+              // The Thank You State
+              <motion.div
+                key="success-message"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.4, duration: 0.5 }}
+                className="flex h-full flex-col justify-center border-2 border-dashed border-brand-primary/20 bg-brand-primary/5 p-6 text-center"
+              >
+                <div className="flex flex-col items-center gap-2 text-foreground">
+                  <div className="flex items-center gap-2 font-serif text-xl italic">
+                    <CheckCircle2 className="h-5 w-5 text-brand-primary" />
+                    <span>Received. Thank you.</span>
+                  </div>
+                  <p className="font-mono text-[10px] uppercase tracking-widest text-foreground/50">
+                    Your spot is secured
+                  </p>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+
+        <p className="mt-3 pl-1 font-mono text-[10px] uppercase tracking-wide text-foreground/50">
+          * Limited spots available for early access cohort.
+        </p>
+      </div>
+    </div>
+  );
+}
