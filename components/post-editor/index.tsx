@@ -94,6 +94,11 @@ export default function EditorialCore({
     (state) => state.instagramShareToFeed
   );
 
+  const threadsTopicTag = useEditorialStore((state) => state.threadsTopicTag);
+  const threadsLinkAttachment = useEditorialStore(
+    (state) => state.threadsLinkAttachment
+  );
+
   const {
     stagedMediaFiles,
     stagedMediaItems: editorStagedMediaItems,
@@ -362,6 +367,27 @@ export default function EditorialCore({
             const tiktokTitle = platformTitles["tiktok"];
             if (tiktokTitle && tiktokTitle.trim().length > 0) {
               payload.title = tiktokTitle.trim();
+            }
+          }
+
+          if (platformId === "threads") {
+            // Topic Tag
+            if (threadsTopicTag && threadsTopicTag.trim().length > 0) {
+              payload.settings!.topicTag = threadsTopicTag.trim();
+            }
+
+            // Link Attachment (only if no media)
+            if (
+              platformMediaIds.length === 0 &&
+              threadsLinkAttachment &&
+              threadsLinkAttachment.trim().length > 0
+            ) {
+              payload.settings!.linkAttachment = threadsLinkAttachment.trim();
+            }
+
+            // Location ID (uses existing location state)
+            if (location.id) {
+              payload.settings!.locationId = location.id;
             }
           }
 

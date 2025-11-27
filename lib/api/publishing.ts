@@ -39,6 +39,10 @@ export interface PostSettings {
   coverUrl?: string;
   thumbOffset?: number; // in milliseconds
   shareToFeed?: boolean;
+
+  // Threads specific settings
+  topicTag?: string; // 1-50 chars, no special chars (. &)
+  linkAttachment?: string; // URL, only valid if no media attached
 }
 
 export interface CreatePostPayload {

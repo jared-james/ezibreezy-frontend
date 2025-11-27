@@ -65,6 +65,8 @@ export interface EditorialState {
   instagramCoverUrl: string | null;
   instagramThumbOffset: number | null;
   instagramShareToFeed: boolean;
+  threadsTopicTag: string;
+  threadsLinkAttachment: string;
 }
 
 export interface EditorialActions {
@@ -123,6 +125,8 @@ export const initialState: EditorialState = {
   instagramCoverUrl: null,
   instagramThumbOffset: null,
   instagramShareToFeed: true,
+  threadsTopicTag: "",
+  threadsLinkAttachment: "",
 };
 
 export const useEditorialStore = create<EditorialState & EditorialActions>(

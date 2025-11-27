@@ -18,6 +18,9 @@ import { createCroppedPreviewUrl, type CropData } from "@/lib/utils/crop-utils";
 import { useEditorialStore, MediaItem } from "@/lib/store/editorial-store";
 import { getMediaViewUrl } from "@/lib/api/media";
 import { toast } from "sonner";
+import LocationSearchInput from "../../location-search-input";
+import { Input } from "@/components/ui/input";
+import { Link as LinkIcon } from "lucide-react";
 
 interface ThreadsPreviewProps {
   caption: string;
@@ -113,8 +116,16 @@ function ThreadsPreview({
   const [isCropperOpen, setIsCropperOpen] = useState(false);
   const [isFetchingOriginal, setIsFetchingOriginal] = useState(false);
   const setCropForMedia = useEditorialStore((state) => state.setCropForMedia);
+  const setState = useEditorialStore((state) => state.setState);
   const integrationId =
     useEditorialStore.getState().selectedAccounts["threads"]?.[0];
+
+  // Threads-specific state
+  const threadsTopicTag = useEditorialStore((state) => state.threadsTopicTag);
+  const threadsLinkAttachment = useEditorialStore(
+    (state) => state.threadsLinkAttachment
+  );
+  const location = useEditorialStore((state) => state.location);
 
   const croppedPreview = singleMediaItem?.croppedPreviews?.threads;
   const mainPostImages = croppedPreview
@@ -224,6 +235,30 @@ function ThreadsPreview({
     }
   };
 
+  // Handlers for Threads-specific inputs
+  const handleTopicTagChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    let value = e.target.value;
+
+    // Strip leading # if present
+    if (value.startsWith("#")) {
+      value = value.slice(1);
+    }
+
+    // Remove periods and ampersands
+    value = value.replace(/[.&]/g, "");
+
+    // Limit to 50 characters
+    if (value.length <= 50) {
+      setState({ threadsTopicTag: value });
+    }
+  };
+
+  const handleLinkAttachmentChange = (
+    e: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    setState({ threadsLinkAttachment: e.target.value });
+  };
+
   return (
     <div className="mx-auto w-full max-w-sm bg-[--surface] border border-[--border] rounded-lg overflow-hidden">
       <div className="relative p-4">
@@ -294,6 +329,62 @@ function ThreadsPreview({
             Threads Preview
           </p>
         )}
+      </div>
+
+      {/* Topic Tag Input - Always visible */}
+      <div className="px-3 py-2 border-t border-[--border]">
+        <label htmlFor="topic-tag" className="eyebrow mb-2 flex items-center">
+          Topic Tag
+        </label>
+        <Input
+          id="topic-tag"
+          value={threadsTopicTag}
+          onChange={handleTopicTagChange}
+          placeholder="Enter topic (max 50 chars)"
+          className="h-9"
+          maxLength={50}
+        />
+        <p className="mt-1 text-xs text-muted-foreground">
+          {threadsTopicTag.length}/50 characters • No periods or ampersands
+        </p>
+      </div>
+
+      {/* Link Attachment Input - Only show when no media */}
+      {mainPostImages.length === 0 && (
+        <div className="px-3 py-2 border-t border-[--border]">
+          <label
+            htmlFor="link-attachment"
+            className="eyebrow mb-2 flex items-center"
+          >
+            <LinkIcon className="mr-1.5 h-3 w-3" />
+            Link Attachment
+          </label>
+          <Input
+            id="link-attachment"
+            type="url"
+            value={threadsLinkAttachment}
+            onChange={handleLinkAttachmentChange}
+            placeholder="https://example.com"
+            className="h-9"
+          />
+          <p className="mt-1 text-xs text-muted-foreground">
+            Only available for text-only posts
+          </p>
+        </div>
+      )}
+
+      {/* Location Search - Reuse existing component */}
+      <div className="px-3 py-2 border-t border-[--border]">
+        <LocationSearchInput
+          initialLocation={location}
+          onLocationSelect={(newLocation) =>
+            setState({
+              location: newLocation || { id: null, name: "" },
+            })
+          }
+          integrationId={integrationId || null}
+          isEnabled={true}
+        />
       </div>
 
       {originalMediaSrc && (

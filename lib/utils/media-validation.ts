@@ -43,8 +43,8 @@ export const PLATFORM_RULES = {
   threads: {
     name: "Threads",
     allowMixedMedia: false,
-    maxVideos: 10,
-    maxImages: 10,
+    maxVideos: 20,
+    maxImages: 20,
     supportsCarousel: false,
   },
   tiktok: {
