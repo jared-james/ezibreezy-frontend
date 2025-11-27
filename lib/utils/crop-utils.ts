@@ -33,14 +33,12 @@ export const PLATFORM_ASPECT_RATIOS: Record<
     { label: "Square (1:1)", value: 1 },
     { label: "Portrait (4:5)", value: 4 / 5 },
     { label: "Landscape (1.91:1)", value: 1.91 },
-    // --- NEW PRESET ADDED HERE ---
     { label: "Story (9:16)", value: 9 / 16 },
   ],
   facebook: [
     { label: "Landscape (1.91:1)", value: 1.91 },
     { label: "Square (1:1)", value: 1 },
     { label: "Portrait (4:5)", value: 4 / 5 },
-    // Optional: Facebook Stories also support 9:16 if you want it here too
     { label: "Story (9:16)", value: 9 / 16 },
   ],
   linkedin: [
@@ -57,7 +55,12 @@ export const PLATFORM_ASPECT_RATIOS: Record<
     { label: "Portrait (4:5)", value: 4 / 5 },
     { label: "Landscape (1.91:1)", value: 1.91 },
   ],
-  tiktok: [{ label: "Vertical (9:16)", value: 9 / 16 }],
+  tiktok: [
+    { label: "Full Screen (9:16)", value: 9 / 16 },
+    { label: "Portrait (3:4)", value: 3 / 4 },
+    { label: "Square (1:1)", value: 1 },
+    { label: "Landscape (16:9)", value: 16 / 9 },
+  ],
 };
 
 export function getDefaultAspectRatio(platform: SocialPlatform): number {

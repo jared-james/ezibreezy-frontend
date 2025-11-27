@@ -1,6 +1,6 @@
 // components/post-editor/previews/x/index.tsx
 
-// components/post-editor/x-preview.tsx
+"use client";
 
 import { memo, useState } from "react";
 import { MessageSquare, Repeat2, ImageIcon, Crop, Loader2 } from "lucide-react";
@@ -135,9 +135,18 @@ function XPreview({
   const integrationId = useEditorialStore.getState().selectedAccounts["x"]?.[0];
 
   const croppedPreview = singleMediaItem?.croppedPreviews?.x;
-  const mainPostImages = croppedPreview
-    ? [croppedPreview, ...mediaPreview.slice(1, 4)]
-    : mediaPreview.slice(0, 4);
+
+  // UPDATED: Calculate the first media source.
+  // If it's a video, prefer mediaUrl. If not, prefer cropped preview, then fallback to standard preview.
+  const firstMediaSrc =
+    postType === "video" && singleMediaItem?.mediaUrl
+      ? singleMediaItem.mediaUrl
+      : croppedPreview || mediaPreview[0];
+
+  // Construct the images array ensuring the first item uses the correct source
+  const mainPostImages = [firstMediaSrc, ...mediaPreview.slice(1, 4)].filter(
+    Boolean
+  );
 
   const canCrop =
     singleMediaItem?.id && postType === "image" && mediaPreview.length > 0;

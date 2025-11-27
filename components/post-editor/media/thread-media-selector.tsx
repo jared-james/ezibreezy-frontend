@@ -4,7 +4,7 @@
 
 import { useEditorialStore, MediaItem } from "@/lib/store/editorial-store";
 import { cn } from "@/lib/utils";
-import { Film, Image as ImageIcon, Grid } from "lucide-react";
+import { Film, Image as ImageIcon, Grid, Play } from "lucide-react";
 import {
   PLATFORM_RULES,
   shouldShowMediaOrdering,
@@ -31,6 +31,10 @@ const MediaThumbnail = ({
 }: MediaThumbnailProps) => {
   const isSelected = selectionIndex > -1;
 
+  const isVideo = item.type === "video";
+  // Use the actual media URL for the video player, fall back to preview (blob) for new uploads
+  const videoSrc = item.mediaUrl || item.preview;
+
   return (
     <button
       type="button"
@@ -42,18 +46,31 @@ const MediaThumbnail = ({
           : "border-border hover:border-brand-primary/50"
       )}
     >
-      {item.type === "video" ? (
+      {isVideo ? (
         <video
-          src={item.preview}
+          src={videoSrc}
           className="w-full h-full object-cover pointer-events-none"
           onCanPlay={(e) => e.currentTarget.pause()}
+          onLoadedMetadata={(e) => {
+            e.currentTarget.currentTime = Math.min(
+              5 / 30,
+              e.currentTarget.duration
+            );
+          }}
         />
       ) : (
-        <img
-          src={item.preview}
-          alt="Media thumbnail"
-          className="w-full h-full object-cover pointer-events-none"
-        />
+        <>
+          <img
+            src={item.preview}
+            alt="Media thumbnail"
+            className="w-full h-full object-cover pointer-events-none"
+          />
+          {item.type === "video" && (
+            <div className="absolute top-1 right-1 p-1 bg-black/60 rounded-full">
+              <Play className="w-2 h-2 text-white fill-white" />
+            </div>
+          )}
+        </>
       )}
 
       {/* Overlay */}

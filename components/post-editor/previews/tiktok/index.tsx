@@ -1,4 +1,4 @@
-// components/post-editor/tiktok-preview.tsx
+"use client";
 
 import { memo, useState } from "react";
 import {
@@ -14,6 +14,7 @@ import {
 import { cn } from "@/lib/utils";
 import { renderCaptionWithHashtags } from "../../render-caption";
 import { ImageCropperModal } from "../../modals/image-cropper-modal";
+import { TikTokVideoOptions } from "./tiktok-video-options";
 import type { PixelCrop } from "react-image-crop";
 import { createCroppedPreviewUrl, type CropData } from "@/lib/utils/crop-utils";
 import { useEditorialStore, MediaItem } from "@/lib/store/editorial-store";
@@ -73,12 +74,24 @@ function TikTokPreview({
   const primaryName = displayName || accountName || "Account";
   const [isCropperOpen, setIsCropperOpen] = useState(false);
   const [isFetchingOriginal, setIsFetchingOriginal] = useState(false);
+  const [videoDuration, setVideoDuration] = useState(0);
   const setCropForMedia = useEditorialStore((state) => state.setCropForMedia);
+  const setState = useEditorialStore((state) => state.setState);
+  const tiktokVideoCoverTimestamp = useEditorialStore(
+    (state) => state.tiktokVideoCoverTimestamp
+  );
   const integrationId =
     useEditorialStore.getState().selectedAccounts["tiktok"]?.[0];
 
   const croppedPreview = singleMediaItem?.croppedPreviews?.tiktok;
-  const displayMediaSrc = croppedPreview || singleMediaItem?.preview;
+
+  // Use mediaUrl for video source if available (ensures videos play)
+  const displayMediaSrc =
+    croppedPreview ||
+    (singleMediaItem?.type === "video" && singleMediaItem.mediaUrl
+      ? singleMediaItem.mediaUrl
+      : singleMediaItem?.preview);
+
   const canCrop = singleMediaItem?.id && mediaType === "image";
   const originalMediaSrc = singleMediaItem?.file
     ? singleMediaItem.preview
@@ -189,23 +202,28 @@ function TikTokPreview({
             mediaType === "video" ? (
               <video
                 src={displayMediaSrc}
-                className="w-full h-full object-cover"
+                // UPDATED: Use object-contain to letterbox non-9:16 videos against the black background
+                className="w-full h-full object-contain"
                 muted
                 loop
                 autoPlay
                 playsInline
+                onLoadedMetadata={(e) =>
+                  setVideoDuration(e.currentTarget.duration)
+                }
               />
             ) : (
               <img
                 src={displayMediaSrc}
                 alt="Media Preview"
-                className="w-full h-full object-cover"
+                // UPDATED: Use object-contain for images too, as TikTok letterboxes non-9:16 content
+                className="w-full h-full object-contain"
               />
             )
           ) : (
             <div className="w-full h-full flex flex-col items-center justify-center text-white/60">
               <ImageIcon className="w-12 h-12 mb-2" />
-              <p className="text-sm">No video attached</p>
+              <p className="text-sm">No media attached</p>
             </div>
           )}
         </div>
@@ -294,6 +312,19 @@ function TikTokPreview({
           platform="tiktok"
           onCropComplete={handleCropComplete}
         />
+      )}
+
+      {mediaType === "video" && displayMediaSrc && (
+        <div className="mt-4">
+          <TikTokVideoOptions
+            displayMediaSrc={displayMediaSrc}
+            videoCoverTimestamp={tiktokVideoCoverTimestamp}
+            onVideoCoverTimestampChange={(timestamp) =>
+              setState({ tiktokVideoCoverTimestamp: timestamp })
+            }
+            videoDuration={videoDuration || 0}
+          />
+        </div>
       )}
     </div>
   );

@@ -1,5 +1,7 @@
 // components/post-editor/previews/instagram/instagram-story-carousel.tsx
 
+"use client";
+
 import { useState, useRef, useEffect } from "react";
 import { cn } from "@/lib/utils";
 import { MediaItem } from "@/lib/store/editorial-store";
@@ -24,8 +26,13 @@ export function InstagramStoryCarousel({
   const progressIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
   const currentMedia = mediaItems[currentIndex];
+
+  // UPDATED: Use mediaUrl for video source if available, otherwise fallback to preview
   const displayMediaSrc =
-    currentMedia?.croppedPreviews?.instagram || currentMedia?.preview;
+    currentMedia?.croppedPreviews?.instagram ||
+    (currentMedia?.type === "video" && currentMedia.mediaUrl
+      ? currentMedia.mediaUrl
+      : currentMedia?.preview);
 
   const STORY_DURATION = 5000; // 5 seconds per image
 

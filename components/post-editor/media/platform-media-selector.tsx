@@ -4,8 +4,11 @@
 
 import { useEditorialStore, MediaItem } from "@/lib/store/editorial-store";
 import { cn } from "@/lib/utils";
-import { Film, Image as ImageIcon, Grid } from "lucide-react";
-import { PLATFORM_RULES, shouldShowMediaOrdering } from "@/lib/utils/media-validation";
+import { Film, Image as ImageIcon, Grid, Play } from "lucide-react";
+import {
+  PLATFORM_RULES,
+  shouldShowMediaOrdering,
+} from "@/lib/utils/media-validation";
 
 interface PlatformMediaSelectorProps {
   platformId: string;
@@ -27,6 +30,17 @@ const MediaThumbnail = ({
   const isSelected = selectionIndex > -1;
   const isCover = selectionIndex === 0;
 
+  const isVideo = item.type === "video";
+  // Use the actual media URL for the video player, fall back to preview (blob) for new uploads
+  const videoSrc = item.mediaUrl || item.preview;
+
+  console.log(`[PlatformMediaSelector] Rendering Item ${item.uid}:`, {
+    type: item.type,
+    preview: item.preview,
+    mediaUrl: item.mediaUrl,
+    isVideo,
+  });
+
   return (
     <button
       type="button"
@@ -38,18 +52,34 @@ const MediaThumbnail = ({
           : "border-border hover:border-brand-primary/50"
       )}
     >
-      {item.type === "video" ? (
+      {isVideo ? (
         <video
-          src={item.preview}
+          src={videoSrc}
           className="w-full h-full object-cover pointer-events-none"
+          muted
+          playsInline
+          preload="metadata"
+          onLoadedMetadata={(e) => {
+            e.currentTarget.currentTime = Math.min(
+              5 / 30,
+              e.currentTarget.duration
+            );
+          }}
           onCanPlay={(e) => e.currentTarget.pause()}
         />
       ) : (
-        <img
-          src={item.preview}
-          alt="Media thumbnail"
-          className="w-full h-full object-cover pointer-events-none"
-        />
+        <>
+          <img
+            src={item.preview}
+            alt="Media thumbnail"
+            className="w-full h-full object-cover pointer-events-none"
+          />
+          {item.type === "video" && (
+            <div className="absolute top-1 right-1 p-1 bg-black/60 rounded-full">
+              <Play className="w-2 h-2 text-white fill-white" />
+            </div>
+          )}
+        </>
       )}
 
       {/* Overlay - lighter now to see image better */}
@@ -108,7 +138,10 @@ export default function PlatformMediaSelector({
   }
 
   // Compute whether to show ordering UI
-  const showOrderingUI = shouldShowMediaOrdering(platformId, selectedUids.length);
+  const showOrderingUI = shouldShowMediaOrdering(
+    platformId,
+    selectedUids.length
+  );
 
   const orderedSelectedItems = selectedUids
     .map((uid) => stagedMediaItems.find((item) => item.uid === uid))

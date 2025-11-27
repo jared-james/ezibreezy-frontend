@@ -94,6 +94,10 @@ export default function EditorialCore({
     (state) => state.instagramShareToFeed
   );
 
+  const tiktokVideoCoverTimestamp = useEditorialStore(
+    (state) => state.tiktokVideoCoverTimestamp
+  );
+
   const threadsTopicTag = useEditorialStore((state) => state.threadsTopicTag);
   const threadsLinkAttachment = useEditorialStore(
     (state) => state.threadsLinkAttachment
@@ -367,6 +371,16 @@ export default function EditorialCore({
             const tiktokTitle = platformTitles["tiktok"];
             if (tiktokTitle && tiktokTitle.trim().length > 0) {
               payload.title = tiktokTitle.trim();
+            }
+
+            // Add video cover timestamp for video posts
+            if (
+              postType === "video" &&
+              tiktokVideoCoverTimestamp !== null &&
+              tiktokVideoCoverTimestamp !== undefined
+            ) {
+              payload.settings!.video_cover_timestamp_ms =
+                tiktokVideoCoverTimestamp;
             }
           }
 

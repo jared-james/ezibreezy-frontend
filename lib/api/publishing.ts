@@ -40,6 +40,9 @@ export interface PostSettings {
   thumbOffset?: number; // in milliseconds
   shareToFeed?: boolean;
 
+  // TikTok specific settings
+  video_cover_timestamp_ms?: number; // Video cover frame timestamp in milliseconds
+
   // Threads specific settings
   topicTag?: string; // 1-50 chars, no special chars (. &)
   linkAttachment?: string; // URL, only valid if no media attached

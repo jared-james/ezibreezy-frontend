@@ -1,4 +1,6 @@
-// components/post-editor/linkedin-preview.tsx
+// components/post-editor/previews/linkedin/index.tsx
+
+"use client";
 
 import { memo, useState } from "react";
 import {
@@ -77,7 +79,14 @@ function LinkedInPreview({
     useEditorialStore.getState().selectedAccounts["linkedin"]?.[0];
 
   const croppedPreview = singleMediaItem?.croppedPreviews?.linkedin;
-  const displayMediaSrc = croppedPreview || singleMediaItem?.preview;
+
+  // UPDATED: Use mediaUrl for video source if available
+  const displayMediaSrc =
+    croppedPreview ||
+    (singleMediaItem?.type === "video" && singleMediaItem.mediaUrl
+      ? singleMediaItem.mediaUrl
+      : singleMediaItem?.preview);
+
   const canCrop = singleMediaItem?.id && mediaType === "image";
   const originalMediaSrc = singleMediaItem?.file
     ? singleMediaItem.preview

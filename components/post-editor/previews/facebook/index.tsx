@@ -1,6 +1,6 @@
 // components/post-editor/previews/facebook/index.tsx
 
-// components/post-editor/facebook-preview.tsx
+"use client";
 
 import { memo, useState, useRef, useEffect, useMemo } from "react";
 import {
@@ -22,7 +22,7 @@ import {
   calculateCenteredCrop,
 } from "@/lib/utils/crop-utils";
 import { useEditorialStore, MediaItem } from "@/lib/store/editorial-store";
-import { getMediaDownloadUrl, getMediaViewUrl } from "@/lib/api/media";
+import { getMediaViewUrl } from "@/lib/api/media";
 import { toast } from "sonner";
 
 const URL_REGEX =
@@ -122,7 +122,14 @@ function FacebookPreview({
     useEditorialStore.getState().selectedAccounts["facebook"]?.[0];
 
   const croppedPreview = singleMediaItem?.croppedPreviews?.facebook;
-  const displayMediaSrc = croppedPreview || singleMediaItem?.preview;
+
+  // UPDATED: Use mediaUrl for video source if available
+  const displayMediaSrc =
+    croppedPreview ||
+    (singleMediaItem?.type === "video" && singleMediaItem.mediaUrl
+      ? singleMediaItem.mediaUrl
+      : singleMediaItem?.preview);
+
   const canCrop = singleMediaItem?.id && mediaType === "image";
   const originalMediaSrc = singleMediaItem?.file
     ? singleMediaItem.preview

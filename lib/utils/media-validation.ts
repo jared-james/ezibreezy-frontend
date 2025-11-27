@@ -51,8 +51,8 @@ export const PLATFORM_RULES = {
     name: "TikTok",
     allowMixedMedia: false,
     maxVideos: 1,
-    maxImages: 0,
-    supportsCarousel: false,
+    maxImages: 35,
+    supportsCarousel: true,
   },
   youtube: {
     name: "YouTube",

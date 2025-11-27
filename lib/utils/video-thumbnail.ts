@@ -26,8 +26,18 @@ export async function generateVideoThumbnail(
       canvas.width = video.videoWidth;
       canvas.height = video.videoHeight;
 
-      // Seek to 1 second (or 0.1 if short) to avoid black frames at start
-      video.currentTime = Math.min(1, video.duration / 2);
+      // 1. Define the frame index you want (5th frame)
+      const targetFrame = 5;
+
+      // 2. Assume a standard frame rate (e.g., 30fps or 24fps)
+      // Most web video is 30fps.
+      const assumedFps = 30;
+
+      // 3. Calculate timestamp in seconds
+      const seekTime = targetFrame / assumedFps;
+
+      // 4. Set time, ensuring we don't exceed video duration if it's extremely short
+      video.currentTime = Math.min(seekTime, video.duration);
     });
 
     // Once the video has seeked to the frame

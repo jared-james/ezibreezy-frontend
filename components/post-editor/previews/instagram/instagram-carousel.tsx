@@ -1,5 +1,7 @@
 // components/post-editor/previews/instagram/instagram-carousel.tsx
 
+"use client";
+
 import { useState, useRef, useEffect } from "react";
 import { ChevronLeft, ChevronRight, X } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -16,7 +18,11 @@ interface InstagramCarouselProps {
   onRemoveTag: (mediaId: string, index: number) => void;
   isProductTaggingMode?: boolean;
   productTags?: Record<string, ProductTagDto[]>;
-  onAddProductTag?: (mediaId: string, tag: ProductTagDto, product: Product) => void;
+  onAddProductTag?: (
+    mediaId: string,
+    tag: ProductTagDto,
+    product: Product
+  ) => void;
   onRemoveProductTag?: (mediaId: string, index: number) => void;
   onProductTagClick?: (mediaId: string, x: number, y: number) => void;
   onVideoMetadataLoaded?: (duration: number) => void;
@@ -51,12 +57,19 @@ export function InstagramCarousel({
   } | null>(null);
 
   const currentMedia = mediaItems[currentIndex];
+
+  // UPDATED: Use mediaUrl for video source if available, otherwise fallback to preview
   const displayMediaSrc =
-    currentMedia?.croppedPreviews?.instagram || currentMedia?.preview;
+    currentMedia?.croppedPreviews?.instagram ||
+    (currentMedia?.type === "video" && currentMedia.mediaUrl
+      ? currentMedia.mediaUrl
+      : currentMedia?.preview);
 
   // Get tags for the current media item
   const currentMediaTags = currentMedia?.id ? tags[currentMedia.id] || [] : [];
-  const currentMediaProductTags = currentMedia?.id ? productTags[currentMedia.id] || [] : [];
+  const currentMediaProductTags = currentMedia?.id
+    ? productTags[currentMedia.id] || []
+    : [];
 
   // Notify parent of index changes via useEffect to avoid setState during render
   useEffect(() => {
@@ -68,12 +81,18 @@ export function InstagramCarousel({
   };
 
   const prevSlide = () => {
-    setCurrentIndex((prev) => (prev - 1 + mediaItems.length) % mediaItems.length);
+    setCurrentIndex(
+      (prev) => (prev - 1 + mediaItems.length) % mediaItems.length
+    );
   };
 
   const handleImageClick = (e: React.MouseEvent<HTMLDivElement>) => {
     // Handle product tagging mode
-    if (isProductTaggingMode && onProductTagClick && currentMedia.type === "image") {
+    if (
+      isProductTaggingMode &&
+      onProductTagClick &&
+      currentMedia.type === "image"
+    ) {
       if (!currentMedia.id) return;
 
       const mediaElement = imageRef.current;
@@ -101,7 +120,12 @@ export function InstagramCarousel({
 
     // Handle user tagging mode
     // Only allow tagging on images, not videos
-    if (!isTaggingMode || !containerRef.current || currentMedia.type === "video") return;
+    if (
+      !isTaggingMode ||
+      !containerRef.current ||
+      currentMedia.type === "video"
+    )
+      return;
 
     // Can only tag if media has been uploaded (has an ID)
     if (!currentMedia.id) return;
@@ -329,7 +353,7 @@ export function InstagramCarousel({
                   }
                 }}
                 onBlur={(e) => {
-                  if (!e.relatedTarget?.closest('.cancel-tag-btn')) {
+                  if (!e.relatedTarget?.closest(".cancel-tag-btn")) {
                     finalizeTag();
                   }
                 }}

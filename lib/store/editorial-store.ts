@@ -18,6 +18,7 @@ export interface MediaItem {
   uid: string;
   file: File | null;
   preview: string;
+  mediaUrl?: string;
   originalUrlForCropping?: string;
   id: string | null;
   isUploading: boolean;
@@ -65,6 +66,7 @@ export interface EditorialState {
   instagramCoverUrl: string | null;
   instagramThumbOffset: number | null;
   instagramShareToFeed: boolean;
+  tiktokVideoCoverTimestamp: number | null;
   threadsTopicTag: string;
   threadsLinkAttachment: string;
 }
@@ -125,6 +127,7 @@ export const initialState: EditorialState = {
   instagramCoverUrl: null,
   instagramThumbOffset: null,
   instagramShareToFeed: true,
+  tiktokVideoCoverTimestamp: null,
   threadsTopicTag: "",
   threadsLinkAttachment: "",
 };
@@ -221,10 +224,8 @@ export const useEditorialStore = create<EditorialState & EditorialActions>(
       const rules = PLATFORM_RULES[platformId as keyof typeof PLATFORM_RULES];
       if (!rules) return;
 
-      // Ensure we are working with platform-specific messages
       const currentMessages = state.platformThreadMessages[platformId] || [];
 
-      // Safety check: ensure thread index exists
       if (!currentMessages[threadIndex]) return;
 
       const message = currentMessages[threadIndex];
@@ -244,12 +245,9 @@ export const useEditorialStore = create<EditorialState & EditorialActions>(
           .map((uid) => state.stagedMediaItems.find((item) => item.uid === uid))
           .filter(Boolean) as MediaItem[];
 
-        // Apply platform rules (reuse similar logic to main post)
         if (rules.allowMixedMedia) {
           const totalLimit = rules.maxImages;
           if (currentSelectionItems.length < totalLimit) {
-            // Check video/image specific limits if needed, usually threads are 1 video OR 4 images for X
-            // But X allows mixed media in some contexts, keeping it simple:
             const videoCount = currentSelectionItems.filter(
               (item) => item.type === "video"
             ).length;
@@ -267,13 +265,12 @@ export const useEditorialStore = create<EditorialState & EditorialActions>(
             }
           }
         } else {
-          // Strict separation (Threads/X typical behavior)
           if (itemToToggle.type === "video") {
             const hasImages = currentSelectionItems.some(
               (item) => item.type === "image"
             );
             if (hasImages) {
-              newMediaIds = [mediaUid]; // Replace images with video
+              newMediaIds = [mediaUid];
             } else if (currentSelectionItems.length < rules.maxVideos) {
               newMediaIds.push(mediaUid);
             }
@@ -282,7 +279,7 @@ export const useEditorialStore = create<EditorialState & EditorialActions>(
               (item) => item.type === "video"
             );
             if (hasVideo) {
-              newMediaIds = [mediaUid]; // Replace video with image
+              newMediaIds = [mediaUid];
             } else if (currentSelectionItems.length < rules.maxImages) {
               newMediaIds.push(mediaUid);
             }
@@ -328,7 +325,6 @@ export const useEditorialStore = create<EditorialState & EditorialActions>(
       const mediaMap = fullPost.allMedia || {};
       const idToUidMap = new Map<string, string>();
 
-      // 1. Process all media IDs referenced in the post
       const allMediaIds = Array.from(
         new Set([
           ...fullPost.mediaIds,
@@ -347,13 +343,13 @@ export const useEditorialStore = create<EditorialState & EditorialActions>(
             id: mediaId,
             file: null,
             preview: mediaRecord.url,
+            mediaUrl: mediaRecord.url,
             isUploading: false,
             type: mediaRecord.type.startsWith("video") ? "video" : "image",
           });
         }
       });
 
-      // 2. Setup main post selections
       const selectedAccounts: SelectedAccounts = {
         [fullPost.integration.platform]: [fullPost.integrationId],
       };
@@ -364,8 +360,6 @@ export const useEditorialStore = create<EditorialState & EditorialActions>(
           .filter(Boolean) as string[],
       };
 
-      // 3. Setup thread messages with UIDs
-      // We assume fullPost.threadMessages are for this platform
       const threadMessages = fullPost.threadMessages.map((msg) => ({
         content: msg.content,
         mediaIds: msg.mediaIds
@@ -382,7 +376,7 @@ export const useEditorialStore = create<EditorialState & EditorialActions>(
         platformMediaSelections: platformMediaSelection,
         mainCaption: fullPost.settings?.canonicalContent || fullPost.content,
         selectedAccounts,
-        threadMessages, // Set as global default too
+        threadMessages,
         platformThreadMessages,
         isInitialized: true,
       });

@@ -236,7 +236,9 @@ export function PlatformCaptionSection({
               <Type className="h-3 w-3" />
               Title
               <span className="ml-auto text-[0.65rem] text-muted-foreground">
-                {postType === "video" ? "Max 2200 chars" : "Max 90 chars"}
+                {postType === "video"
+                  ? "Video: Max 2200 chars"
+                  : "Photo: Max 90 chars"}
               </span>
             </label>
             <Input
@@ -248,7 +250,11 @@ export function PlatformCaptionSection({
                   [platformId]: event.target.value,
                 }))
               }
-              placeholder="Add a title for your TikTok..."
+              placeholder={
+                postType === "video"
+                  ? "Add a title for your TikTok video..."
+                  : "Add a title for your TikTok photos..."
+              }
               maxLength={postType === "video" ? 2200 : 90}
             />
           </div>

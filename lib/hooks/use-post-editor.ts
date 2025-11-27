@@ -83,7 +83,13 @@ export function usePostEditor(options: UsePostEditorOptions = {}) {
       const currentItems = useEditorialStore.getState().stagedMediaItems;
       const updatedItems = currentItems.map((item) =>
         item.uid === variables.uid
-          ? { ...item, id: data.mediaId, isUploading: false }
+          ? {
+              ...item,
+              id: data.mediaId,
+              isUploading: false,
+              mediaUrl: data.url,
+              preview: data.thumbnailUrl || data.url,
+            }
           : item
       );
       setStagedMediaItems(updatedItems);
@@ -214,6 +220,7 @@ export function usePostEditor(options: UsePostEditorOptions = {}) {
         uid: crypto.randomUUID(),
         file,
         preview: previews[index],
+        mediaUrl: previews[index], // Initially same as preview (blob)
         id: null,
         isUploading: true,
         type: file.type.startsWith("video/") ? "video" : "image",
@@ -350,6 +357,7 @@ export function usePostEditor(options: UsePostEditorOptions = {}) {
           uid: crypto.randomUUID(),
           file: null,
           preview: libraryMedia.thumbnailUrl || libraryMedia.url,
+          mediaUrl: libraryMedia.url,
           id: libraryMedia.id,
           isUploading: false,
           type: libraryMedia.type.startsWith("video/") ? "video" : "image",

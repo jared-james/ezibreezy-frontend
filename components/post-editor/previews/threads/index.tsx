@@ -1,5 +1,7 @@
 // components/post-editor/previews/threads/index.tsx
 
+"use client";
+
 import { memo, useState } from "react";
 import {
   Heart,
@@ -128,9 +130,18 @@ function ThreadsPreview({
   const location = useEditorialStore((state) => state.location);
 
   const croppedPreview = singleMediaItem?.croppedPreviews?.threads;
-  const mainPostImages = croppedPreview
-    ? [croppedPreview, ...mediaPreview.slice(1, 4)]
-    : mediaPreview.slice(0, 4);
+
+  // UPDATED: Calculate the first media source.
+  // If it's a video, prefer mediaUrl. If not, prefer cropped preview, then fallback to standard preview.
+  const firstMediaSrc =
+    mediaType === "video" && singleMediaItem?.mediaUrl
+      ? singleMediaItem.mediaUrl
+      : croppedPreview || mediaPreview[0];
+
+  // Construct the images array ensuring the first item uses the correct source
+  const mainPostImages = [firstMediaSrc, ...mediaPreview.slice(1, 4)].filter(
+    Boolean
+  );
 
   const canCrop =
     singleMediaItem?.id && mediaType === "image" && mediaPreview.length > 0;

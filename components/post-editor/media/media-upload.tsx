@@ -168,12 +168,19 @@ export default function MediaUpload({
         <div className="space-y-4">
           <div className="grid grid-cols-5 gap-2">
             {mediaPreviews.map((preview, index) => {
-              const isVideo =
-                mediaFiles[index]?.type.startsWith("video/") ||
-                preview.includes(".mp4") ||
-                preview.includes(".mov");
               const itemState = items[index];
               const isItemUploading = itemState?.isUploading;
+
+              // Determine if video based on item state type (reliable) or fallback to file/extension
+              const isVideo = itemState
+                ? itemState.type === "video"
+                : mediaFiles[index]?.type.startsWith("video/") ||
+                  preview.includes(".mp4") ||
+                  preview.includes(".mov");
+
+              // Use the actual mediaUrl for playback if it exists (e.g. from library), otherwise use preview (blob for fresh uploads)
+              const mediaSrc =
+                isVideo && itemState?.mediaUrl ? itemState.mediaUrl : preview;
 
               return (
                 <div
@@ -182,7 +189,7 @@ export default function MediaUpload({
                 >
                   {isVideo ? (
                     <video
-                      src={preview}
+                      src={mediaSrc}
                       className="w-full h-full object-cover pointer-events-none"
                       onCanPlay={(e) => e.currentTarget.pause()}
                     />

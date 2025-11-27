@@ -81,7 +81,9 @@ function InstagramPreview({
   const setCropForMedia = useEditorialStore((state) => state.setCropForMedia);
   const setState = useEditorialStore((state) => state.setState);
   const location = useEditorialStore((state) => state.location);
-  const instagramCollaborators = useEditorialStore((state) => state.instagramCollaborators);
+  const instagramCollaborators = useEditorialStore(
+    (state) => state.instagramCollaborators
+  );
 
   // Local State
   const [isTaggingMode, setIsTaggingMode] = useState(false);
@@ -104,8 +106,12 @@ function InstagramPreview({
   const integrationId = selectedAccounts["instagram"]?.[0];
 
   // Derived Values
+  // UPDATED: Prefer cropped preview -> mediaUrl (if video) -> preview (thumbnail/blob)
   const displayMediaSrc =
-    singleMediaItem?.croppedPreviews?.instagram || singleMediaItem?.preview;
+    singleMediaItem?.croppedPreviews?.instagram ||
+    (singleMediaItem?.type === "video" && singleMediaItem.mediaUrl
+      ? singleMediaItem.mediaUrl
+      : singleMediaItem?.preview);
 
   const previewAspectRatio = postType === "story" ? 9 / 16 : aspectRatio;
 
@@ -127,6 +133,8 @@ function InstagramPreview({
     !!activeMediaForCrop?.id && activeMediaForCrop?.type === "image";
 
   // For cropper modal: use the active media item
+  // For images, preview is fine. For videos (if we ever crop them), we'd want mediaUrl or a frame.
+  // Since canCrop is strictly image, preview is safe here.
   const originalMediaSrc = activeMediaForCrop?.file
     ? activeMediaForCrop.preview
     : activeMediaForCrop?.originalUrlForCropping;
