@@ -3,10 +3,11 @@
 "use client";
 
 import { memo, useState } from "react";
-import { ImageIcon, Crop, Loader2 } from "lucide-react";
+import { ImageIcon, Crop, Loader2, FileText } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { renderCaptionWithHashtags } from "../../render-caption";
 import { ImageCropperModal } from "../../modals/image-cropper-modal";
+import { AltTextModal } from "../../modals/alt-text-modal"; // Import AltTextModal
 import type { PixelCrop } from "react-image-crop";
 import { createCroppedPreviewUrl, type CropData } from "@/lib/utils/crop-utils";
 import { useEditorialStore, MediaItem } from "@/lib/store/editorial-store";
@@ -42,6 +43,8 @@ function LinkedInPreview({
   const accountName = platformUsername.replace(/^@/, "");
   const primaryName = displayName || accountName || "Account";
   const [isCropperOpen, setIsCropperOpen] = useState(false);
+  const [isAltTextModalOpen, setIsAltTextModalOpen] = useState(false); // Alt Text State
+  const [altTextInitialIndex, setAltTextInitialIndex] = useState(0); // Alt Text State
   const [isFetchingOriginal, setIsFetchingOriginal] = useState(false);
   const [currentCarouselIndex, setCurrentCarouselIndex] = useState(0);
 
@@ -76,6 +79,15 @@ function LinkedInPreview({
   // Can crop if we have an uploaded image (either single or in carousel)
   const canCrop =
     !!activeMediaForCrop?.id && activeMediaForCrop?.type === "image";
+
+  // Alt text editing: Filter to only uploaded images
+  const editableMediaItems = isCarousel
+    ? mediaItems.filter((item) => item.type === "image" && !!item.id)
+    : singleMediaItem?.type === "image" && singleMediaItem?.id
+    ? [singleMediaItem]
+    : [];
+
+  const canEditAltText = editableMediaItems.length > 0;
 
   const originalMediaSrc = activeMediaForCrop?.file
     ? activeMediaForCrop.preview
@@ -187,6 +199,20 @@ function LinkedInPreview({
     }
   };
 
+  const handleAltTextClick = () => {
+    if (isCarousel) {
+      // Find the index of current carousel item in editable items
+      const currentMedia = mediaItems[currentCarouselIndex];
+      const editableIndex = editableMediaItems.findIndex(
+        (item) => item.uid === currentMedia.uid
+      );
+      setAltTextInitialIndex(editableIndex >= 0 ? editableIndex : 0);
+    } else {
+      setAltTextInitialIndex(0);
+    }
+    setIsAltTextModalOpen(true);
+  };
+
   return (
     <div className="w-full bg-[--surface] border border-[--border] shadow-lg max-w-sm mx-auto rounded-lg overflow-hidden">
       {/* Header */}
@@ -250,24 +276,40 @@ function LinkedInPreview({
 
       {/* Toolbar */}
       <div className="px-3 py-2 border-t border-[--border]">
-        {canCrop ? (
-          <button
-            onClick={handleCropClick}
-            className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
-            disabled={isFetchingOriginal}
-          >
-            {isFetchingOriginal ? (
-              <Loader2 className="h-3.5 w-3.5 animate-spin" />
-            ) : (
-              <Crop className="h-3.5 w-3.5" />
-            )}
-            Crop {isCarousel && `(${currentCarouselIndex + 1}/${mediaItems?.length})`}
-          </button>
-        ) : (
-          <p className="text-xs text-muted-foreground text-center italic">
-            LinkedIn Preview
-          </p>
-        )}
+        <div className="flex items-center gap-4">
+          {canCrop && (
+            <button
+              onClick={handleCropClick}
+              className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
+              disabled={isFetchingOriginal}
+            >
+              {isFetchingOriginal ? (
+                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+              ) : (
+                <Crop className="h-3.5 w-3.5" />
+              )}
+              Crop{" "}
+              {isCarousel &&
+                `(${currentCarouselIndex + 1}/${mediaItems?.length})`}
+            </button>
+          )}
+
+          {canEditAltText && (
+            <button
+              onClick={handleAltTextClick}
+              className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
+            >
+              <FileText className="h-3.5 w-3.5" />
+              Alt Text
+            </button>
+          )}
+
+          {!canCrop && !canEditAltText && (
+            <p className="text-xs text-muted-foreground text-center italic w-full">
+              LinkedIn Preview
+            </p>
+          )}
+        </div>
       </div>
 
       {/* Cropper Modal */}
@@ -280,6 +322,16 @@ function LinkedInPreview({
           initialCrop={activeMediaForCrop?.crops?.linkedin?.croppedAreaPixels}
           initialAspectRatio={activeMediaForCrop?.crops?.linkedin?.aspectRatio}
           onCropComplete={handleCropComplete}
+        />
+      )}
+
+      {/* Alt Text Modal */}
+      {editableMediaItems.length > 0 && (
+        <AltTextModal
+          open={isAltTextModalOpen}
+          onClose={() => setIsAltTextModalOpen(false)}
+          mediaItems={editableMediaItems}
+          initialMediaIndex={altTextInitialIndex}
         />
       )}
     </div>

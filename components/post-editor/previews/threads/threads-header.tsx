@@ -1,3 +1,5 @@
+// components/post-editor/previews/threads/threads-header.tsx
+
 "use client";
 
 import { MoreHorizontal } from "lucide-react";

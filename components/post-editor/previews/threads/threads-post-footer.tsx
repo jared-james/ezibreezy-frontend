@@ -1,3 +1,5 @@
+// components/post-editor/previews/threads/threads-post-footer.tsx
+
 "use client";
 
 import { Heart, MessageCircle, Repeat2, Send } from "lucide-react";
