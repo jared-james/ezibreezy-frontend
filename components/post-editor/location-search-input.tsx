@@ -32,7 +32,11 @@ export default function LocationSearchInput({
     name: string;
   }>(initialLocation);
   const inputRef = useRef<HTMLInputElement>(null);
-  const [dropdownPosition, setDropdownPosition] = useState({ top: 0, left: 0, width: 0 });
+  const [dropdownPosition, setDropdownPosition] = useState({
+    top: 0,
+    left: 0,
+    width: 0,
+  });
 
   useEffect(() => {
     setSelectedLocation(initialLocation);
@@ -62,7 +66,12 @@ export default function LocationSearchInput({
         return [];
       }
       const results = await searchLocations(debouncedQuery, integrationId);
-      console.log("[LocationSearch] Query:", debouncedQuery, "Results:", results);
+      console.log(
+        "[LocationSearch] Query:",
+        debouncedQuery,
+        "Results:",
+        results
+      );
       return results;
     },
     enabled: !!debouncedQuery && !!integrationId && !selectedLocation.id,
@@ -91,17 +100,6 @@ export default function LocationSearchInput({
 
   const showResults =
     isFocused && !selectedLocation.id && debouncedQuery.length >= 1;
-
-  console.log("[LocationSearch] DEBUG:", {
-    showResults,
-    isFocused,
-    selectedLocationId: selectedLocation.id,
-    debouncedQuery,
-    debouncedQueryLength: debouncedQuery.length,
-    searchResultsCount: searchResults.length,
-    isLoading,
-    isError,
-  });
 
   if (!isEnabled) {
     return null;
@@ -136,7 +134,8 @@ export default function LocationSearchInput({
         )}
       </div>
 
-      {showResults && typeof window !== "undefined" &&
+      {showResults &&
+        typeof window !== "undefined" &&
         createPortal(
           <div
             style={{
