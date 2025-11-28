@@ -20,7 +20,6 @@ import {
   Twitter,
   Facebook,
   Type,
-  AlignVerticalJustifyCenter,
 } from "lucide-react";
 import { BackgroundStyle, AspectRatio, TextLayer } from "../page";
 
@@ -428,22 +427,6 @@ export function EditorControls({
                 </div>
               </div>
 
-              <div className="flex items-center gap-3">
-                <AlignVerticalJustifyCenter className="w-3 h-3 opacity-40" />
-                <input
-                  type="range"
-                  min="0"
-                  max="100"
-                  value={textLayer.y}
-                  onChange={(e) =>
-                    setTextLayer({
-                      ...textLayer,
-                      y: parseInt(e.target.value),
-                    })
-                  }
-                  className="w-full h-1 bg-foreground/10 appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:bg-brand-primary [&::-webkit-slider-thumb]:rounded-full"
-                />
-              </div>
             </div>
           )}
         </div>
