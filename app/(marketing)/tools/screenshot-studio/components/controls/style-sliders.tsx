@@ -1,3 +1,5 @@
+// app/(marketing)/tools/screenshot-studio/components/controls/style-sliders.tsx
+
 import { Maximize, Circle, Crop, Sliders, Waves } from "lucide-react";
 
 interface StyleSlidersProps {

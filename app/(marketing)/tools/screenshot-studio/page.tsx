@@ -1,3 +1,5 @@
+// app/(marketing)/tools/screenshot-studio/page.tsx
+
 "use client";
 
 import { useState, useRef } from "react";

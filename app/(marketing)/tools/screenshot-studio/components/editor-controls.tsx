@@ -1,3 +1,5 @@
+// app/(marketing)/tools/screenshot-studio/components/editor-controls.tsx
+
 import { AspectRatio, TextLayer } from "../constants";
 import { TextControls } from "./controls/text-controls";
 import { AspectRatioSelector } from "./controls/aspect-ratio-selector";

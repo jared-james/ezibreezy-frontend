@@ -26,6 +26,12 @@ export default function LandingPageHeader() {
           {/* w-full on mobile to justify content, auto on desktop */}
           <div className="flex w-full items-center justify-end gap-4 sm:w-auto md:gap-6">
             <Link
+              href="/"
+              className="px-2 py-0.5 transition-colors hover:bg-foreground hover:text-background-editorial"
+            >
+              Home
+            </Link>
+            <Link
               href="/tools"
               className="px-2 py-0.5 transition-colors hover:bg-foreground hover:text-background-editorial"
             >

@@ -1,3 +1,5 @@
+// app/(marketing)/tools/screenshot-studio/constants.ts
+
 import {
   Maximize,
   Square,

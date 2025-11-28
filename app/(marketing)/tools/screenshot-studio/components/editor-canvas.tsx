@@ -1,3 +1,5 @@
+// app/(marketing)/tools/screenshot-studio/components/editor-canvas.tsx
+
 import { forwardRef, useEffect, useImperativeHandle, useRef } from "react";
 import { BACKGROUND_OPTIONS, AspectRatio, TextLayer } from "../constants";
 

@@ -42,7 +42,7 @@ export default function MinimalHeader() {
             <Link
               href="/tools"
               className={`px-2 py-0.5 transition-colors ${
-                pathname === "/tools"
+                pathname.startsWith("/tools")
                   ? "bg-foreground text-background-editorial"
                   : "hover:bg-foreground hover:text-background-editorial"
               }`}
