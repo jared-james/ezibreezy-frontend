@@ -11,28 +11,49 @@ import {
   CheckCircle2,
   AlertCircle,
 } from "lucide-react";
+import { signupForWaitlist } from "@/app/actions/early-access";
 import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
 
 export default function LandingPageFooter() {
   const contactEmail = "support@thegridmaster.com";
   const [email, setEmail] = useState("");
+  const [honeypot, setHoneypot] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const handleJoin = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (honeypot.length > 0) {
+      setIsLoading(false);
+      return;
+    }
+
     if (!email) return;
 
+    setError(null);
     setIsLoading(true);
 
-    // --- SIMULATION START ---
-    setTimeout(() => {
+    try {
+      const result = await signupForWaitlist({
+        email,
+      });
+
+      if (result.success) {
+        setIsSuccess(true);
+        toast.success("Dispatched successfully.");
+      } else {
+        setError(result.error || "Signup failed due to an unknown error.");
+        toast.error(result.error || "Signup failed.");
+      }
+    } catch {
+      setError("A critical network error occurred during signup.");
+      toast.error("Network error occurred.");
+    } finally {
       setIsLoading(false);
-      setIsSuccess(true);
-      toast.success("Dispatched successfully.");
-    }, 2000);
-    // --- SIMULATION END ---
+    }
   };
 
   return (
@@ -98,6 +119,31 @@ export default function LandingPageFooter() {
                         transition: { duration: 0.8, ease: "backIn" },
                       }}
                     >
+                      {/* HONEYPOT FIELD: Hidden from users, but visible to bots */}
+                      <div
+                        style={{
+                          position: "absolute",
+                          left: "-5000px",
+                          top: "auto",
+                          width: "1px",
+                          height: "1px",
+                          overflow: "hidden",
+                        }}
+                        aria-hidden="true"
+                      >
+                        <label htmlFor="footer-company-name">Company Name (Ignore)</label>
+                        <input
+                          id="footer-company-name"
+                          name="company-name"
+                          type="text"
+                          value={honeypot}
+                          onChange={(e) => setHoneypot(e.target.value)}
+                          tabIndex={-1}
+                          autoComplete="off"
+                        />
+                      </div>
+                      {/* END HONEYPOT FIELD */}
+
                       <div className="relative border-2 border-dashed border-white/30 bg-white/5 p-4 transition-all hover:bg-white/10 hover:border-white/50 backdrop-blur-sm">
                         <div className="flex flex-col gap-4">
                           <div className="flex flex-col">
@@ -118,6 +164,10 @@ export default function LandingPageFooter() {
                               required
                             />
                           </div>
+
+                          {error && (
+                            <p className="font-serif text-sm text-red-400">{error}</p>
+                          )}
 
                           {/* THE GREEN BUTTON */}
                           <button

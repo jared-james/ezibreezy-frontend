@@ -8,6 +8,14 @@ import Link from "next/link";
 import Image from "next/image";
 import LandingPageHeader from "@/components/landing-page/landing-page-header";
 import LandingPageFooter from "@/components/landing-page/landing-page-footer";
+import {
+  ArrowRight,
+  Loader2,
+  CheckCircle2,
+  Mail,
+  ArrowLeft,
+  Stamp,
+} from "lucide-react";
 
 export default function FullSignUp() {
   const [email, setEmail] = useState("");
@@ -43,281 +51,225 @@ export default function FullSignUp() {
     }
   };
 
-  if (isSubmitted) {
-    return (
-      <div className="flex flex-col min-h-screen">
-        <LandingPageHeader />
-        <main className="grow bg-[--background] py-16 px-4 flex items-center justify-center">
-          <div className="mx-auto w-full max-w-5xl">
-            <div className="bg-[#f5f0e8] border-2 border-[--success] shadow-lg relative">
-              <div className="absolute top-4 right-4 w-20 h-24 border-2 border-[--success] bg-green-50 flex items-center justify-center">
-                <div className="text-center">
-                  <svg
-                    className="w-12 h-12 text-[--success] mx-auto"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M5 13l4 4L19 7"
-                    />
-                  </svg>
-                </div>
-              </div>
-
-              <div className="grid md:grid-cols-2 min-h-[500px]">
-                <div className="p-8 md:p-10 border-r-2 border-[--success] flex flex-col">
-                  <div className="mb-6">
-                    <h1
-                      className="font-serif text-2xl uppercase tracking-wider text-[--muted]"
-                      style={{ fontWeight: 400, letterSpacing: "0.2em" }}
-                    >
-                      Sign Up
-                    </h1>
-                  </div>
-
-                  <div className="flex-1 flex items-center">
-                    <div className="space-y-1">
-                      <p
-                        className="font-serif text-2xl md:text-3xl"
-                        style={{
-                          fontStyle: "italic",
-                          fontWeight: 300,
-                          lineHeight: 1.4,
-                          color: "#4a4a4a",
-                        }}
-                      >
-                        Check your
-                      </p>
-                      <p
-                        className="font-serif text-2xl md:text-3xl"
-                        style={{
-                          fontStyle: "italic",
-                          fontWeight: 300,
-                          lineHeight: 1.4,
-                          color: "#4a4a4a",
-                        }}
-                      >
-                        mailbox for
-                      </p>
-                      <p
-                        className="font-serif text-2xl md:text-3xl"
-                        style={{
-                          fontStyle: "italic",
-                          fontWeight: 300,
-                          lineHeight: 1.4,
-                          color: "#4a4a4a",
-                        }}
-                      >
-                        your invitation
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="mt-auto pt-6">
-                    <p className="font-serif text-sm font-bold uppercase tracking-[0.2em]">
-                      EziBreezy
-                    </p>
-                  </div>
-                </div>
-
-                <div className="p-8 md:p-10 flex flex-col justify-center">
-                  <div className="space-y-4">
-                    <p className="font-serif text-lg leading-relaxed text-[--foreground]">
-                      We&rsquo;ve sent a confirmation link to your email
-                      address.
-                    </p>
-                    <p className="font-serif text-sm text-[--muted]">
-                      Click the link in the email to complete your registration
-                      and access your account.
-                    </p>
-                  </div>
-
-                  <div className="mt-8 pt-6 border-t border-[--border]">
-                    <Link href="/" className="btn btn-outline w-full">
-                      Return Home
-                    </Link>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div className="mt-6 text-center">
-              <p className="font-serif text-xs text-[--muted-foreground] uppercase tracking-wider">
-                Est. 2025 · All Rights Reserved
-              </p>
-            </div>
-          </div>
-        </main>
-        <LandingPageFooter />
-      </div>
-    );
-  }
-
   return (
-    <div className="flex flex-col min-h-screen">
+    <div className="flex flex-col min-h-screen bg-background-editorial text-foreground">
       <LandingPageHeader />
-      <main className="grow bg-[--background] py-16 px-4 flex items-center justify-center">
-        <div className="mx-auto w-full max-w-5xl">
-          <div className="bg-[#f5f0e8] border-2 border-[--foreground] shadow-lg relative">
-            <div className="absolute top-4 right-4 w-20 h-24 flex items-center justify-center p-2">
-              <Image
-                src="/logo_smile.webp"
-                alt="EziBreezy Logo"
-                width={80}
-                height={80}
-                className="object-contain"
-              />
-            </div>
 
-            <div className="grid md:grid-cols-2 min-h-[500px]">
-              <div className="p-8 md:p-10 border-r-2 border-[--foreground] flex flex-col">
-                <div className="mb-6">
-                  <h1
-                    className="font-serif text-2xl uppercase tracking-wider text-[--muted]"
-                    style={{ fontWeight: 400, letterSpacing: "0.2em" }}
+      <main className="grow flex items-center justify-center py-16 px-4 relative">
+        {/* Background Grid Pattern */}
+        <div
+          className="absolute inset-0 pointer-events-none opacity-[0.03]"
+          style={{
+            backgroundImage:
+              "linear-gradient(var(--foreground) 1px, transparent 1px), linear-gradient(90deg, var(--foreground) 1px, transparent 1px)",
+            backgroundSize: "40px 40px",
+          }}
+        />
+
+        <div className="w-full max-w-5xl relative z-10">
+          {/* THE POSTCARD CONTAINER */}
+          <div className="bg-surface border border-foreground shadow-2xl relative overflow-hidden">
+            {/* Success State Overlay */}
+            {isSubmitted ? (
+              <div className="flex flex-col items-center justify-center min-h-[500px] p-10 text-center">
+                <div className="w-20 h-20 rounded-full bg-brand-primary/10 flex items-center justify-center mb-6 border-2 border-dashed border-brand-primary">
+                  <Mail className="w-10 h-10 text-brand-primary" />
+                </div>
+
+                <h1 className="font-serif text-4xl font-bold mb-4">
+                  Dispatch Sent.
+                </h1>
+
+                <div className="max-w-md space-y-4 font-serif text-lg text-foreground/70">
+                  <p>
+                    We have sent a confirmation link to <strong>{email}</strong>
+                    .
+                  </p>
+                  <p className="italic text-base">
+                    Please check your mailbox (and spam folder) to validate your
+                    credentials.
+                  </p>
+                </div>
+
+                <div className="mt-10">
+                  <Link
+                    href="/"
+                    className="inline-flex items-center gap-2 border-b-2 border-foreground pb-1 font-mono text-xs uppercase tracking-widest hover:text-brand-primary hover:border-brand-primary transition-colors"
                   >
-                    Sign Up
-                  </h1>
+                    <ArrowLeft className="w-3 h-3" />
+                    Return to Front Page
+                  </Link>
                 </div>
+              </div>
+            ) : (
+              /* The Form State - Split Layout */
+              <div className="grid md:grid-cols-2 min-h-[600px]">
+                {/* LEFT COLUMN: "The Message" */}
+                <div className="p-8 md:p-12 flex flex-col relative border-b md:border-b-0 md:border-r border-dashed border-foreground/30 bg-surface">
+                  <div className="mb-8">
+                    <span className="font-mono text-[10px] uppercase tracking-widest text-foreground/40 border border-foreground/20 px-2 py-1">
+                      New Member Registration
+                    </span>
+                  </div>
 
-                <div className="flex-1 flex items-center">
-                  <div className="space-y-1">
-                    <p
-                      className="font-serif text-2xl md:text-3xl"
-                      style={{
-                        fontStyle: "italic",
-                        fontWeight: 300,
-                        lineHeight: 1.4,
-                        color: "#4a4a4a",
-                      }}
-                    >
-                      Join us and start
+                  <div className="flex-1 flex flex-col justify-center space-y-6">
+                    <h1 className="font-serif text-4xl md:text-5xl font-light leading-[1.1]">
+                      Join the <br />
+                      <span className="font-bold italic">Editorial Desk.</span>
+                    </h1>
+                    <p className="font-serif text-lg text-foreground/70 leading-relaxed max-w-sm">
+                      Stop managing your content like a spreadsheet. Start
+                      curating it like a publication.
                     </p>
-                    <p
-                      className="font-serif text-2xl md:text-3xl"
-                      style={{
-                        fontStyle: "italic",
-                        fontWeight: 300,
-                        lineHeight: 1.4,
-                        color: "#4a4a4a",
-                      }}
-                    >
-                      creating content
-                    </p>
-                    <p
-                      className="font-serif text-2xl md:text-3xl"
-                      style={{
-                        fontStyle: "italic",
-                        fontWeight: 300,
-                        lineHeight: 1.4,
-                        color: "#4a4a4a",
-                      }}
-                    >
-                      with ease
+                  </div>
+
+                  <div className="mt-auto pt-12">
+                    <p className="font-serif text-xs font-bold uppercase tracking-[0.2em] opacity-30">
+                      EziBreezy Systems · Est. 2025
                     </p>
                   </div>
                 </div>
 
-                <div className="mt-auto pt-6">
-                  <p className="font-serif text-sm font-bold uppercase tracking-[0.2em]">
-                    EziBreezy
-                  </p>
-                </div>
-              </div>
-
-              <div className="p-8 md:p-10 flex flex-col">
-                <form onSubmit={handleSignUp} className="flex-1 flex flex-col">
-                  <div className="flex-1"></div>
-
-                  <div className="space-y-4">
-                    <div className="space-y-1">
-                      <div className="border-b border-[--muted] pb-2">
-                        <input
-                          id="email"
-                          name="email"
-                          type="email"
-                          required
-                          value={email}
-                          onChange={(e) => setEmail(e.target.value)}
-                          placeholder="your.email@example.com"
-                          className="w-full bg-transparent border-none font-serif text-[--foreground] focus:outline-none placeholder:text-[--muted-foreground] placeholder:italic"
-                          disabled={isLoading}
-                        />
-                      </div>
-                    </div>
-
-                    <div className="space-y-1">
-                      <div className="border-b border-[--muted] pb-2">
-                        <input
-                          id="password"
-                          name="password"
-                          type="password"
-                          required
-                          minLength={6}
-                          value={password}
-                          onChange={(e) => setPassword(e.target.value)}
-                          placeholder="password (min. 6 characters)"
-                          className="w-full bg-transparent border-none font-serif text-[--foreground] focus:outline-none placeholder:text-[--muted-foreground] placeholder:italic"
-                          disabled={isLoading}
-                        />
+                {/* RIGHT COLUMN: "The Address / Form" */}
+                <div className="p-8 md:p-12 flex flex-col relative bg-surface-hover/30">
+                  {/* The Stamp Graphic */}
+                  <div className="absolute top-8 right-8 pointer-events-none select-none">
+                    <div className="relative w-24 h-28 border-[3px] border-dotted border-foreground/20 bg-background-editorial flex items-center justify-center rotate-3 shadow-sm">
+                      <Image
+                        src="/logo_smile.webp"
+                        alt="Stamp"
+                        width={60}
+                        height={60}
+                        className="opacity-80 grayscale contrast-125"
+                      />
+                      {/* Cancellation Waves */}
+                      <div className="absolute inset-0 overflow-hidden opacity-30">
+                        <div className="w-[200%] h-px bg-foreground absolute top-1/4 -left-10 rotate-[25deg]" />
+                        <div className="w-[200%] h-px bg-foreground absolute top-2/4 -left-10 rotate-[25deg]" />
+                        <div className="w-[200%] h-px bg-foreground absolute top-3/4 -left-10 rotate-[25deg]" />
                       </div>
                     </div>
                   </div>
 
-                  {error && (
-                    <div className="p-3 border border-[--error] bg-red-50 mt-4">
-                      <p className="font-serif text-xs text-[--error]">
-                        {error}
-                      </p>
-                    </div>
-                  )}
-
-                  <div className="pt-4">
-                    <button
-                      type="submit"
-                      className="btn btn-primary w-full py-3"
-                      disabled={isLoading}
+                  {/* Form */}
+                  <div className="flex-1 flex flex-col justify-center mt-20 md:mt-10">
+                    <form
+                      onSubmit={handleSignUp}
+                      className="space-y-8 max-w-sm w-full"
                     >
-                      {isLoading ? "Creating account..." : "Sign Up"}
-                    </button>
-                  </div>
+                      <div className="space-y-8">
+                        <div className="group">
+                          <label
+                            htmlFor="email"
+                            className="block font-mono text-[10px] uppercase tracking-widest text-foreground/50 mb-2"
+                          >
+                            Email Address
+                          </label>
+                          <input
+                            id="email"
+                            name="email"
+                            type="email"
+                            required
+                            value={email}
+                            onChange={(e) => setEmail(e.target.value)}
+                            placeholder="writer@example.com"
+                            className="w-full bg-transparent border-b-2 border-dotted border-foreground/30 py-2 font-serif text-xl text-foreground placeholder:text-foreground/20 focus:outline-none focus:border-foreground transition-colors"
+                            disabled={isLoading}
+                          />
+                        </div>
 
-                  <div className="pt-2">
-                    <p className="font-serif text-[0.65rem] text-[--muted-foreground] text-center italic">
-                      By creating an account, you agree to our Terms & Privacy
-                    </p>
-                  </div>
-                </form>
+                        <div className="group">
+                          <label
+                            htmlFor="password"
+                            className="block font-mono text-[10px] uppercase tracking-widest text-foreground/50 mb-2"
+                          >
+                            Password
+                          </label>
+                          <input
+                            id="password"
+                            name="password"
+                            type="password"
+                            required
+                            minLength={6}
+                            value={password}
+                            onChange={(e) => setPassword(e.target.value)}
+                            placeholder="••••••••"
+                            className="w-full bg-transparent border-b-2 border-dotted border-foreground/30 py-2 font-serif text-xl text-foreground placeholder:text-foreground/20 focus:outline-none focus:border-foreground transition-colors"
+                            disabled={isLoading}
+                          />
+                          <p className="mt-1 text-[10px] text-foreground/40 font-mono text-right">
+                            Min. 6 chars
+                          </p>
+                        </div>
+                      </div>
 
-                <div className="mt-6 pt-6 border-t border-[--border]">
-                  <p className="text-center font-serif text-sm text-[--muted]">
-                    Already a member?{" "}
-                    <Link
-                      href="/auth/login"
-                      className="font-bold text-[--foreground] hover:underline"
-                    >
-                      Sign In
-                    </Link>
-                  </p>
+                      {error && (
+                        <div className="p-3 border border-red-200 bg-red-50 text-center">
+                          <p className="font-serif text-sm text-red-600">
+                            {error}
+                          </p>
+                        </div>
+                      )}
+
+                      <div className="pt-4">
+                        <button
+                          type="submit"
+                          className="w-full bg-foreground text-background py-4 text-xs font-bold uppercase tracking-[0.2em] hover:bg-foreground/90 transition-all flex items-center justify-center gap-3"
+                          disabled={isLoading}
+                        >
+                          {isLoading ? (
+                            <>
+                              <Loader2 className="w-4 h-4 animate-spin" />
+                              Processing
+                            </>
+                          ) : (
+                            <>
+                              Create Account
+                              <ArrowRight className="w-4 h-4" />
+                            </>
+                          )}
+                        </button>
+                      </div>
+
+                      <div className="text-center space-y-4">
+                        <p className="font-serif text-xs text-foreground/50 italic">
+                          By signing up, you agree to our Terms & Privacy.
+                        </p>
+
+                        <div className="border-t border-dashed border-foreground/20 pt-4">
+                          <p className="font-mono text-[10px] uppercase tracking-wider text-foreground/60">
+                            Already have a pass?{" "}
+                            <Link
+                              href="/auth/login"
+                              className="font-bold text-foreground border-b border-foreground hover:text-brand-primary hover:border-brand-primary transition-colors"
+                            >
+                              Login Here
+                            </Link>
+                          </p>
+                        </div>
+                      </div>
+                    </form>
+                  </div>
                 </div>
               </div>
+            )}
+          </div>
+
+          {/* Back Link below card */}
+          {!isSubmitted && (
+            <div className="mt-8 text-center">
+              <Link
+                href="/"
+                className="inline-flex items-center gap-2 font-mono text-[10px] uppercase tracking-widest text-foreground/40 hover:text-foreground transition-colors"
+              >
+                <ArrowLeft className="w-3 h-3" />
+                Return Home
+              </Link>
             </div>
-          </div>
-
-          <div className="mt-6 text-center">
-            <Link
-              href="/"
-              className="font-serif text-sm text-[--muted-foreground] hover:underline"
-            >
-              ← Back to Home
-            </Link>
-          </div>
+          )}
         </div>
       </main>
+
       <LandingPageFooter />
     </div>
   );

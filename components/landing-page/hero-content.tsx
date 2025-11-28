@@ -10,28 +10,48 @@ import {
   Loader2,
   CheckCircle2,
 } from "lucide-react";
-// import { signupForWaitlist } from "@/app/actions/early-access"; // DISABLED FOR SIMULATION
+import { signupForWaitlist } from "@/app/actions/early-access";
 import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
 
 export default function HeroContent() {
   const [email, setEmail] = useState("");
+  const [honeypot, setHoneypot] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const handleJoin = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (honeypot.length > 0) {
+      setIsLoading(false);
+      return;
+    }
+
     if (!email) return;
 
+    setError(null);
     setIsLoading(true);
 
-    // --- SIMULATION START ---
-    setTimeout(() => {
+    try {
+      const result = await signupForWaitlist({
+        email,
+      });
+
+      if (result.success) {
+        setIsSuccess(true);
+        toast.success("Dispatched successfully.");
+      } else {
+        setError(result.error || "Signup failed due to an unknown error.");
+        toast.error(result.error || "Signup failed.");
+      }
+    } catch {
+      setError("A critical network error occurred during signup.");
+      toast.error("Network error occurred.");
+    } finally {
       setIsLoading(false);
-      setIsSuccess(true);
-      toast.success("Dispatched successfully.");
-    }, 2000);
-    // --- SIMULATION END ---
+    }
   };
 
   return (
@@ -100,6 +120,31 @@ export default function HeroContent() {
                   },
                 }}
               >
+                {/* HONEYPOT FIELD: Hidden from users, but visible to bots */}
+                <div
+                  style={{
+                    position: "absolute",
+                    left: "-5000px",
+                    top: "auto",
+                    width: "1px",
+                    height: "1px",
+                    overflow: "hidden",
+                  }}
+                  aria-hidden="true"
+                >
+                  <label htmlFor="company-name">Company Name (Ignore)</label>
+                  <input
+                    id="company-name"
+                    name="company-name"
+                    type="text"
+                    value={honeypot}
+                    onChange={(e) => setHoneypot(e.target.value)}
+                    tabIndex={-1}
+                    autoComplete="off"
+                  />
+                </div>
+                {/* END HONEYPOT FIELD */}
+
                 <div className="relative border-2 border-dashed border-foreground bg-surface p-4 transition-all hover:bg-surface-hover">
                   <div className="flex flex-col items-stretch gap-3 sm:flex-row">
                     <div className="flex flex-1 flex-col justify-end">
@@ -158,6 +203,9 @@ export default function HeroContent() {
                       </span>
                     </button>
                   </div>
+                  {error && (
+                    <p className="mt-2 font-serif text-sm text-red-600">{error}</p>
+                  )}
                 </div>
               </motion.form>
             ) : (
