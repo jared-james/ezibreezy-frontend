@@ -5,10 +5,10 @@
 import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { ArrowRight, Loader2, Check, Scissors, ArrowLeft } from "lucide-react";
+import { ArrowRight, Loader2, Check, Scissors } from "lucide-react";
 import { signupForWaitlist } from "@/app/actions/early-access";
 import LandingPageFooter from "@/components/landing-page/landing-page-footer";
-import LandingPageHeader from "@/components/landing-page/landing-page-header";
+import AuthHeader from "@/components/auth/auth-header";
 import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -54,7 +54,7 @@ export default function ComingSoonSignUp() {
 
   return (
     <div className="flex flex-col min-h-screen bg-background-editorial text-foreground">
-      <LandingPageHeader />
+      <AuthHeader />
 
       <main className="grow flex items-center justify-center py-16 px-6">
         <div className="mx-auto w-full max-w-md">
@@ -140,7 +140,7 @@ export default function ComingSoonSignUp() {
                       <button
                         type="submit"
                         disabled={isLoading}
-                        className="group relative w-full overflow-hidden bg-foreground text-background py-3 text-xs font-bold uppercase tracking-[0.2em] hover:bg-foreground/90 transition-colors disabled:opacity-70 disabled:cursor-not-allowed"
+                        className="group relative w-full overflow-hidden bg-brand-primary text-white py-3 text-xs font-bold uppercase tracking-[0.2em] hover:bg-brand-primary-hover transition-colors disabled:opacity-70 disabled:cursor-not-allowed"
                       >
                         <span className="relative z-10 flex items-center justify-center gap-2">
                           {isLoading ? (

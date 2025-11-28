@@ -52,8 +52,8 @@ export default function LandingPagePoster() {
                 <p>
                   The internet is drowning in beige, robotic text. We refuse to
                   contribute to the noise. We are building the antidote to "AI
-                  Slop." An <strong>Idea Engine</strong> that doesn't just read
-                  a prompt, it studies your strategy.
+                  Slop." An <strong>Idea Engine</strong> that studies your
+                  strategy and actually executes.
                 </p>
                 <p>
                   It doesn't matter if you are a{" "}
@@ -99,9 +99,8 @@ export default function LandingPagePoster() {
                   ...
                 </p>
                 <p className="font-medium text-foreground">
-                  Our system understands the nuance of <em>your</em> industry.
-                  No more generic fluff. Just razor-sharp drafts that sound like
-                  you on your best day.
+                  Our complex system understands the nuance of <em>your</em>{" "}
+                  industry. No more GPT fluff. Language that sounds human.
                 </p>
               </div>
 

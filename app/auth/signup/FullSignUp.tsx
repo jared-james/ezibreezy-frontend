@@ -6,7 +6,7 @@ import { createClient } from "@/lib/supabase/client";
 import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import LandingPageHeader from "@/components/landing-page/landing-page-header";
+import AuthHeader from "@/components/auth/auth-header";
 import LandingPageFooter from "@/components/landing-page/landing-page-footer";
 import {
   ArrowRight,
@@ -14,7 +14,6 @@ import {
   CheckCircle2,
   Mail,
   ArrowLeft,
-  Stamp,
 } from "lucide-react";
 
 export default function FullSignUp() {
@@ -53,7 +52,7 @@ export default function FullSignUp() {
 
   return (
     <div className="flex flex-col min-h-screen bg-background-editorial text-foreground">
-      <LandingPageHeader />
+      <AuthHeader />
 
       <main className="grow flex items-center justify-center py-16 px-4 relative">
         {/* Background Grid Pattern */}
@@ -214,7 +213,7 @@ export default function FullSignUp() {
                       <div className="pt-4">
                         <button
                           type="submit"
-                          className="w-full bg-foreground text-background py-4 text-xs font-bold uppercase tracking-[0.2em] hover:bg-foreground/90 transition-all flex items-center justify-center gap-3"
+                          className="w-full bg-brand-primary text-white py-4 text-xs font-bold uppercase tracking-[0.2em] hover:bg-brand-primary-hover transition-all flex items-center justify-center gap-3"
                           disabled={isLoading}
                         >
                           {isLoading ? (
@@ -254,19 +253,6 @@ export default function FullSignUp() {
               </div>
             )}
           </div>
-
-          {/* Back Link below card */}
-          {!isSubmitted && (
-            <div className="mt-8 text-center">
-              <Link
-                href="/"
-                className="inline-flex items-center gap-2 font-mono text-[10px] uppercase tracking-widest text-foreground/40 hover:text-foreground transition-colors"
-              >
-                <ArrowLeft className="w-3 h-3" />
-                Return Home
-              </Link>
-            </div>
-          )}
         </div>
       </main>
 

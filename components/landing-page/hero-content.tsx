@@ -171,11 +171,10 @@ export default function HeroContent() {
                       disabled={isLoading}
                       className={`
                         relative flex min-w-[140px] items-center justify-center gap-2 overflow-hidden px-6 py-3 text-xs font-bold uppercase tracking-wider transition-all
-                        border-2 border-transparent
                         ${
                           isLoading
-                            ? "bg-foreground/10 text-foreground cursor-wait border-foreground border-dashed"
-                            : "bg-foreground text-background hover:bg-foreground/90 shadow-[4px_4px_0_0_var(--brand-primary)]"
+                            ? "bg-white/10 text-foreground cursor-wait"
+                            : "bg-brand-primary text-white hover:bg-brand-primary-hover"
                         }
                       `}
                     >
