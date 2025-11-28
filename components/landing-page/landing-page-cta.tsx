@@ -43,12 +43,15 @@ export default function LandingPageCTA() {
         setIsSuccess(true);
         toast.success("Dispatched successfully.");
       } else {
-        const errorMessage = result.error || "Signup failed due to an unknown error.";
+        const errorMessage =
+          result.error || "Signup failed due to an unknown error.";
         setError(errorMessage);
 
         // Show user-friendly toast messages
-        if (errorMessage.toLowerCase().includes("already on the waitlist") ||
-            errorMessage.toLowerCase().includes("already exists")) {
+        if (
+          errorMessage.toLowerCase().includes("already on the waitlist") ||
+          errorMessage.toLowerCase().includes("already exists")
+        ) {
           toast.info("You're already on the list! We'll be in touch soon.");
         } else {
           toast.error(errorMessage);
@@ -137,7 +140,9 @@ export default function LandingPageCTA() {
                         }}
                         aria-hidden="true"
                       >
-                        <label htmlFor="cta-company-name">Company Name (Ignore)</label>
+                        <label htmlFor="cta-company-name">
+                          Company Name (Ignore)
+                        </label>
                         <input
                           id="cta-company-name"
                           name="company-name"
@@ -157,7 +162,7 @@ export default function LandingPageCTA() {
                               htmlFor="cta-email"
                               className="mb-2 pl-1 font-mono text-[10px] uppercase tracking-widest text-brand-primary font-bold"
                             >
-                              Subscriber Email
+                              Waitlist Email
                             </label>
                             <input
                               id="cta-email"
@@ -172,7 +177,9 @@ export default function LandingPageCTA() {
                           </div>
 
                           {error && (
-                            <p className="font-serif text-sm text-red-400">{error}</p>
+                            <p className="font-serif text-sm text-red-400">
+                              {error}
+                            </p>
                           )}
 
                           {/* THE GREEN BUTTON */}
