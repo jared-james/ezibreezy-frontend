@@ -1,170 +1,175 @@
+// lib/tools/image-processing.ts
+
 import JSZip from "jszip";
 import { saveAs } from "file-saver";
 
 export type SplitMode = "carousel" | "grid";
 export type AspectRatio = "square" | "portrait" | "landscape" | "original";
 
-interface SplitConfig {
+interface ProcessOptions {
+  file: File;
   mode: SplitMode;
   columns: number;
-  rows: number; // Only used for grid mode
+  rows: number;
   aspectRatio: AspectRatio;
-  file: File;
+  gap: number;
 }
 
-export async function processAndDownload(config: SplitConfig): Promise<void> {
-  const { file, mode, columns, rows, aspectRatio } = config;
-
-  const imageBitmap = await createImageBitmap(file);
-  const srcWidth = imageBitmap.width;
-  const srcHeight = imageBitmap.height;
-
-  // 1. Calculate Crop Dimensions based on Mode
-  let cropX = 0;
-  let cropY = 0;
-  let cropWidth = srcWidth;
-  let cropHeight = srcHeight;
-  let singleSlideWidth = 0;
-  let singleSlideHeight = 0;
-
-  if (mode === "carousel") {
-    // CAROUSEL LOGIC:
-    // We want N columns.
-    // The height is determined by the chosen Aspect Ratio relative to a single slice.
-    // Standard Instagram Portrait is 4:5 (0.8). Square is 1:1 (1.0).
-
-    let targetSlideRatio = 0; // width / height
-
-    switch (aspectRatio) {
-      case "portrait":
-        targetSlideRatio = 4 / 5; // 0.8
-        break;
-      case "square":
-        targetSlideRatio = 1 / 1; // 1.0
-        break;
-      case "landscape":
-        targetSlideRatio = 1.91 / 1; // 1.91
-        break;
-      case "original":
-      default:
-        // Use the natural aspect ratio of a single slice based on the full image width
-        targetSlideRatio = srcWidth / columns / srcHeight;
-        break;
-    }
-
-    // The aspect ratio of the WHOLE strip should be targetSlideRatio * columns
-    const targetTotalRatio = targetSlideRatio * columns;
-    const currentTotalRatio = srcWidth / srcHeight;
-
-    if (aspectRatio !== "original") {
-      if (currentTotalRatio > targetTotalRatio) {
-        // Image is wider than needed. Crop width.
-        cropHeight = srcHeight;
-        cropWidth = srcHeight * targetTotalRatio;
-        cropX = (srcWidth - cropWidth) / 2;
-        cropY = 0;
-      } else {
-        // Image is taller than needed. Crop height.
-        cropWidth = srcWidth;
-        cropHeight = srcWidth / targetTotalRatio;
-        cropX = 0;
-        cropY = (srcHeight - cropHeight) / 2;
-      }
-    }
-
-    singleSlideWidth = cropWidth / columns;
-    singleSlideHeight = cropHeight; // 1 row
-  } else {
-    // GRID LOGIC:
-    // Simply split the image into C x R.
-    // Usually we want the result to be square per tile for Profile Grids,
-    // but standard grid splitters just divide the image mathematically.
-
-    // However, if the user wants "Square Grid" tiles specifically (standard Instagram profile),
-    // we should crop the source image to match the target aspect ratio of (Cols/Rows).
-
-    // For this implementation, we will assume "Grid" acts like a cookie cutter
-    // that uses the maximum area possible while maintaining equal cell sizes.
-    // Or, simpler: We split the current image exactly as is.
-
-    singleSlideWidth = srcWidth / columns;
-    singleSlideHeight = srcHeight / rows;
-
-    // Grid logic uses full image dimensions
-    cropWidth = srcWidth;
-    cropHeight = srcHeight;
-  }
-
-  // 2. Processing
+export async function processAndDownload({
+  file,
+  mode,
+  columns,
+  rows,
+  aspectRatio,
+  gap,
+}: ProcessOptions) {
+  const image = await loadImage(file);
   const zip = new JSZip();
   const folder = zip.folder("split-images");
-  const canvas = document.createElement("canvas");
-  const ctx = canvas.getContext("2d");
 
-  if (!ctx) throw new Error("Could not get canvas context");
+  if (mode === "carousel") {
+    await processCarousel(image, folder!, columns, aspectRatio, gap);
+  } else {
+    await processGrid(image, folder!, columns, rows, gap);
+  }
 
-  // Determine final loop counts
-  const loopRows = mode === "carousel" ? 1 : rows;
-  const loopCols = columns;
+  const content = await zip.generateAsync({ type: "blob" });
+  saveAs(content, `ezibreezy-${mode}-${Date.now()}.zip`);
+}
 
-  canvas.width = singleSlideWidth;
-  canvas.height = singleSlideHeight;
+function loadImage(file: File): Promise<HTMLImageElement> {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => resolve(img);
+    img.onerror = reject;
+    img.src = URL.createObjectURL(file);
+  });
+}
 
-  const promises: Promise<void>[] = [];
+async function processCarousel(
+  img: HTMLImageElement,
+  folder: JSZip,
+  slides: number,
+  ratioType: AspectRatio,
+  marginPercent: number
+) {
+  let targetHeight = img.height;
+  let targetWidth = img.width;
 
-  for (let r = 0; r < loopRows; r++) {
-    for (let c = 0; c < loopCols; c++) {
-      promises.push(
-        new Promise<void>((resolve) => {
-          // Clear canvas for new tile
-          ctx.clearRect(0, 0, singleSlideWidth, singleSlideHeight);
+  if (ratioType !== "original") {
+    const slideRatio =
+      ratioType === "portrait" ? 4 / 5 : ratioType === "landscape" ? 1.91 : 1;
+    const totalRatio = slideRatio * slides;
 
-          // Calculate where to grab from source
-          const sx = cropX + c * singleSlideWidth;
-          const sy = cropY + r * singleSlideHeight;
-
-          ctx.drawImage(
-            imageBitmap,
-            sx,
-            sy,
-            singleSlideWidth,
-            singleSlideHeight, // Source
-            0,
-            0,
-            singleSlideWidth,
-            singleSlideHeight // Destination
-          );
-
-          // Naming convention:
-          // Carousel: slide-1, slide-2...
-          // Grid: Sometimes users want reverse order (bottom right to top left) for IG uploading
-          // We will stick to standard reading order: row1-col1, row1-col2...
-          // Let's use a simple counter index
-          const index = r * loopCols + c + 1;
-
-          canvas.toBlob(
-            (blob) => {
-              if (blob && folder) {
-                folder.file(`split-${index}.jpg`, blob);
-              }
-              resolve();
-            },
-            "image/jpeg",
-            0.95
-          );
-        })
-      );
+    if (img.width / img.height > totalRatio) {
+      targetWidth = img.height * totalRatio;
+    } else {
+      targetHeight = img.width / totalRatio;
     }
   }
 
-  await Promise.all(promises);
+  const startX = (img.width - targetWidth) / 2;
+  const startY = (img.height - targetHeight) / 2;
+  const slideWidth = targetWidth / slides;
 
-  // 3. Download
-  const content = await zip.generateAsync({ type: "blob" });
-  const filename =
-    mode === "carousel"
-      ? `carousel-${columns}-slides-${Date.now()}.zip`
-      : `grid-${columns}x${rows}-${Date.now()}.zip`;
+  for (let i = 0; i < slides; i++) {
+    const canvas = document.createElement("canvas");
+    const ctx = canvas.getContext("2d")!;
 
-  saveAs(content, filename);
+    canvas.width = slideWidth;
+    canvas.height = targetHeight;
+
+    // Fill white background for safe zones
+    ctx.fillStyle = "#FFFFFF";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    const sourceX = startX + i * slideWidth;
+
+    // Apply Safe Zone Margin
+    // The margin reduces the drawn image size and centers it
+    const marginPxX = (slideWidth * marginPercent) / 100;
+    const marginPxY = (targetHeight * marginPercent) / 100;
+
+    const drawWidth = slideWidth - marginPxX * 2;
+    const drawHeight = targetHeight - marginPxY * 2;
+
+    ctx.drawImage(
+      img,
+      sourceX,
+      startY,
+      slideWidth,
+      targetHeight,
+      marginPxX,
+      marginPxY,
+      drawWidth,
+      drawHeight
+    );
+
+    const blob = await new Promise<Blob>((resolve) =>
+      canvas.toBlob((b) => resolve(b!), "image/jpeg", 0.95)
+    );
+    folder.file(`slide-${i + 1}.jpg`, blob);
+  }
+}
+
+async function processGrid(
+  img: HTMLImageElement,
+  folder: JSZip,
+  cols: number,
+  rows: number,
+  gapPercent: number
+) {
+  // Gap Compensation Logic
+  // We calculate the gap in pixels relative to the image size
+  // and effectively "skip" those pixels when slicing to create continuity
+
+  // Total logic width is the image width
+  // We need to divide the image into (cols) parts + (cols-1) gaps
+  // gapPercent is passed as 0-10. Let's treat it as percentage of a cell width.
+
+  const gapFactor = gapPercent / 100; // e.g. 0.05
+
+  // Calculate the width of one visible cell unit
+  // Total Width = (cols * cellWidth) + ((cols - 1) * (cellWidth * gapFactor))
+  const totalUnitsX = cols + (cols - 1) * gapFactor;
+  const cellWidth = img.width / totalUnitsX;
+  const gapPxX = cellWidth * gapFactor;
+
+  // Same for height
+  const totalUnitsY = rows + (rows - 1) * gapFactor;
+  const cellHeight = img.height / totalUnitsY;
+  const gapPxY = cellHeight * gapFactor;
+
+  let count = 1;
+
+  for (let r = 0; r < rows; r++) {
+    for (let c = 0; c < cols; c++) {
+      const canvas = document.createElement("canvas");
+      const ctx = canvas.getContext("2d")!;
+
+      canvas.width = cellWidth;
+      canvas.height = cellHeight;
+
+      const sourceX = c * (cellWidth + gapPxX);
+      const sourceY = r * (cellHeight + gapPxY);
+
+      ctx.drawImage(
+        img,
+        sourceX,
+        sourceY,
+        cellWidth,
+        cellHeight,
+        0,
+        0,
+        cellWidth,
+        cellHeight
+      );
+
+      const blob = await new Promise<Blob>((resolve) =>
+        canvas.toBlob((b) => resolve(b!), "image/jpeg", 0.95)
+      );
+      folder.file(`tile-${count}.jpg`, blob);
+      count++;
+    }
+  }
 }
