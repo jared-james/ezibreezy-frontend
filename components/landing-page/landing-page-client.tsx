@@ -3,7 +3,7 @@
 "use client";
 
 import LandingPageEditorialSection from "./landing-page-editorial-section";
-import LandingPageHeader from "./landing-page-header";
+import MinimalHeader from "@/components/shared/minimal-header";
 import LandingPageHero from "./landing-page-hero";
 import LandingPageSpotlight from "./landing-page-spotlight";
 import LandingPagePoster from "./landing-page-poster";
@@ -13,7 +13,7 @@ import LandingPageFooter from "./landing-page-footer";
 export default function LandingPageClient() {
   return (
     <main>
-      <LandingPageHeader />
+      <MinimalHeader />
       <LandingPageHero />
       <LandingPageEditorialSection />
       <LandingPageSpotlight />
