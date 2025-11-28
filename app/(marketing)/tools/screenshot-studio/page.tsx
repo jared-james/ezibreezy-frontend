@@ -9,6 +9,8 @@ import {
   RefreshCw,
   Upload,
   Image as ImageIcon,
+  Copy,
+  Check,
 } from "lucide-react";
 import { toast } from "sonner";
 import LandingPageHeader from "@/components/landing-page/landing-page-header";
@@ -26,14 +28,23 @@ export type BackgroundStyle = {
   label: string;
 };
 
-export type AspectRatio = "auto" | "1:1" | "4:5" | "16:9" | "9:16";
+export type AspectRatio =
+  | "auto"
+  | "1:1"
+  | "4:5"
+  | "16:9"
+  | "1.91:1"
+  | "3:2"
+  | "4:3"
+  | "9:16";
 
 // Default Settings
 export const DEFAULT_SETTINGS = {
   padding: 60,
-  roundness: 16, // Inner Image
-  outerRoundness: 0, // Outer Background
-  shadow: 40,
+  roundness: 12,
+  outerRoundness: 0,
+  shadow: 50,
+  windowChrome: true, // New Default
   backgroundId: "grad_1",
   aspectRatio: "auto" as AspectRatio,
 };
@@ -46,8 +57,11 @@ export default function ScreenshotStudioPage() {
   const [roundness, setRoundness] = useState(DEFAULT_SETTINGS.roundness);
   const [outerRoundness, setOuterRoundness] = useState(
     DEFAULT_SETTINGS.outerRoundness
-  ); // New
+  );
   const [shadow, setShadow] = useState(DEFAULT_SETTINGS.shadow);
+  const [windowChrome, setWindowChrome] = useState(
+    DEFAULT_SETTINGS.windowChrome
+  );
   const [backgroundId, setBackgroundId] = useState(
     DEFAULT_SETTINGS.backgroundId
   );
@@ -63,8 +77,11 @@ export default function ScreenshotStudioPage() {
   const [useCustomGradient, setUseCustomGradient] = useState(true);
 
   const [isProcessing, setIsProcessing] = useState(false);
+  const [isCopying, setIsCopying] = useState(false);
 
-  const canvasRef = useRef<{ download: () => void }>(null);
+  const canvasRef = useRef<{ download: () => void; copy: () => Promise<void> }>(
+    null
+  );
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const processFile = useCallback((file: File) => {
@@ -114,6 +131,7 @@ export default function ScreenshotStudioPage() {
     setRoundness(DEFAULT_SETTINGS.roundness);
     setOuterRoundness(DEFAULT_SETTINGS.outerRoundness);
     setShadow(DEFAULT_SETTINGS.shadow);
+    setWindowChrome(DEFAULT_SETTINGS.windowChrome);
     setBackgroundId(DEFAULT_SETTINGS.backgroundId);
     setAspectRatio(DEFAULT_SETTINGS.aspectRatio);
   };
@@ -126,6 +144,24 @@ export default function ScreenshotStudioPage() {
         setIsProcessing(false);
         toast.success("Image downloaded successfully");
       }, 100);
+    }
+  };
+
+  const handleCopy = async () => {
+    if (canvasRef.current) {
+      try {
+        setIsCopying(true);
+        // Small delay to ensure UI updates before heavy canvas op
+        setTimeout(async () => {
+          await canvasRef.current?.copy();
+          setIsCopying(false);
+          toast.success("Copied to clipboard!");
+        }, 50);
+      } catch (err) {
+        setIsCopying(false);
+        toast.error("Failed to copy image.");
+        console.error(err);
+      }
     }
   };
 
@@ -148,7 +184,7 @@ export default function ScreenshotStudioPage() {
             <div className="inline-flex w-fit items-center gap-2 border border-dashed border-foreground/40 bg-white/50 px-3 py-1">
               <Star className="h-4 w-4 fill-current text-brand-primary" />
               <span className="text-xs font-bold font-mono uppercase tracking-widest text-foreground">
-                Utility v1.5
+                Utility v1.6
               </span>
             </div>
 
@@ -157,7 +193,7 @@ export default function ScreenshotStudioPage() {
             </h1>
             <p className="font-serif text-xl md:text-2xl text-foreground/80 max-w-2xl leading-relaxed italic border-l-2 border-dotted border-brand-primary pl-6">
               Turn messy screenshots into editorial assets. Add backgrounds,
-              shadows, and frames instantly.
+              browser frames, and shadows instantly.
             </p>
           </div>
 
@@ -196,6 +232,8 @@ export default function ScreenshotStudioPage() {
                     setOuterRoundness={setOuterRoundness}
                     shadow={shadow}
                     setShadow={setShadow}
+                    windowChrome={windowChrome}
+                    setWindowChrome={setWindowChrome}
                     backgroundId={backgroundId}
                     setBackgroundId={setBackgroundId}
                     aspectRatio={aspectRatio}
@@ -227,11 +265,23 @@ export default function ScreenshotStudioPage() {
 
                   <div className="flex gap-4">
                     <button
-                      onClick={handleReset}
-                      className="flex-1 h-12 flex items-center justify-center border-2 border-dashed border-foreground/30 hover:border-foreground/60 text-foreground font-mono text-xs font-bold uppercase tracking-widest transition-all"
+                      onClick={handleCopy}
+                      disabled={!image || isCopying}
+                      className={cn(
+                        "flex-[1.5] h-12 flex items-center justify-center gap-2 border-2 border-foreground bg-white hover:bg-surface-hover text-foreground font-mono text-xs font-bold uppercase tracking-widest transition-all",
+                        (!image || isCopying) &&
+                          "opacity-50 pointer-events-none"
+                      )}
+                      title="Copy to Clipboard"
                     >
-                      Reset
+                      {isCopying ? (
+                        <Check className="w-4 h-4" />
+                      ) : (
+                        <Copy className="w-4 h-4" />
+                      )}
+                      Copy
                     </button>
+
                     <button
                       onClick={handleDownload}
                       disabled={!image || isProcessing}
@@ -242,7 +292,7 @@ export default function ScreenshotStudioPage() {
                       )}
                     >
                       <Download className="w-4 h-4" />
-                      {isProcessing ? "Processing..." : "Download"}
+                      {isProcessing ? "Wait" : "Save"}
                     </button>
                   </div>
                 </div>
@@ -262,7 +312,6 @@ export default function ScreenshotStudioPage() {
                   </div>
                 ) : (
                   <div className="max-w-full max-h-full shadow-2xl drop-shadow-2xl">
-                    {/* We add a drop-shadow here so if outerRoundness > 0, we see the transparent effect in the preview UI */}
                     <EditorCanvas
                       ref={canvasRef}
                       image={image}
@@ -270,6 +319,7 @@ export default function ScreenshotStudioPage() {
                       roundness={roundness}
                       outerRoundness={outerRoundness}
                       shadow={shadow}
+                      windowChrome={windowChrome}
                       backgroundId={backgroundId}
                       aspectRatio={aspectRatio}
                       customColors={customColors}

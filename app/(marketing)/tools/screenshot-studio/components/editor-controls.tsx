@@ -15,6 +15,10 @@ import {
   ToggleLeft,
   ToggleRight,
   Crop,
+  LayoutTemplate,
+  Instagram,
+  Twitter,
+  Facebook,
 } from "lucide-react";
 import { BackgroundStyle, AspectRatio } from "../page";
 
@@ -143,11 +147,20 @@ export const BACKGROUND_OPTIONS: BackgroundStyle[] = [
   },
 ];
 
-const RATIOS: { id: AspectRatio; icon: any; label: string }[] = [
-  { id: "auto", icon: Maximize, label: "Auto" },
-  { id: "1:1", icon: Square, label: "Square" },
-  { id: "4:5", icon: Smartphone, label: "Portrait" },
-  { id: "16:9", icon: Monitor, label: "Wide" },
+const RATIOS: {
+  id: AspectRatio;
+  icon: any;
+  label: string;
+  subLabel?: string;
+}[] = [
+  { id: "auto", icon: Maximize, label: "Auto", subLabel: "Fit" },
+  { id: "1:1", icon: Square, label: "Square", subLabel: "Insta" },
+  { id: "4:5", icon: Instagram, label: "Portrait", subLabel: "Feed" },
+  { id: "16:9", icon: Monitor, label: "Landscape", subLabel: "YT" },
+  { id: "1.91:1", icon: Twitter, label: "Link", subLabel: "X/Meta" },
+  { id: "3:2", icon: Crop, label: "Photo", subLabel: "Classic" },
+  { id: "4:3", icon: LayoutTemplate, label: "Standard", subLabel: "Web" },
+  { id: "9:16", icon: Smartphone, label: "Story", subLabel: "Reels" },
 ];
 
 interface EditorControlsProps {
@@ -159,6 +172,8 @@ interface EditorControlsProps {
   setOuterRoundness: (val: number) => void;
   shadow: number;
   setShadow: (val: number) => void;
+  windowChrome: boolean;
+  setWindowChrome: (val: boolean) => void;
   backgroundId: string;
   setBackgroundId: (val: string) => void;
   aspectRatio: AspectRatio;
@@ -178,6 +193,8 @@ export function EditorControls({
   setOuterRoundness,
   shadow,
   setShadow,
+  windowChrome,
+  setWindowChrome,
   backgroundId,
   setBackgroundId,
   aspectRatio,
@@ -368,19 +385,49 @@ export function EditorControls({
                 key={ratio.id}
                 onClick={() => setAspectRatio(ratio.id)}
                 className={cn(
-                  "flex flex-col items-center justify-center gap-1 py-2 border rounded-md transition-all",
+                  "flex flex-col items-center justify-center gap-1 py-2 border rounded-md transition-all h-[52px]",
                   aspectRatio === ratio.id
                     ? "bg-foreground text-background-editorial border-foreground"
                     : "bg-white border-foreground/20 text-foreground/50 hover:border-foreground/40 hover:text-foreground"
                 )}
               >
                 <Icon className="w-4 h-4" />
-                <span className="text-[9px] font-bold uppercase">
-                  {ratio.label}
-                </span>
+                <div className="flex flex-col items-center leading-none gap-0.5">
+                  <span className="text-[9px] font-bold uppercase">
+                    {ratio.label}
+                  </span>
+                  {ratio.subLabel && (
+                    <span className="text-[8px] opacity-60 font-mono">
+                      {ratio.subLabel}
+                    </span>
+                  )}
+                </div>
               </button>
             );
           })}
+        </div>
+      </div>
+
+      <div className="w-full h-px bg-foreground/10 border-t border-dashed border-foreground/20" />
+
+      {/* Frame Options (Window Chrome) */}
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
+          <label className="font-mono text-[10px] uppercase tracking-widest text-foreground/50 flex items-center gap-2">
+            <LayoutTemplate className="w-3 h-3" />
+            Window Frame
+          </label>
+          <button
+            onClick={() => setWindowChrome(!windowChrome)}
+            className={cn(
+              "flex items-center gap-2 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider transition-colors",
+              windowChrome
+                ? "bg-brand-primary text-white"
+                : "bg-foreground/5 text-foreground/40 hover:bg-foreground/10"
+            )}
+          >
+            {windowChrome ? "MacOS Style" : "None"}
+          </button>
         </div>
       </div>
 

@@ -8,6 +8,7 @@ interface EditorCanvasProps {
   roundness: number;
   outerRoundness: number;
   shadow: number;
+  windowChrome: boolean;
   backgroundId: string;
   aspectRatio: AspectRatio;
   customColors: [string, string];
@@ -26,6 +27,22 @@ export const EditorCanvas = forwardRef((props: EditorCanvasProps, ref) => {
       link.href = canvas.toDataURL("image/png");
       link.click();
     },
+    copy: async () => {
+      const canvas = canvasRef.current;
+      if (!canvas) return;
+      try {
+        const blob = await new Promise<Blob | null>((resolve) =>
+          canvas.toBlob(resolve, "image/png")
+        );
+        if (!blob) throw new Error("Failed to generate image blob");
+        await navigator.clipboard.write([
+          new ClipboardItem({ "image/png": blob }),
+        ]);
+      } catch (err) {
+        console.error("Copy failed", err);
+        throw err;
+      }
+    },
   }));
 
   useEffect(() => {
@@ -41,13 +58,14 @@ export const EditorCanvas = forwardRef((props: EditorCanvasProps, ref) => {
       roundness,
       outerRoundness,
       shadow,
+      windowChrome,
       backgroundId,
       aspectRatio,
       customColors,
       useCustomGradient,
     } = props;
 
-    // 1. Base Scale Logic
+    // 1. Base Scale Logic (Retina Support)
     const MAX_WIDTH = 2400;
     let scale = 1;
     if (image.naturalWidth > MAX_WIDTH) {
@@ -56,21 +74,52 @@ export const EditorCanvas = forwardRef((props: EditorCanvasProps, ref) => {
     const imgWidth = image.naturalWidth * scale;
     const imgHeight = image.naturalHeight * scale;
 
-    // 2. Determine Inner Box (Image + Padding)
-    const relativePadding = padding * (imgWidth / 800) * 1.5;
-    const minCanvasWidth = imgWidth + relativePadding * 2;
-    const minCanvasHeight = imgHeight + relativePadding * 2;
+    // 2. Determine "Object" Dimensions (Chrome + Image)
+    // Chrome bar is usually ~40px high relative to a 1000px image
+    const chromeHeight = windowChrome
+      ? 40 * scale * (imgWidth < 1000 ? 1000 / imgWidth : 1) * 0.8
+      : 0;
+    const objectWidth = imgWidth;
+    const objectHeight = imgHeight + chromeHeight;
 
-    // 3. Determine Final Canvas Dimensions based on Aspect Ratio
+    // 3. Determine Padding
+    const relativePadding = padding * (imgWidth / 800) * 1.5;
+
+    // 4. Determine Min Canvas Size
+    const minCanvasWidth = objectWidth + relativePadding * 2;
+    const minCanvasHeight = objectHeight + relativePadding * 2;
+
+    // 5. Determine Final Canvas Dimensions based on Aspect Ratio
     let finalWidth = minCanvasWidth;
     let finalHeight = minCanvasHeight;
 
     if (aspectRatio !== "auto") {
       let targetRatio = 1;
-      if (aspectRatio === "1:1") targetRatio = 1;
-      if (aspectRatio === "4:5") targetRatio = 4 / 5;
-      if (aspectRatio === "16:9") targetRatio = 16 / 9;
-      if (aspectRatio === "9:16") targetRatio = 9 / 16;
+      switch (aspectRatio) {
+        case "1:1":
+          targetRatio = 1;
+          break;
+        case "4:5":
+          targetRatio = 0.8;
+          break;
+        case "16:9":
+          targetRatio = 16 / 9;
+          break;
+        case "1.91:1":
+          targetRatio = 1.91;
+          break;
+        case "3:2":
+          targetRatio = 1.5;
+          break;
+        case "4:3":
+          targetRatio = 4 / 3;
+          break;
+        case "9:16":
+          targetRatio = 9 / 16;
+          break;
+        default:
+          targetRatio = 1;
+      }
 
       const currentRatio = minCanvasWidth / minCanvasHeight;
 
@@ -83,31 +132,27 @@ export const EditorCanvas = forwardRef((props: EditorCanvasProps, ref) => {
       }
     }
 
+    // Set Canvas Size
     canvas.width = finalWidth;
     canvas.height = finalHeight;
 
-    // Clear canvas first (important for transparency)
+    // Clear
     ctx.clearRect(0, 0, finalWidth, finalHeight);
 
-    // 4. Clip Canvas for Outer Roundness
+    // 6. Draw Outer Clip (Background Radius)
     ctx.save();
-
-    // Logic for outer radius clipping
     if (outerRoundness > 0) {
-      // We scale the outer roundness logic similar to inner
-      // Using same reference base (imgWidth / 800)
       const outerR = outerRoundness * (imgWidth / 800);
-
       ctx.beginPath();
       if (typeof ctx.roundRect === "function") {
         ctx.roundRect(0, 0, finalWidth, finalHeight, outerR);
       } else {
-        ctx.rect(0, 0, finalWidth, finalHeight); // fallback
+        ctx.rect(0, 0, finalWidth, finalHeight);
       }
       ctx.clip();
     }
 
-    // 5. Draw Background
+    // 7. Draw Background
     const bgOption = BACKGROUND_OPTIONS.find((b) => b.id === backgroundId);
 
     if (backgroundId === "custom") {
@@ -132,16 +177,18 @@ export const EditorCanvas = forwardRef((props: EditorCanvasProps, ref) => {
       ctx.fillStyle = gradient;
       ctx.fillRect(0, 0, finalWidth, finalHeight);
     } else {
-      // Fallback or Solid
       ctx.fillStyle = (bgOption?.value as string) || "#ffffff";
       ctx.fillRect(0, 0, finalWidth, finalHeight);
     }
 
-    // 6. Calculate Center Position for Image
-    const drawX = (finalWidth - imgWidth) / 2;
-    const drawY = (finalHeight - imgHeight) / 2;
+    // 8. Calculate Position for Object (Centered)
+    const drawX = (finalWidth - objectWidth) / 2;
+    const drawY = (finalHeight - objectHeight) / 2;
 
-    // 7. Draw Shadow
+    // Common Radius Scaled
+    const r = roundness * (imgWidth / 800);
+
+    // 9. Draw Shadow (Behind everything)
     if (shadow > 0) {
       ctx.save();
       ctx.shadowColor = "rgba(0, 0, 0, 0.4)";
@@ -151,44 +198,101 @@ export const EditorCanvas = forwardRef((props: EditorCanvasProps, ref) => {
 
       ctx.beginPath();
       if (typeof ctx.roundRect === "function") {
-        const r = roundness * (imgWidth / 800);
-        ctx.roundRect(drawX, drawY, imgWidth, imgHeight, r);
+        ctx.roundRect(drawX, drawY, objectWidth, objectHeight, r);
       } else {
-        ctx.rect(drawX, drawY, imgWidth, imgHeight);
+        ctx.rect(drawX, drawY, objectWidth, objectHeight);
       }
       ctx.fill();
       ctx.restore();
     }
 
-    // 8. Draw Image
-    ctx.save();
-    const radius = roundness * (imgWidth / 800);
+    // 10. Draw Window Chrome (If enabled)
+    if (windowChrome) {
+      ctx.save();
 
-    if (radius > 0) {
+      // Draw Top Bar Background
+      ctx.beginPath();
+      // Top-Left and Top-Right corners rounded, Bottoms flat (unless image is short?)
+      // Actually, we usually round the whole container, but splitting drawing is tricky.
+      // Easier approach: Clip the whole area first, then draw inside.
+
+      // Create Path for the whole object (Chrome + Image)
+      const objectPath = new Path2D();
+      if (typeof ctx.roundRect === "function") {
+        objectPath.roundRect(drawX, drawY, objectWidth, objectHeight, r);
+      } else {
+        objectPath.rect(drawX, drawY, objectWidth, objectHeight);
+      }
+
+      ctx.clip(objectPath); // Clip everything to the rounded rectangle
+
+      // Draw Chrome Bar Background
+      ctx.fillStyle = "#1e1e1e"; // Mac Dark Grey
+      ctx.fillRect(drawX, drawY, objectWidth, chromeHeight);
+
+      // Draw Traffic Lights
+      const circleY = drawY + chromeHeight / 2;
+      const startX = drawX + chromeHeight * 0.6; // Padding left
+      const gap = chromeHeight * 0.6;
+      const radius = chromeHeight * 0.18;
+
+      // Red
+      ctx.beginPath();
+      ctx.arc(startX, circleY, radius, 0, 2 * Math.PI);
+      ctx.fillStyle = "#FF5F56";
+      ctx.fill();
+
+      // Yellow
+      ctx.beginPath();
+      ctx.arc(startX + gap, circleY, radius, 0, 2 * Math.PI);
+      ctx.fillStyle = "#FFBD2E";
+      ctx.fill();
+
+      // Green
+      ctx.beginPath();
+      ctx.arc(startX + gap * 2, circleY, radius, 0, 2 * Math.PI);
+      ctx.fillStyle = "#27C93F";
+      ctx.fill();
+
+      // Draw Image Below Chrome
+      ctx.drawImage(
+        image,
+        0,
+        0,
+        image.naturalWidth,
+        image.naturalHeight,
+        drawX,
+        drawY + chromeHeight,
+        objectWidth,
+        objectHeight - chromeHeight
+      );
+
+      ctx.restore();
+    } else {
+      // No Chrome - Just draw Image with rounding
+      ctx.save();
       ctx.beginPath();
       if (typeof ctx.roundRect === "function") {
-        ctx.roundRect(drawX, drawY, imgWidth, imgHeight, radius);
+        ctx.roundRect(drawX, drawY, objectWidth, objectHeight, r);
       } else {
-        ctx.rect(drawX, drawY, imgWidth, imgHeight);
+        ctx.rect(drawX, drawY, objectWidth, objectHeight);
       }
       ctx.clip();
+      ctx.drawImage(
+        image,
+        0,
+        0,
+        image.naturalWidth,
+        image.naturalHeight,
+        drawX,
+        drawY,
+        objectWidth,
+        objectHeight
+      );
+      ctx.restore();
     }
 
-    ctx.drawImage(
-      image,
-      0,
-      0,
-      image.naturalWidth,
-      image.naturalHeight,
-      drawX,
-      drawY,
-      imgWidth,
-      imgHeight
-    );
-    ctx.restore();
-
-    // Restore the Outer Clip context
-    ctx.restore();
+    ctx.restore(); // Restore Outer Clip
   }, [props]);
 
   return (
