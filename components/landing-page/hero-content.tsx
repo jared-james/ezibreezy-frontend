@@ -75,9 +75,9 @@ export default function HeroContent() {
         </span>
       </div>
 
-      <h2 className="mb-8 font-serif text-5xl font-bold leading-[1.1] tracking-tight md:text-6xl">
+      <h1 className="mb-8 font-serif text-5xl font-bold leading-[1.1] tracking-tight md:text-6xl">
         Social media shouldn&apos;t feel like a second job.
-      </h2>
+      </h1>
 
       {/* Editorial Copy */}
       <div className="prose prose-lg mb-10 max-w-xl font-serif leading-relaxed text-foreground/80">

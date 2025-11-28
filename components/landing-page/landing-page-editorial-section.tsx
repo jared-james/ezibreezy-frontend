@@ -26,9 +26,9 @@ export default function LandingPageEditorialSection() {
                 </span>
               </div>
 
-              <h3 className="mb-6 font-serif text-3xl font-bold leading-tight">
+              <p className="mb-6 font-serif text-3xl font-bold leading-tight">
                 Why does posting feel like punishment?
-              </h3>
+              </p>
 
               <div className="space-y-8">
                 {/* 1. The Channel Ransom */}
@@ -119,9 +119,9 @@ export default function LandingPageEditorialSection() {
                     Unlocked
                   </span>
                 </div>
-                <h4 className="mb-3 font-serif text-xl font-bold">
+                <h3 className="mb-3 font-serif text-xl font-bold">
                   Every Channel. Period.
-                </h4>
+                </h3>
                 <p className="font-serif text-sm leading-relaxed text-foreground/80">
                   We include every platform on every plan. No per-channel
                   pricing. No "seat taxes." Go ahead, launch that TikTok account
@@ -137,9 +137,9 @@ export default function LandingPageEditorialSection() {
                     Consolidated
                   </span>
                 </div>
-                <h4 className="mb-3 font-serif text-xl font-bold">
+                <h3 className="mb-3 font-serif text-xl font-bold">
                   The Command Center
-                </h4>
+                </h3>
                 <p className="font-serif text-sm leading-relaxed text-foreground/80">
                   Stop tabbing between Notes apps, Spreadsheets, and scheduling
                   tools. From that first spark of an idea to your final Media
@@ -155,9 +155,9 @@ export default function LandingPageEditorialSection() {
                     Focused
                   </span>
                 </div>
-                <h4 className="mb-3 font-serif text-xl font-bold">
+                <h3 className="mb-3 font-serif text-xl font-bold">
                   The Idea Engine
-                </h4>
+                </h3>
                 <p className="font-serif text-sm leading-relaxed text-foreground/80">
                   {`You don't need a tool to hold your posts; you need help creating them. We turn your daily grind into actual strategy, not another PowerPoint "strategy". We bridge the gap between your loose ideas and a published narrative.`}
                 </p>
@@ -171,9 +171,9 @@ export default function LandingPageEditorialSection() {
                     Scalable
                   </span>
                 </div>
-                <h4 className="mb-3 font-serif text-xl font-bold">
+                <h3 className="mb-3 font-serif text-xl font-bold">
                   Universal Pricing
-                </h4>
+                </h3>
                 <p className="font-serif text-sm leading-relaxed text-foreground/80">
                   Small business budget, Enterprise capabilities. Whether you
                   manage one brand or fifty, our two simple plans adapt to you.

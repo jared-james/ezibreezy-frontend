@@ -248,7 +248,7 @@ export default function LandingPageSpotlight() {
                 </div>
 
                 <div>
-                  <h4 className="font-serif font-bold text-lg">System Dark</h4>
+                  <h3 className="font-serif font-bold text-lg">System Dark</h3>
                   <p className="font-serif text-sm text-background-editorial/60 mt-1 leading-relaxed">
                     Native dark mode support for late night editorial sessions.
                   </p>
@@ -263,9 +263,9 @@ export default function LandingPageSpotlight() {
                 </div>
 
                 <div>
-                  <h4 className="font-serif font-bold text-lg flex items-center gap-2">
+                  <h3 className="font-serif font-bold text-lg flex items-center gap-2">
                     Unified Feed
-                  </h4>
+                  </h3>
                   <p className="font-serif text-sm text-background-editorial/60 mt-1 leading-relaxed">
                     A single stream for all comments and notifications.
                     <span className="text-brand-primary text-xs uppercase tracking-wider ml-1">
@@ -279,9 +279,9 @@ export default function LandingPageSpotlight() {
                 <div className="mb-2 border-2 border-foreground rounded-full p-1">
                   <Check className="w-6 h-6" />
                 </div>
-                <h4 className="font-serif font-bold text-xl uppercase tracking-tight">
+                <h3 className="font-serif font-bold text-xl uppercase tracking-tight">
                   Fair pricing
-                </h4>
+                </h3>
                 <p className="font-mono text-xs uppercase tracking-widest mt-1 opacity-80">
                   Includes Everything, Because we can.
                 </p>
