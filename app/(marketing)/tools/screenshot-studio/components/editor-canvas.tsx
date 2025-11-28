@@ -38,7 +38,6 @@ export const EditorCanvas = forwardRef((props: EditorCanvasProps, ref) => {
       textLayer,
     } = props;
 
-    // 1. Calculate Scales & Dimensions
     const MAX_WIDTH = 2400;
     let scale = 1;
     if (image.naturalWidth > MAX_WIDTH) {
@@ -104,11 +103,9 @@ export const EditorCanvas = forwardRef((props: EditorCanvasProps, ref) => {
       ctx.canvas.height = finalHeight;
     }
 
-    // --- DRAWING START ---
     ctx.clearRect(0, 0, finalWidth, finalHeight);
     ctx.save();
 
-    // 2. Setup Background Color/Gradient
     const bgOption = BACKGROUND_OPTIONS.find((b) => b.id === backgroundId);
     let fillStyle: string | CanvasGradient;
 
@@ -135,7 +132,6 @@ export const EditorCanvas = forwardRef((props: EditorCanvasProps, ref) => {
       fillStyle = (bgOption?.value as string) || "#ffffff";
     }
 
-    // 3. APPLY OUTER ROUNDNESS CLIP (Must happen BEFORE filling background)
     if (outerRoundness > 0) {
       const r = outerRoundness * (imgWidth / 800);
       const maxR = Math.min(finalWidth, finalHeight) / 2;
@@ -150,7 +146,6 @@ export const EditorCanvas = forwardRef((props: EditorCanvasProps, ref) => {
       ctx.clip();
     }
 
-    // 4. Draw Background
     ctx.fillStyle = fillStyle;
     ctx.fillRect(0, 0, finalWidth, finalHeight);
 
@@ -158,7 +153,6 @@ export const EditorCanvas = forwardRef((props: EditorCanvasProps, ref) => {
     const drawY = (finalHeight - objectHeight) / 2;
     const r = roundness * (imgWidth / 800);
 
-    // 5. Draw Glass Effect (Optional)
     if (showGlass) {
       ctx.save();
 
@@ -181,23 +175,19 @@ export const EditorCanvas = forwardRef((props: EditorCanvasProps, ref) => {
       ctx.clip();
       ctx.filter = "blur(20px)";
 
-      // Re-draw background inside glass for blur effect
       ctx.scale(1.1, 1.1);
       ctx.translate(-finalWidth * 0.05, -finalHeight * 0.05);
       ctx.fillStyle = fillStyle;
       ctx.fillRect(0, 0, finalWidth, finalHeight);
       ctx.restore();
 
-      // Frosting
       ctx.fillStyle = "rgba(255, 255, 255, 0.25)";
       ctx.fill();
 
-      // Highlight Border
       ctx.lineWidth = 1.5;
       ctx.strokeStyle = "rgba(255, 255, 255, 0.4)";
       ctx.stroke();
 
-      // Glass Drop Shadow
       ctx.shadowColor = "rgba(0,0,0,0.1)";
       ctx.shadowBlur = 30;
       ctx.shadowOffsetY = 15;
@@ -206,7 +196,6 @@ export const EditorCanvas = forwardRef((props: EditorCanvasProps, ref) => {
       ctx.restore();
     }
 
-    // 6. Draw Image Shadow
     if (shadow > 0) {
       ctx.save();
       ctx.shadowColor = "rgba(0, 0, 0, 0.4)";
@@ -223,7 +212,6 @@ export const EditorCanvas = forwardRef((props: EditorCanvasProps, ref) => {
       ctx.restore();
     }
 
-    // 7. Draw Window Chrome & Image
     if (windowChrome) {
       ctx.save();
       const objectPath = new Path2D();
@@ -289,11 +277,8 @@ export const EditorCanvas = forwardRef((props: EditorCanvasProps, ref) => {
       );
       ctx.restore();
     }
-
-    // Restore context (Removes the outer roundness clip for any future operations)
     ctx.restore();
 
-    // 8. Draw Text Overlay (If requested)
     if (includeText && textLayer.text) {
       ctx.save();
       const scaledFontSize = textLayer.fontSize * (imgWidth / 1000);
@@ -319,14 +304,11 @@ export const EditorCanvas = forwardRef((props: EditorCanvasProps, ref) => {
       if (!canvas) return;
       const ctx = canvas.getContext("2d");
       if (!ctx) return;
-
       drawScene(ctx, true);
-
       const link = document.createElement("a");
       link.download = "ezibreezy-mockup.png";
       link.href = canvas.toDataURL("image/png");
       link.click();
-
       drawScene(ctx, false);
     },
     copy: async () => {
@@ -334,9 +316,7 @@ export const EditorCanvas = forwardRef((props: EditorCanvasProps, ref) => {
       if (!canvas) return;
       const ctx = canvas.getContext("2d");
       if (!ctx) return;
-
       drawScene(ctx, true);
-
       try {
         const blob = await new Promise<Blob | null>((resolve) =>
           canvas.toBlob(resolve, "image/png")
@@ -351,6 +331,20 @@ export const EditorCanvas = forwardRef((props: EditorCanvasProps, ref) => {
       } finally {
         drawScene(ctx, false);
       }
+    },
+    // NEW FUNCTION HERE
+    getDataUrl: () => {
+      const canvas = canvasRef.current;
+      if (!canvas) return null;
+      const ctx = canvas.getContext("2d");
+      if (!ctx) return null;
+
+      // Draw with text
+      drawScene(ctx, true);
+      const url = canvas.toDataURL("image/png");
+      // Reset preview
+      drawScene(ctx, false);
+      return url;
     },
     getCanvasWidth: () => {
       const canvas = canvasRef.current;

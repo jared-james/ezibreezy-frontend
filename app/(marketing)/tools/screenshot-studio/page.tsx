@@ -1,5 +1,3 @@
-// app/(marketing)/tools/screenshot-studio/page.tsx
-
 "use client";
 
 import { useState, useRef } from "react";
@@ -11,6 +9,8 @@ import {
   Copy,
   Check,
   Star,
+  Eye,
+  X,
 } from "lucide-react";
 import { toast } from "sonner";
 import LandingPageHeader from "@/components/landing-page/landing-page-header";
@@ -37,9 +37,8 @@ export default function ScreenshotStudioPage() {
     DEFAULT_SETTINGS.windowChrome
   );
 
-  // Glass State
   const [showGlass, setShowGlass] = useState(false);
-  const [glassPlane, setGlassPlane] = useState(30); // Default glass size
+  const [glassPlane, setGlassPlane] = useState(30);
 
   const [backgroundId, setBackgroundId] = useState(
     DEFAULT_SETTINGS.backgroundId
@@ -61,6 +60,9 @@ export default function ScreenshotStudioPage() {
   const [isProcessing, setIsProcessing] = useState(false);
   const [isCopying, setIsCopying] = useState(false);
 
+  // NEW STATE
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+
   const canvasWrapperRef = useRef<HTMLDivElement>(null);
 
   const { textElementRef, handleTextMouseDown } = useTextDrag({
@@ -72,6 +74,7 @@ export default function ScreenshotStudioPage() {
   const canvasRef = useRef<{
     download: () => void;
     copy: () => Promise<void>;
+    getDataUrl: () => string | null;
     getCanvasWidth: () => number;
   }>(null);
 
@@ -87,6 +90,16 @@ export default function ScreenshotStudioPage() {
     setBackgroundId(DEFAULT_SETTINGS.backgroundId);
     setAspectRatio(DEFAULT_SETTINGS.aspectRatio);
     setTextLayer(DEFAULT_SETTINGS.textLayer);
+  };
+
+  // NEW FUNCTION
+  const handlePreview = () => {
+    if (canvasRef.current) {
+      const url = canvasRef.current.getDataUrl();
+      if (url) {
+        setPreviewUrl(url);
+      }
+    }
   };
 
   const handleDownload = () => {
@@ -216,6 +229,19 @@ export default function ScreenshotStudioPage() {
                     )}
 
                     <div className="flex gap-4">
+                      {/* NEW VIEW BUTTON */}
+                      <button
+                        onClick={handlePreview}
+                        disabled={!image}
+                        className={cn(
+                          "h-12 w-12 flex items-center justify-center border-2 border-foreground bg-white hover:bg-surface-hover text-foreground transition-all shrink-0",
+                          !image && "opacity-50 pointer-events-none"
+                        )}
+                        title="View Full Size"
+                      >
+                        <Eye className="w-4 h-4" />
+                      </button>
+
                       <button
                         onClick={handleCopy}
                         disabled={!image || isCopying}
@@ -325,6 +351,31 @@ export default function ScreenshotStudioPage() {
           </div>
           <InfoSection />
         </div>
+
+        {/* PREVIEW MODAL */}
+        {previewUrl && (
+          <div
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 md:p-10 animate-in fade-in duration-200"
+            onClick={() => setPreviewUrl(null)}
+          >
+            <div
+              className="relative max-w-full max-h-full overflow-auto rounded shadow-2xl"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <button
+                onClick={() => setPreviewUrl(null)}
+                className="absolute top-4 right-4 z-10 p-2 bg-black/50 hover:bg-black/70 text-white rounded-full transition-colors backdrop-blur-md"
+              >
+                <X className="w-5 h-5" />
+              </button>
+              <img
+                src={previewUrl}
+                alt="Full size preview"
+                className="max-w-full h-auto object-contain rounded"
+              />
+            </div>
+          </div>
+        )}
       </main>
       <LandingPageFooter />
     </div>
