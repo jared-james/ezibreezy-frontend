@@ -1,7 +1,7 @@
 // app/(marketing)/tools/page.tsx
 
 import Link from "next/link";
-import { Scissors, Grid3x3, ArrowRight, PenTool } from "lucide-react";
+import { Scissors, Grid3x3, ArrowRight, PenTool, Type } from "lucide-react";
 import LandingPageFooter from "@/components/landing-page/landing-page-footer";
 import MinimalHeader from "@/components/shared/minimal-header";
 
@@ -23,6 +23,15 @@ const tools = [
     href: "/tools/instagram-grid-maker",
     icon: Grid3x3,
     category: "Instagram",
+  },
+  {
+    id: "03",
+    name: "Title Checker",
+    description:
+      "Analyze video titles for truncation and impact. Preview how your content appears in YouTube search and mobile feeds.",
+    href: "/tools/youtube-title-checker",
+    icon: Type,
+    category: "YouTube",
   },
 ];
 
@@ -65,9 +74,9 @@ export default function ToolsPage() {
                 <Link
                   key={tool.href}
                   href={tool.href}
-                  className="block no-underline hover:no-underline focus:no-underline active:no-underline border-2 border-foreground bg-surface p-0 relative"
+                  className="block no-underline hover:no-underline focus:no-underline active:no-underline border-2 border-foreground bg-surface p-0 relative group"
                 >
-                  <div className="flex items-center justify-between border-b-2 border-foreground p-4 bg-background-editorial">
+                  <div className="flex items-center justify-between border-b-2 border-foreground p-4 bg-background-editorial group-hover:bg-brand-primary/5 transition-colors">
                     <div className="flex items-center gap-3">
                       <span className="font-mono text-xs font-bold uppercase tracking-widest border border-foreground px-1.5 py-0.5">
                         No. {tool.id}
@@ -80,7 +89,7 @@ export default function ToolsPage() {
                   </div>
 
                   <div className="p-8 md:p-12">
-                    <h2 className="text-4xl md:text-5xl font-bold uppercase leading-[0.9] tracking-tight mb-6 text-foreground">
+                    <h2 className="text-4xl md:text-5xl font-bold uppercase leading-[0.9] tracking-tight mb-6 text-foreground group-hover:text-brand-primary transition-colors">
                       {tool.name}
                     </h2>
                     <p className="font-serif text-lg text-foreground/70 leading-relaxed mb-8">
