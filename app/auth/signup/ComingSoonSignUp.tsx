@@ -8,7 +8,7 @@ import Image from "next/image";
 import { ArrowRight, Loader2, Check, Scissors } from "lucide-react";
 import { signupForWaitlist } from "@/app/actions/early-access";
 import LandingPageFooter from "@/components/landing-page/landing-page-footer";
-import AuthHeader from "@/components/auth/auth-header";
+import MinimalHeader from "@/components/shared/minimal-header";
 import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -62,7 +62,7 @@ export default function ComingSoonSignUp() {
 
   return (
     <div className="flex flex-col min-h-screen bg-background-editorial text-foreground">
-      <AuthHeader />
+      <MinimalHeader />
 
       <main className="grow flex items-center justify-center py-16 px-6">
         <div className="mx-auto w-full max-w-md">

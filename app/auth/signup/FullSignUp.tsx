@@ -6,7 +6,7 @@ import { createClient } from "@/lib/supabase/client";
 import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import AuthHeader from "@/components/auth/auth-header";
+import MinimalHeader from "@/components/shared/minimal-header";
 import LandingPageFooter from "@/components/landing-page/landing-page-footer";
 import {
   ArrowRight,
@@ -52,7 +52,7 @@ export default function FullSignUp() {
 
   return (
     <div className="flex flex-col min-h-screen bg-background-editorial text-foreground">
-      <AuthHeader />
+      <MinimalHeader />
 
       <main className="grow flex items-center justify-center py-16 px-4 relative">
         {/* Background Grid Pattern */}

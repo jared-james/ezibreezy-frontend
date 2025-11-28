@@ -15,18 +15,33 @@ interface GridControlsProps {
   columns: number;
   rows: number;
   gap: number;
+  gapColor: string;
   onColumnsChange: (cols: number) => void;
   onRowsChange: (rows: number) => void;
   onGapChange: (gap: number) => void;
+  onGapColorChange: (color: string) => void;
 }
+
+const GAP_COLORS = [
+  { label: "White", value: "#FFFFFF", tailwind: "bg-white border-gray-200" },
+  { label: "Red", value: "#EF4444", tailwind: "bg-red-500 border-red-600" },
+  { label: "Blue", value: "#3B82F6", tailwind: "bg-blue-500 border-blue-600" },
+  {
+    label: "Green",
+    value: "#22C55E",
+    tailwind: "bg-green-500 border-green-600",
+  },
+];
 
 export function GridControls({
   columns,
   rows,
   gap,
+  gapColor,
   onColumnsChange,
   onRowsChange,
   onGapChange,
+  onGapColorChange,
 }: GridControlsProps) {
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement>,
@@ -115,15 +130,34 @@ export function GridControls({
 
       {/* Gap Control - Styled as a technical slider */}
       <div className="col-span-1 md:col-auto flex flex-col gap-3 w-full md:w-40">
-        <label className="font-mono text-[10px] uppercase tracking-widest text-foreground/50 flex items-center justify-between">
-          <span className="flex items-center gap-2">
+        <div className="flex items-center justify-between gap-3">
+          <label className="font-mono text-[10px] uppercase tracking-widest text-foreground/50 flex items-center gap-2">
             <Grid3X3 className="w-3 h-3" />
-            Gap Comp.
-          </span>
-          <span className="text-brand-primary font-bold bg-brand-primary/10 px-1 rounded">
-            {gap}%
-          </span>
-        </label>
+            Gap Comp.{" "}
+            <span className="text-brand-primary font-bold bg-brand-primary/10 px-1 rounded">
+              {gap}%
+            </span>
+          </label>
+
+          {/* Color Pickers */}
+          <div className="flex gap-2 pr-1">
+            {GAP_COLORS.map((c) => (
+              <button
+                key={c.value}
+                onClick={() => onGapColorChange(c.value)}
+                className={cn(
+                  "w-4 h-4 rounded-full border shadow-sm transition-all hover:scale-110",
+                  c.tailwind,
+                  gapColor === c.value
+                    ? "ring-2 ring-offset-1 ring-foreground scale-110"
+                    : ""
+                )}
+                title={c.label}
+                aria-label={`Set gap color to ${c.label}`}
+              />
+            ))}
+          </div>
+        </div>
 
         <div className="h-12 flex items-center px-4 border border-dashed border-foreground/30 bg-background-editorial/30 relative">
           {/* Custom Track Lines to look like a ruler */}

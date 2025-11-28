@@ -87,7 +87,7 @@ export default function CarouselSplitterPage() {
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [columns, setColumns] = useState<number>(3);
   const [aspectRatio, setAspectRatio] = useState<AspectRatio>("portrait");
-  const [gap, setGap] = useState<number>(0);
+  const [dividerColor, setDividerColor] = useState<string>("#EF4444");
   const [isProcessing, setIsProcessing] = useState(false);
 
   const handleFileSelect = (file: File) => {
@@ -104,7 +104,7 @@ export default function CarouselSplitterPage() {
     setPreviewUrl(null);
     setColumns(3);
     setAspectRatio("portrait");
-    setGap(0);
+    setDividerColor("#EF4444");
   };
 
   const handleDownload = async () => {
@@ -117,7 +117,7 @@ export default function CarouselSplitterPage() {
         columns,
         rows: 1,
         aspectRatio,
-        gap,
+        gap: 0,
       });
       toast.success("Carousel created and downloaded successfully.");
     } catch (error) {
@@ -181,8 +181,10 @@ export default function CarouselSplitterPage() {
                         <CarouselControls
                           slides={columns}
                           aspectRatio={aspectRatio}
+                          dividerColor={dividerColor}
                           onSlidesChange={setColumns}
                           onAspectRatioChange={setAspectRatio}
+                          onDividerColorChange={setDividerColor}
                         />
                       </div>
 
@@ -219,6 +221,7 @@ export default function CarouselSplitterPage() {
                     previewUrl={previewUrl!}
                     columns={columns}
                     aspectRatio={aspectRatio}
+                    dividerColor={dividerColor}
                   />
                 </div>
               )}

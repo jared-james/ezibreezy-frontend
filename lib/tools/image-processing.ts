@@ -13,6 +13,7 @@ interface ProcessOptions {
   rows: number;
   aspectRatio: AspectRatio;
   gap: number;
+  gapColor?: string;
 }
 
 export async function processAndDownload({
@@ -22,15 +23,16 @@ export async function processAndDownload({
   rows,
   aspectRatio,
   gap,
+  gapColor = "#FFFFFF",
 }: ProcessOptions) {
   const image = await loadImage(file);
   const zip = new JSZip();
   const folder = zip.folder("split-images");
 
   if (mode === "carousel") {
-    await processCarousel(image, folder!, columns, aspectRatio, gap);
+    await processCarousel(image, folder!, columns, aspectRatio, gap, gapColor);
   } else {
-    await processGrid(image, folder!, columns, rows, gap);
+    await processGrid(image, folder!, columns, rows, gap, gapColor);
   }
 
   const content = await zip.generateAsync({ type: "blob" });
@@ -51,7 +53,8 @@ async function processCarousel(
   folder: JSZip,
   slides: number,
   ratioType: AspectRatio,
-  marginPercent: number
+  marginPercent: number,
+  gapColor: string
 ) {
   let targetHeight = img.height;
   let targetWidth = img.width;
@@ -79,8 +82,8 @@ async function processCarousel(
     canvas.width = slideWidth;
     canvas.height = targetHeight;
 
-    // Fill white background for safe zones
-    ctx.fillStyle = "#FFFFFF";
+    // Fill background for safe zones with selected gap color
+    ctx.fillStyle = gapColor;
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
     const sourceX = startX + i * slideWidth;
@@ -117,7 +120,8 @@ async function processGrid(
   folder: JSZip,
   cols: number,
   rows: number,
-  gapPercent: number
+  gapPercent: number,
+  _gapColor: string // Not currently used for grid mode, but kept for API consistency
 ) {
   // Gap Compensation Logic
   // We calculate the gap in pixels relative to the image size

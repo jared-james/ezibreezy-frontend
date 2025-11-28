@@ -67,6 +67,12 @@ export default function LandingPageFooter() {
 
           <div className="flex items-center space-x-6">
             <Link
+              href="/tools"
+              className="hover:text-brand-primary transition-colors"
+            >
+              Tools
+            </Link>
+            <Link
               href="/privacy"
               className="hover:text-brand-primary transition-colors"
             >

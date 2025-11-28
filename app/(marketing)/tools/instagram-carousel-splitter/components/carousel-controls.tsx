@@ -7,15 +7,26 @@ import { cn } from "@/lib/utils";
 interface CarouselControlsProps {
   slides: number;
   aspectRatio: AspectRatio;
+  dividerColor: string;
   onSlidesChange: (slides: number) => void;
   onAspectRatioChange: (ratio: AspectRatio) => void;
+  onDividerColorChange: (color: string) => void;
 }
+
+const DIVIDER_COLORS = [
+  { label: "Red", value: "#EF4444", tailwind: "bg-red-500 border-red-600" },
+  { label: "Blue", value: "#3B82F6", tailwind: "bg-blue-500 border-blue-600" },
+  { label: "Green", value: "#22C55E", tailwind: "bg-green-500 border-green-600" },
+  { label: "White", value: "#FFFFFF", tailwind: "bg-white border-gray-200" },
+];
 
 export function CarouselControls({
   slides,
   aspectRatio,
+  dividerColor,
   onSlidesChange,
   onAspectRatioChange,
+  onDividerColorChange,
 }: CarouselControlsProps) {
   const handleSlidesChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = Math.min(10, Math.max(2, parseInt(e.target.value) || 2));
@@ -106,6 +117,32 @@ export function CarouselControls({
                 {ratio.label}
               </span>
             </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Divider Color Pickers */}
+      <div className="flex flex-col gap-3 w-full md:w-auto">
+        <label className="font-mono text-[10px] uppercase tracking-widest text-foreground/50 flex items-center gap-2">
+          <span className="w-2 h-px bg-foreground/30" />
+          Line Color
+        </label>
+
+        <div className="flex gap-2">
+          {DIVIDER_COLORS.map((c) => (
+            <button
+              key={c.value}
+              onClick={() => onDividerColorChange(c.value)}
+              className={cn(
+                "w-12 h-12 border-2 transition-all hover:scale-105",
+                c.tailwind,
+                dividerColor === c.value
+                  ? "ring-2 ring-offset-2 ring-foreground scale-105 shadow-lg"
+                  : "opacity-70 hover:opacity-100"
+              )}
+              title={c.label}
+              aria-label={`Set divider color to ${c.label}`}
+            />
           ))}
         </div>
       </div>

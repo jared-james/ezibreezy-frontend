@@ -19,7 +19,7 @@ interface AnimatedButtonProps
   extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   icon: React.ReactNode;
   label: string;
-  fillColor: string; // The color that expands
+  fillColor: string;
   width?: string;
 }
 
@@ -35,15 +35,10 @@ function AnimatedButton({
   return (
     <button
       className={cn(
-        // Base Layout
         "group relative h-12 flex items-center justify-center overflow-hidden",
-        // The "Cutout" Look: Dashed border, flat background
         "border-2 border-dashed border-foreground/30 bg-transparent",
-        // Typography
         "font-mono text-xs font-bold uppercase tracking-widest text-foreground",
-        // Hover State: Border gets darker/solid to show activity
         "transition-colors duration-300 hover:border-foreground hover:bg-white/50",
-        // Disabled State
         "disabled:opacity-50 disabled:pointer-events-none",
         width,
         className
@@ -51,32 +46,18 @@ function AnimatedButton({
       disabled={disabled}
       {...props}
     >
-      {/* 
-        The "Ink Fill" Animation 
-        It starts as a small square behind the icon (faint opacity)
-        and expands to fill the button (full opacity)
-      */}
       <span
         className={cn(
           "absolute left-0 top-0 bottom-0 w-[48px] transition-all duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] z-0",
-          "group-hover:w-full", // Expands width
-          "opacity-10 group-hover:opacity-100", // Fades in from tint to solid
+          "group-hover:w-full",
+          "opacity-10 group-hover:opacity-100",
           fillColor
         )}
       />
-
-      {/* 
-        Vertical Divider Line (Dashed)
-        Disappears on hover when the fill takes over
-      */}
       <span className="absolute left-[48px] top-2 bottom-2 w-px border-l-2 border-dashed border-foreground/20 transition-opacity duration-200 group-hover:opacity-0" />
-
-      {/* Icon Layer */}
       <span className="absolute left-0 top-0 bottom-0 w-[48px] flex items-center justify-center z-10 pointer-events-none text-foreground group-hover:text-white transition-colors duration-300">
         {icon}
       </span>
-
-      {/* Label Layer */}
       <span
         className={cn(
           "relative z-10 ml-10 transition-colors duration-300",
@@ -95,7 +76,9 @@ export default function GridMakerPage() {
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [columns, setColumns] = useState<number>(3);
   const [rows, setRows] = useState<number>(3);
-  const [gap, setGap] = useState<number>(0);
+  const [gap, setGap] = useState<number>(2); // Default 2% for Instagram
+  const [gapColor, setGapColor] = useState<string>("#FFFFFF"); // Default White
+
   const [isProcessing, setIsProcessing] = useState(false);
 
   const handleFileSelect = (file: File) => {
@@ -112,7 +95,8 @@ export default function GridMakerPage() {
     setPreviewUrl(null);
     setColumns(3);
     setRows(3);
-    setGap(0);
+    setGap(2);
+    setGapColor("#FFFFFF");
   };
 
   const handleDownload = async () => {
@@ -126,6 +110,7 @@ export default function GridMakerPage() {
         rows,
         aspectRatio: "square",
         gap,
+        gapColor,
       });
       toast.success("Grid created and downloaded successfully.");
     } catch (error) {
@@ -141,7 +126,7 @@ export default function GridMakerPage() {
       <LandingPageHeader />
 
       <main className="flex-1 py-16 px-4 md:px-8 relative overflow-hidden">
-        {/* Background Grid Pattern (Subtle Blueprint look) */}
+        {/* Background Grid Pattern */}
         <div
           className="absolute inset-0 pointer-events-none opacity-[0.03]"
           style={{
@@ -162,7 +147,7 @@ export default function GridMakerPage() {
             </p>
           </div>
 
-          {/* Main Tool Container - Updated to "Flat/Schematic" style */}
+          {/* Main Tool Container */}
           <div className="bg-white border-2 border-double border-foreground p-1.5">
             <div className="border border-dashed border-foreground/30 min-h-[600px] flex flex-col relative bg-surface-hover/30">
               {/* Decorative Corner Marks */}
@@ -182,9 +167,11 @@ export default function GridMakerPage() {
                           columns={columns}
                           rows={rows}
                           gap={gap}
+                          gapColor={gapColor}
                           onColumnsChange={setColumns}
                           onRowsChange={setRows}
                           onGapChange={setGap}
+                          onGapColorChange={setGapColor}
                         />
                       </div>
 
@@ -222,6 +209,7 @@ export default function GridMakerPage() {
                     columns={columns}
                     rows={rows}
                     gap={gap}
+                    gapColor={gapColor}
                   />
                 </div>
               )}

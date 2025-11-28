@@ -1,23 +1,39 @@
 // app/(marketing)/tools/instagram-grid-maker/components/grid-controls.tsx
 
 import { Minus, Plus } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 interface GridControlsProps {
   columns: number;
   rows: number;
   gap: number;
+  gapColor: string;
   onColumnsChange: (cols: number) => void;
   onRowsChange: (rows: number) => void;
   onGapChange: (gap: number) => void;
+  onGapColorChange: (color: string) => void;
 }
+
+const GAP_COLORS = [
+  { label: "White", value: "#FFFFFF", tailwind: "bg-white border-gray-200" },
+  { label: "Red", value: "#EF4444", tailwind: "bg-red-500 border-red-600" },
+  { label: "Blue", value: "#3B82F6", tailwind: "bg-blue-500 border-blue-600" },
+  {
+    label: "Green",
+    value: "#22C55E",
+    tailwind: "bg-green-500 border-green-600",
+  },
+];
 
 export function GridControls({
   columns,
   rows,
   gap,
+  gapColor,
   onColumnsChange,
   onRowsChange,
   onGapChange,
+  onGapColorChange,
 }: GridControlsProps) {
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement>,
@@ -30,6 +46,7 @@ export function GridControls({
 
   return (
     <div className="grid grid-cols-2 md:flex md:flex-row gap-4 md:gap-6 w-full md:w-auto">
+      {/* Cols Input */}
       <div className="flex flex-col gap-2">
         <label className="font-mono text-[10px] uppercase tracking-widest text-foreground/50 hidden md:block">
           Grid Cols
@@ -61,6 +78,7 @@ export function GridControls({
         </span>
       </div>
 
+      {/* Rows Input */}
       <div className="flex flex-col gap-2">
         <label className="font-mono text-[10px] uppercase tracking-widest text-foreground/50 hidden md:block">
           Grid Rows
@@ -92,12 +110,35 @@ export function GridControls({
         </span>
       </div>
 
-      <div className="col-span-2 md:col-auto flex flex-col gap-2 w-full md:w-32">
-        <label className="font-mono text-[10px] uppercase tracking-widest text-foreground/50 flex items-center justify-between">
-          <span>Gap Comp.</span>
-          <span className="text-brand-primary font-bold">{gap}%</span>
-        </label>
-        <div className="h-12 md:h-12 flex items-center px-2 bg-white border-2 border-foreground/10 md:border-transparent rounded-lg md:rounded-none">
+      {/* Gap Control + Color Pickers */}
+      <div className="col-span-2 md:col-auto flex flex-col gap-2 w-full md:w-auto">
+        <div className="flex items-center justify-between gap-3">
+          <label className="font-mono text-[10px] uppercase tracking-widest text-foreground/50 flex items-center gap-2">
+            Gap Comp.{" "}
+            <span className="text-brand-primary font-bold">{gap}%</span>
+          </label>
+
+          {/* Color Pickers */}
+          <div className="flex gap-2 pr-1">
+            {GAP_COLORS.map((c) => (
+              <button
+                key={c.value}
+                onClick={() => onGapColorChange(c.value)}
+                className={cn(
+                  "w-4 h-4 rounded-full border shadow-sm transition-all hover:scale-110",
+                  c.tailwind,
+                  gapColor === c.value
+                    ? "ring-2 ring-offset-1 ring-foreground scale-110"
+                    : ""
+                )}
+                title={c.label}
+                aria-label={`Set gap color to ${c.label}`}
+              />
+            ))}
+          </div>
+        </div>
+
+        <div className="h-12 md:h-12 flex items-center px-2 bg-white border-2 border-foreground/10 md:border-transparent rounded-lg md:rounded-none min-w-[140px]">
           <input
             type="range"
             min={0}
