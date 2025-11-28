@@ -1,8 +1,7 @@
 // app/(marketing)/tools/screenshot-studio/components/editor-canvas.tsx
 
 import { forwardRef, useEffect, useImperativeHandle, useRef } from "react";
-import { BACKGROUND_OPTIONS } from "./editor-controls";
-import { AspectRatio, TextLayer } from "../page";
+import { BACKGROUND_OPTIONS, AspectRatio, TextLayer } from "../constants";
 
 interface EditorCanvasProps {
   image: HTMLImageElement;
@@ -243,7 +242,7 @@ export const EditorCanvas = forwardRef((props: EditorCanvasProps, ref) => {
     if (includeText && textLayer.text) {
       ctx.save();
       const scaledFontSize = textLayer.fontSize * (imgWidth / 1000);
-      ctx.font = `bold ${scaledFontSize}px "Instrument Serif", serif`;
+      ctx.font = `bold ${scaledFontSize}px ${textLayer.fontFamily}`;
       ctx.fillStyle = textLayer.color;
       ctx.textAlign = "center";
       ctx.textBaseline = "middle";

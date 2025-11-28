@@ -2,16 +2,8 @@
 
 "use client";
 
-import { useState, useRef, useEffect, useCallback } from "react";
-import {
-  Star,
-  Download,
-  RefreshCw,
-  Upload,
-  Image as ImageIcon,
-  Copy,
-  Check,
-} from "lucide-react";
+import { useState, useRef } from "react";
+import { Download, RefreshCw, Upload, Image as ImageIcon, Copy, Check, Star } from "lucide-react";
 import { toast } from "sonner";
 import LandingPageHeader from "@/components/landing-page/landing-page-header";
 import LandingPageFooter from "@/components/landing-page/landing-page-footer";
@@ -19,149 +11,48 @@ import { EditorCanvas } from "./components/editor-canvas";
 import { EditorControls } from "./components/editor-controls";
 import { InfoSection } from "./components/info-section";
 import { cn } from "@/lib/utils";
-
-// Types
-export type BackgroundStyle = {
-  id: string;
-  type: "solid" | "gradient" | "glass" | "custom";
-  value: string | string[];
-  label: string;
-};
-
-export type AspectRatio =
-  | "auto"
-  | "1:1"
-  | "4:5"
-  | "16:9"
-  | "1.91:1"
-  | "3:2"
-  | "4:3"
-  | "9:16";
-
-// UPDATED: Added 'x' coordinate
-export type TextLayer = {
-  text: string;
-  color: string;
-  fontSize: number;
-  x: number; // Horizontal %
-  y: number; // Vertical %
-  fontFamily: string;
-};
-
-// Default Settings
-export const DEFAULT_SETTINGS = {
-  padding: 60,
-  roundness: 12,
-  outerRoundness: 0,
-  shadow: 50,
-  windowChrome: true, // New Default
-  backgroundId: "grad_1",
-  aspectRatio: "auto" as AspectRatio,
-  textLayer: {
-    text: "",
-    color: "#000000",
-    fontSize: 80,
-    x: 50, // Center
-    y: 50, // Center
-    fontFamily: "serif",
-  },
-};
+import { AspectRatio, TextLayer, DEFAULT_SETTINGS } from "./constants";
+import { useImageUpload } from "./hooks/use-image-upload";
+import { useTextDrag } from "./hooks/use-text-drag";
 
 export default function ScreenshotStudioPage() {
-  const [image, setImage] = useState<HTMLImageElement | null>(null);
+  // Use the image upload hook
+  const { image, setImage, fileInputRef, handleFileSelect } = useImageUpload();
 
   // Settings
   const [padding, setPadding] = useState(DEFAULT_SETTINGS.padding);
   const [roundness, setRoundness] = useState(DEFAULT_SETTINGS.roundness);
-  const [outerRoundness, setOuterRoundness] = useState(
-    DEFAULT_SETTINGS.outerRoundness
-  );
+  const [outerRoundness, setOuterRoundness] = useState(DEFAULT_SETTINGS.outerRoundness);
   const [shadow, setShadow] = useState(DEFAULT_SETTINGS.shadow);
-  const [windowChrome, setWindowChrome] = useState(
-    DEFAULT_SETTINGS.windowChrome
-  );
-  const [backgroundId, setBackgroundId] = useState(
-    DEFAULT_SETTINGS.backgroundId
-  );
-  const [aspectRatio, setAspectRatio] = useState<AspectRatio>(
-    DEFAULT_SETTINGS.aspectRatio
-  );
+  const [windowChrome, setWindowChrome] = useState(DEFAULT_SETTINGS.windowChrome);
+  const [backgroundId, setBackgroundId] = useState(DEFAULT_SETTINGS.backgroundId);
+  const [aspectRatio, setAspectRatio] = useState<AspectRatio>(DEFAULT_SETTINGS.aspectRatio);
 
   // Text State
-  const [textLayer, setTextLayer] = useState<TextLayer>(
-    DEFAULT_SETTINGS.textLayer
-  );
+  const [textLayer, setTextLayer] = useState<TextLayer>(DEFAULT_SETTINGS.textLayer);
 
   // Custom Color States
-  const [customColors, setCustomColors] = useState<[string, string]>([
-    "#6366f1",
-    "#a855f7",
-  ]);
+  const [customColors, setCustomColors] = useState<[string, string]>(["#6366f1", "#a855f7"]);
   const [useCustomGradient, setUseCustomGradient] = useState(true);
 
   const [isProcessing, setIsProcessing] = useState(false);
   const [isCopying, setIsCopying] = useState(false);
 
-  // Drag state
-  const dragState = useRef({
-    isDragging: false,
-    startX: 0,
-    startY: 0,
-    startTextX: 0,
-    startTextY: 0,
-  });
-
   // Reference for the wrapper to calculate drag percentages
   const canvasWrapperRef = useRef<HTMLDivElement>(null);
-  const textElementRef = useRef<HTMLDivElement>(null);
+
+  // Use the text drag hook
+  const { textElementRef, handleTextMouseDown } = useTextDrag({
+    textLayer,
+    setTextLayer,
+    canvasWrapperRef,
+  });
 
   const canvasRef = useRef<{
     download: () => void;
     copy: () => Promise<void>;
     getCanvasWidth: () => number;
   }>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
-
-  const processFile = useCallback((file: File) => {
-    if (!file.type.startsWith("image/")) {
-      toast.error("Please paste or upload an image file.");
-      return;
-    }
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      const img = new Image();
-      img.onload = () => {
-        setImage(img);
-        toast.success("Image loaded successfully");
-      };
-      img.src = event.target?.result as string;
-    };
-    reader.readAsDataURL(file);
-  }, []);
-
-  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) processFile(file);
-  };
-
-  useEffect(() => {
-    const handlePaste = (e: ClipboardEvent) => {
-      const items = e.clipboardData?.items;
-      if (!items) return;
-      for (const item of items) {
-        if (item.type.indexOf("image") !== -1) {
-          const file = item.getAsFile();
-          if (file) {
-            e.preventDefault();
-            processFile(file);
-          }
-          break;
-        }
-      }
-    };
-    document.addEventListener("paste", handlePaste);
-    return () => document.removeEventListener("paste", handlePaste);
-  }, [processFile]);
 
   const handleReset = () => {
     setImage(null);
@@ -369,8 +260,6 @@ export default function ScreenshotStudioPage() {
                       customColors={customColors}
                       useCustomGradient={useCustomGradient}
                       textLayer={textLayer}
-                      // We tell Canvas NOT to render text automatically,
-                      // because we are showing the HTML overlay instead.
                       renderTextOnCanvas={false}
                     />
 
@@ -378,57 +267,8 @@ export default function ScreenshotStudioPage() {
                     {textLayer.text && (
                       <div
                         ref={textElementRef}
-                        onMouseDown={(e) => {
-                          if (!canvasWrapperRef.current || !textElementRef.current) return;
-
-                          e.preventDefault();
-
-                          dragState.current = {
-                            isDragging: true,
-                            startX: e.clientX,
-                            startY: e.clientY,
-                            startTextX: textLayer.x,
-                            startTextY: textLayer.y,
-                          };
-
-                          const handleMouseMove = (moveEvent: MouseEvent) => {
-                            if (!dragState.current.isDragging || !canvasWrapperRef.current) return;
-
-                            const bounds = canvasWrapperRef.current.getBoundingClientRect();
-
-                            // Calculate total distance moved in pixels
-                            const deltaX = moveEvent.clientX - dragState.current.startX;
-                            const deltaY = moveEvent.clientY - dragState.current.startY;
-
-                            // Convert to percentage
-                            const deltaXPercent = (deltaX / bounds.width) * 100;
-                            const deltaYPercent = (deltaY / bounds.height) * 100;
-
-                            // Add to starting position
-                            const newX = dragState.current.startTextX + deltaXPercent;
-                            const newY = dragState.current.startTextY + deltaYPercent;
-
-                            // Clamp to bounds
-                            const safeX = Math.max(0, Math.min(100, newX));
-                            const safeY = Math.max(0, Math.min(100, newY));
-
-                            setTextLayer({
-                              ...textLayer,
-                              x: safeX,
-                              y: safeY,
-                            });
-                          };
-
-                          const handleMouseUp = () => {
-                            dragState.current.isDragging = false;
-                            document.removeEventListener('mousemove', handleMouseMove);
-                            document.removeEventListener('mouseup', handleMouseUp);
-                          };
-
-                          document.addEventListener('mousemove', handleMouseMove);
-                          document.addEventListener('mouseup', handleMouseUp);
-                        }}
-                        className="absolute cursor-move select-none whitespace-nowrap z-50 font-serif font-bold hover:ring-2 ring-brand-primary/50 rounded px-2"
+                        onMouseDown={handleTextMouseDown}
+                        className="absolute cursor-move select-none whitespace-nowrap z-50 font-bold hover:ring-2 ring-brand-primary/50 rounded px-2"
                         style={{
                           left: `${textLayer.x}%`,
                           top: `${textLayer.y}%`,
@@ -436,6 +276,7 @@ export default function ScreenshotStudioPage() {
                           color: textLayer.color,
                           fontSize: `${textLayer.fontSize * 0.8}px`,
                           textShadow: "0 2px 4px rgba(0,0,0,0.3)",
+                          fontFamily: textLayer.fontFamily,
                         }}
                       >
                         {textLayer.text}
