@@ -1,3 +1,5 @@
+// app/(marketing)/tools/linkedin-text-formatter/components/converter-panel.tsx
+
 import { useState, useEffect } from "react";
 import { Type, Copy, Check } from "lucide-react";
 import { toast } from "sonner";

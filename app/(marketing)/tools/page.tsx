@@ -8,6 +8,7 @@ import {
   PenTool,
   Type,
   Pilcrow,
+  Frame,
 } from "lucide-react";
 import LandingPageFooter from "@/components/landing-page/landing-page-footer";
 import MinimalHeader from "@/components/shared/minimal-header";
@@ -48,6 +49,15 @@ const tools = [
     href: "/tools/linkedin-text-formatter",
     icon: Pilcrow,
     category: "LinkedIn",
+  },
+  {
+    id: "05",
+    name: "Screenshot Studio",
+    description:
+      "Wrap raw screenshots in aesthetic gradients and frames. Add shadows and rounded corners for a professional look.",
+    href: "/tools/screenshot-studio",
+    icon: Frame,
+    category: "Design",
   },
 ];
 
