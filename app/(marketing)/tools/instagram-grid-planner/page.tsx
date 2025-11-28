@@ -1,3 +1,5 @@
+// app/(marketing)/tools/instagram-grid-planner/page.tsx
+
 import LandingPageHeader from "@/components/landing-page/landing-page-header";
 import LandingPageFooter from "@/components/landing-page/landing-page-footer";
 import PlannerBoard from "./components/planner-board";

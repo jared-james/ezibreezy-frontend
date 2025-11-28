@@ -1,3 +1,5 @@
+// app/(marketing)/tools/instagram-grid-planner/lib/db.ts
+
 const DB_NAME = "ezibreezy-grid-planner";
 const STORE_NAME = "posts";
 const VERSION = 1;

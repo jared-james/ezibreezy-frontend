@@ -1,3 +1,5 @@
+// app/(marketing)/tools/instagram-grid-planner/components/planner-board.tsx
+
 "use client";
 
 import { useState, useEffect, useRef } from "react";
