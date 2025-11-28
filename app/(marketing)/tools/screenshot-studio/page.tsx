@@ -14,6 +14,7 @@ import { cn } from "@/lib/utils";
 import { AspectRatio, TextLayer, DEFAULT_SETTINGS } from "./constants";
 import { useImageUpload } from "./hooks/use-image-upload";
 import { useTextDrag } from "./hooks/use-text-drag";
+import { BackgroundSelector } from "./components/controls/background-selector";
 
 export default function ScreenshotStudioPage() {
   // Use the image upload hook
@@ -127,14 +128,16 @@ export default function ScreenshotStudioPage() {
           </div>
 
           <div className="bg-white border-2 border-double border-foreground p-1.5">
-            <div className="border border-dashed border-foreground/30 min-h-[600px] flex flex-col xl:flex-row relative bg-surface-hover/30">
+            <div className="border border-dashed border-foreground/30 min-h-[600px] flex flex-col relative bg-surface-hover/30">
               <div className="absolute top-0 left-0 w-3 h-3 border-l-2 border-t-2 border-foreground z-20 -translate-x-0.5 -translate-y-0.5" />
               <div className="absolute top-0 right-0 w-3 h-3 border-r-2 border-t-2 border-foreground z-20 translate-x-0.5 -translate-y-0.5" />
               <div className="absolute bottom-0 left-0 w-3 h-3 border-l-2 border-b-2 border-foreground z-20 -translate-x-0.5 translate-y-0.5" />
               <div className="absolute bottom-0 right-0 w-3 h-3 border-r-2 border-b-2 border-foreground z-20 translate-x-0.5 translate-y-0.5" />
 
-              {/* Controls */}
-              <div className="w-full xl:w-[400px] p-6 md:p-8 flex flex-col gap-8 border-b xl:border-b-0 xl:border-r border-dashed border-foreground/30 bg-background-editorial z-10">
+              {/* Main section with Controls + Canvas */}
+              <div className="flex-1 flex flex-col xl:flex-row">
+                {/* Controls */}
+                <div className="w-full xl:w-[400px] p-6 md:p-8 flex flex-col gap-8 border-b xl:border-b-0 xl:border-r border-dashed border-foreground/30 bg-background-editorial z-10">
                 {!image ? (
                   <div className="flex-1 flex flex-col justify-center items-center text-center p-6 border-2 border-dashed border-foreground/20 bg-white/50">
                     <div className="mb-4 p-3 bg-brand-primary/5 rounded-full">
@@ -163,14 +166,8 @@ export default function ScreenshotStudioPage() {
                     setShadow={setShadow}
                     windowChrome={windowChrome}
                     setWindowChrome={setWindowChrome}
-                    backgroundId={backgroundId}
-                    setBackgroundId={setBackgroundId}
                     aspectRatio={aspectRatio}
                     setAspectRatio={setAspectRatio}
-                    customColors={customColors}
-                    setCustomColors={setCustomColors}
-                    useCustomGradient={useCustomGradient}
-                    setUseCustomGradient={setUseCustomGradient}
                     textLayer={textLayer}
                     setTextLayer={setTextLayer}
                   />
@@ -229,9 +226,25 @@ export default function ScreenshotStudioPage() {
                 </div>
               </div>
 
-              {/* Canvas Preview */}
-              <div className="flex-1 bg-surface-hover/30 p-4 md:p-12 flex items-center justify-center overflow-hidden relative">
-                {!image ? (
+              {/* Canvas Area */}
+              <div className="flex-1 flex flex-col bg-surface-hover/30">
+                {/* Background Selector - Top of canvas area */}
+                {image && (
+                  <div className="p-6 md:p-8 border-b border-dashed border-foreground/30 bg-background-editorial">
+                    <BackgroundSelector
+                      backgroundId={backgroundId}
+                      setBackgroundId={setBackgroundId}
+                      customColors={customColors}
+                      setCustomColors={setCustomColors}
+                      useCustomGradient={useCustomGradient}
+                      setUseCustomGradient={setUseCustomGradient}
+                    />
+                  </div>
+                )}
+
+                {/* Canvas Preview */}
+                <div className="flex-1 p-4 md:p-12 flex items-center justify-center overflow-hidden relative">
+                  {!image ? (
                   <div
                     onClick={() => fileInputRef.current?.click()}
                     className="w-full max-w-md aspect-[4/3] border-2 border-dashed border-foreground/20 bg-white/50 flex flex-col items-center justify-center cursor-pointer hover:border-brand-primary hover:bg-white transition-all group"
@@ -284,6 +297,8 @@ export default function ScreenshotStudioPage() {
                     )}
                   </div>
                 )}
+                </div>
+              </div>
               </div>
             </div>
           </div>
