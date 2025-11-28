@@ -1,5 +1,3 @@
-// app/(marketing)/tools/screenshot-studio/constants.ts
-
 import {
   Maximize,
   Square,
@@ -10,7 +8,6 @@ import {
   type LucideIcon,
 } from "lucide-react";
 
-// Types
 export type BackgroundStyle = {
   id: string;
   type: "solid" | "gradient" | "glass" | "custom";
@@ -37,9 +34,7 @@ export type TextLayer = {
   fontFamily: string;
 };
 
-// Curated "Creator Economy" Palette
 export const BACKGROUND_OPTIONS: BackgroundStyle[] = [
-  // --- ROW 1: Essentials ---
   { id: "solid_white", type: "solid", value: "#ffffff", label: "White" },
   { id: "solid_offwhite", type: "solid", value: "#f3f4f6", label: "Off White" },
   { id: "solid_black", type: "solid", value: "#000000", label: "Black" },
@@ -47,7 +42,6 @@ export const BACKGROUND_OPTIONS: BackgroundStyle[] = [
   { id: "brand_blue", type: "solid", value: "#3b82f6", label: "Blue" },
   { id: "brand_indigo", type: "solid", value: "#4f46e5", label: "Indigo" },
 
-  // --- ROW 2: Trending Gradients (Hyper) ---
   {
     id: "hyper_1",
     type: "gradient",
@@ -85,7 +79,6 @@ export const BACKGROUND_OPTIONS: BackgroundStyle[] = [
     label: "Fire",
   },
 
-  // --- ROW 3: Soft / Pastel ---
   {
     id: "soft_1",
     type: "gradient",
@@ -123,7 +116,6 @@ export const BACKGROUND_OPTIONS: BackgroundStyle[] = [
     label: "Haze",
   },
 
-  // --- ROW 4: Dark / Deep ---
   {
     id: "dark_1",
     type: "gradient",
@@ -183,6 +175,8 @@ export const DEFAULT_SETTINGS = {
   roundness: 12,
   outerRoundness: 0,
   shadow: 50,
+  shadowColor: "#000000",
+  reflection: 0,
   windowChrome: false,
   backgroundId: "grad_1",
   aspectRatio: "auto" as AspectRatio,

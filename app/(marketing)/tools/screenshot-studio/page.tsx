@@ -33,6 +33,8 @@ export default function ScreenshotStudioPage() {
     DEFAULT_SETTINGS.outerRoundness
   );
   const [shadow, setShadow] = useState(DEFAULT_SETTINGS.shadow);
+  const [shadowColor, setShadowColor] = useState(DEFAULT_SETTINGS.shadowColor);
+  const [reflection, setReflection] = useState(DEFAULT_SETTINGS.reflection);
   const [windowChrome, setWindowChrome] = useState(
     DEFAULT_SETTINGS.windowChrome
   );
@@ -60,7 +62,6 @@ export default function ScreenshotStudioPage() {
   const [isProcessing, setIsProcessing] = useState(false);
   const [isCopying, setIsCopying] = useState(false);
 
-  // NEW STATE
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 
   const canvasWrapperRef = useRef<HTMLDivElement>(null);
@@ -84,6 +85,8 @@ export default function ScreenshotStudioPage() {
     setRoundness(DEFAULT_SETTINGS.roundness);
     setOuterRoundness(DEFAULT_SETTINGS.outerRoundness);
     setShadow(DEFAULT_SETTINGS.shadow);
+    setShadowColor(DEFAULT_SETTINGS.shadowColor);
+    setReflection(DEFAULT_SETTINGS.reflection);
     setWindowChrome(DEFAULT_SETTINGS.windowChrome);
     setShowGlass(false);
     setGlassPlane(30);
@@ -92,7 +95,6 @@ export default function ScreenshotStudioPage() {
     setTextLayer(DEFAULT_SETTINGS.textLayer);
   };
 
-  // NEW FUNCTION
   const handlePreview = () => {
     if (canvasRef.current) {
       const url = canvasRef.current.getDataUrl();
@@ -149,7 +151,7 @@ export default function ScreenshotStudioPage() {
             <div className="inline-flex w-fit items-center gap-2 border border-dashed border-foreground/40 bg-white/50 px-3 py-1">
               <Star className="h-4 w-4 fill-current text-brand-primary" />
               <span className="text-xs font-bold font-mono uppercase tracking-widest text-foreground">
-                Utility v1.7
+                Utility v1.8
               </span>
             </div>
 
@@ -197,6 +199,10 @@ export default function ScreenshotStudioPage() {
                       setOuterRoundness={setOuterRoundness}
                       shadow={shadow}
                       setShadow={setShadow}
+                      shadowColor={shadowColor}
+                      setShadowColor={setShadowColor}
+                      reflection={reflection}
+                      setReflection={setReflection}
                       windowChrome={windowChrome}
                       setWindowChrome={setWindowChrome}
                       showGlass={showGlass}
@@ -229,7 +235,6 @@ export default function ScreenshotStudioPage() {
                     )}
 
                     <div className="flex gap-4">
-                      {/* NEW VIEW BUTTON */}
                       <button
                         onClick={handlePreview}
                         disabled={!image}
@@ -313,6 +318,8 @@ export default function ScreenshotStudioPage() {
                           roundness={roundness}
                           outerRoundness={outerRoundness}
                           shadow={shadow}
+                          shadowColor={shadowColor}
+                          reflection={reflection}
                           windowChrome={windowChrome}
                           showGlass={showGlass}
                           glassPlane={glassPlane}
@@ -352,7 +359,6 @@ export default function ScreenshotStudioPage() {
           <InfoSection />
         </div>
 
-        {/* PREVIEW MODAL */}
         {previewUrl && (
           <div
             className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 md:p-10 animate-in fade-in duration-200"

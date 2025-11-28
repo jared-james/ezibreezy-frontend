@@ -7,6 +7,8 @@ interface EditorCanvasProps {
   roundness: number;
   outerRoundness: number;
   shadow: number;
+  shadowColor: string;
+  reflection: number;
   windowChrome: boolean;
   showGlass: boolean;
   glassPlane: number;
@@ -21,6 +23,13 @@ interface EditorCanvasProps {
 export const EditorCanvas = forwardRef((props: EditorCanvasProps, ref) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
+  const hexToRgba = (hex: string, alpha: number) => {
+    const r = parseInt(hex.slice(1, 3), 16);
+    const g = parseInt(hex.slice(3, 5), 16);
+    const b = parseInt(hex.slice(5, 7), 16);
+    return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+  };
+
   const drawScene = (ctx: CanvasRenderingContext2D, includeText: boolean) => {
     const {
       image,
@@ -28,6 +37,8 @@ export const EditorCanvas = forwardRef((props: EditorCanvasProps, ref) => {
       roundness,
       outerRoundness,
       shadow,
+      shadowColor,
+      reflection,
       windowChrome,
       showGlass,
       glassPlane,
@@ -104,8 +115,9 @@ export const EditorCanvas = forwardRef((props: EditorCanvasProps, ref) => {
     }
 
     ctx.clearRect(0, 0, finalWidth, finalHeight);
-    ctx.save();
 
+    // 1. Draw Background
+    ctx.save();
     const bgOption = BACKGROUND_OPTIONS.find((b) => b.id === backgroundId);
     let fillStyle: string | CanvasGradient;
 
@@ -148,16 +160,129 @@ export const EditorCanvas = forwardRef((props: EditorCanvasProps, ref) => {
 
     ctx.fillStyle = fillStyle;
     ctx.fillRect(0, 0, finalWidth, finalHeight);
+    ctx.restore();
 
     const drawX = (finalWidth - objectWidth) / 2;
     const drawY = (finalHeight - objectHeight) / 2;
     const r = roundness * (imgWidth / 800);
 
+    // Helper: Draw Image Content (Reused for reflection)
+    // Now accepts a specific context so we can draw to offscreen canvas
+    const drawContent = (targetCtx: CanvasRenderingContext2D) => {
+      if (windowChrome) {
+        const objectPath = new Path2D();
+        if (typeof targetCtx.roundRect === "function") {
+          objectPath.roundRect(drawX, drawY, objectWidth, objectHeight, r);
+        } else {
+          objectPath.rect(drawX, drawY, objectWidth, objectHeight);
+        }
+
+        targetCtx.save();
+        targetCtx.clip(objectPath);
+
+        targetCtx.fillStyle = "#1e1e1e";
+        targetCtx.fillRect(drawX, drawY, objectWidth, chromeHeight);
+
+        const circleY = drawY + chromeHeight / 2;
+        const startX = drawX + chromeHeight * 0.6;
+        const gap = chromeHeight * 0.6;
+        const radius = chromeHeight * 0.18;
+
+        targetCtx.beginPath();
+        targetCtx.arc(startX, circleY, radius, 0, 2 * Math.PI);
+        targetCtx.fillStyle = "#FF5F56";
+        targetCtx.fill();
+        targetCtx.beginPath();
+        targetCtx.arc(startX + gap, circleY, radius, 0, 2 * Math.PI);
+        targetCtx.fillStyle = "#FFBD2E";
+        targetCtx.fill();
+        targetCtx.beginPath();
+        targetCtx.arc(startX + gap * 2, circleY, radius, 0, 2 * Math.PI);
+        targetCtx.fillStyle = "#27C93F";
+        targetCtx.fill();
+
+        targetCtx.drawImage(
+          image,
+          0,
+          0,
+          image.naturalWidth,
+          image.naturalHeight,
+          drawX,
+          drawY + chromeHeight,
+          objectWidth,
+          objectHeight - chromeHeight
+        );
+        targetCtx.restore();
+      } else {
+        targetCtx.save();
+        targetCtx.beginPath();
+        if (typeof targetCtx.roundRect === "function") {
+          targetCtx.roundRect(drawX, drawY, objectWidth, objectHeight, r);
+        } else {
+          targetCtx.rect(drawX, drawY, objectWidth, objectHeight);
+        }
+        targetCtx.clip();
+        targetCtx.drawImage(
+          image,
+          0,
+          0,
+          image.naturalWidth,
+          image.naturalHeight,
+          drawX,
+          drawY,
+          objectWidth,
+          objectHeight
+        );
+        targetCtx.restore();
+      }
+    };
+
+    // 2. Draw Reflection (Fixed: Uses off-screen canvas to preserve background)
+    if (reflection > 0) {
+      const offCanvas = document.createElement("canvas");
+      offCanvas.width = finalWidth;
+      offCanvas.height = finalHeight;
+      const offCtx = offCanvas.getContext("2d");
+
+      if (offCtx) {
+        offCtx.save();
+
+        const reflectionGap = 2;
+        offCtx.translate(0, drawY + objectHeight + reflectionGap);
+        offCtx.scale(1, -1);
+        offCtx.translate(0, -drawY - objectHeight);
+
+        // Draw image onto offscreen
+        drawContent(offCtx);
+
+        // Apply Mask
+        offCtx.globalCompositeOperation = "destination-in";
+        const gradient = offCtx.createLinearGradient(
+          0,
+          drawY + objectHeight,
+          0,
+          drawY
+        );
+
+        // Adjust opacity falloff based on slider
+        const opacity = reflection / 100;
+        gradient.addColorStop(0, `rgba(255, 255, 255, ${opacity * 0.5})`);
+        gradient.addColorStop(0.35, "rgba(255, 255, 255, 0)");
+
+        offCtx.fillStyle = gradient;
+        offCtx.fillRect(drawX, drawY, objectWidth, objectHeight);
+
+        offCtx.restore();
+
+        // Draw the finished reflection layer onto the main canvas
+        ctx.drawImage(offCanvas, 0, 0);
+      }
+    }
+
+    // 3. Draw Glass Effect
     if (showGlass) {
       ctx.save();
-
       const glassDist = glassPlane * (imgWidth / 1000);
-
       const glassX = drawX - glassDist;
       const glassY = drawY - glassDist;
       const glassW = objectWidth + glassDist * 2;
@@ -174,7 +299,6 @@ export const EditorCanvas = forwardRef((props: EditorCanvasProps, ref) => {
       ctx.save();
       ctx.clip();
       ctx.filter = "blur(20px)";
-
       ctx.scale(1.1, 1.1);
       ctx.translate(-finalWidth * 0.05, -finalHeight * 0.05);
       ctx.fillStyle = fillStyle;
@@ -183,7 +307,6 @@ export const EditorCanvas = forwardRef((props: EditorCanvasProps, ref) => {
 
       ctx.fillStyle = "rgba(255, 255, 255, 0.25)";
       ctx.fill();
-
       ctx.lineWidth = 1.5;
       ctx.strokeStyle = "rgba(255, 255, 255, 0.4)";
       ctx.stroke();
@@ -192,15 +315,16 @@ export const EditorCanvas = forwardRef((props: EditorCanvasProps, ref) => {
       ctx.shadowBlur = 30;
       ctx.shadowOffsetY = 15;
       ctx.fill();
-
       ctx.restore();
     }
 
+    // 4. Draw Main Object Shadow
     if (shadow > 0) {
       ctx.save();
-      ctx.shadowColor = "rgba(0, 0, 0, 0.4)";
+      ctx.shadowColor = hexToRgba(shadowColor, 0.6);
       ctx.shadowBlur = shadow * (imgWidth / 1000) * 2;
       ctx.shadowOffsetY = shadow * (imgWidth / 1000) * 0.8;
+
       ctx.fillStyle = "rgba(0,0,0,1)";
       ctx.beginPath();
       if (typeof ctx.roundRect === "function") {
@@ -212,73 +336,10 @@ export const EditorCanvas = forwardRef((props: EditorCanvasProps, ref) => {
       ctx.restore();
     }
 
-    if (windowChrome) {
-      ctx.save();
-      const objectPath = new Path2D();
-      if (typeof ctx.roundRect === "function") {
-        objectPath.roundRect(drawX, drawY, objectWidth, objectHeight, r);
-      } else {
-        objectPath.rect(drawX, drawY, objectWidth, objectHeight);
-      }
-      ctx.clip(objectPath);
+    // 5. Draw Main Content
+    drawContent(ctx);
 
-      ctx.fillStyle = "#1e1e1e";
-      ctx.fillRect(drawX, drawY, objectWidth, chromeHeight);
-
-      const circleY = drawY + chromeHeight / 2;
-      const startX = drawX + chromeHeight * 0.6;
-      const gap = chromeHeight * 0.6;
-      const radius = chromeHeight * 0.18;
-
-      ctx.beginPath();
-      ctx.arc(startX, circleY, radius, 0, 2 * Math.PI);
-      ctx.fillStyle = "#FF5F56";
-      ctx.fill();
-      ctx.beginPath();
-      ctx.arc(startX + gap, circleY, radius, 0, 2 * Math.PI);
-      ctx.fillStyle = "#FFBD2E";
-      ctx.fill();
-      ctx.beginPath();
-      ctx.arc(startX + gap * 2, circleY, radius, 0, 2 * Math.PI);
-      ctx.fillStyle = "#27C93F";
-      ctx.fill();
-
-      ctx.drawImage(
-        image,
-        0,
-        0,
-        image.naturalWidth,
-        image.naturalHeight,
-        drawX,
-        drawY + chromeHeight,
-        objectWidth,
-        objectHeight - chromeHeight
-      );
-      ctx.restore();
-    } else {
-      ctx.save();
-      ctx.beginPath();
-      if (typeof ctx.roundRect === "function") {
-        ctx.roundRect(drawX, drawY, objectWidth, objectHeight, r);
-      } else {
-        ctx.rect(drawX, drawY, objectWidth, objectHeight);
-      }
-      ctx.clip();
-      ctx.drawImage(
-        image,
-        0,
-        0,
-        image.naturalWidth,
-        image.naturalHeight,
-        drawX,
-        drawY,
-        objectWidth,
-        objectHeight
-      );
-      ctx.restore();
-    }
-    ctx.restore();
-
+    // 6. Draw Text Overlay
     if (includeText && textLayer.text) {
       ctx.save();
       const scaledFontSize = textLayer.fontSize * (imgWidth / 1000);
@@ -332,17 +393,13 @@ export const EditorCanvas = forwardRef((props: EditorCanvasProps, ref) => {
         drawScene(ctx, false);
       }
     },
-    // NEW FUNCTION HERE
     getDataUrl: () => {
       const canvas = canvasRef.current;
       if (!canvas) return null;
       const ctx = canvas.getContext("2d");
       if (!ctx) return null;
-
-      // Draw with text
       drawScene(ctx, true);
       const url = canvas.toDataURL("image/png");
-      // Reset preview
       drawScene(ctx, false);
       return url;
     },

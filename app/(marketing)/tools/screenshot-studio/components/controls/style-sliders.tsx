@@ -1,6 +1,4 @@
-// app/(marketing)/tools/screenshot-studio/components/controls/style-sliders.tsx
-
-import { Maximize, Circle, Crop, Sliders } from "lucide-react";
+import { Maximize, Circle, Crop, Sliders, Waves } from "lucide-react";
 
 interface StyleSlidersProps {
   padding: number;
@@ -11,6 +9,10 @@ interface StyleSlidersProps {
   setOuterRoundness: (val: number) => void;
   shadow: number;
   setShadow: (val: number) => void;
+  shadowColor: string;
+  setShadowColor: (val: string) => void;
+  reflection: number;
+  setReflection: (val: number) => void;
 }
 
 export function StyleSliders({
@@ -22,6 +24,10 @@ export function StyleSliders({
   setOuterRoundness,
   shadow,
   setShadow,
+  shadowColor,
+  setShadowColor,
+  reflection,
+  setReflection,
 }: StyleSlidersProps) {
   return (
     <div className="space-y-6">
@@ -51,9 +57,7 @@ export function StyleSliders({
             <Circle className="w-3 h-3" />
             Image Radius
           </label>
-          <span className="font-mono text-[10px] font-bold">
-            {roundness}px
-          </span>
+          <span className="font-mono text-[10px] font-bold">{roundness}px</span>
         </div>
         <input
           type="range"
@@ -86,14 +90,24 @@ export function StyleSliders({
         />
       </div>
 
-      {/* Shadow Slider */}
+      {/* Shadow Slider & Color */}
       <div className="space-y-4">
         <div className="flex justify-between items-center">
           <label className="font-mono text-[10px] uppercase tracking-widest text-foreground/50 flex items-center gap-2">
             <Sliders className="w-3 h-3" />
-            Shadow Intensity
+            Shadow / Glow
           </label>
-          <span className="font-mono text-[10px] font-bold">{shadow}%</span>
+          <div className="flex items-center gap-2">
+            <div className="relative w-4 h-4 rounded-full border border-foreground/20 overflow-hidden cursor-pointer shrink-0">
+              <input
+                type="color"
+                value={shadowColor}
+                onChange={(e) => setShadowColor(e.target.value)}
+                className="absolute inset-0 w-[150%] h-[150%] -top-1/4 -left-1/4 p-0 cursor-pointer opacity-100"
+              />
+            </div>
+            <span className="font-mono text-[10px] font-bold">{shadow}%</span>
+          </div>
         </div>
         <input
           type="range"
@@ -101,6 +115,25 @@ export function StyleSliders({
           max="100"
           value={shadow}
           onChange={(e) => setShadow(parseInt(e.target.value))}
+          className="w-full h-1 bg-foreground/10 appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:bg-brand-primary [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-white [&::-webkit-slider-thumb]:shadow-sm hover:[&::-webkit-slider-thumb]:scale-110 transition-all"
+        />
+      </div>
+
+      {/* Reflection Slider */}
+      <div className="space-y-4">
+        <div className="flex justify-between items-center">
+          <label className="font-mono text-[10px] uppercase tracking-widest text-foreground/50 flex items-center gap-2">
+            <Waves className="w-3 h-3" />
+            Surface Reflection
+          </label>
+          <span className="font-mono text-[10px] font-bold">{reflection}%</span>
+        </div>
+        <input
+          type="range"
+          min="0"
+          max="100"
+          value={reflection}
+          onChange={(e) => setReflection(parseInt(e.target.value))}
           className="w-full h-1 bg-foreground/10 appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:bg-brand-primary [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-white [&::-webkit-slider-thumb]:shadow-sm hover:[&::-webkit-slider-thumb]:scale-110 transition-all"
         />
       </div>

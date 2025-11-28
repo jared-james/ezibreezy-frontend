@@ -1,5 +1,3 @@
-// app/(marketing)/tools/screenshot-studio/components/editor-controls.tsx
-
 import { AspectRatio, TextLayer } from "../constants";
 import { TextControls } from "./controls/text-controls";
 import { AspectRatioSelector } from "./controls/aspect-ratio-selector";
@@ -15,6 +13,10 @@ interface EditorControlsProps {
   setOuterRoundness: (val: number) => void;
   shadow: number;
   setShadow: (val: number) => void;
+  shadowColor: string;
+  setShadowColor: (val: string) => void;
+  reflection: number;
+  setReflection: (val: number) => void;
   windowChrome: boolean;
   setWindowChrome: (val: boolean) => void;
   showGlass: boolean;
@@ -36,6 +38,10 @@ export function EditorControls({
   setOuterRoundness,
   shadow,
   setShadow,
+  shadowColor,
+  setShadowColor,
+  reflection,
+  setReflection,
   windowChrome,
   setWindowChrome,
   showGlass,
@@ -78,6 +84,10 @@ export function EditorControls({
         setOuterRoundness={setOuterRoundness}
         shadow={shadow}
         setShadow={setShadow}
+        shadowColor={shadowColor}
+        setShadowColor={setShadowColor}
+        reflection={reflection}
+        setReflection={setReflection}
       />
     </div>
   );
