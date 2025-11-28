@@ -43,8 +43,16 @@ export default function LandingPageCTA() {
         setIsSuccess(true);
         toast.success("Dispatched successfully.");
       } else {
-        setError(result.error || "Signup failed due to an unknown error.");
-        toast.error(result.error || "Signup failed.");
+        const errorMessage = result.error || "Signup failed due to an unknown error.";
+        setError(errorMessage);
+
+        // Show user-friendly toast messages
+        if (errorMessage.toLowerCase().includes("already on the waitlist") ||
+            errorMessage.toLowerCase().includes("already exists")) {
+          toast.info("You're already on the list! We'll be in touch soon.");
+        } else {
+          toast.error(errorMessage);
+        }
       }
     } catch {
       setError("A critical network error occurred during signup.");
