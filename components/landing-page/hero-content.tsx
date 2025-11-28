@@ -43,12 +43,15 @@ export default function HeroContent() {
         setIsSuccess(true);
         toast.success("Dispatched successfully.");
       } else {
-        const errorMessage = result.error || "Signup failed due to an unknown error.";
+        const errorMessage =
+          result.error || "Signup failed due to an unknown error.";
         setError(errorMessage);
 
         // Show user-friendly toast messages
-        if (errorMessage.toLowerCase().includes("already on the waitlist") ||
-            errorMessage.toLowerCase().includes("already exists")) {
+        if (
+          errorMessage.toLowerCase().includes("already on the waitlist") ||
+          errorMessage.toLowerCase().includes("already exists")
+        ) {
           toast.info("You're already on the list! We'll be in touch soon.");
         } else {
           toast.error(errorMessage);
@@ -160,7 +163,7 @@ export default function HeroContent() {
                         htmlFor="email"
                         className="mb-1 pl-1 font-mono text-[10px] uppercase tracking-widest text-foreground/50"
                       >
-                        Subscriber Email
+                        Waitlist Email
                       </label>
                       <input
                         id="email"
@@ -211,7 +214,9 @@ export default function HeroContent() {
                     </button>
                   </div>
                   {error && (
-                    <p className="mt-2 font-serif text-sm text-red-600">{error}</p>
+                    <p className="mt-2 font-serif text-sm text-red-600">
+                      {error}
+                    </p>
                   )}
                 </div>
               </motion.form>

@@ -4,7 +4,7 @@ import Link from "next/link";
 
 export default function LandingPageHeader() {
   return (
-    <header className="relative bg-background-editorial text-foreground px-6 pt-8 md:pt-12 overflow-hidden">
+    <header className="relative bg-background-editorial text-foreground px-4 pt-8 md:px-6 md:pt-12 overflow-hidden">
       {/* Background Grid Pattern */}
       <div
         className="absolute inset-0 pointer-events-none opacity-[0.03]"
@@ -16,12 +16,15 @@ export default function LandingPageHeader() {
       />
 
       <div className="relative mx-auto w-full max-w-7xl">
+        {/* TOP BAR */}
         <div className="mb-8 flex items-center justify-between border-b-2 border-foreground pb-2 text-[10px] font-mono uppercase tracking-widest md:text-xs">
-          <span className="text-foreground/60">
+          {/* Hidden on small screens (mobile) to give space to the Buttons */}
+          <span className="hidden text-foreground/60 sm:block">
             System Status: In Development
           </span>
 
-          <div className="flex items-center gap-4 md:gap-6">
+          {/* w-full on mobile to justify content, auto on desktop */}
+          <div className="flex w-full items-center justify-end gap-4 sm:w-auto md:gap-6">
             <Link
               href="/auth/login"
               className="px-2 py-0.5 transition-colors hover:bg-foreground hover:text-background-editorial"
@@ -30,20 +33,23 @@ export default function LandingPageHeader() {
             </Link>
             <Link
               href="/auth/signup"
-              className="font-bold underline decoration-2 underline-offset-4 hover:text-foreground/70"
+              // whitespace-nowrap keeps "Get Early Access" on one line
+              className="whitespace-nowrap font-bold underline decoration-2 underline-offset-4 hover:text-foreground/70"
             >
               Get Early Access
             </Link>
           </div>
         </div>
 
+        {/* HERO SECTION */}
         <div className="flex flex-col justify-between gap-6 border-b-4 border-double border-foreground pb-6 md:flex-row md:items-end">
           <div className="flex-1">
             <p className="eyebrow mb-2 font-bold tracking-[0.25em]">
               The Daily Dispatch
             </p>
 
-            <h1 className="mt-[-0.05em] font-serif text-6xl font-black uppercase leading-[0.85] tracking-tighter md:text-8xl lg:text-9xl">
+            {/* Mobile text size adjusted to 5xl to prevent overflow */}
+            <h1 className="mt-[-0.05em] font-serif text-5xl font-black uppercase leading-[0.85] tracking-tighter sm:text-6xl md:text-8xl lg:text-9xl">
               EziBreezy
             </h1>
           </div>
@@ -56,17 +62,6 @@ export default function LandingPageHeader() {
             </div>
 
             <span>Forecast: Creative Flow</span>
-
-            <div className="mt-1 flex items-center gap-2">
-              <span className="border border-foreground px-2 py-0.5">
-                Est. 2025
-              </span>
-
-              {/* GREEN BADGE */}
-              <span className="border border-foreground bg-brand-primary text-brand-primary-foreground px-2 py-0.5 font-bold shadow-[2px_2px_0_0_rgba(0,0,0,1)]">
-                Late Edition
-              </span>
-            </div>
           </div>
         </div>
       </div>
