@@ -19,8 +19,10 @@ import {
   Instagram,
   Twitter,
   Facebook,
+  Type,
+  AlignVerticalJustifyCenter,
 } from "lucide-react";
-import { BackgroundStyle, AspectRatio } from "../page";
+import { BackgroundStyle, AspectRatio, TextLayer } from "../page";
 
 // Curated "Creator Economy" Palette
 export const BACKGROUND_OPTIONS: BackgroundStyle[] = [
@@ -182,6 +184,8 @@ interface EditorControlsProps {
   setCustomColors: (val: [string, string]) => void;
   useCustomGradient: boolean;
   setUseCustomGradient: (val: boolean) => void;
+  textLayer: TextLayer;
+  setTextLayer: (val: TextLayer) => void;
 }
 
 export function EditorControls({
@@ -203,6 +207,8 @@ export function EditorControls({
   setCustomColors,
   useCustomGradient,
   setUseCustomGradient,
+  textLayer,
+  setTextLayer,
 }: EditorControlsProps) {
   return (
     <div className="space-y-8 animate-in fade-in slide-in-from-left-4 duration-500">
@@ -363,6 +369,80 @@ export function EditorControls({
                     </div>
                   </div>
                 )}
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+
+      <div className="w-full h-px bg-foreground/10 border-t border-dashed border-foreground/20" />
+
+      {/* NEW: Text Overlay Section */}
+      <div className="space-y-4">
+        <label className="font-mono text-[10px] uppercase tracking-widest text-foreground/50 flex items-center gap-2">
+          <Type className="w-3 h-3" />
+          Text Overlay
+        </label>
+
+        <div className="space-y-3">
+          <input
+            type="text"
+            value={textLayer.text}
+            onChange={(e) =>
+              setTextLayer({ ...textLayer, text: e.target.value })
+            }
+            placeholder="Add a title or caption..."
+            className="w-full bg-white border border-foreground/20 p-2 font-serif text-sm focus:outline-none focus:border-brand-primary placeholder:text-foreground/30 rounded-md"
+          />
+
+          {textLayer.text && (
+            <div className="space-y-3 p-3 bg-white/50 border border-dashed border-foreground/20 rounded-md">
+              <div className="flex gap-2 items-center">
+                <div className="relative w-8 h-8 border border-foreground/20 overflow-hidden cursor-pointer flex-shrink-0 rounded">
+                  <input
+                    type="color"
+                    value={textLayer.color}
+                    onChange={(e) =>
+                      setTextLayer({ ...textLayer, color: e.target.value })
+                    }
+                    className="absolute inset-0 w-[150%] h-[150%] -top-1/4 -left-1/4 p-0 cursor-pointer"
+                  />
+                </div>
+                <div className="flex-1 flex flex-col justify-center gap-1">
+                  <input
+                    type="range"
+                    min="20"
+                    max="400"
+                    value={textLayer.fontSize}
+                    onChange={(e) =>
+                      setTextLayer({
+                        ...textLayer,
+                        fontSize: parseInt(e.target.value),
+                      })
+                    }
+                    className="w-full h-1 bg-foreground/10 appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:bg-brand-primary [&::-webkit-slider-thumb]:rounded-full"
+                  />
+                  <span className="text-[9px] font-mono text-foreground/40">
+                    Size: {textLayer.fontSize}px
+                  </span>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-3">
+                <AlignVerticalJustifyCenter className="w-3 h-3 opacity-40" />
+                <input
+                  type="range"
+                  min="0"
+                  max="100"
+                  value={textLayer.y}
+                  onChange={(e) =>
+                    setTextLayer({
+                      ...textLayer,
+                      y: parseInt(e.target.value),
+                    })
+                  }
+                  className="w-full h-1 bg-foreground/10 appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:bg-brand-primary [&::-webkit-slider-thumb]:rounded-full"
+                />
               </div>
             </div>
           )}

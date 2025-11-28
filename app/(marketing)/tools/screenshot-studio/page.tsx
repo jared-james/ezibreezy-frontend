@@ -38,6 +38,16 @@ export type AspectRatio =
   | "4:3"
   | "9:16";
 
+// UPDATED: Added 'x' coordinate
+export type TextLayer = {
+  text: string;
+  color: string;
+  fontSize: number;
+  x: number; // Horizontal %
+  y: number; // Vertical %
+  fontFamily: string;
+};
+
 // Default Settings
 export const DEFAULT_SETTINGS = {
   padding: 60,
@@ -47,6 +57,14 @@ export const DEFAULT_SETTINGS = {
   windowChrome: true, // New Default
   backgroundId: "grad_1",
   aspectRatio: "auto" as AspectRatio,
+  textLayer: {
+    text: "",
+    color: "#000000",
+    fontSize: 80,
+    x: 50, // Center
+    y: 50, // Center
+    fontFamily: "serif",
+  },
 };
 
 export default function ScreenshotStudioPage() {
@@ -69,6 +87,11 @@ export default function ScreenshotStudioPage() {
     DEFAULT_SETTINGS.aspectRatio
   );
 
+  // Text State
+  const [textLayer, setTextLayer] = useState<TextLayer>(
+    DEFAULT_SETTINGS.textLayer
+  );
+
   // Custom Color States
   const [customColors, setCustomColors] = useState<[string, string]>([
     "#6366f1",
@@ -79,9 +102,24 @@ export default function ScreenshotStudioPage() {
   const [isProcessing, setIsProcessing] = useState(false);
   const [isCopying, setIsCopying] = useState(false);
 
-  const canvasRef = useRef<{ download: () => void; copy: () => Promise<void> }>(
-    null
-  );
+  // Drag state
+  const dragState = useRef({
+    isDragging: false,
+    startX: 0,
+    startY: 0,
+    startTextX: 0,
+    startTextY: 0,
+  });
+
+  // Reference for the wrapper to calculate drag percentages
+  const canvasWrapperRef = useRef<HTMLDivElement>(null);
+  const textElementRef = useRef<HTMLDivElement>(null);
+
+  const canvasRef = useRef<{
+    download: () => void;
+    copy: () => Promise<void>;
+    getCanvasWidth: () => number;
+  }>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const processFile = useCallback((file: File) => {
@@ -134,6 +172,7 @@ export default function ScreenshotStudioPage() {
     setWindowChrome(DEFAULT_SETTINGS.windowChrome);
     setBackgroundId(DEFAULT_SETTINGS.backgroundId);
     setAspectRatio(DEFAULT_SETTINGS.aspectRatio);
+    setTextLayer(DEFAULT_SETTINGS.textLayer);
   };
 
   const handleDownload = () => {
@@ -151,7 +190,6 @@ export default function ScreenshotStudioPage() {
     if (canvasRef.current) {
       try {
         setIsCopying(true);
-        // Small delay to ensure UI updates before heavy canvas op
         setTimeout(async () => {
           await canvasRef.current?.copy();
           setIsCopying(false);
@@ -184,7 +222,7 @@ export default function ScreenshotStudioPage() {
             <div className="inline-flex w-fit items-center gap-2 border border-dashed border-foreground/40 bg-white/50 px-3 py-1">
               <Star className="h-4 w-4 fill-current text-brand-primary" />
               <span className="text-xs font-bold font-mono uppercase tracking-widest text-foreground">
-                Utility v1.6
+                Utility v1.7
               </span>
             </div>
 
@@ -193,7 +231,7 @@ export default function ScreenshotStudioPage() {
             </h1>
             <p className="font-serif text-xl md:text-2xl text-foreground/80 max-w-2xl leading-relaxed italic border-l-2 border-dotted border-brand-primary pl-6">
               Turn messy screenshots into editorial assets. Add backgrounds,
-              browser frames, and shadows instantly.
+              text, and shadows instantly.
             </p>
           </div>
 
@@ -242,6 +280,8 @@ export default function ScreenshotStudioPage() {
                     setCustomColors={setCustomColors}
                     useCustomGradient={useCustomGradient}
                     setUseCustomGradient={setUseCustomGradient}
+                    textLayer={textLayer}
+                    setTextLayer={setTextLayer}
                   />
                 )}
                 <input
@@ -311,7 +351,11 @@ export default function ScreenshotStudioPage() {
                     </span>
                   </div>
                 ) : (
-                  <div className="max-w-full max-h-full shadow-2xl drop-shadow-2xl">
+                  <div
+                    ref={canvasWrapperRef}
+                    className="relative max-w-full max-h-full drop-shadow-2xl"
+                  >
+                    {/* The Canvas (Background + Image + Window) */}
                     <EditorCanvas
                       ref={canvasRef}
                       image={image}
@@ -324,7 +368,79 @@ export default function ScreenshotStudioPage() {
                       aspectRatio={aspectRatio}
                       customColors={customColors}
                       useCustomGradient={useCustomGradient}
+                      textLayer={textLayer}
+                      // We tell Canvas NOT to render text automatically,
+                      // because we are showing the HTML overlay instead.
+                      renderTextOnCanvas={false}
                     />
+
+                    {/* The Draggable Text Overlay */}
+                    {textLayer.text && (
+                      <div
+                        ref={textElementRef}
+                        onMouseDown={(e) => {
+                          if (!canvasWrapperRef.current || !textElementRef.current) return;
+
+                          e.preventDefault();
+
+                          dragState.current = {
+                            isDragging: true,
+                            startX: e.clientX,
+                            startY: e.clientY,
+                            startTextX: textLayer.x,
+                            startTextY: textLayer.y,
+                          };
+
+                          const handleMouseMove = (moveEvent: MouseEvent) => {
+                            if (!dragState.current.isDragging || !canvasWrapperRef.current) return;
+
+                            const bounds = canvasWrapperRef.current.getBoundingClientRect();
+
+                            // Calculate total distance moved in pixels
+                            const deltaX = moveEvent.clientX - dragState.current.startX;
+                            const deltaY = moveEvent.clientY - dragState.current.startY;
+
+                            // Convert to percentage
+                            const deltaXPercent = (deltaX / bounds.width) * 100;
+                            const deltaYPercent = (deltaY / bounds.height) * 100;
+
+                            // Add to starting position
+                            const newX = dragState.current.startTextX + deltaXPercent;
+                            const newY = dragState.current.startTextY + deltaYPercent;
+
+                            // Clamp to bounds
+                            const safeX = Math.max(0, Math.min(100, newX));
+                            const safeY = Math.max(0, Math.min(100, newY));
+
+                            setTextLayer({
+                              ...textLayer,
+                              x: safeX,
+                              y: safeY,
+                            });
+                          };
+
+                          const handleMouseUp = () => {
+                            dragState.current.isDragging = false;
+                            document.removeEventListener('mousemove', handleMouseMove);
+                            document.removeEventListener('mouseup', handleMouseUp);
+                          };
+
+                          document.addEventListener('mousemove', handleMouseMove);
+                          document.addEventListener('mouseup', handleMouseUp);
+                        }}
+                        className="absolute cursor-move select-none whitespace-nowrap z-50 font-serif font-bold hover:ring-2 ring-brand-primary/50 rounded px-2"
+                        style={{
+                          left: `${textLayer.x}%`,
+                          top: `${textLayer.y}%`,
+                          transform: "translate(-50%, -50%)",
+                          color: textLayer.color,
+                          fontSize: `${textLayer.fontSize * 0.8}px`,
+                          textShadow: "0 2px 4px rgba(0,0,0,0.3)",
+                        }}
+                      >
+                        {textLayer.text}
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
