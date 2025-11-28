@@ -3,7 +3,15 @@
 "use client";
 
 import { useState, useRef } from "react";
-import { Download, RefreshCw, Upload, Image as ImageIcon, Copy, Check, Star } from "lucide-react";
+import {
+  Download,
+  RefreshCw,
+  Upload,
+  Image as ImageIcon,
+  Copy,
+  Check,
+  Star,
+} from "lucide-react";
 import { toast } from "sonner";
 import LandingPageHeader from "@/components/landing-page/landing-page-header";
 import LandingPageFooter from "@/components/landing-page/landing-page-footer";
@@ -17,32 +25,44 @@ import { useTextDrag } from "./hooks/use-text-drag";
 import { BackgroundSelector } from "./components/controls/background-selector";
 
 export default function ScreenshotStudioPage() {
-  // Use the image upload hook
   const { image, setImage, fileInputRef, handleFileSelect } = useImageUpload();
 
-  // Settings
   const [padding, setPadding] = useState(DEFAULT_SETTINGS.padding);
   const [roundness, setRoundness] = useState(DEFAULT_SETTINGS.roundness);
-  const [outerRoundness, setOuterRoundness] = useState(DEFAULT_SETTINGS.outerRoundness);
+  const [outerRoundness, setOuterRoundness] = useState(
+    DEFAULT_SETTINGS.outerRoundness
+  );
   const [shadow, setShadow] = useState(DEFAULT_SETTINGS.shadow);
-  const [windowChrome, setWindowChrome] = useState(DEFAULT_SETTINGS.windowChrome);
-  const [backgroundId, setBackgroundId] = useState(DEFAULT_SETTINGS.backgroundId);
-  const [aspectRatio, setAspectRatio] = useState<AspectRatio>(DEFAULT_SETTINGS.aspectRatio);
+  const [windowChrome, setWindowChrome] = useState(
+    DEFAULT_SETTINGS.windowChrome
+  );
 
-  // Text State
-  const [textLayer, setTextLayer] = useState<TextLayer>(DEFAULT_SETTINGS.textLayer);
+  // Glass State
+  const [showGlass, setShowGlass] = useState(false);
+  const [glassPlane, setGlassPlane] = useState(30); // Default glass size
 
-  // Custom Color States
-  const [customColors, setCustomColors] = useState<[string, string]>(["#6366f1", "#a855f7"]);
+  const [backgroundId, setBackgroundId] = useState(
+    DEFAULT_SETTINGS.backgroundId
+  );
+  const [aspectRatio, setAspectRatio] = useState<AspectRatio>(
+    DEFAULT_SETTINGS.aspectRatio
+  );
+
+  const [textLayer, setTextLayer] = useState<TextLayer>(
+    DEFAULT_SETTINGS.textLayer
+  );
+
+  const [customColors, setCustomColors] = useState<[string, string]>([
+    "#6366f1",
+    "#a855f7",
+  ]);
   const [useCustomGradient, setUseCustomGradient] = useState(true);
 
   const [isProcessing, setIsProcessing] = useState(false);
   const [isCopying, setIsCopying] = useState(false);
 
-  // Reference for the wrapper to calculate drag percentages
   const canvasWrapperRef = useRef<HTMLDivElement>(null);
 
-  // Use the text drag hook
   const { textElementRef, handleTextMouseDown } = useTextDrag({
     textLayer,
     setTextLayer,
@@ -62,6 +82,8 @@ export default function ScreenshotStudioPage() {
     setOuterRoundness(DEFAULT_SETTINGS.outerRoundness);
     setShadow(DEFAULT_SETTINGS.shadow);
     setWindowChrome(DEFAULT_SETTINGS.windowChrome);
+    setShowGlass(false);
+    setGlassPlane(30);
     setBackgroundId(DEFAULT_SETTINGS.backgroundId);
     setAspectRatio(DEFAULT_SETTINGS.aspectRatio);
     setTextLayer(DEFAULT_SETTINGS.textLayer);
@@ -134,171 +156,170 @@ export default function ScreenshotStudioPage() {
               <div className="absolute bottom-0 left-0 w-3 h-3 border-l-2 border-b-2 border-foreground z-20 -translate-x-0.5 translate-y-0.5" />
               <div className="absolute bottom-0 right-0 w-3 h-3 border-r-2 border-b-2 border-foreground z-20 translate-x-0.5 translate-y-0.5" />
 
-              {/* Main section with Controls + Canvas */}
               <div className="flex-1 flex flex-col xl:flex-row">
-                {/* Controls */}
                 <div className="w-full xl:w-[400px] p-6 md:p-8 flex flex-col gap-8 border-b xl:border-b-0 xl:border-r border-dashed border-foreground/30 bg-background-editorial z-10">
-                {!image ? (
-                  <div className="flex-1 flex flex-col justify-center items-center text-center p-6 border-2 border-dashed border-foreground/20 bg-white/50">
-                    <div className="mb-4 p-3 bg-brand-primary/5 rounded-full">
-                      <Upload className="w-6 h-6 text-brand-primary" />
+                  {!image ? (
+                    <div className="flex-1 flex flex-col justify-center items-center text-center p-6 border-2 border-dashed border-foreground/20 bg-white/50">
+                      <div className="mb-4 p-3 bg-brand-primary/5 rounded-full">
+                        <Upload className="w-6 h-6 text-brand-primary" />
+                      </div>
+                      <h3 className="font-bold mb-2">Start Here</h3>
+                      <p className="text-sm text-foreground/60 mb-4">
+                        Paste (Ctrl+V) or upload an image.
+                      </p>
+                      <button
+                        onClick={() => fileInputRef.current?.click()}
+                        className="bg-brand-primary text-white px-4 py-2 text-xs font-bold uppercase tracking-widest hover:bg-foreground transition-colors"
+                      >
+                        Select Image
+                      </button>
                     </div>
-                    <h3 className="font-bold mb-2">Start Here</h3>
-                    <p className="text-sm text-foreground/60 mb-4">
-                      Paste (Ctrl+V) or upload an image.
-                    </p>
-                    <button
-                      onClick={() => fileInputRef.current?.click()}
-                      className="bg-brand-primary text-white px-4 py-2 text-xs font-bold uppercase tracking-widest hover:bg-foreground transition-colors"
-                    >
-                      Select Image
-                    </button>
-                  </div>
-                ) : (
-                  <EditorControls
-                    padding={padding}
-                    setPadding={setPadding}
-                    roundness={roundness}
-                    setRoundness={setRoundness}
-                    outerRoundness={outerRoundness}
-                    setOuterRoundness={setOuterRoundness}
-                    shadow={shadow}
-                    setShadow={setShadow}
-                    windowChrome={windowChrome}
-                    setWindowChrome={setWindowChrome}
-                    aspectRatio={aspectRatio}
-                    setAspectRatio={setAspectRatio}
-                    textLayer={textLayer}
-                    setTextLayer={setTextLayer}
-                  />
-                )}
-                <input
-                  type="file"
-                  ref={fileInputRef}
-                  className="hidden"
-                  accept="image/*"
-                  onChange={handleFileSelect}
-                />
-
-                <div className="mt-auto pt-8 border-t border-dashed border-foreground/30 flex flex-col gap-3">
-                  {image && (
-                    <button
-                      onClick={() => fileInputRef.current?.click()}
-                      className="flex items-center justify-center gap-2 text-xs font-bold font-mono uppercase tracking-wider text-foreground/50 hover:text-foreground transition-colors py-2"
-                    >
-                      <RefreshCw className="w-3 h-3" />
-                      Replace Image
-                    </button>
+                  ) : (
+                    <EditorControls
+                      padding={padding}
+                      setPadding={setPadding}
+                      roundness={roundness}
+                      setRoundness={setRoundness}
+                      outerRoundness={outerRoundness}
+                      setOuterRoundness={setOuterRoundness}
+                      shadow={shadow}
+                      setShadow={setShadow}
+                      windowChrome={windowChrome}
+                      setWindowChrome={setWindowChrome}
+                      showGlass={showGlass}
+                      setShowGlass={setShowGlass}
+                      glassPlane={glassPlane}
+                      setGlassPlane={setGlassPlane}
+                      aspectRatio={aspectRatio}
+                      setAspectRatio={setAspectRatio}
+                      textLayer={textLayer}
+                      setTextLayer={setTextLayer}
+                    />
                   )}
+                  <input
+                    type="file"
+                    ref={fileInputRef}
+                    className="hidden"
+                    accept="image/*"
+                    onChange={handleFileSelect}
+                  />
 
-                  <div className="flex gap-4">
-                    <button
-                      onClick={handleCopy}
-                      disabled={!image || isCopying}
-                      className={cn(
-                        "flex-[1.5] h-12 flex items-center justify-center gap-2 border-2 border-foreground bg-white hover:bg-surface-hover text-foreground font-mono text-xs font-bold uppercase tracking-widest transition-all",
-                        (!image || isCopying) &&
-                          "opacity-50 pointer-events-none"
-                      )}
-                      title="Copy to Clipboard"
-                    >
-                      {isCopying ? (
-                        <Check className="w-4 h-4" />
-                      ) : (
-                        <Copy className="w-4 h-4" />
-                      )}
-                      Copy
-                    </button>
+                  <div className="mt-auto pt-8 border-t border-dashed border-foreground/30 flex flex-col gap-3">
+                    {image && (
+                      <button
+                        onClick={() => fileInputRef.current?.click()}
+                        className="flex items-center justify-center gap-2 text-xs font-bold font-mono uppercase tracking-wider text-foreground/50 hover:text-foreground transition-colors py-2"
+                      >
+                        <RefreshCw className="w-3 h-3" />
+                        Replace Image
+                      </button>
+                    )}
 
-                    <button
-                      onClick={handleDownload}
-                      disabled={!image || isProcessing}
-                      className={cn(
-                        "flex-[2] h-12 flex items-center justify-center gap-2 bg-brand-primary text-white font-mono text-xs font-bold uppercase tracking-widest transition-all hover:bg-foreground",
-                        (!image || isProcessing) &&
-                          "opacity-50 pointer-events-none"
-                      )}
-                    >
-                      <Download className="w-4 h-4" />
-                      {isProcessing ? "Wait" : "Save"}
-                    </button>
+                    <div className="flex gap-4">
+                      <button
+                        onClick={handleCopy}
+                        disabled={!image || isCopying}
+                        className={cn(
+                          "flex-[1.5] h-12 flex items-center justify-center gap-2 border-2 border-foreground bg-white hover:bg-surface-hover text-foreground font-mono text-xs font-bold uppercase tracking-widest transition-all",
+                          (!image || isCopying) &&
+                            "opacity-50 pointer-events-none"
+                        )}
+                        title="Copy to Clipboard"
+                      >
+                        {isCopying ? (
+                          <Check className="w-4 h-4" />
+                        ) : (
+                          <Copy className="w-4 h-4" />
+                        )}
+                        Copy
+                      </button>
+
+                      <button
+                        onClick={handleDownload}
+                        disabled={!image || isProcessing}
+                        className={cn(
+                          "flex-[2] h-12 flex items-center justify-center gap-2 bg-brand-primary text-white font-mono text-xs font-bold uppercase tracking-widest transition-all hover:bg-foreground",
+                          (!image || isProcessing) &&
+                            "opacity-50 pointer-events-none"
+                        )}
+                      >
+                        <Download className="w-4 h-4" />
+                        {isProcessing ? "Wait" : "Save"}
+                      </button>
+                    </div>
                   </div>
                 </div>
-              </div>
 
-              {/* Canvas Area */}
-              <div className="flex-1 flex flex-col bg-surface-hover/30">
-                {/* Background Selector - Top of canvas area */}
-                {image && (
-                  <div className="p-6 md:p-8 border-b border-dashed border-foreground/30 bg-background-editorial">
-                    <BackgroundSelector
-                      backgroundId={backgroundId}
-                      setBackgroundId={setBackgroundId}
-                      customColors={customColors}
-                      setCustomColors={setCustomColors}
-                      useCustomGradient={useCustomGradient}
-                      setUseCustomGradient={setUseCustomGradient}
-                    />
-                  </div>
-                )}
+                <div className="flex-1 flex flex-col bg-surface-hover/30">
+                  {image && (
+                    <div className="p-6 md:p-8 border-b border-dashed border-foreground/30 bg-background-editorial">
+                      <BackgroundSelector
+                        backgroundId={backgroundId}
+                        setBackgroundId={setBackgroundId}
+                        customColors={customColors}
+                        setCustomColors={setCustomColors}
+                        useCustomGradient={useCustomGradient}
+                        setUseCustomGradient={setUseCustomGradient}
+                      />
+                    </div>
+                  )}
 
-                {/* Canvas Preview */}
-                <div className="flex-1 p-4 md:p-12 flex items-center justify-center overflow-hidden relative">
-                  {!image ? (
-                  <div
-                    onClick={() => fileInputRef.current?.click()}
-                    className="w-full max-w-md aspect-[4/3] border-2 border-dashed border-foreground/20 bg-white/50 flex flex-col items-center justify-center cursor-pointer hover:border-brand-primary hover:bg-white transition-all group"
-                  >
-                    <ImageIcon className="w-12 h-12 text-foreground/20 group-hover:text-brand-primary group-hover:scale-110 transition-all mb-4" />
-                    <span className="font-serif text-xl font-bold text-foreground/40 group-hover:text-foreground transition-colors">
-                      Paste Image (Ctrl+V)
-                    </span>
-                  </div>
-                ) : (
-                  <div
-                    ref={canvasWrapperRef}
-                    className="relative max-w-full max-h-full drop-shadow-2xl"
-                  >
-                    {/* The Canvas (Background + Image + Window) */}
-                    <EditorCanvas
-                      ref={canvasRef}
-                      image={image}
-                      padding={padding}
-                      roundness={roundness}
-                      outerRoundness={outerRoundness}
-                      shadow={shadow}
-                      windowChrome={windowChrome}
-                      backgroundId={backgroundId}
-                      aspectRatio={aspectRatio}
-                      customColors={customColors}
-                      useCustomGradient={useCustomGradient}
-                      textLayer={textLayer}
-                      renderTextOnCanvas={false}
-                    />
-
-                    {/* The Draggable Text Overlay */}
-                    {textLayer.text && (
+                  <div className="flex-1 p-4 md:p-12 flex items-center justify-center overflow-hidden relative">
+                    {!image ? (
                       <div
-                        ref={textElementRef}
-                        onMouseDown={handleTextMouseDown}
-                        className="absolute cursor-move select-none whitespace-nowrap z-50 font-bold hover:ring-2 ring-brand-primary/50 rounded px-2"
-                        style={{
-                          left: `${textLayer.x}%`,
-                          top: `${textLayer.y}%`,
-                          transform: "translate(-50%, -50%)",
-                          color: textLayer.color,
-                          fontSize: `${textLayer.fontSize * 0.8}px`,
-                          textShadow: "0 2px 4px rgba(0,0,0,0.3)",
-                          fontFamily: textLayer.fontFamily,
-                        }}
+                        onClick={() => fileInputRef.current?.click()}
+                        className="w-full max-w-md aspect-[4/3] border-2 border-dashed border-foreground/20 bg-white/50 flex flex-col items-center justify-center cursor-pointer hover:border-brand-primary hover:bg-white transition-all group"
                       >
-                        {textLayer.text}
+                        <ImageIcon className="w-12 h-12 text-foreground/20 group-hover:text-brand-primary group-hover:scale-110 transition-all mb-4" />
+                        <span className="font-serif text-xl font-bold text-foreground/40 group-hover:text-foreground transition-colors">
+                          Paste Image (Ctrl+V)
+                        </span>
+                      </div>
+                    ) : (
+                      <div
+                        ref={canvasWrapperRef}
+                        className="relative max-w-full max-h-full drop-shadow-2xl"
+                      >
+                        <EditorCanvas
+                          ref={canvasRef}
+                          image={image}
+                          padding={padding}
+                          roundness={roundness}
+                          outerRoundness={outerRoundness}
+                          shadow={shadow}
+                          windowChrome={windowChrome}
+                          showGlass={showGlass}
+                          glassPlane={glassPlane}
+                          backgroundId={backgroundId}
+                          aspectRatio={aspectRatio}
+                          customColors={customColors}
+                          useCustomGradient={useCustomGradient}
+                          textLayer={textLayer}
+                          renderTextOnCanvas={false}
+                        />
+
+                        {textLayer.text && (
+                          <div
+                            ref={textElementRef}
+                            onMouseDown={handleTextMouseDown}
+                            className="absolute cursor-move select-none whitespace-nowrap z-50 font-bold hover:ring-2 ring-brand-primary/50 rounded px-2"
+                            style={{
+                              left: `${textLayer.x}%`,
+                              top: `${textLayer.y}%`,
+                              transform: "translate(-50%, -50%)",
+                              color: textLayer.color,
+                              fontSize: `${textLayer.fontSize * 0.8}px`,
+                              textShadow: "0 2px 4px rgba(0,0,0,0.3)",
+                              fontFamily: textLayer.fontFamily,
+                            }}
+                          >
+                            {textLayer.text}
+                          </div>
+                        )}
                       </div>
                     )}
                   </div>
-                )}
                 </div>
-              </div>
               </div>
             </div>
           </div>

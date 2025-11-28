@@ -17,6 +17,10 @@ interface EditorControlsProps {
   setShadow: (val: number) => void;
   windowChrome: boolean;
   setWindowChrome: (val: boolean) => void;
+  showGlass: boolean;
+  setShowGlass: (val: boolean) => void;
+  glassPlane: number;
+  setGlassPlane: (val: number) => void;
   aspectRatio: AspectRatio;
   setAspectRatio: (val: AspectRatio) => void;
   textLayer: TextLayer;
@@ -34,6 +38,10 @@ export function EditorControls({
   setShadow,
   windowChrome,
   setWindowChrome,
+  showGlass,
+  setShowGlass,
+  glassPlane,
+  setGlassPlane,
   aspectRatio,
   setAspectRatio,
   textLayer,
@@ -41,7 +49,6 @@ export function EditorControls({
 }: EditorControlsProps) {
   return (
     <div className="space-y-8 animate-in fade-in slide-in-from-left-4 duration-500">
-
       <AspectRatioSelector
         aspectRatio={aspectRatio}
         setAspectRatio={setAspectRatio}
@@ -56,6 +63,10 @@ export function EditorControls({
       <FrameControls
         windowChrome={windowChrome}
         setWindowChrome={setWindowChrome}
+        showGlass={showGlass}
+        setShowGlass={setShowGlass}
+        glassPlane={glassPlane}
+        setGlassPlane={setGlassPlane}
       />
 
       <StyleSliders
