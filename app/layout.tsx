@@ -13,9 +13,9 @@ const libreCaslon = Libre_Caslon_Text({
 });
 
 export const metadata: Metadata = {
-  title: "EziBreezi",
+  title: "EziBreezy",
   description:
-    "EziBreezi helps you think through what you want to say, capture it quickly, and turn it into posts without social feeling like a second or third full-time job.",
+    "EziBreezy helps you think through what you want to say, capture it quickly, and turn it into posts without social feeling like a second or third full-time job.",
 };
 
 export default function RootLayout({
