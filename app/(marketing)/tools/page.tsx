@@ -9,11 +9,30 @@ import {
   Type,
   Pilcrow,
   Frame,
+  LayoutGrid,
 } from "lucide-react";
 import LandingPageFooter from "@/components/landing-page/landing-page-footer";
 import MinimalHeader from "@/components/shared/minimal-header";
 
 const tools = [
+  {
+    id: "06",
+    name: "Grid Planner",
+    description:
+      "Curate your feed visually. Drag and drop photos to plan your perfect grid layout. Auto-saves to your device.",
+    href: "/tools/instagram-grid-planner",
+    icon: LayoutGrid,
+    category: "Instagram",
+  },
+  {
+    id: "05",
+    name: "Screenshot Studio",
+    description:
+      "Wrap raw screenshots in aesthetic gradients and frames. Add shadows and rounded corners for a professional look.",
+    href: "/tools/screenshot-studio",
+    icon: Frame,
+    category: "Design",
+  },
   {
     id: "01",
     name: "Carousel Splitter",
@@ -49,15 +68,6 @@ const tools = [
     href: "/tools/linkedin-text-formatter",
     icon: Pilcrow,
     category: "LinkedIn",
-  },
-  {
-    id: "05",
-    name: "Screenshot Studio",
-    description:
-      "Wrap raw screenshots in aesthetic gradients and frames. Add shadows and rounded corners for a professional look.",
-    href: "/tools/screenshot-studio",
-    icon: Frame,
-    category: "Design",
   },
 ];
 
