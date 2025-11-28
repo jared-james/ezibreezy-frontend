@@ -1,7 +1,14 @@
 // app/(marketing)/tools/page.tsx
 
 import Link from "next/link";
-import { Scissors, Grid3x3, ArrowRight, PenTool, Type } from "lucide-react";
+import {
+  Scissors,
+  Grid3x3,
+  ArrowRight,
+  PenTool,
+  Type,
+  Pilcrow,
+} from "lucide-react";
 import LandingPageFooter from "@/components/landing-page/landing-page-footer";
 import MinimalHeader from "@/components/shared/minimal-header";
 
@@ -32,6 +39,15 @@ const tools = [
     href: "/tools/youtube-title-checker",
     icon: Type,
     category: "YouTube",
+  },
+  {
+    id: "04",
+    name: "Text Formatter",
+    description:
+      "Convert standard text into bold, italic, or script Unicode variants to bypass platform formatting limitations.",
+    href: "/tools/linkedin-text-formatter",
+    icon: Pilcrow,
+    category: "LinkedIn",
   },
 ];
 

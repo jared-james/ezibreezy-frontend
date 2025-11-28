@@ -146,13 +146,6 @@ export default function CarouselSplitterPage() {
         <div className="max-w-6xl mx-auto space-y-12 relative z-10">
           {/* Header Section */}
           <div className="flex flex-col items-center text-center space-y-6">
-            <div className="inline-flex w-fit items-center gap-2 border border-dashed border-foreground/40 bg-white/50 px-3 py-1">
-              <Star className="h-4 w-4 fill-current text-brand-primary" />
-              <span className="text-xs font-bold font-mono uppercase tracking-widest text-foreground">
-                Utility v1.1
-              </span>
-            </div>
-
             <h1 className="font-serif text-5xl md:text-7xl font-bold leading-[0.9] tracking-tight uppercase">
               Instagram Carousel Splitter
             </h1>
