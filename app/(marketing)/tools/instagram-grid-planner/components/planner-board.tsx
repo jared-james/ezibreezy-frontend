@@ -39,6 +39,8 @@ import {
   Smartphone,
   LayoutGrid,
   RefreshCw,
+  RectangleVertical,
+  Square,
 } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -56,7 +58,10 @@ export default function PlannerBoard() {
   const [activeId, setActiveId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [showMenu, setShowMenu] = useState(false);
+
+  // View States
   const [viewMode, setViewMode] = useState<"mobile" | "grid">("mobile");
+  const [gridRatio, setGridRatio] = useState<"square" | "vertical">("vertical"); // Default to new 3:4
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -111,7 +116,7 @@ export default function PlannerBoard() {
     }
 
     setItems((prev) => [...prev, ...newPosts]);
-    toast.success(`${newPosts.length} posts added to grid`);
+    toast.success(`${newPosts.length} posts added`);
     e.target.value = "";
   };
 
@@ -154,6 +159,11 @@ export default function PlannerBoard() {
     setActiveId(null);
   }
 
+  // --- HELPER: Grid Aspect Ratio Class ---
+  // New Instagram Vertical Grid is 3:4. Old is 1:1.
+  const aspectRatioClass =
+    gridRatio === "vertical" ? "aspect-[3/4]" : "aspect-square";
+
   // --- REUSABLE GRID CONTENT ---
   const renderGridContent = () => (
     <>
@@ -175,11 +185,13 @@ export default function PlannerBoard() {
           onDragEnd={handleDragEnd}
         >
           <SortableContext items={items} strategy={rectSortingStrategy}>
-            <div className="grid grid-cols-3 gap-0.5 bg-white">
+            {/* gap-px (1px) mimics the tighter modern Instagram layout */}
+            <div className={cn("grid grid-cols-3 bg-white", "gap-px")}>
               {items.map((post) => (
                 <SortableItem
                   key={post.id}
                   post={post}
+                  ratioClass={aspectRatioClass}
                   onDelete={(e) => handleDelete(post.id, e)}
                 />
               ))}
@@ -191,6 +203,7 @@ export default function PlannerBoard() {
               <GridPost
                 post={items.find((i) => i.id === activeId)!}
                 isOverlay
+                ratioClass={aspectRatioClass}
               />
             ) : null}
           </DragOverlay>
@@ -212,32 +225,65 @@ export default function PlannerBoard() {
 
   return (
     <div className="flex flex-col items-center justify-center py-8">
-      {/* VIEW TOGGLE */}
-      <div className="mb-8 flex items-center bg-white border border-foreground/20 p-1 rounded-lg shadow-sm">
-        <button
-          onClick={() => setViewMode("mobile")}
-          className={cn(
-            "flex items-center gap-2 px-4 py-2 rounded-md transition-all text-xs font-bold font-mono uppercase tracking-wider",
-            viewMode === "mobile"
-              ? "bg-brand-primary text-white shadow-sm"
-              : "text-foreground/50 hover:bg-foreground/5"
-          )}
-        >
-          <Smartphone className="w-4 h-4" />
-          <span>Mobile</span>
-        </button>
-        <button
-          onClick={() => setViewMode("grid")}
-          className={cn(
-            "flex items-center gap-2 px-4 py-2 rounded-md transition-all text-xs font-bold font-mono uppercase tracking-wider",
-            viewMode === "grid"
-              ? "bg-brand-primary text-white shadow-sm"
-              : "text-foreground/50 hover:bg-foreground/5"
-          )}
-        >
-          <LayoutGrid className="w-4 h-4" />
-          <span>Grid Only</span>
-        </button>
+      {/* TOOLBAR: View & Ratio Toggles */}
+      <div className="mb-8 flex flex-col sm:flex-row items-center gap-4 bg-white border border-foreground/20 p-1.5 rounded-xl shadow-sm">
+        {/* View Mode Toggle */}
+        <div className="flex bg-gray-100/50 p-1 rounded-lg">
+          <button
+            onClick={() => setViewMode("mobile")}
+            className={cn(
+              "flex items-center gap-2 px-3 py-1.5 rounded-md transition-all text-[10px] font-bold font-mono uppercase tracking-wider",
+              viewMode === "mobile"
+                ? "bg-white text-brand-primary shadow-sm ring-1 ring-black/5"
+                : "text-foreground/40 hover:text-foreground/60"
+            )}
+          >
+            <Smartphone className="w-3.5 h-3.5" />
+            <span>Mobile</span>
+          </button>
+          <button
+            onClick={() => setViewMode("grid")}
+            className={cn(
+              "flex items-center gap-2 px-3 py-1.5 rounded-md transition-all text-[10px] font-bold font-mono uppercase tracking-wider",
+              viewMode === "grid"
+                ? "bg-white text-brand-primary shadow-sm ring-1 ring-black/5"
+                : "text-foreground/40 hover:text-foreground/60"
+            )}
+          >
+            <LayoutGrid className="w-3.5 h-3.5" />
+            <span>Grid Only</span>
+          </button>
+        </div>
+
+        <div className="w-px h-6 bg-foreground/10 hidden sm:block" />
+
+        {/* Grid Ratio Toggle */}
+        <div className="flex bg-gray-100/50 p-1 rounded-lg">
+          <button
+            onClick={() => setGridRatio("vertical")}
+            className={cn(
+              "flex items-center gap-2 px-3 py-1.5 rounded-md transition-all text-[10px] font-bold font-mono uppercase tracking-wider",
+              gridRatio === "vertical"
+                ? "bg-white text-brand-primary shadow-sm ring-1 ring-black/5"
+                : "text-foreground/40 hover:text-foreground/60"
+            )}
+          >
+            <RectangleVertical className="w-3.5 h-3.5" />
+            <span>New (3:4)</span>
+          </button>
+          <button
+            onClick={() => setGridRatio("square")}
+            className={cn(
+              "flex items-center gap-2 px-3 py-1.5 rounded-md transition-all text-[10px] font-bold font-mono uppercase tracking-wider",
+              gridRatio === "square"
+                ? "bg-white text-brand-primary shadow-sm ring-1 ring-black/5"
+                : "text-foreground/40 hover:text-foreground/60"
+            )}
+          >
+            <Square className="w-3.5 h-3.5" />
+            <span>Classic</span>
+          </button>
+        </div>
       </div>
 
       {viewMode === "mobile" ? (
@@ -426,10 +472,15 @@ export default function PlannerBoard() {
       )}
 
       {/* HELPER TEXT */}
-      <div className="mt-8 text-center">
+      <div className="mt-8 text-center space-y-2">
         <p className="font-mono text-[10px] uppercase tracking-widest text-foreground/40">
           Tap <PlusSquare className="w-3 h-3 inline mx-1 -mt-0.5" /> to add
           photos • Drag to reorder
+        </p>
+        <p className="font-serif text-xs italic text-brand-primary/80">
+          {gridRatio === "vertical"
+            ? "Previewing new 2025 Vertical Grid (3:4)"
+            : "Previewing Classic Grid (1:1)"}
         </p>
       </div>
 
@@ -468,9 +519,11 @@ export default function PlannerBoard() {
 
 function SortableItem({
   post,
+  ratioClass,
   onDelete,
 }: {
   post: VisualPost;
+  ratioClass: string;
   onDelete: (e: React.MouseEvent) => void;
 }) {
   const {
@@ -495,7 +548,7 @@ function SortableItem({
       style={style}
       {...attributes}
       {...listeners}
-      className="aspect-square relative group outline-none"
+      className={cn(ratioClass, "relative group outline-none")}
     >
       <GridPost post={post} onDelete={onDelete} />
     </div>
@@ -505,16 +558,19 @@ function SortableItem({
 function GridPost({
   post,
   isOverlay,
+  ratioClass,
   onDelete,
 }: {
   post: VisualPost;
   isOverlay?: boolean;
+  ratioClass?: string;
   onDelete?: (e: React.MouseEvent) => void;
 }) {
   return (
     <div
       className={cn(
         "w-full h-full relative overflow-hidden bg-gray-100",
+        ratioClass, // Apply aspect ratio to overlay as well
         isOverlay
           ? "shadow-2xl ring-2 ring-brand-primary z-50 scale-105"
           : "cursor-move"
