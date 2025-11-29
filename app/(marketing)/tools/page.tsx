@@ -1,9 +1,44 @@
 // app/(marketing)/tools/page.tsx
 
+import { Metadata } from "next";
 import Link from "next/link";
 import { PenTool } from "lucide-react";
 import LandingPageFooter from "@/components/landing-page/landing-page-footer";
 import MinimalHeader from "@/components/shared/minimal-header";
+import { WebPageJsonLd } from "@/components/seo/json-ld";
+
+export const metadata: Metadata = {
+  title: "Free Social Media Tools & Utilities for Creators | EziBreezy",
+  description:
+    "A suite of open-access editorial tools. Split carousels, plan grids, format text, and generate mockups without a subscription. No sign-up required.",
+  alternates: {
+    canonical: "/tools",
+  },
+  openGraph: {
+    title: "Free Social Media Tools & Utilities",
+    description:
+      "Specialized instruments for the digital publisher. Screenshot beautifier, carousel splitter, grid planner, and more.",
+    url: "https://www.ezibreezy.com/tools",
+    siteName: "EziBreezy",
+    images: [
+      {
+        url: "/og-tools.jpg",
+        width: 1200,
+        height: 630,
+        alt: "EziBreezy Tools Directory",
+      },
+    ],
+    type: "website",
+  },
+  keywords: [
+    "social media tools",
+    "free instagram tools",
+    "content creator utilities",
+    "social media scheduling tools",
+    "instagram grid planner free",
+    "screenshot beautifier",
+  ],
+};
 
 // Sorted by Category -> Name
 const tools = [
@@ -37,13 +72,27 @@ const tools = [
   },
   {
     id: "05",
+    name: "Font Generator",
+    description: "Generate bold, italic, and script fonts for your Bio.",
+    href: "/tools/instagram-font-generator",
+    category: "Instagram",
+  },
+  {
+    id: "06",
+    name: "Caption Generator",
+    description: "Generate witty and professional captions with AI.",
+    href: "/tools/instagram-caption-generator",
+    category: "Instagram",
+  },
+  {
+    id: "07",
     name: "Text Formatter",
     description: "Convert standard text into bold, italic, or script variants.",
     href: "/tools/linkedin-text-formatter",
     category: "LinkedIn",
   },
   {
-    id: "06",
+    id: "08",
     name: "Title Checker",
     description:
       "Analyze video titles for truncation and click-through impact.",
@@ -55,6 +104,12 @@ const tools = [
 export default function ToolsPage() {
   return (
     <div className="flex flex-col min-h-screen bg-background-editorial text-foreground font-serif">
+      <WebPageJsonLd
+        title="Free Social Media Tools & Utilities"
+        description="A curated list of free tools for content creators, including grid planners, font generators, and screenshot beautifiers."
+        url="https://www.ezibreezy.com/tools"
+      />
+
       <MinimalHeader />
 
       <main className="grow">
