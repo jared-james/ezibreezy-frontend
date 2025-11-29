@@ -11,7 +11,7 @@ export default function SignUp() {
     (window.location.hostname === "www.ezibreezy.com" ||
       window.location.hostname === "ezibreezy.com");
 
-  if (!isProdDomain) {
+  if (isProdDomain) {
     return <ComingSoonSignUp />;
   }
 
