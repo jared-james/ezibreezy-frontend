@@ -4,7 +4,9 @@ export type ValidationRuleType =
   | "duration"
   | "aspectRatio"
   | "fileSize"
-  | "required";
+  | "required"
+  | "resolution" // New
+  | "fileType"; // New
 
 export interface ValidationRule {
   type: ValidationRuleType;
@@ -12,6 +14,10 @@ export interface ValidationRule {
   min?: number;
   max?: number;
   message: string;
+  // Specific properties for new rules
+  minWidth?: number;
+  minHeight?: number;
+  allowedTypes?: string[];
 }
 
 export interface PlatformValidationRules {
@@ -28,17 +34,27 @@ export const POST_EDITOR_VALIDATION_RULES: SocialPlatformRules = {
       {
         type: "duration",
         min: 3,
-        max: 60,
-        message: "Facebook Stories must be between 3 and 60 seconds long.",
+        max: 60, // Capped at 60s for Pages per specs
+        message: "Facebook Stories must be between 3 and 60 seconds.",
       },
       {
         type: "aspectRatio",
-        max: 0.62, // ~9:16 is 0.5625. Allowing up to 0.62 for slight variance.
+        max: 0.62, // Strict vertical check (~9:16)
         message: "Facebook Stories require a vertical aspect ratio (9:16).",
+      },
+      {
+        type: "resolution",
+        minWidth: 540,
+        minHeight: 960,
+        message: "Video resolution is too low. Minimum required is 540x960.",
+      },
+      {
+        type: "fileType",
+        allowedTypes: ["video/mp4"],
+        message: "Facebook Stories recommend .mp4 format.",
       },
     ],
   },
-  // Future expansion
   instagram: {
     story: [],
     post: [],

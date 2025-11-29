@@ -3,7 +3,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo } from "react";
-import { Smile, SlidersHorizontal } from "lucide-react"; // Added icon
+import { Smile } from "lucide-react";
 import {
   Platform,
   ThreadMessage,
@@ -33,6 +33,7 @@ interface CaptionEditorProps {
     mainCaption: string,
     platformCaptions: Record<string, string>
   ) => void;
+  mediaErrors?: Record<string, Record<string, string[]>>;
 }
 
 export default function CaptionEditor({
@@ -45,6 +46,7 @@ export default function CaptionEditor({
   onThreadMessagesChange,
   isGlobalUploading = false,
   onLocalCaptionsChange,
+  mediaErrors = {},
 }: CaptionEditorProps) {
   const captionState = useCaptionState(threadMessages, onLocalCaptionsChange);
 
@@ -136,7 +138,6 @@ export default function CaptionEditor({
         />
       </div>
 
-      {/* New Customization Header Section */}
       {selectedPlatformIds.length > 1 && (
         <div className="mt-8 border-t border-border pt-6 animate-in fade-in slide-in-from-top-2">
           <div className="mb-4">
@@ -203,6 +204,7 @@ export default function CaptionEditor({
               setShowFacebookFirstComment={
                 captionState.setShowFacebookFirstComment
               }
+              mediaErrors={mediaErrors[platformId]}
             />
           );
         })}

@@ -53,6 +53,7 @@ interface PlatformCaptionSectionProps {
   setLocalFacebookFirstComment: (comment: string) => void;
   showFacebookFirstComment: boolean;
   setShowFacebookFirstComment: (show: boolean) => void;
+  mediaErrors?: Record<string, string[]>;
 }
 
 const PLATFORM_LIMITS = {
@@ -95,6 +96,7 @@ export function PlatformCaptionSection({
   setLocalFacebookFirstComment,
   showFacebookFirstComment,
   setShowFacebookFirstComment,
+  mediaErrors,
 }: PlatformCaptionSectionProps) {
   const supportsThreading = platformId === "x" || platformId === "threads";
   const supportsFirstComment =
@@ -281,7 +283,10 @@ export function PlatformCaptionSection({
           warningLimit={warningLimit}
         />
 
-        <PlatformMediaSelector platformId={platformId} />
+        <PlatformMediaSelector
+          platformId={platformId}
+          mediaErrors={mediaErrors}
+        />
 
         {supportsThreading && (
           <ThreadSection

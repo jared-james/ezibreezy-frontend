@@ -38,11 +38,15 @@ export default function ValidationErrorModal({
 
           <div className="border-b border-foreground mb-6 mx-auto w-16" />
 
-          <h2 className="font-serif text-2xl font-bold uppercase tracking-tight text-foreground mb-6">
+          <h2 className="font-serif text-2xl font-bold uppercase tracking-tight text-foreground mb-2">
             Validation Issues
           </h2>
 
-          <div className="text-left bg-muted/30 border border-border p-4 mb-8 rounded-sm">
+          <p className="text-sm text-muted-foreground mb-6">
+            Please check the highlighted media items for details.
+          </p>
+
+          <div className="text-left bg-muted/30 border border-border p-4 mb-8 rounded-sm max-h-[200px] overflow-y-auto">
             <ul className="list-disc list-inside space-y-2">
               {errors.map((error, index) => (
                 <li key={index} className="text-sm text-foreground font-medium">

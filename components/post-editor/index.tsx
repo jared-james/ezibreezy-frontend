@@ -125,13 +125,13 @@ export default function EditorialCore({
 
   const { startPolling, isPolling: isPollingStatus } = usePostStatusPolling();
 
-  // Initialize Validator Hook
-  const { validatePost, validationErrors, clearErrors } = usePostValidator({
-    selectedAccounts,
-    platformMediaSelections,
-    stagedMediaItems,
-    facebookPostType,
-  });
+  const { validatePost, validationErrors, clearErrors, mediaErrors } =
+    usePostValidator({
+      selectedAccounts,
+      platformMediaSelections,
+      stagedMediaItems,
+      facebookPostType,
+    });
 
   useEffect(() => {
     const supabase = createClient();
@@ -162,21 +162,17 @@ export default function EditorialCore({
     const newMediaSelections = { ...platformMediaSelections };
 
     if (newSelected[platformId]) {
-      // Deselecting
       delete newSelected[platformId];
       delete newCaptions[platformId];
-      // Optional: Clear media selection for this platform to keep state clean
       delete newMediaSelections[platformId];
     } else {
-      // Selecting
       newSelected[platformId] = [platform.accounts[0].id];
       newCaptions[platformId] = localMainCaption;
 
-      // Auto-select media for the new platform
       const uidsToAdd = getAutoSelectionForPlatform(
         platformId,
-        [], // Currently empty selection for this platform
-        stagedMediaItems // Candidates (all available media)
+        [],
+        stagedMediaItems
       );
 
       if (uidsToAdd.length > 0) {
@@ -227,15 +223,12 @@ export default function EditorialCore({
       return showError("Please wait for media to finish uploading.");
     }
 
-    // Run Validation via Hook
-    // If validation fails, errors are set, modal opens automatically via render
     const isValid = await validatePost();
     if (!isValid) {
       console.log("[Publish-Flow] Validation failed. Stopping publish.");
       return;
     }
 
-    // Processing check
     for (const [platformId, selection] of Object.entries(
       platformMediaSelections
     )) {
@@ -282,7 +275,6 @@ export default function EditorialCore({
     const processThreadMessages = (messages: typeof storeThreadMessages) =>
       messages
         .map((msg) => {
-          // Map stored UIDs to actual backend IDs
           const backendMediaIds = (msg.mediaIds || [])
             .map((uid) => stagedMediaItems.find((item) => item.uid === uid)?.id)
             .filter(Boolean) as string[];
@@ -410,7 +402,6 @@ export default function EditorialCore({
               payload.title = tiktokTitle.trim();
             }
 
-            // Add video cover timestamp for video posts
             if (
               postType === "video" &&
               tiktokVideoCoverTimestamp !== null &&
@@ -422,15 +413,12 @@ export default function EditorialCore({
           }
 
           if (platformId === "threads") {
-            // Remove legacy location field - Threads uses locationId only
             delete payload.settings!.location;
 
-            // Topic Tag
             if (threadsTopicTag && threadsTopicTag.trim().length > 0) {
               payload.settings!.topicTag = threadsTopicTag.trim();
             }
 
-            // Link Attachment (only if no media)
             if (
               platformMediaIds.length === 0 &&
               threadsLinkAttachment &&
@@ -439,7 +427,6 @@ export default function EditorialCore({
               payload.settings!.linkAttachment = threadsLinkAttachment.trim();
             }
 
-            // Location ID (uses existing location state)
             if (location.id) {
               payload.settings!.locationId = location.id;
             }
@@ -537,6 +524,7 @@ export default function EditorialCore({
                   selectedLibraryMediaIds={selectedLibraryMediaIds}
                 />
               }
+              mediaErrors={mediaErrors}
             />
           </div>
         </div>
