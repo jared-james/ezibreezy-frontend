@@ -196,6 +196,9 @@ export const useEditorialStore = create<EditorialState & EditorialActions>(
               newSelectionUids = [mediaUid];
             } else if (currentSelectionItems.length < rules.maxVideos) {
               newSelectionUids.push(mediaUid);
+            } else if (rules.maxVideos === 1) {
+              // Auto-replace existing video if limit is 1
+              newSelectionUids = [mediaUid];
             }
           } else if (itemToToggle.type === "image") {
             if (rules.maxImages === 0) return;
@@ -273,6 +276,8 @@ export const useEditorialStore = create<EditorialState & EditorialActions>(
               newMediaIds = [mediaUid];
             } else if (currentSelectionItems.length < rules.maxVideos) {
               newMediaIds.push(mediaUid);
+            } else if (rules.maxVideos === 1) {
+              newMediaIds = [mediaUid];
             }
           } else if (itemToToggle.type === "image") {
             const hasVideo = currentSelectionItems.some(
