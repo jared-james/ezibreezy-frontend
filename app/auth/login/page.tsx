@@ -43,22 +43,32 @@ export default function Login() {
         setError(errorMessage);
         // Track login error
         posthog.captureException(authError);
-        posthog.capture('auth_error_occurred', {
-          error_type: 'login',
+        posthog.capture("auth_error_occurred", {
+          error_type: "login",
           error_message: authError.message,
           email: email,
         });
+
+        // Stop loading ONLY if there is an error
+        setIsLoading(false);
       } else {
         // Track successful login and identify user
         posthog.identify(email, {
           email: email,
         });
-        posthog.capture('user_logged_in', {
+        posthog.capture("user_logged_in", {
           email: email,
-          login_method: 'email_password',
+          login_method: "email_password",
         });
-        router.push("/dashboard");
+
+        // Refresh the router to update server components with the new session
         router.refresh();
+        // Push to dashboard
+        router.push("/dashboard");
+
+        // We do NOT set isLoading(false) here.
+        // We want the button to remain in the "Accessing..." state
+        // until the browser successfully navigates away.
       }
     } catch (err) {
       const errorMessage = "An unexpected error occurred";
@@ -67,14 +77,17 @@ export default function Login() {
       if (err instanceof Error) {
         posthog.captureException(err);
       }
-      posthog.capture('auth_error_occurred', {
-        error_type: 'login_unexpected',
+      posthog.capture("auth_error_occurred", {
+        error_type: "login_unexpected",
         error_message: errorMessage,
         email: email,
       });
-    } finally {
+
+      // Stop loading ONLY if there is an exception
       setIsLoading(false);
     }
+    // The finally block has been removed to prevent the loading state
+    // from resetting while the router is still navigating to the dashboard.
   };
 
   return (
