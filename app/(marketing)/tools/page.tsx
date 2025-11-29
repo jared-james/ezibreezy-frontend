@@ -1,73 +1,54 @@
 // app/(marketing)/tools/page.tsx
 
 import Link from "next/link";
-import {
-  Scissors,
-  Grid3x3,
-  ArrowRight,
-  PenTool,
-  Type,
-  Pilcrow,
-  Frame,
-  LayoutGrid,
-} from "lucide-react";
+import { PenTool } from "lucide-react";
 import LandingPageFooter from "@/components/landing-page/landing-page-footer";
 import MinimalHeader from "@/components/shared/minimal-header";
 
+// Sorted by Category -> Name
 const tools = [
   {
-    id: "06",
-    name: "Grid Planner",
-    description:
-      "Curate your feed visually. Drag and drop photos to plan your perfect grid layout. Auto-saves to your device.",
-    href: "/tools/instagram-grid-planner",
-    icon: LayoutGrid,
-    category: "Instagram",
-  },
-  {
-    id: "05",
+    id: "01",
     name: "Screenshot Studio",
-    description:
-      "Wrap raw screenshots in aesthetic gradients and frames. Add shadows and rounded corners for a professional look.",
+    description: "Wrap raw screenshots in aesthetic gradients and frames.",
     href: "/tools/screenshot-studio",
-    icon: Frame,
     category: "Design",
   },
   {
-    id: "01",
-    name: "Carousel Splitter",
-    description:
-      "Seamlessly slice panoramic images into swipeable carousel slides. Optimized for retention.",
-    href: "/tools/instagram-carousel-splitter",
-    icon: Scissors,
-    category: "Instagram",
-  },
-  {
     id: "02",
-    name: "Grid Maker",
-    description:
-      "Transform single images into 3x3, 3x4, or 3x5 profile grids. Includes gap compensation logic.",
-    href: "/tools/instagram-grid-maker",
-    icon: Grid3x3,
+    name: "Carousel Splitter",
+    description: "Seamlessly slice panoramic images into carousel slides.",
+    href: "/tools/instagram-carousel-splitter",
     category: "Instagram",
   },
   {
     id: "03",
-    name: "Title Checker",
-    description:
-      "Analyze video titles for truncation and impact. Preview how your content appears in YouTube search and mobile feeds.",
-    href: "/tools/youtube-title-checker",
-    icon: Type,
-    category: "YouTube",
+    name: "Grid Maker",
+    description: "Transform single images into 3x3, 3x4, or 3x5 profile grids.",
+    href: "/tools/instagram-grid-maker",
+    category: "Instagram",
   },
   {
     id: "04",
+    name: "Grid Planner",
+    description: "Curate your feed visually. Drag and drop photos to plan.",
+    href: "/tools/instagram-grid-planner",
+    category: "Instagram",
+  },
+  {
+    id: "05",
     name: "Text Formatter",
-    description:
-      "Convert standard text into bold, italic, or script Unicode variants to bypass platform formatting limitations.",
+    description: "Convert standard text into bold, italic, or script variants.",
     href: "/tools/linkedin-text-formatter",
-    icon: Pilcrow,
     category: "LinkedIn",
+  },
+  {
+    id: "06",
+    name: "Title Checker",
+    description:
+      "Analyze video titles for truncation and click-through impact.",
+    href: "/tools/youtube-title-checker",
+    category: "YouTube",
   },
 ];
 
@@ -78,7 +59,8 @@ export default function ToolsPage() {
 
       <main className="grow">
         <div className="relative mx-auto w-full max-w-7xl px-4 md:px-6 py-12">
-          <div className="flex flex-col md:flex-row gap-8 items-start md:items-end justify-between border-b-4 border-double border-foreground pb-8 mb-8">
+          {/* Header Section */}
+          <div className="flex flex-col md:flex-row gap-8 items-start md:items-end justify-between border-b-4 border-double border-foreground pb-8 mb-12">
             <div className="max-w-3xl">
               <div className="flex items-center gap-3 mb-4">
                 <span className="font-mono text-xs uppercase tracking-widest bg-foreground text-background-editorial px-2 py-1 font-bold">
@@ -103,54 +85,75 @@ export default function ToolsPage() {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+          {/* List View Container */}
+          <div className="flex flex-col border-t-2 border-foreground">
+            {/* Table Header (Desktop Only) */}
+            <div className="hidden md:grid grid-cols-12 gap-6 py-3 border-b border-foreground/20 font-mono text-[10px] uppercase tracking-widest text-foreground/50">
+              <div className="col-span-1">ID</div>
+              <div className="col-span-2">Category</div>
+              <div className="col-span-5">Utility Name</div>
+              <div className="col-span-4">Description</div>
+            </div>
+
+            {/* Tool Rows */}
             {tools.map((tool) => {
-              const Icon = tool.icon;
               return (
                 <Link
                   key={tool.href}
                   href={tool.href}
-                  className="block no-underline hover:no-underline focus:no-underline active:no-underline border-2 border-foreground bg-surface p-0 relative group"
+                  // Changed items-center to items-start to handle multi-line descriptions
+                  className="group relative grid grid-cols-1 md:grid-cols-12 gap-y-2 md:gap-6 py-6 md:py-8 border-b border-foreground/20 hover:bg-surface transition-colors items-start no-underline hover:no-underline"
                 >
-                  <div className="flex items-center justify-between border-b-2 border-foreground p-4 bg-background-editorial group-hover:bg-brand-primary/5 transition-colors">
-                    <div className="flex items-center gap-3">
-                      <span className="font-mono text-xs font-bold uppercase tracking-widest border border-foreground px-1.5 py-0.5">
-                        No. {tool.id}
-                      </span>
-                      <span className="font-mono text-xs uppercase tracking-widest text-foreground/50">
-                        {tool.category}
-                      </span>
-                    </div>
-                    <Icon className="w-5 h-5 text-foreground" />
+                  {/* ID */}
+                  <div className="col-span-1 font-mono text-xs font-bold text-foreground/40 group-hover:text-brand-primary transition-colors pt-2">
+                    #{tool.id}
                   </div>
 
-                  <div className="p-8 md:p-12">
-                    <h2 className="text-4xl md:text-5xl font-bold uppercase leading-[0.9] tracking-tight mb-6 text-foreground group-hover:text-brand-primary transition-colors">
+                  {/* Category - Whitespace nowrap ensures single line */}
+                  <div className="col-span-1 md:col-span-2">
+                    <h2 className="font-serif text-2xl font-black uppercase tracking-tight text-foreground/30 group-hover:text-foreground/50 transition-colors whitespace-nowrap">
+                      {tool.category}
+                    </h2>
+                  </div>
+
+                  {/* Name - Whitespace nowrap ensures single line */}
+                  <div className="col-span-1 md:col-span-5">
+                    <h2 className="font-serif text-2xl font-black uppercase tracking-tight text-foreground group-hover:text-brand-primary transition-colors whitespace-nowrap">
                       {tool.name}
                     </h2>
-                    <p className="font-serif text-lg text-foreground/70 leading-relaxed mb-8">
+                  </div>
+
+                  {/* Description - Allowed to wrap naturally */}
+                  <div className="col-span-1 md:col-span-4">
+                    <p className="font-serif text-base text-foreground/70 leading-relaxed pr-4 pt-1">
                       {tool.description}
                     </p>
-
-                    <div className="flex items-center gap-2 font-mono text-xs font-bold uppercase tracking-widest text-brand-primary">
-                      <span>Launch Tool</span>
-                      <ArrowRight className="w-4 h-4" />
-                    </div>
                   </div>
                 </Link>
               );
             })}
 
-            <div className="border-2 border-dashed border-foreground/30 bg-background-editorial p-8 md:p-12 flex flex-col justify-center items-center text-center opacity-60">
-              <div className="mb-4 p-4 rounded-full border-2 border-foreground/10 bg-surface">
-                <PenTool className="w-8 h-8 text-foreground/40" />
+            {/* "Under Construction" Row */}
+            <div className="grid grid-cols-1 md:grid-cols-12 gap-6 py-6 md:py-8 border-b border-dashed border-foreground/30 opacity-50 bg-foreground/5 items-center cursor-not-allowed">
+              <div className="col-span-1 font-mono text-xs font-bold text-foreground/40">
+                #--
               </div>
-              <h3 className="font-serif text-2xl font-bold uppercase tracking-tight text-foreground/40 mb-2">
-                Under Construction
-              </h3>
-              <p className="font-mono text-xs uppercase tracking-widest text-foreground/40">
-                More utilities arriving in Vol. 2
-              </p>
+              <div className="col-span-1 md:col-span-2">
+                <h2 className="font-serif text-2xl font-black uppercase tracking-tight text-foreground/20 whitespace-nowrap">
+                  Upcoming
+                </h2>
+              </div>
+              <div className="col-span-1 md:col-span-5 flex items-center gap-3">
+                <PenTool className="w-4 h-4 text-foreground/40" />
+                <h3 className="font-serif text-2xl font-black uppercase tracking-tight text-foreground/40 whitespace-nowrap">
+                  More Soon
+                </h3>
+              </div>
+              <div className="col-span-1 md:col-span-4">
+                <p className="font-mono text-xs uppercase tracking-widest text-foreground/40">
+                  Utilities Vol. 2 In Development
+                </p>
+              </div>
             </div>
           </div>
         </div>
