@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import { createPost, type CreatePostPayload } from "@/lib/api/publishing";
 import { generateVideoThumbnail } from "@/lib/utils/video-thumbnail";
+import { getAutoSelectionForPlatform } from "@/lib/utils/media-validation";
 
 interface UsePostEditorOptions {
   mode?: "editorial" | "clipping";
@@ -226,9 +227,39 @@ export function usePostEditor(options: UsePostEditorOptions = {}) {
         type: file.type.startsWith("video/") ? "video" : "image",
       }));
 
-      const currentItems = useEditorialStore.getState().stagedMediaItems;
-      const updatedItems = [...currentItems, ...newMediaItems];
-      setStagedMediaItems(updatedItems);
+      const state = useEditorialStore.getState();
+      const updatedItems = [...state.stagedMediaItems, ...newMediaItems];
+
+      // Auto-select for all active platforms
+      const activePlatformIds = Object.keys(state.selectedAccounts);
+      const newMediaSelections = { ...state.platformMediaSelections };
+
+      activePlatformIds.forEach((platformId) => {
+        const currentSelectionUids = newMediaSelections[platformId] || [];
+        const currentSelectionItems = currentSelectionUids
+          .map((uid) => state.stagedMediaItems.find((i) => i.uid === uid))
+          .filter(Boolean) as MediaItem[];
+
+        // Try to add the new items to the existing selection
+        const uidsToAdd = getAutoSelectionForPlatform(
+          platformId,
+          currentSelectionItems,
+          newMediaItems
+        );
+
+        if (uidsToAdd.length > 0) {
+          newMediaSelections[platformId] = [
+            ...currentSelectionUids,
+            ...uidsToAdd,
+          ];
+        }
+      });
+
+      // Update both the media items and the auto-selections in one go
+      setState({
+        stagedMediaItems: updatedItems,
+        platformMediaSelections: newMediaSelections,
+      });
 
       if (mode === "editorial") {
         newMediaItems.forEach((item) => {
@@ -246,7 +277,7 @@ export function usePostEditor(options: UsePostEditorOptions = {}) {
         setStagedMediaItems(nonUploadingItems);
       }
     },
-    [setStagedMediaItems, uploadMediaMutation, mode]
+    [setStagedMediaItems, setState, uploadMediaMutation, mode]
   );
 
   const handleRemoveMedia = useCallback(
@@ -364,8 +395,37 @@ export function usePostEditor(options: UsePostEditorOptions = {}) {
           altText: libraryMedia.altText || null,
         };
 
+        const state = useEditorialStore.getState();
         const updatedItems = [...currentItems, newMediaItem];
-        setStagedMediaItems(updatedItems);
+
+        // Auto-select for all active platforms (Same logic as handleMediaChange)
+        const activePlatformIds = Object.keys(state.selectedAccounts);
+        const newMediaSelections = { ...state.platformMediaSelections };
+
+        activePlatformIds.forEach((platformId) => {
+          const currentSelectionUids = newMediaSelections[platformId] || [];
+          const currentSelectionItems = currentSelectionUids
+            .map((uid) => state.stagedMediaItems.find((i) => i.uid === uid))
+            .filter(Boolean) as MediaItem[];
+
+          const uidsToAdd = getAutoSelectionForPlatform(
+            platformId,
+            currentSelectionItems,
+            [newMediaItem]
+          );
+
+          if (uidsToAdd.length > 0) {
+            newMediaSelections[platformId] = [
+              ...currentSelectionUids,
+              ...uidsToAdd,
+            ];
+          }
+        });
+
+        setState({
+          stagedMediaItems: updatedItems,
+          platformMediaSelections: newMediaSelections,
+        });
       }
     },
     [setStagedMediaItems, setState]

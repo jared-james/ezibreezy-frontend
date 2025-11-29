@@ -21,6 +21,7 @@ import { useEditorialStore } from "@/lib/store/editorial-store";
 import type { CreatePostPayload, PostSettings } from "@/lib/api/publishing";
 import { PlatformCrops } from "@/lib/utils/crop-utils";
 import { usePostStatusPolling } from "./hooks/use-post-status-polling";
+import { getAutoSelectionForPlatform } from "@/lib/utils/media-validation";
 
 interface EditorialCoreProps {
   onPostSuccess?: () => void;
@@ -148,18 +149,35 @@ export default function EditorialCore({
 
     const newSelected = { ...selectedAccounts };
     const newCaptions = { ...localPlatformCaptions };
+    const newMediaSelections = { ...platformMediaSelections };
 
     if (newSelected[platformId]) {
+      // Deselecting
       delete newSelected[platformId];
       delete newCaptions[platformId];
+      // Optional: Clear media selection for this platform to keep state clean
+      delete newMediaSelections[platformId];
     } else {
+      // Selecting
       newSelected[platformId] = [platform.accounts[0].id];
       newCaptions[platformId] = localMainCaption;
+
+      // Auto-select media for the new platform
+      const uidsToAdd = getAutoSelectionForPlatform(
+        platformId,
+        [], // Currently empty selection for this platform
+        stagedMediaItems // Candidates (all available media)
+      );
+
+      if (uidsToAdd.length > 0) {
+        newMediaSelections[platformId] = uidsToAdd;
+      }
     }
 
     setState({
       selectedAccounts: newSelected,
       platformCaptions: newCaptions,
+      platformMediaSelections: newMediaSelections,
     });
     setLocalPlatformCaptions(newCaptions);
   };

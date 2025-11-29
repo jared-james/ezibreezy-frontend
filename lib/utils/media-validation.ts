@@ -14,14 +14,14 @@ export interface MediaConflict {
 export const PLATFORM_RULES = {
   instagram: {
     name: "Instagram",
-    allowMixedMedia: true, // Temporarily enabled for API testing
+    allowMixedMedia: true,
     maxVideos: 10,
     maxImages: 10,
     supportsCarousel: true,
   },
   facebook: {
     name: "Facebook",
-    allowMixedMedia: true, // Temporarily enabled for API testing
+    allowMixedMedia: true,
     maxVideos: 10,
     maxImages: 10,
     supportsCarousel: true,
@@ -81,6 +81,60 @@ function isVideo(mediaItem: MediaItem): boolean {
 
 function isImage(mediaItem: MediaItem): boolean {
   return mediaItem.type === "image";
+}
+
+/**
+ * Calculates which media items from a candidate list can be added to a platform
+ * given its current selection and validation rules.
+ */
+export function getAutoSelectionForPlatform(
+  platformId: string,
+  currentItems: MediaItem[],
+  candidates: MediaItem[]
+): string[] {
+  const rules = PLATFORM_RULES[platformId as keyof typeof PLATFORM_RULES];
+  if (!rules) return [];
+
+  const selectedUids: string[] = [];
+
+  // Track counts from current selection
+  let imageCount = currentItems.filter(isImage).length;
+  let videoCount = currentItems.filter(isVideo).length;
+
+  for (const item of candidates) {
+    const isVid = item.type === "video";
+    const isImg = item.type === "image";
+
+    // 1. Mixed Media Rule
+    if (!rules.allowMixedMedia) {
+      // If we already have video, can't add image
+      if (isImg && videoCount > 0) continue;
+      // If we already have images, can't add video
+      if (isVid && imageCount > 0) continue;
+    }
+
+    // 2. Quantity Limits
+    if (isImg) {
+      if (imageCount >= rules.maxImages) continue;
+      // For platforms allowing mixed media, maxImages usually acts as the total limit
+      if (rules.allowMixedMedia && imageCount + videoCount >= rules.maxImages)
+        continue;
+    }
+
+    if (isVid) {
+      if (videoCount >= rules.maxVideos) continue;
+      // For platforms allowing mixed media, check total limit
+      if (rules.allowMixedMedia && imageCount + videoCount >= rules.maxImages)
+        continue;
+    }
+
+    // If passed all checks, add to selection
+    selectedUids.push(item.uid);
+    if (isImg) imageCount++;
+    if (isVid) videoCount++;
+  }
+
+  return selectedUids;
 }
 
 export function validateMediaSelectionForPlatform(
