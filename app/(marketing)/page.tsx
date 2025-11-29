@@ -10,14 +10,14 @@ import {
 export const metadata: Metadata = {
   title: "EziBreezy | The Editorial Desk for Social Media",
   description:
-    "Draft, visualize, and schedule content for Instagram, LinkedIn, and X without the spreadsheet chaos. The all-in-one workspace for modern creators.",
+    "Draft, visualize, and schedule content for ALL social platforms, stop the spreadsheet chaos. The all-in-one workspace for modern creators.",
   alternates: {
     canonical: "/",
   },
   openGraph: {
     title: "EziBreezy | Social Media Scheduling & Planning",
     description:
-      "Stop managing content in spreadsheets. Draft, visualize, and auto-publish to Instagram, LinkedIn, and X from one beautiful workspace.",
+      "Draft, visualize, and schedule content for ALL social platforms, stop the spreadsheet chaos. The all-in-one workspace for modern creators.",
     url: "https://www.ezibreezy.com",
     siteName: "EziBreezy",
     images: [
@@ -47,7 +47,7 @@ export default function Page() {
     <>
       <WebPageJsonLd
         title="EziBreezy | The Editorial Desk for Social Media"
-        description="Draft, visualize, and schedule content for Instagram, LinkedIn, and X without the spreadsheet chaos."
+        description="Draft, visualize, and schedule content for ALL social platforms, without the spreadsheet chaos."
         url="https://www.ezibreezy.com"
       />
       <SoftwareApplicationJsonLd />

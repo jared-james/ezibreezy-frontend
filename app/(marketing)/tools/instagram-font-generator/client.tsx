@@ -336,13 +336,6 @@ export default function FontGeneratorClient() {
                 {/* Home Bar */}
                 <div className="absolute bottom-1 left-1/2 -translate-x-1/2 w-32 h-1 bg-black rounded-full z-10" />
               </div>
-
-              <div className="absolute bottom-8 text-center">
-                <p className="font-mono text-[10px] uppercase tracking-widest text-foreground/40 bg-white/80 px-2 py-1 rounded backdrop-blur-sm">
-                  <Smartphone className="w-3 h-3 inline mr-1 -mt-0.5" />
-                  Live Bio Preview
-                </p>
-              </div>
             </div>
           </div>
         </div>
