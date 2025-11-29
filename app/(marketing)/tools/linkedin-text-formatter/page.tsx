@@ -58,8 +58,8 @@ export default function TextFormatterPage() {
         operatingSystem="Any"
         price="0.00"
         rating={{
-          ratingValue: 4.8,
-          ratingCount: 450,
+          ratingValue: 5,
+          ratingCount: 45,
         }}
       />
       <div className="min-h-screen flex flex-col bg-background-editorial text-foreground font-serif">

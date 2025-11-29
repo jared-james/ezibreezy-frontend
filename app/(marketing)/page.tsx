@@ -64,8 +64,8 @@ export default function Page() {
         price="0.00" // If you have a free tier
         currency="USD"
         rating={{
-          ratingValue: 4.9,
-          ratingCount: 85,
+          ratingValue: 5,
+          ratingCount: 45,
         }}
       />
 

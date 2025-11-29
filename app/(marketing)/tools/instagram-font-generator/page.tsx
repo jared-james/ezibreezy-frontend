@@ -56,8 +56,8 @@ export default function InstagramFontGeneratorPage() {
         applicationCategory="MultimediaApplication"
         url="https://www.ezibreezy.com/tools/instagram-font-generator"
         rating={{
-          ratingValue: 4.8,
-          ratingCount: 1250,
+          ratingValue: 5,
+          ratingCount: 45,
         }}
         price="0.00"
       />

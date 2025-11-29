@@ -58,8 +58,8 @@ export default function GridPlannerPage() {
         operatingSystem="Any"
         price="0.00"
         rating={{
-          ratingValue: 4.9,
-          ratingCount: 156,
+          ratingValue: 5,
+          ratingCount: 45,
         }}
       />
 

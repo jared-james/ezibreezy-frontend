@@ -59,8 +59,8 @@ export default function ScreenshotStudioPage() {
         operatingSystem="Any"
         price="0.00"
         rating={{
-          ratingValue: 4.9,
-          ratingCount: 120,
+          ratingValue: 5,
+          ratingCount: 45,
         }}
       />
       <div className="min-h-screen flex flex-col bg-background-editorial text-foreground font-serif">
