@@ -81,20 +81,13 @@ const tools = [
   },
   {
     id: "06",
-    name: "Caption Generator",
-    description: "Generate witty and professional captions with AI.",
-    href: "/tools/instagram-caption-generator",
-    category: "Instagram",
-  },
-  {
-    id: "07",
     name: "Text Formatter",
     description: "Convert standard text into bold, italic, or script variants.",
     href: "/tools/linkedin-text-formatter",
     category: "LinkedIn",
   },
   {
-    id: "08",
+    id: "07",
     name: "Title Checker",
     description:
       "Analyze video titles for truncation and click-through impact.",

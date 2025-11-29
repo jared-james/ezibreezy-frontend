@@ -15,8 +15,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
     "youtube-title-checker",
     // New high-volume SEO tools planned
     "instagram-font-generator",
-    "instagram-caption-generator",
-    "instagram-bio-generator",
   ];
 
   const staticRoutes = [
