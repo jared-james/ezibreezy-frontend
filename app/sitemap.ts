@@ -13,7 +13,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     "instagram-grid-planner",
     "linkedin-text-formatter",
     "youtube-title-checker",
-    // New high-volume SEO tools planned
+    "social-image-resizer",
     "instagram-font-generator",
   ];
 
