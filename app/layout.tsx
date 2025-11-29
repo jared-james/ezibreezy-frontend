@@ -40,9 +40,6 @@ export const metadata: Metadata = {
   authors: [{ name: "EziBreezy Team", url: "https://www.ezibreezy.com" }],
   creator: "EziBreezy",
   applicationName: "EziBreezy",
-  alternates: {
-    canonical: "/",
-  },
   openGraph: {
     type: "website",
     locale: "en_US",
