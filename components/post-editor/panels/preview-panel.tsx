@@ -1,6 +1,6 @@
-// components/post-editor/preview-panel.tsx
+// components/post-editor/panels/preview-panel.tsx
 
-import { useState, useMemo, memo } from "react";
+import { useMemo, memo } from "react";
 import {
   Twitter,
   Instagram,
@@ -92,24 +92,22 @@ function PreviewPanel({
     [selectedAccounts]
   );
 
-  const [activeTab, setActiveTab] = useState<string>("empty");
   const activeCaptionFilter = useEditorialStore(
     (state) => state.activeCaptionFilter
   );
 
   const validActiveTab = useMemo(() => {
     if (activePlatforms.length === 0) return "empty";
+    // If a specific platform is selected in filters, show that preview.
     if (
       activeCaptionFilter !== "all" &&
       activePlatforms.includes(activeCaptionFilter)
     ) {
       return activeCaptionFilter;
     }
-    if (activeTab !== "empty" && activePlatforms.includes(activeTab)) {
-      return activeTab;
-    }
+    // Fallback: If "All" is selected or filter is invalid, show the first active platform.
     return activePlatforms[0];
-  }, [activePlatforms, activeTab, activeCaptionFilter]);
+  }, [activePlatforms, activeCaptionFilter]);
 
   const activeMediaItems = useMemo(() => {
     const selectedUids = platformMediaSelections[validActiveTab] || [];
@@ -124,16 +122,6 @@ function PreviewPanel({
     if (!integrationId) return null;
     return connections.find((conn) => conn.id === integrationId) || null;
   }, [validActiveTab, selectedAccounts, connections]);
-
-  const tabList = useMemo(
-    () =>
-      activePlatforms.map((id) => ({
-        id,
-        name: platformNames[id] || id,
-        Icon: platformIcons[id] || Twitter,
-      })),
-    [activePlatforms]
-  );
 
   const currentCaption = useMemo(
     () => platformCaptions[validActiveTab] || mainCaption,
@@ -313,6 +301,9 @@ function PreviewPanel({
     }
   };
 
+  const PlatformIcon = platformIcons[validActiveTab];
+  const platformName = platformNames[validActiveTab] || validActiveTab;
+
   return (
     <div className="flex flex-col">
       <div className="flex items-center justify-between border-b-2 border-[--foreground] pb-2">
@@ -323,22 +314,14 @@ function PreviewPanel({
       </div>
 
       <div className="bg-[--surface] border border-[--border] mt-4">
+        {/* Simplified Header: Displays active channel icon and name only */}
         <div className="flex items-center gap-2 px-5 py-3 border-b border-[--border] bg-[--background]">
-          {tabList.map((tab) => (
-            <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
-              title={tab.name}
-              className={cn(
-                "flex items-center justify-center rounded-full p-2 border-2",
-                validActiveTab === tab.id
-                  ? "border-brand-primary bg-surface text-brand-primary"
-                  : "border-border bg-surface text-foreground hover:bg-surface-hover"
-              )}
-            >
-              <tab.Icon className="w-4 h-4" />
-            </button>
-          ))}
+          {PlatformIcon && (
+            <PlatformIcon className="w-5 h-5 text-brand-primary" />
+          )}
+          <span className="font-serif font-bold text-sm text-[--foreground]">
+            {platformName}
+          </span>
         </div>
 
         <div className="flex-1 p-6 overflow-y-auto bg-[--background] min-h-[400px]">
