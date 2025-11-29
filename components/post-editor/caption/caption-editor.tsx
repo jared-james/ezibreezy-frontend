@@ -3,7 +3,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo } from "react";
-import { Smile } from "lucide-react";
+import { Smile, SlidersHorizontal } from "lucide-react"; // Added icon
 import {
   Platform,
   ThreadMessage,
@@ -136,12 +136,25 @@ export default function CaptionEditor({
         />
       </div>
 
-      <PlatformFilterButtons
-        selectedPlatformIds={selectedPlatformIds}
-        platforms={platforms}
-        activeCaptionFilter={activeCaptionFilter}
-        onFilterChange={setActiveCaptionFilter}
-      />
+      {/* New Customization Header Section */}
+      {selectedPlatformIds.length > 1 && (
+        <div className="mt-8 border-t border-border pt-6 animate-in fade-in slide-in-from-top-2">
+          <div className="mb-4">
+            <div className="flex items-center gap-2 mb-1">
+              <h3 className="eyebrow mb-2 flex items-center justify-between">
+                Customize by Channel
+              </h3>
+            </div>
+          </div>
+
+          <PlatformFilterButtons
+            selectedPlatformIds={selectedPlatformIds}
+            platforms={platforms}
+            activeCaptionFilter={activeCaptionFilter}
+            onFilterChange={setActiveCaptionFilter}
+          />
+        </div>
+      )}
 
       {Object.keys(selectedAccounts)
         .filter(

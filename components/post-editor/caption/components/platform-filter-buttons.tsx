@@ -20,7 +20,7 @@ export function PlatformFilterButtons({
   if (selectedPlatformIds.length <= 1) return null;
 
   return (
-    <div className="mt-6 flex flex-wrap items-center gap-2">
+    <div className="flex flex-wrap items-center gap-2">
       <button
         type="button"
         onClick={() => onFilterChange("all")}
