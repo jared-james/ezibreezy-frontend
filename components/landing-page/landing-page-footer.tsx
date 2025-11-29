@@ -74,32 +74,6 @@ export default function LandingPageFooter() {
               The editorial workspace for modern creators. Draft, visualize, and
               schedule content without the spreadsheet chaos.
             </p>
-            {/* <div className="flex items-center gap-4">
-              <a
-                href="https://twitter.com"
-                target="_blank"
-                rel="noreferrer"
-                className="p-2 border border-foreground/10 hover:bg-foreground hover:text-background-editorial transition-colors rounded-full"
-              >
-                <Twitter className="w-4 h-4" />
-              </a>
-              <a
-                href="https://instagram.com"
-                target="_blank"
-                rel="noreferrer"
-                className="p-2 border border-foreground/10 hover:bg-foreground hover:text-background-editorial transition-colors rounded-full"
-              >
-                <Instagram className="w-4 h-4" />
-              </a>
-              <a
-                href="https://linkedin.com"
-                target="_blank"
-                rel="noreferrer"
-                className="p-2 border border-foreground/10 hover:bg-foreground hover:text-background-editorial transition-colors rounded-full"
-              >
-                <Linkedin className="w-4 h-4" />
-              </a>
-            </div> */}
           </div>
 
           {/* Column 2: Free Tools (SEO Powerhouse) */}
@@ -130,6 +104,14 @@ export default function LandingPageFooter() {
                   className="hover:text-brand-primary hover:underline decoration-dashed underline-offset-4 transition-colors"
                 >
                   Carousel Splitter
+                </Link>
+              </li>
+              <li>
+                <Link
+                  href="/tools/social-image-resizer"
+                  className="hover:text-brand-primary hover:underline decoration-dashed underline-offset-4 transition-colors"
+                >
+                  Social Image Resizer
                 </Link>
               </li>
               <li>
