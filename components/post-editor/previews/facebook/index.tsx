@@ -3,7 +3,7 @@
 "use client";
 
 import { memo, useState, useRef, useEffect, useMemo } from "react";
-import { Crop, Link2, Loader2 } from "lucide-react";
+import { Crop, Link2, Loader2, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { renderCaptionWithHashtags } from "../../render-caption";
 import { ImageCropperModal } from "../../modals/image-cropper-modal";
@@ -91,12 +91,19 @@ function FacebookPreview({
   const integrationId =
     useEditorialStore.getState().selectedAccounts["facebook"]?.[0];
 
+  const isStory = postType === "story";
+
   // Determine if we have multiple media items
   const hasMultipleMedia = mediaItems.length > 1;
   const isCarousel = hasMultipleMedia;
 
   // Facebook uses 1:1 for carousels, 1.91:1 for single posts
-  const previewAspectRatio = isCarousel ? 1 : aspectRatio;
+  // For Stories, we force 9:16
+  const previewAspectRatio = isStory
+    ? STORY_ASPECT_RATIO
+    : isCarousel
+    ? 1
+    : aspectRatio;
 
   // For carousel mode, get the current media item
   const currentCarouselMedia = isCarousel
@@ -251,7 +258,6 @@ function FacebookPreview({
   };
 
   const handleCropClick = async () => {
-    // Use activeMediaForCrop which already handles carousel vs single media
     if (
       !activeMediaForCrop ||
       !activeMediaForCrop.id ||
@@ -274,7 +280,6 @@ function FacebookPreview({
         integrationId
       );
 
-      // Update store so next time we don't fetch
       const currentItems = useEditorialStore.getState().stagedMediaItems;
       const updatedItems = currentItems.map((item) =>
         item.uid === activeMediaForCrop.uid
@@ -295,67 +300,128 @@ function FacebookPreview({
   };
 
   return (
-    <div className="w-full bg-[--surface] border border-[--border] shadow-lg max-w-sm mx-auto rounded-lg overflow-hidden">
-      {/* Header */}
-      <FacebookHeader avatarUrl={avatarUrl} primaryName={primaryName} />
-
-      {/* Caption */}
-      {postType !== "story" && displayCaption && (
-        <div className="px-3 pb-3">
-          <p className="text-sm text-[--foreground] whitespace-pre-wrap">
-            {renderCaptionWithHashtags(displayCaption)}
-          </p>
-        </div>
+    <div
+      className={cn(
+        "w-full max-w-sm mx-auto shadow-lg overflow-hidden transition-all duration-300",
+        isStory
+          ? "rounded-t-[2rem] rounded-b-lg border border-[--border] bg-[--surface]"
+          : "rounded-lg border border-[--border] bg-[--surface]"
       )}
-
-      {/* Media Content */}
-      {isCarousel ? (
-        <FacebookCarousel
-          mediaItems={mediaItems}
-          aspectRatio={previewAspectRatio}
-          onCurrentIndexChange={setCurrentCarouselIndex}
-        />
-      ) : displayMediaSrc ? (
-        <div
-          className="relative bg-gray-100"
-          style={{ aspectRatio: previewAspectRatio }}
-        >
-          {mediaType === "video" ? (
-            <video
-              src={displayMediaSrc}
-              className="w-full h-full object-contain"
-              muted
-              loop
-              autoPlay
-              playsInline
-            />
+    >
+      {isStory ? (
+        // Facebook Story View
+        <div className="relative bg-black aspect-[9/16] overflow-hidden group">
+          {displayMediaSrc ? (
+            mediaType === "video" ? (
+              <video
+                src={displayMediaSrc}
+                className="w-full h-full object-cover"
+                muted
+                loop
+                autoPlay
+                playsInline
+              />
+            ) : (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={displayMediaSrc}
+                alt="Story Preview"
+                className="w-full h-full object-cover"
+              />
+            )
           ) : (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              src={displayMediaSrc}
-              alt="Media Preview"
-              className="w-full h-full object-contain"
-            />
+            <div className="w-full h-full flex items-center justify-center text-white/50 text-sm font-medium">
+              No media attached
+            </div>
           )}
-        </div>
-      ) : showLinkPreview && detectedUrl ? (
-        <div className="border-t border-b border-[--border] bg-[--background]">
-          <div className="aspect-[1.91/1] bg-[--muted] flex items-center justify-center">
-            <Link2 className="w-12 h-12 text-[--muted-foreground]" />
-          </div>
-          <div className="p-3 bg-[--surface]">
-            <p className="text-xs text-[--muted-foreground] uppercase">
-              {getDomainFromUrl(detectedUrl)}
-            </p>
-            <p className="text-sm font-semibold text-[--foreground] mt-1 line-clamp-2">
-              Link Preview
-            </p>
-          </div>
-        </div>
-      ) : null}
 
-      {/* Post Footer - Icons only, no stats */}
-      {postType !== "story" && <FacebookPostFooter />}
+          {/* Story Header Overlay */}
+          <div className="absolute top-0 left-0 right-0 p-4 bg-gradient-to-b from-black/60 to-transparent z-10 flex items-center gap-3">
+            <div className="relative w-10 h-10 rounded-full border-2 border-blue-500 overflow-hidden shrink-0">
+              {avatarUrl ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={avatarUrl}
+                  alt={primaryName}
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <div className="w-full h-full bg-gray-300" />
+              )}
+            </div>
+            <div className="text-white text-sm font-semibold drop-shadow-md">
+              {primaryName}
+            </div>
+            <div className="ml-auto text-white/80">
+              <X className="w-6 h-6" />
+            </div>
+          </div>
+
+          {/* Story Footer Overlay (Reply area) */}
+          <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/60 to-transparent z-10">
+            <div className="text-white text-center text-xs font-medium mb-4 drop-shadow-md">
+              See Translation
+            </div>
+          </div>
+        </div>
+      ) : (
+        // Facebook Feed Post View
+        <>
+          <FacebookHeader avatarUrl={avatarUrl} primaryName={primaryName} />
+
+          {displayCaption && (
+            <div className="px-3 pb-3">
+              <p className="text-sm text-[--foreground] whitespace-pre-wrap">
+                {renderCaptionWithHashtags(displayCaption)}
+              </p>
+            </div>
+          )}
+
+          {isCarousel ? (
+            <FacebookCarousel
+              mediaItems={mediaItems}
+              aspectRatio={previewAspectRatio}
+              onCurrentIndexChange={setCurrentCarouselIndex}
+            />
+          ) : displayMediaSrc ? (
+            <div className="relative bg-gray-100">
+              {mediaType === "video" ? (
+                <video
+                  src={displayMediaSrc}
+                  className="w-full h-auto block"
+                  muted
+                  loop
+                  autoPlay
+                  playsInline
+                />
+              ) : (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={displayMediaSrc}
+                  alt="Media Preview"
+                  className="w-full h-auto block"
+                />
+              )}
+            </div>
+          ) : showLinkPreview && detectedUrl ? (
+            <div className="border-t border-b border-[--border] bg-[--background]">
+              <div className="aspect-[1.91/1] bg-[--muted] flex items-center justify-center">
+                <Link2 className="w-12 h-12 text-[--muted-foreground]" />
+              </div>
+              <div className="p-3 bg-[--surface]">
+                <p className="text-xs text-[--muted-foreground] uppercase">
+                  {getDomainFromUrl(detectedUrl)}
+                </p>
+                <p className="text-sm font-semibold text-[--foreground] mt-1 line-clamp-2">
+                  Link Preview
+                </p>
+              </div>
+            </div>
+          ) : null}
+
+          <FacebookPostFooter />
+        </>
+      )}
 
       {/* Toolbar */}
       <div className="px-3 py-2 border-t border-[--border]">
@@ -370,7 +436,9 @@ function FacebookPreview({
             ) : (
               <Crop className="h-3.5 w-3.5" />
             )}
-            Crop {isCarousel && `(${currentCarouselIndex + 1}/${mediaItems?.length})`}
+            Crop{" "}
+            {isCarousel &&
+              `(${currentCarouselIndex + 1}/${mediaItems?.length})`}
           </button>
         ) : (
           <p className="text-xs text-muted-foreground text-center italic">
