@@ -1,0 +1,72 @@
+[
+  {
+    "eventName": "onboarding_completed",
+    "description": "User completes the onboarding flow and is redirected to dashboard (conversion event)",
+    "filePath": "app/(app)/onboarding/page.tsx"
+  },
+  {
+    "eventName": "user_signed_up",
+    "description": "User successfully creates an account (conversion event - top of funnel)",
+    "filePath": "app/auth/signup/FullSignUp.tsx"
+  },
+  {
+    "eventName": "user_logged_in",
+    "description": "User successfully logs into their account",
+    "filePath": "app/auth/login/page.tsx"
+  },
+  {
+    "eventName": "social_account_connected",
+    "description": "User connects a social media account (Instagram, etc.) - conversion/activation event",
+    "filePath": "app/(app)/settings/integrations/components/connect-account-modal.tsx"
+  },
+  {
+    "eventName": "social_account_disconnected",
+    "description": "User disconnects a social media account (churn indicator)",
+    "filePath": "app/(app)/settings/integrations/page.tsx"
+  },
+  {
+    "eventName": "post_created",
+    "description": "User creates/schedules a new post via editorial modal (key activation event)",
+    "filePath": "app/(app)/calendar/components/editorial-modal.tsx"
+  },
+  {
+    "eventName": "post_rescheduled",
+    "description": "User reschedules an existing post by drag-and-drop",
+    "filePath": "app/(app)/calendar/page.tsx"
+  },
+  {
+    "eventName": "ai_briefing_generated",
+    "description": "User generates AI content ideas (engagement with AI features)",
+    "filePath": "app/(app)/ideas/components/ai-briefing.tsx"
+  },
+  {
+    "eventName": "idea_clipping_saved",
+    "description": "User manually saves a content idea/clipping",
+    "filePath": "app/(app)/ideas/components/new-clipping.tsx"
+  },
+  {
+    "eventName": "media_uploaded",
+    "description": "User uploads media to the media library (engagement event)",
+    "filePath": "app/(app)/assets/media/page.tsx"
+  },
+  {
+    "eventName": "marketing_tool_used",
+    "description": "User exports/downloads from a free marketing tool (carousel splitter) - conversion for free tools",
+    "filePath": "app/(marketing)/tools/instagram-carousel-splitter/page.tsx"
+  },
+  {
+    "eventName": "auth_error_occurred",
+    "description": "Authentication error occurred during login or signup (error tracking)",
+    "filePath": "app/auth/login/page.tsx"
+  },
+  {
+    "eventName": "integration_connection_failed",
+    "description": "Social media integration connection failed (error tracking)",
+    "filePath": "app/(app)/settings/integrations/page.tsx"
+  },
+  {
+    "eventName": "user_synced",
+    "description": "User data synced with backend after profile update",
+    "filePath": "app/actions/user.ts"
+  }
+]

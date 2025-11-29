@@ -15,6 +15,7 @@ import {
   Mail,
   ArrowLeft,
 } from "lucide-react";
+import posthog from "posthog-js";
 
 export default function FullSignUp() {
   const [email, setEmail] = useState("");
@@ -40,11 +41,36 @@ export default function FullSignUp() {
 
       if (error) {
         setError(error.message);
+        // Track signup error
+        posthog.captureException(error);
+        posthog.capture('auth_error_occurred', {
+          error_type: 'signup',
+          error_message: error.message,
+          email: email,
+        });
       } else {
         setIsSubmitted(true);
+        // Track successful signup and identify user
+        posthog.identify(email, {
+          email: email,
+        });
+        posthog.capture('user_signed_up', {
+          email: email,
+          signup_method: 'email_password',
+        });
       }
-    } catch {
-      setError("An unexpected error occurred");
+    } catch (err) {
+      const errorMessage = "An unexpected error occurred";
+      setError(errorMessage);
+      // Track unexpected signup error
+      if (err instanceof Error) {
+        posthog.captureException(err);
+      }
+      posthog.capture('auth_error_occurred', {
+        error_type: 'signup_unexpected',
+        error_message: errorMessage,
+        email: email,
+      });
     } finally {
       setIsLoading(false);
     }

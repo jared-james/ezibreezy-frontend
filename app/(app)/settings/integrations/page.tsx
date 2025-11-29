@@ -7,6 +7,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
+import posthog from "posthog-js";
 import {
   getConnections,
   type Connection,
@@ -42,15 +43,27 @@ export default function IntegrationsPage() {
   useEffect(() => {
     const connected = searchParams.get("connected");
     const errorParam = searchParams.get("error");
+    const platform = searchParams.get("platform");
 
     if (connected) {
       toast.success("Account connected successfully!");
+      // Track successful social account connection
+      posthog.capture("social_account_connected", {
+        platform: platform || connected,
+        connection_status: "success",
+      });
       queryClient.invalidateQueries({ queryKey: ["connections"] });
       router.replace("/settings/integrations", { scroll: false });
     }
 
     if (errorParam) {
       toast.error("Connection failed. Please try again.");
+      // Track integration connection failure
+      posthog.capture("integration_connection_failed", {
+        platform: platform || "unknown",
+        error_message: errorParam,
+        connection_status: "failed",
+      });
       queryClient.invalidateQueries({ queryKey: ["connections"] });
       router.replace("/settings/integrations", { scroll: false });
     }
@@ -70,10 +83,19 @@ export default function IntegrationsPage() {
     try {
       await disconnectAccount(platformId, accountId);
       toast.success("Account disconnected.");
+      // Track social account disconnection
+      posthog.capture("social_account_disconnected", {
+        platform: platformId,
+        account_id: accountId,
+      });
       queryClient.invalidateQueries({ queryKey: ["connections"] });
     } catch (err) {
       toast.error("Failed to disconnect account.");
       console.error("Disconnect error:", err);
+      // Track disconnection error
+      if (err instanceof Error) {
+        posthog.captureException(err);
+      }
     }
   };
 

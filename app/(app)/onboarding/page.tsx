@@ -5,6 +5,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { ChevronRight, ChevronLeft } from "lucide-react";
+import posthog from "posthog-js";
 
 type OnboardingStep = "welcome" | "about" | "goals" | "style" | "complete";
 
@@ -30,6 +31,11 @@ export default function OnboardingPage() {
   const [step, setStep] = useState<OnboardingStep>("welcome");
 
   const handleComplete = () => {
+    // Track onboarding completion
+    posthog.capture("onboarding_completed", {
+      steps_completed: 4,
+      final_step: "style",
+    });
     router.push("/dashboard");
   };
 

@@ -10,6 +10,7 @@ import Image from "next/image";
 import MinimalHeader from "@/components/shared/minimal-header";
 import LandingPageFooter from "@/components/landing-page/landing-page-footer";
 import { ArrowRight, Loader2 } from "lucide-react";
+import posthog from "posthog-js";
 
 export default function Login() {
   const [email, setEmail] = useState("");
@@ -40,12 +41,37 @@ export default function Login() {
           : "Unable to sign in. Please try again.";
 
         setError(errorMessage);
+        // Track login error
+        posthog.captureException(authError);
+        posthog.capture('auth_error_occurred', {
+          error_type: 'login',
+          error_message: authError.message,
+          email: email,
+        });
       } else {
+        // Track successful login and identify user
+        posthog.identify(email, {
+          email: email,
+        });
+        posthog.capture('user_logged_in', {
+          email: email,
+          login_method: 'email_password',
+        });
         router.push("/dashboard");
         router.refresh();
       }
     } catch (err) {
-      setError("An unexpected error occurred");
+      const errorMessage = "An unexpected error occurred";
+      setError(errorMessage);
+      // Track unexpected login error
+      if (err instanceof Error) {
+        posthog.captureException(err);
+      }
+      posthog.capture('auth_error_occurred', {
+        error_type: 'login_unexpected',
+        error_message: errorMessage,
+        email: email,
+      });
     } finally {
       setIsLoading(false);
     }
