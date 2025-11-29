@@ -1,5 +1,3 @@
-// components/landing-page/landing-page-cta.tsx
-
 "use client";
 
 import { useState } from "react";
@@ -9,6 +7,7 @@ import {
   Loader2,
   CheckCircle2,
   AlertCircle,
+  Star,
 } from "lucide-react";
 import { signupForWaitlist } from "@/app/actions/early-access";
 import { toast } from "sonner";
@@ -47,7 +46,6 @@ export default function LandingPageCTA() {
           result.error || "Signup failed due to an unknown error.";
         setError(errorMessage);
 
-        // Show user-friendly toast messages
         if (
           errorMessage.toLowerCase().includes("already on the waitlist") ||
           errorMessage.toLowerCase().includes("already exists")
@@ -83,11 +81,26 @@ export default function LandingPageCTA() {
           <div className="flex flex-col lg:flex-row gap-12 lg:items-end justify-between">
             {/* Left Side: The Hook */}
             <div className="max-w-3xl">
-              <div className="mb-8">
+              <div className="mb-8 flex flex-col sm:flex-row sm:items-center gap-4">
                 {/* THE RED TAG */}
                 <div className="inline-flex items-center gap-2 bg-red-600 text-white px-4 py-2 font-mono text-xs uppercase tracking-[0.2em] font-bold border border-white/20 shadow-[4px_4px_0_0_rgba(255,255,255,0.2)]">
                   <AlertCircle className="w-4 h-4 fill-current" />
                   <span>Late Breaking News</span>
+                </div>
+
+                {/* SOCIAL PROOF BADGE (Validates Schema) */}
+                <div className="flex items-center gap-3 px-3 py-1.5 border border-white/10 bg-white/5 backdrop-blur-sm rounded-full">
+                  <div className="flex gap-1">
+                    {[1, 2, 3, 4, 5].map((i) => (
+                      <Star
+                        key={i}
+                        className="w-3.5 h-3.5 fill-yellow-400 text-yellow-400"
+                      />
+                    ))}
+                  </div>
+                  <span className="text-[10px] font-mono uppercase tracking-wide text-white/70">
+                    Used by real people - holy ****
+                  </span>
                 </div>
               </div>
 
@@ -128,7 +141,7 @@ export default function LandingPageCTA() {
                         transition: { duration: 0.8, ease: "backIn" },
                       }}
                     >
-                      {/* HONEYPOT FIELD: Hidden from users, but visible to bots */}
+                      {/* HONEYPOT FIELD */}
                       <div
                         style={{
                           position: "absolute",
@@ -153,7 +166,6 @@ export default function LandingPageCTA() {
                           autoComplete="off"
                         />
                       </div>
-                      {/* END HONEYPOT FIELD */}
 
                       <div className="relative border-2 border-dashed border-white/30 bg-white/5 p-4 transition-all hover:bg-white/10 hover:border-white/50 backdrop-blur-sm">
                         <div className="flex flex-col gap-4">
@@ -182,7 +194,6 @@ export default function LandingPageCTA() {
                             </p>
                           )}
 
-                          {/* THE GREEN BUTTON */}
                           <button
                             type="submit"
                             disabled={isLoading}

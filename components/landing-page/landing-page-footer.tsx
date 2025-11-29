@@ -10,13 +10,16 @@ import {
   Loader2,
   CheckCircle2,
   AlertCircle,
+  Twitter,
+  Instagram,
+  Linkedin,
 } from "lucide-react";
 import { signupForWaitlist } from "@/app/actions/early-access";
 import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
 
 export default function LandingPageFooter() {
-  const contactEmail = "support@thegridmaster.com";
+  const contactEmail = "support@ezibreezy.com";
   const [email, setEmail] = useState("");
   const [honeypot, setHoneypot] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -57,48 +60,253 @@ export default function LandingPageFooter() {
   };
 
   return (
-    <footer className="relative bg-background-editorial overflow-hidden">
-      <div className="relative mx-auto w-full max-w-7xl px-6 pb-10 pt-12 text-foreground">
-        <div className="mb-4 flex flex-col md:flex-row items-center justify-between border-t-2 border-foreground pt-4 text-[10px] md:text-xs font-mono uppercase tracking-wider gap-4 md:gap-0">
-          <span className="text-foreground/60 flex items-center gap-2">
-            <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
-            Systems Operational
-          </span>
-
-          <div className="flex items-center space-x-6">
-            <Link
-              href="/tools"
-              className="hover:text-brand-primary transition-colors"
-            >
-              Tools
+    <footer className="relative bg-background-editorial border-t-2 border-foreground overflow-hidden font-serif">
+      <div className="relative mx-auto w-full max-w-7xl px-6 pt-16 pb-8 text-foreground">
+        <div className="grid grid-cols-1 md:grid-cols-12 gap-12 mb-16">
+          {/* Column 1: Brand & Mission */}
+          <div className="md:col-span-4 space-y-6">
+            <Link href="/" className="block">
+              <span className="font-serif text-2xl font-bold tracking-tight">
+                EziBreezy.
+              </span>
             </Link>
+            <p className="text-sm leading-relaxed text-foreground/80 max-w-xs">
+              The editorial workspace for modern creators. Draft, visualize, and
+              schedule content without the spreadsheet chaos.
+            </p>
+            {/* <div className="flex items-center gap-4">
+              <a
+                href="https://twitter.com"
+                target="_blank"
+                rel="noreferrer"
+                className="p-2 border border-foreground/10 hover:bg-foreground hover:text-background-editorial transition-colors rounded-full"
+              >
+                <Twitter className="w-4 h-4" />
+              </a>
+              <a
+                href="https://instagram.com"
+                target="_blank"
+                rel="noreferrer"
+                className="p-2 border border-foreground/10 hover:bg-foreground hover:text-background-editorial transition-colors rounded-full"
+              >
+                <Instagram className="w-4 h-4" />
+              </a>
+              <a
+                href="https://linkedin.com"
+                target="_blank"
+                rel="noreferrer"
+                className="p-2 border border-foreground/10 hover:bg-foreground hover:text-background-editorial transition-colors rounded-full"
+              >
+                <Linkedin className="w-4 h-4" />
+              </a>
+            </div> */}
+          </div>
+
+          {/* Column 2: Free Tools (SEO Powerhouse) */}
+          <div className="md:col-span-3">
+            <h4 className="font-mono text-xs font-bold uppercase tracking-widest mb-6 text-foreground/50">
+              Free Utilities
+            </h4>
+            <ul className="space-y-3 text-sm">
+              <li>
+                <Link
+                  href="/tools/instagram-font-generator"
+                  className="hover:text-brand-primary hover:underline decoration-dashed underline-offset-4 transition-colors"
+                >
+                  Instagram Font Generator
+                </Link>
+              </li>
+              <li>
+                <Link
+                  href="/tools/instagram-grid-planner"
+                  className="hover:text-brand-primary hover:underline decoration-dashed underline-offset-4 transition-colors"
+                >
+                  Grid Planner
+                </Link>
+              </li>
+              <li>
+                <Link
+                  href="/tools/instagram-carousel-splitter"
+                  className="hover:text-brand-primary hover:underline decoration-dashed underline-offset-4 transition-colors"
+                >
+                  Carousel Splitter
+                </Link>
+              </li>
+              <li>
+                <Link
+                  href="/tools/screenshot-studio"
+                  className="hover:text-brand-primary hover:underline decoration-dashed underline-offset-4 transition-colors"
+                >
+                  Screenshot Studio
+                </Link>
+              </li>
+              <li>
+                <Link
+                  href="/tools/linkedin-text-formatter"
+                  className="hover:text-brand-primary hover:underline decoration-dashed underline-offset-4 transition-colors"
+                >
+                  LinkedIn Formatter
+                </Link>
+              </li>
+              <li>
+                <Link
+                  href="/tools/youtube-title-checker"
+                  className="hover:text-brand-primary hover:underline decoration-dashed underline-offset-4 transition-colors"
+                >
+                  YouTube Title Checker
+                </Link>
+              </li>
+              <li className="pt-2">
+                <Link
+                  href="/tools"
+                  className="font-bold text-xs uppercase tracking-wider flex items-center gap-1 hover:gap-2 transition-all"
+                >
+                  View All <ArrowRight className="w-3 h-3" />
+                </Link>
+              </li>
+            </ul>
+          </div>
+
+          {/* Column 3: Company */}
+          <div className="md:col-span-2">
+            <h4 className="font-mono text-xs font-bold uppercase tracking-widest mb-6 text-foreground/50">
+              Company
+            </h4>
+            <ul className="space-y-3 text-sm">
+              <li>
+                <Link
+                  href="/about"
+                  className="hover:text-brand-primary transition-colors"
+                >
+                  About Us
+                </Link>
+              </li>
+
+              <li>
+                <Link
+                  href="/auth/login"
+                  className="hover:text-brand-primary transition-colors"
+                >
+                  Login
+                </Link>
+              </li>
+              <li>
+                <Link
+                  href="/auth/signup"
+                  className="hover:text-brand-primary transition-colors"
+                >
+                  Sign Up
+                </Link>
+              </li>
+            </ul>
+          </div>
+
+          {/* Column 4: Newsletter Widget */}
+          <div className="md:col-span-3">
+            <h4 className="font-mono text-xs font-bold uppercase tracking-widest mb-6 text-foreground/50">
+              The Dispatch
+            </h4>
+            <div className="bg-surface border border-dashed border-foreground/30 p-4 relative">
+              <AnimatePresence mode="wait">
+                {!isSuccess ? (
+                  <motion.form
+                    key="form"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    onSubmit={handleJoin}
+                    className="space-y-3"
+                  >
+                    <p className="text-xs text-foreground/70 mb-2">
+                      Get editorial tips and product updates. No spam.
+                    </p>
+                    <div className="absolute left-[-9999px]" aria-hidden="true">
+                      <input
+                        type="text"
+                        value={honeypot}
+                        onChange={(e) => setHoneypot(e.target.value)}
+                        tabIndex={-1}
+                        autoComplete="off"
+                      />
+                    </div>
+                    <div className="flex gap-2">
+                      <input
+                        type="email"
+                        required
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        placeholder="editor@ezibreezy.com"
+                        disabled={isLoading}
+                        className="w-full bg-background border-b border-foreground/30 py-1 text-sm placeholder:text-foreground/30 focus:outline-none focus:border-brand-primary transition-colors"
+                      />
+                      <button
+                        type="submit"
+                        disabled={isLoading}
+                        className="text-foreground hover:text-brand-primary disabled:opacity-50"
+                      >
+                        {isLoading ? (
+                          <Loader2 className="w-4 h-4 animate-spin" />
+                        ) : (
+                          <ArrowRight className="w-4 h-4" />
+                        )}
+                      </button>
+                    </div>
+                    {error && (
+                      <span className="text-[10px] text-red-600 flex items-center gap-1">
+                        <AlertCircle className="w-3 h-3" /> {error}
+                      </span>
+                    )}
+                  </motion.form>
+                ) : (
+                  <motion.div
+                    key="success"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    className="flex flex-col items-center justify-center text-center py-2"
+                  >
+                    <CheckCircle2 className="w-6 h-6 text-brand-primary mb-2" />
+                    <p className="text-xs font-bold">
+                      You&apos;re on the list.
+                    </p>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+          </div>
+        </div>
+
+        {/* Bottom Bar */}
+        <div className="flex flex-col md:flex-row items-center justify-between border-t-2 border-double border-foreground/20 pt-6 text-[10px] md:text-xs font-mono uppercase tracking-wider gap-4 md:gap-0">
+          <div className="flex items-center gap-6">
             <Link
               href="/privacy"
               className="hover:text-brand-primary transition-colors"
             >
-              Privacy Protocol
+              Privacy
             </Link>
             <Link
               href="/terms"
               className="hover:text-brand-primary transition-colors"
             >
-              Terms of Service
+              Terms
             </Link>
-
-            {contactEmail && (
-              <a
-                href={`mailto:${contactEmail}`}
-                className="hover:text-brand-primary transition-colors"
-              >
-                Help Desk
-              </a>
-            )}
+            <a
+              href={`mailto:${contactEmail}`}
+              className="hover:text-brand-primary transition-colors"
+            >
+              Support
+            </a>
           </div>
-        </div>
 
-        <p className="border-t-4 border-double border-foreground/20 pt-4 text-center font-serif text-[0.7rem] md:text-xs uppercase tracking-[0.25em] text-foreground">
-          EziBreezy Editorial Desk · Est. 2025 · All Rights Reserved
-        </p>
+          <p className="text-foreground/40">
+            EziBreezy Editorial Desk · Est. 2025
+          </p>
+
+          <span className="text-foreground/60 flex items-center gap-2">
+            <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
+            Systems Operational
+          </span>
+        </div>
       </div>
     </footer>
   );
