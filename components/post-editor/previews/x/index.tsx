@@ -276,25 +276,29 @@ function XPreview({
         </div>
       </div>
 
-      <div className="p-3 border-t border-border">
-        {canCrop ? (
-          <button
-            onClick={handleCropClick}
-            className="flex items-center gap-2 justify-center w-full font-serif font-bold text-sm text-brand-primary hover:text-brand-accent"
-            disabled={isFetchingOriginal}
-          >
-            {isFetchingOriginal ? (
-              <Loader2 className="h-4 w-4 animate-spin" />
-            ) : (
-              <Crop className="h-4 w-4" />
-            )}
-            Crop
-          </button>
-        ) : (
-          <p className="text-xs text-muted-foreground text-center italic">
-            X Preview
-          </p>
-        )}
+      <div className="px-3 py-2 border-t border-[--border]">
+        <div className="flex items-center gap-4">
+          {canCrop && (
+            <button
+              onClick={handleCropClick}
+              className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
+              disabled={isFetchingOriginal}
+            >
+              {isFetchingOriginal ? (
+                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+              ) : (
+                <Crop className="h-3.5 w-3.5" />
+              )}
+              Crop
+            </button>
+          )}
+
+          {!canCrop && (
+            <p className="text-xs text-muted-foreground text-center italic w-full">
+              X Preview
+            </p>
+          )}
+        </div>
       </div>
 
       {originalMediaSrc && (
