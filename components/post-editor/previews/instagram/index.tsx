@@ -385,7 +385,12 @@ function InstagramPreview({
 
   return (
     <div className="w-full max-w-[300px] mx-auto space-y-4 transition-all duration-300">
-      <div className="bg-[--surface] border border-[--border] shadow-lg rounded-4xl overflow-hidden">
+      {/* 
+        Updated borderRadius: 
+        rounded-t-[2rem] simulates the phone screen top.
+        rounded-b-lg gives the bottom standard corners for toolbars/inputs.
+      */}
+      <div className="bg-[--surface] border border-[--border] shadow-lg rounded-t-[2rem] rounded-b-lg overflow-hidden">
         {/* Header */}
         <InstagramHeader
           avatarUrl={avatarUrl}

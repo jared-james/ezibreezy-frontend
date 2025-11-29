@@ -3,7 +3,13 @@
 "use client";
 
 import { memo, useState, useRef } from "react";
-import { ImageIcon, Crop, Loader2, ChevronLeft, ChevronRight } from "lucide-react";
+import {
+  ImageIcon,
+  Crop,
+  Loader2,
+  ChevronLeft,
+  ChevronRight,
+} from "lucide-react";
 import { ImageCropperModal } from "../../modals/image-cropper-modal";
 import { TikTokVideoOptions } from "./tiktok-video-options";
 import { TikTokSidebar } from "./tiktok-sidebar";
@@ -56,12 +62,13 @@ function TikTokPreview({
 
   const isCarousel = mediaItems && mediaItems.length > 1;
 
-  const handleCarouselNav = (direction: 'prev' | 'next') => {
+  const handleCarouselNav = (direction: "prev" | "next") => {
     if (carouselRef.current) {
       const width = carouselRef.current.offsetWidth;
-      const newIndex = direction === 'prev'
-        ? Math.max(0, carouselIndex - 1)
-        : Math.min((mediaItems?.length ?? 1) - 1, carouselIndex + 1);
+      const newIndex =
+        direction === "prev"
+          ? Math.max(0, carouselIndex - 1)
+          : Math.min((mediaItems?.length ?? 1) - 1, carouselIndex + 1);
 
       carouselRef.current.scrollTo({
         left: width * newIndex,
@@ -83,7 +90,8 @@ function TikTokPreview({
     ? mediaItems?.[carouselIndex]
     : singleMediaItem;
 
-  const canCrop = !!activeMediaForCrop?.id && activeMediaForCrop?.type === "image";
+  const canCrop =
+    !!activeMediaForCrop?.id && activeMediaForCrop?.type === "image";
   const originalMediaSrc = activeMediaForCrop?.file
     ? activeMediaForCrop.preview
     : activeMediaForCrop?.originalUrlForCropping;
@@ -185,7 +193,12 @@ function TikTokPreview({
 
   return (
     <div className="w-full max-w-[300px] mx-auto space-y-4 transition-all duration-300">
-      <div className="bg-[--surface] border border-[--border] shadow-lg rounded-[2rem] overflow-hidden">
+      {/* 
+        Updated borderRadius: 
+        rounded-t-[2rem] preserves the phone look at the top.
+        rounded-b-lg gives the bottom toolbar standard card corners instead of phone corners.
+      */}
+      <div className="bg-[--surface] border border-[--border] shadow-lg rounded-t-[2rem] rounded-b-lg overflow-hidden">
         <div className="relative bg-black aspect-[9/16] overflow-hidden group">
           {/* Main Content Layer */}
           <div className="absolute inset-0 z-0">
@@ -239,7 +252,7 @@ function TikTokPreview({
           {isCarousel && (
             <>
               <button
-                onClick={() => handleCarouselNav('prev')}
+                onClick={() => handleCarouselNav("prev")}
                 className={cn(
                   "absolute left-2 top-1/2 -translate-y-1/2 z-30 p-1.5 bg-black/60 hover:bg-black/80 backdrop-blur-sm rounded-full text-white transition-all",
                   carouselIndex === 0 && "invisible"
@@ -249,7 +262,7 @@ function TikTokPreview({
               </button>
 
               <button
-                onClick={() => handleCarouselNav('next')}
+                onClick={() => handleCarouselNav("next")}
                 className={cn(
                   "absolute right-2 top-1/2 -translate-y-1/2 z-30 p-1.5 bg-black/60 hover:bg-black/80 backdrop-blur-sm rounded-full text-white transition-all",
                   carouselIndex === (mediaItems?.length ?? 1) - 1 && "invisible"
@@ -293,7 +306,8 @@ function TikTokPreview({
                 ) : (
                   <Crop className="h-3.5 w-3.5" />
                 )}
-                Crop {isCarousel && `(${carouselIndex + 1}/${mediaItems?.length})`}
+                Crop{" "}
+                {isCarousel && `(${carouselIndex + 1}/${mediaItems?.length})`}
               </button>
             </div>
           ) : (
