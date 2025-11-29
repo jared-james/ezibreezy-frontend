@@ -3,7 +3,10 @@
 import { Metadata } from "next";
 import LandingPageHeader from "@/components/landing-page/landing-page-header";
 import LandingPageFooter from "@/components/landing-page/landing-page-footer";
-import { SoftwareApplicationJsonLd } from "@/components/seo/json-ld";
+import {
+  SoftwareApplicationJsonLd,
+  WebPageJsonLd,
+} from "@/components/seo/json-ld";
 import FontGeneratorClient from "./client";
 
 export const metadata: Metadata = {
@@ -50,23 +53,25 @@ export const metadata: Metadata = {
 export default function InstagramFontGeneratorPage() {
   return (
     <>
+      <WebPageJsonLd
+        title="Instagram Font Generator | Copy & Paste Aesthetic Fonts"
+        description="Free tool to generate bold, italic, script, and aesthetic fonts for your Instagram bio and captions. No app required."
+        url="https://www.ezibreezy.com/tools/instagram-font-generator"
+        images={["https://www.ezibreezy.com/og-font-generator.jpg"]}
+      />
+
       <SoftwareApplicationJsonLd
         name="Instagram Font Generator"
         description="A free web tool to convert standard text into aesthetic Unicode fonts (bold, italic, script) for Instagram bios and captions."
         applicationCategory="MultimediaApplication"
         url="https://www.ezibreezy.com/tools/instagram-font-generator"
-        rating={{
-          ratingValue: 5,
-          ratingCount: 45,
-        }}
-        price="0.00"
+        operatingSystem="Any"
+        image="https://www.ezibreezy.com/og-font-generator.jpg"
       />
 
       <div className="min-h-screen flex flex-col bg-background-editorial text-foreground font-serif">
         <LandingPageHeader />
-
         <FontGeneratorClient />
-
         <LandingPageFooter />
       </div>
     </>

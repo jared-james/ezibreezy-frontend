@@ -50,25 +50,7 @@ export default function Page() {
         description="Draft, visualize, and schedule content for Instagram, LinkedIn, and X without the spreadsheet chaos."
         url="https://www.ezibreezy.com"
       />
-
-      {/* 
-        2. Software Application Schema: Defines the Product (SaaS)
-        This is crucial for ranking for "Software" keywords.
-      */}
-      <SoftwareApplicationJsonLd
-        name="EziBreezy"
-        description="A comprehensive social media scheduling and content planning platform for creators and teams."
-        applicationCategory="BusinessApplication"
-        operatingSystem="Web"
-        url="https://www.ezibreezy.com"
-        price="0.00" // If you have a free tier
-        currency="USD"
-        rating={{
-          ratingValue: 5,
-          ratingCount: 45,
-        }}
-      />
-
+      <SoftwareApplicationJsonLd />
       <LandingPageClient />
     </>
   );

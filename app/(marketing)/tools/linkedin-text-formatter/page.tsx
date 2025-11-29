@@ -3,7 +3,10 @@
 import { Metadata } from "next";
 import LandingPageHeader from "@/components/landing-page/landing-page-header";
 import LandingPageFooter from "@/components/landing-page/landing-page-footer";
-import { SoftwareApplicationJsonLd } from "@/components/seo/json-ld";
+import {
+  SoftwareApplicationJsonLd,
+  WebPageJsonLd,
+} from "@/components/seo/json-ld";
 import TextFormatterClient from "./client";
 
 export const metadata: Metadata = {
@@ -50,23 +53,25 @@ export const metadata: Metadata = {
 export default function TextFormatterPage() {
   return (
     <>
+      <WebPageJsonLd
+        title="LinkedIn Text Formatter | Bold, Italic & Unicode Font Generator"
+        description="Convert standard text into bold, italic, serif, or script Unicode characters for LinkedIn posts."
+        url="https://www.ezibreezy.com/tools/linkedin-text-formatter"
+        images={["https://www.ezibreezy.com/og-text-formatter.jpg"]}
+      />
+
       <SoftwareApplicationJsonLd
         name="LinkedIn Text Formatter"
         description="A browser-based tool to convert standard text into Unicode variants (bold, italic, script) for use on social media platforms like LinkedIn."
         applicationCategory="MultimediaApplication"
         url="https://www.ezibreezy.com/tools/linkedin-text-formatter"
         operatingSystem="Any"
-        price="0.00"
-        rating={{
-          ratingValue: 5,
-          ratingCount: 45,
-        }}
+        image="https://www.ezibreezy.com/og-text-formatter.jpg"
       />
+
       <div className="min-h-screen flex flex-col bg-background-editorial text-foreground font-serif">
         <LandingPageHeader />
-
         <TextFormatterClient />
-
         <LandingPageFooter />
       </div>
     </>

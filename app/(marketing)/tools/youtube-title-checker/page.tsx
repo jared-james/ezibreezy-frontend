@@ -1,7 +1,10 @@
 import { Metadata } from "next";
 import LandingPageHeader from "@/components/landing-page/landing-page-header";
 import LandingPageFooter from "@/components/landing-page/landing-page-footer";
-import { SoftwareApplicationJsonLd } from "@/components/seo/json-ld";
+import {
+  SoftwareApplicationJsonLd,
+  WebPageJsonLd,
+} from "@/components/seo/json-ld";
 import TitleCheckerClient from "./client";
 
 export const metadata: Metadata = {
@@ -48,23 +51,25 @@ export const metadata: Metadata = {
 export default function TitleCheckerPage() {
   return (
     <>
+      <WebPageJsonLd
+        title="YouTube Title Checker | CTR Optimizer & Truncation Preview"
+        description="Check your YouTube video titles for truncation on mobile and desktop."
+        url="https://www.ezibreezy.com/tools/youtube-title-checker"
+        images={["https://www.ezibreezy.com/og-title-checker.jpg"]}
+      />
+
       <SoftwareApplicationJsonLd
         name="YouTube Title Checker"
         description="A browser-based utility to analyze YouTube video titles for length, truncation, and keyword impact across different devices."
         applicationCategory="MultimediaApplication"
         url="https://www.ezibreezy.com/tools/youtube-title-checker"
         operatingSystem="Any"
-        price="0.00"
-        rating={{
-          ratingValue: 5,
-          ratingCount: 45,
-        }}
+        image="https://www.ezibreezy.com/og-title-checker.jpg"
       />
+
       <div className="min-h-screen flex flex-col bg-background-editorial text-foreground font-serif">
         <LandingPageHeader />
-
         <TitleCheckerClient />
-
         <LandingPageFooter />
       </div>
     </>

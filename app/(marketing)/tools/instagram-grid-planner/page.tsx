@@ -3,8 +3,11 @@
 import { Metadata } from "next";
 import LandingPageHeader from "@/components/landing-page/landing-page-header";
 import LandingPageFooter from "@/components/landing-page/landing-page-footer";
-import { SoftwareApplicationJsonLd } from "@/components/seo/json-ld";
-import GridPlannerClient from "./client"; // Logic moved to client component
+import {
+  SoftwareApplicationJsonLd,
+  WebPageJsonLd,
+} from "@/components/seo/json-ld";
+import GridPlannerClient from "./client";
 
 export const metadata: Metadata = {
   title: "Instagram Grid Planner | Free Visual Feed Preview Tool",
@@ -51,24 +54,25 @@ export const metadata: Metadata = {
 export default function GridPlannerPage() {
   return (
     <>
+      <WebPageJsonLd
+        title="Instagram Grid Planner | Free Visual Feed Preview Tool"
+        description="Plan your Instagram feed visually. Drag and drop photos, rearrange your grid, and curate your aesthetic before posting."
+        url="https://www.ezibreezy.com/tools/instagram-grid-planner"
+        images={["https://www.ezibreezy.com/og-instagram-grid-planner.jpg"]}
+      />
+
       <SoftwareApplicationJsonLd
         name="Instagram Grid Planner"
         description="A browser-based tool to visually plan and rearrange Instagram posts in a grid layout before publishing."
         applicationCategory="MultimediaApplication"
         url="https://www.ezibreezy.com/tools/instagram-grid-planner"
         operatingSystem="Any"
-        price="0.00"
-        rating={{
-          ratingValue: 5,
-          ratingCount: 45,
-        }}
+        image="https://www.ezibreezy.com/og-instagram-grid-planner.jpg"
       />
 
       <div className="min-h-screen flex flex-col bg-background-editorial text-foreground font-serif">
         <LandingPageHeader />
-
         <GridPlannerClient />
-
         <LandingPageFooter />
       </div>
     </>

@@ -1,49 +1,53 @@
 // components/seo/json-ld.tsx
 
 interface SoftwareApplicationProps {
-  name: string;
-  description: string;
-  applicationCategory: string;
+  name?: string;
+  description?: string;
+  applicationCategory?: string;
   operatingSystem?: string;
-  url: string;
+  url?: string;
   rating?: {
     ratingValue: number;
     ratingCount: number;
   };
   price?: string;
   currency?: string;
+  image?: string;
 }
 
 export function SoftwareApplicationJsonLd({
-  name,
-  description,
-  applicationCategory,
+  name = "EziBreezy",
+  description = "A comprehensive social media scheduling and content planning platform for creators and teams.",
+  applicationCategory = "BusinessApplication",
   operatingSystem = "Web",
-  url,
-  rating,
-  price = "0.00",
+  url = "https://www.ezibreezy.com",
+  price = "25",
   currency = "USD",
+  rating = {
+    ratingValue: 5,
+    ratingCount: 45,
+  },
+  image = "https://www.ezibreezy.com/og-home.jpg",
 }: SoftwareApplicationProps) {
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "SoftwareApplication",
-    name: name,
-    description: description,
-    applicationCategory: applicationCategory,
-    operatingSystem: operatingSystem,
-    url: url,
+    name,
+    description,
+    applicationCategory,
+    operatingSystem,
+    url,
+    image,
     offers: {
       "@type": "Offer",
-      price: price,
+      price,
       priceCurrency: currency,
     },
-    ...(rating && {
-      aggregateRating: {
-        "@type": "AggregateRating",
-        ratingValue: rating.ratingValue,
-        ratingCount: rating.ratingCount,
-      },
-    }),
+    aggregateRating: {
+      "@type": "AggregateRating",
+      ratingValue: rating.ratingValue,
+      ratingCount: rating.ratingCount,
+    },
   };
 
   return (
@@ -75,8 +79,8 @@ export function WebPageJsonLd({
     "@context": "https://schema.org",
     "@type": "WebPage",
     name: title,
-    description: description,
-    url: url,
+    description,
+    url,
     ...(datePublished && { datePublished }),
     ...(dateModified && { dateModified }),
     ...(images.length > 0 && { image: images }),

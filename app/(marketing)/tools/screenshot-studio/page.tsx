@@ -1,7 +1,10 @@
 // app/(marketing)/tools/screenshot-studio/page.tsx
 
 import { Metadata } from "next";
-import { SoftwareApplicationJsonLd } from "@/components/seo/json-ld";
+import {
+  SoftwareApplicationJsonLd,
+  WebPageJsonLd,
+} from "@/components/seo/json-ld";
 import LandingPageHeader from "@/components/landing-page/landing-page-header";
 import LandingPageFooter from "@/components/landing-page/landing-page-footer";
 import ScreenshotStudioClient from "./client";
@@ -51,23 +54,23 @@ export const metadata: Metadata = {
 export default function ScreenshotStudioPage() {
   return (
     <>
+      <WebPageJsonLd
+        title="Screenshot Studio | Free Mockup Generator & Beautifier"
+        description="Turn boring screenshots into viral social media posts. Add aesthetic backgrounds, rounded corners, shadows, and MacOS frames instantly."
+        url="https://www.ezibreezy.com/tools/screenshot-studio"
+        images={["https://www.ezibreezy.com/og-screenshot-studio.jpg"]}
+      />
       <SoftwareApplicationJsonLd
         name="Screenshot Studio"
         description="A browser-based utility to beautify screenshots with backgrounds, shadows, and frames for social media sharing."
         applicationCategory="DesignApplication"
         url="https://www.ezibreezy.com/tools/screenshot-studio"
         operatingSystem="Any"
-        price="0.00"
-        rating={{
-          ratingValue: 5,
-          ratingCount: 45,
-        }}
+        image="https://www.ezibreezy.com/og-screenshot-studio.jpg"
       />
       <div className="min-h-screen flex flex-col bg-background-editorial text-foreground font-serif">
         <LandingPageHeader />
-
         <ScreenshotStudioClient />
-
         <LandingPageFooter />
       </div>
     </>

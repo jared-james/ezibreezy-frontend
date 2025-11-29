@@ -3,28 +3,31 @@
 import { Metadata } from "next";
 import LandingPageHeader from "@/components/landing-page/landing-page-header";
 import LandingPageFooter from "@/components/landing-page/landing-page-footer";
-import { SoftwareApplicationJsonLd } from "@/components/seo/json-ld";
+import {
+  SoftwareApplicationJsonLd,
+  WebPageJsonLd,
+} from "@/components/seo/json-ld";
 import GridPlannerClient from "./client";
 
 export const metadata: Metadata = {
-  title: "Instagram Grid Planner | Free Visual Feed Preview",
+  title: "Instagram Grid Maker | Free 3x3, 3x4, 3x5 Feed Grid Generator",
   description:
-    "Plan your Instagram feed visually. Drag and drop photos, rearrange your grid, and curate your aesthetic before posting. No login required.",
+    "Split a single image into 3x3, 3x4, or 3x5 grid tiles for Instagram. Create seamless profile grids in seconds. No login required.",
   alternates: {
-    canonical: "/tools/instagram-grid-planner",
+    canonical: "/tools/instagram-grid-maker",
   },
   openGraph: {
-    title: "Instagram Grid Planner | Visual Feed Preview",
+    title: "Instagram Grid Maker | Grid Splitter for Instagram",
     description:
-      "The easiest way to plan your Instagram grid. Drag, drop, and rearrange photos to find your perfect aesthetic.",
-    url: "https://www.ezibreezy.com/tools/instagram-grid-planner",
+      "Turn any image into a seamless 3x3 or multi-tile grid for your Instagram profile. Fast, simple, and free.",
+    url: "https://www.ezibreezy.com/tools/instagram-grid-maker",
     siteName: "EziBreezy",
     images: [
       {
-        url: "/og-grid-planner.jpg",
+        url: "/og-grid-maker.jpg",
         width: 1200,
         height: 630,
-        alt: "Instagram Grid Planner Interface",
+        alt: "Instagram Grid Maker Tool",
       },
     ],
     locale: "en_US",
@@ -32,42 +35,43 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Instagram Grid Planner",
-    description: "Visually plan your Instagram feed with drag and drop.",
-    images: ["/og-grid-planner.jpg"],
+    title: "Instagram Grid Maker",
+    description: "Generate 3x3 and multi-tile Instagram grids instantly.",
+    images: ["/og-grid-maker.jpg"],
   },
   keywords: [
-    "instagram grid planner",
-    "visual feed planner",
+    "instagram grid maker",
+    "instagram grid generator",
+    "instagram grid splitter",
+    "3x3 grid instagram",
     "instagram layout tool",
-    "preview instagram feed",
-    "drag and drop instagram",
-    "aesthetic planner",
-    "grid preview tool",
+    "multi tile instagram image",
+    "instagram grid preview",
   ],
 };
 
-export default function GridPlannerPage() {
+export default function GridMakerPage() {
   return (
     <>
+      <WebPageJsonLd
+        title="Instagram Grid Maker | Free Instagram Grid Generator"
+        description="Split a single image into 3x3, 3x4, or 3x5 grid tiles for Instagram. Create seamless profile grids in seconds."
+        url="https://www.ezibreezy.com/tools/instagram-grid-maker"
+        images={["https://www.ezibreezy.com/og-grid-maker.jpg"]}
+      />
+
       <SoftwareApplicationJsonLd
-        name="Instagram Grid Planner"
-        description="A browser-based tool to visually plan and rearrange Instagram posts in a grid layout before publishing."
+        name="Instagram Grid Maker"
+        description="A browser-based tool to split images into 3x3, 3x4, or 3x5 Instagram grid tiles for aesthetic profile layouts."
         applicationCategory="MultimediaApplication"
-        url="https://www.ezibreezy.com/tools/instagram-grid-planner"
         operatingSystem="Any"
-        price="0.00"
-        rating={{
-          ratingValue: 5,
-          ratingCount: 45,
-        }}
+        url="https://www.ezibreezy.com/tools/instagram-grid-maker"
+        image="https://www.ezibreezy.com/og-grid-maker.jpg"
       />
 
       <div className="min-h-screen flex flex-col bg-background-editorial text-foreground font-serif">
         <LandingPageHeader />
-
         <GridPlannerClient />
-
         <LandingPageFooter />
       </div>
     </>

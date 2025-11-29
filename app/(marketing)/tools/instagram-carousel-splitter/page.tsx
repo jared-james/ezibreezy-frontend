@@ -3,7 +3,10 @@
 import { Metadata } from "next";
 import LandingPageHeader from "@/components/landing-page/landing-page-header";
 import LandingPageFooter from "@/components/landing-page/landing-page-footer";
-import { SoftwareApplicationJsonLd } from "@/components/seo/json-ld";
+import {
+  SoftwareApplicationJsonLd,
+  WebPageJsonLd,
+} from "@/components/seo/json-ld";
 import CarouselSplitterClient from "./client";
 
 export const metadata: Metadata = {
@@ -50,23 +53,25 @@ export const metadata: Metadata = {
 export default function CarouselSplitterPage() {
   return (
     <>
+      <WebPageJsonLd
+        title="Instagram Carousel Splitter | Seamless Panorama Swipe Tool"
+        description="Split your panoramic images into seamless Instagram carousel slides. Free online tool to create perfect swipeable panoramas without Photoshop."
+        url="https://www.ezibreezy.com/tools/instagram-carousel-splitter"
+        images={["https://www.ezibreezy.com/og-carousel-splitter.jpg"]}
+      />
+
       <SoftwareApplicationJsonLd
         name="Instagram Carousel Splitter"
         description="A browser-based utility to split panoramic images into seamless, pixel-perfect slides for Instagram carousels."
         applicationCategory="MultimediaApplication"
         url="https://www.ezibreezy.com/tools/instagram-carousel-splitter"
         operatingSystem="Any"
-        price="0.00"
-        rating={{
-          ratingValue: 5,
-          ratingCount: 45,
-        }}
+        image="https://www.ezibreezy.com/og-carousel-splitter.jpg"
       />
+
       <div className="min-h-screen flex flex-col bg-background-editorial text-foreground font-serif">
         <LandingPageHeader />
-
         <CarouselSplitterClient />
-
         <LandingPageFooter />
       </div>
     </>
