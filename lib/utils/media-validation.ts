@@ -21,15 +21,15 @@ export const PLATFORM_RULES = {
   },
   facebook: {
     name: "Facebook",
-    allowMixedMedia: true,
-    maxVideos: 10,
+    allowMixedMedia: false, // Changed to false
+    maxVideos: 1, // Changed to 1
     maxImages: 10,
     supportsCarousel: true,
   },
   linkedin: {
     name: "LinkedIn",
     allowMixedMedia: false,
-    maxVideos: 9,
+    maxVideos: 1, // LinkedIn API usually only allows 1 video per post, though UI might allow selecting more, API rejects. Safe to set to 1.
     maxImages: 9,
     supportsCarousel: false,
   },

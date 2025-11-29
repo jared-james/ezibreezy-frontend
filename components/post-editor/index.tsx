@@ -226,6 +226,15 @@ export default function EditorialCore({
     const isValid = await validatePost();
     if (!isValid) {
       console.log("[Publish-Flow] Validation failed. Stopping publish.");
+      // --- ADDED LOGS START ---
+      console.group("[Publish-Flow] Debug Info");
+      console.log("Validation Errors Array:", validationErrors);
+      console.log("Full Media Errors Object:", mediaErrors);
+      console.log("Selected Accounts:", selectedAccounts);
+      console.log("Platform Media Selections:", platformMediaSelections);
+      console.log("Facebook Post Type:", facebookPostType);
+      console.groupEnd();
+      // --- ADDED LOGS END ---
       return;
     }
 
@@ -332,6 +341,12 @@ export default function EditorialCore({
 
           let contentToSend = "";
 
+          // Determine the effective post type for this specific platform
+          // If platform is Facebook, use the specific facebookPostType setting
+          // Otherwise fall back to the global postType (usually "post" or "story" for IG)
+          const effectivePostType =
+            platformId === "facebook" ? facebookPostType : postTypeFromStore;
+
           const isStory =
             (platformId === "instagram" && postTypeFromStore === "story") ||
             (platformId === "facebook" && facebookPostType === "story");
@@ -350,7 +365,10 @@ export default function EditorialCore({
             userId: user.id,
             integrationId,
             content: contentToSend,
-            settings: { ...baseSettings },
+            settings: {
+              ...baseSettings,
+              postType: effectivePostType, // Override base settings postType with platform-specific one
+            },
             scheduledAt,
             mediaIds:
               platformMediaIds.length > 0 ? platformMediaIds : undefined,
@@ -361,7 +379,7 @@ export default function EditorialCore({
             recycleInterval: recycleInterval || undefined,
             aiGenerated: aiGenerated || undefined,
             sourceDraftId: sourceDraftId || undefined,
-            postType: postTypeFromStore,
+            postType: effectivePostType, // Override top-level postType with platform-specific one
             userTags,
             mediaCrops,
           };

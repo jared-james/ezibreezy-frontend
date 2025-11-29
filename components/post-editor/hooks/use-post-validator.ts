@@ -22,7 +22,6 @@ interface VideoMetadata {
   mimeType?: string;
 }
 
-// Update: Scoped by Platform ID -> Media UID -> Error Messages
 export type MediaErrors = Record<string, Record<string, string[]>>;
 
 export function usePostValidator({
@@ -134,10 +133,41 @@ export function usePostValidator({
         POST_EDITOR_VALIDATION_RULES["facebook"]?.[facebookPostType] || [];
       const fbMediaUids = platformMediaSelections["facebook"] || [];
 
-      if (fbRules.length > 0) {
-        // Initialize container for Facebook errors
-        newMediaErrors["facebook"] = {};
+      // 1. Check Video Count & Mixed Media Limits
+      const fbVideoItems = fbMediaUids
+        .map((uid) => stagedMediaItems.find((i) => i.uid === uid))
+        .filter((item) => item?.type === "video");
 
+      const fbImageItems = fbMediaUids
+        .map((uid) => stagedMediaItems.find((i) => i.uid === uid))
+        .filter((item) => item?.type === "image");
+
+      if (fbVideoItems.length > 1) {
+        if (!newMediaErrors["facebook"]) newMediaErrors["facebook"] = {};
+        fbVideoItems.forEach((item) => {
+          if (item) {
+            newMediaErrors["facebook"][item.uid] = [
+              ...(newMediaErrors["facebook"][item.uid] || []),
+              "Facebook allows only one video per post.",
+            ];
+          }
+        });
+      }
+
+      if (fbVideoItems.length > 0 && fbImageItems.length > 0) {
+        if (!newMediaErrors["facebook"]) newMediaErrors["facebook"] = {};
+        [...fbVideoItems, ...fbImageItems].forEach((item) => {
+          if (item) {
+            newMediaErrors["facebook"][item.uid] = [
+              ...(newMediaErrors["facebook"][item.uid] || []),
+              "Facebook does not support mixing photos and videos.",
+            ];
+          }
+        });
+      }
+
+      // 2. Check Technical Rules (Duration, Aspect Ratio, etc)
+      if (fbRules.length > 0) {
         for (const uid of fbMediaUids) {
           const item = stagedMediaItems.find((i) => i.uid === uid);
 
@@ -155,7 +185,13 @@ export function usePostValidator({
             }
 
             if (itemErrors.length > 0) {
-              newMediaErrors["facebook"][uid] = itemErrors;
+              // Only initialize if we actually have errors
+              if (!newMediaErrors["facebook"]) newMediaErrors["facebook"] = {};
+
+              newMediaErrors["facebook"][uid] = [
+                ...(newMediaErrors["facebook"][uid] || []),
+                ...itemErrors,
+              ];
             }
           }
         }
@@ -179,14 +215,12 @@ export function usePostValidator({
   const validatePost = useCallback(async (): Promise<boolean> => {
     setIsValidating(true);
 
-    const hasErrors = Object.keys(mediaErrors).length > 0;
+    // SAFEGUARD: Check if there are ACTUAL errors, not just empty platform keys
+    const flatErrors = Object.values(mediaErrors).flatMap((platformErrors) =>
+      Object.values(platformErrors).flat()
+    );
 
-    if (hasErrors) {
-      // Flatten the nested structure: Platform -> Media -> Errors[]
-      const flatErrors = Object.values(mediaErrors).flatMap((platformErrors) =>
-        Object.values(platformErrors).flat()
-      );
-
+    if (flatErrors.length > 0) {
       const uniqueErrors = Array.from(new Set(flatErrors));
       setBlockingErrors(uniqueErrors);
       setIsValidating(false);
