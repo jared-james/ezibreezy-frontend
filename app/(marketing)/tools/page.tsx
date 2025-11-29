@@ -94,6 +94,14 @@ const tools = [
     href: "/tools/youtube-title-checker",
     category: "YouTube",
   },
+  {
+    id: "08",
+    name: "Social Resizer",
+    description:
+      "Crop once, export for Instagram, X, and LinkedIn simultaneously.",
+    href: "/tools/social-image-resizer",
+    category: "Design",
+  },
 ];
 
 export default function ToolsPage() {
