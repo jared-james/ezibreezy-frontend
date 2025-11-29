@@ -59,6 +59,7 @@ function NavItem({
   return (
     <Link
       href={item.href}
+      prefetch={false} // <--- FIX: Disables automatic prefetching
       className={cn(
         "flex items-center gap-3 px-3 py-2 font-serif text-sm transition-colors",
         isActive
@@ -99,6 +100,7 @@ export default function SidebarClient({
       <div className="h-16 flex items-center px-6 border-b-2 border-[--foreground] shrink-0">
         <Link
           href="/dashboard"
+          prefetch={false} // <--- FIX: Disables automatic prefetching
           className="font-serif font-normal text-sm uppercase tracking-[0.15em] text-[--foreground] truncate"
           title={organizationName}
         >
