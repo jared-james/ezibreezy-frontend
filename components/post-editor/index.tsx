@@ -15,6 +15,7 @@ import PreviewPanel from "./panels/preview-panel";
 import MediaUpload from "./media/media-upload";
 import SchedulePanel from "./panels/schedule-panel";
 import ConfirmationModal from "./modals/confirmation-modal";
+import ValidationErrorModal from "./modals/validation-error-modal";
 
 import { usePostEditor } from "@/lib/hooks/use-post-editor";
 import { useEditorialStore } from "@/lib/store/editorial-store";
@@ -22,6 +23,7 @@ import type { CreatePostPayload, PostSettings } from "@/lib/api/publishing";
 import { PlatformCrops } from "@/lib/utils/crop-utils";
 import { usePostStatusPolling } from "./hooks/use-post-status-polling";
 import { getAutoSelectionForPlatform } from "@/lib/utils/media-validation";
+import { usePostValidator } from "./hooks/use-post-validator";
 
 interface EditorialCoreProps {
   onPostSuccess?: () => void;
@@ -123,6 +125,14 @@ export default function EditorialCore({
 
   const { startPolling, isPolling: isPollingStatus } = usePostStatusPolling();
 
+  // Initialize Validator Hook
+  const { validatePost, validationErrors, clearErrors } = usePostValidator({
+    selectedAccounts,
+    platformMediaSelections,
+    stagedMediaItems,
+    facebookPostType,
+  });
+
   useEffect(() => {
     const supabase = createClient();
     const fetchUser = async () => {
@@ -217,6 +227,15 @@ export default function EditorialCore({
       return showError("Please wait for media to finish uploading.");
     }
 
+    // Run Validation via Hook
+    // If validation fails, errors are set, modal opens automatically via render
+    const isValid = await validatePost();
+    if (!isValid) {
+      console.log("[Publish-Flow] Validation failed. Stopping publish.");
+      return;
+    }
+
+    // Processing check
     for (const [platformId, selection] of Object.entries(
       platformMediaSelections
     )) {
@@ -555,6 +574,12 @@ export default function EditorialCore({
         status={confirmationStatus}
         count={confirmationCount}
         onClose={handleCloseConfirmation}
+      />
+
+      <ValidationErrorModal
+        isOpen={validationErrors.length > 0}
+        onClose={clearErrors}
+        errors={validationErrors}
       />
     </>
   );
