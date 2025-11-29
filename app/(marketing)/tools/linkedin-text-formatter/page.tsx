@@ -11,6 +11,7 @@ import { ConverterPanel } from "./components/converter-panel";
 import { PostPreview } from "./components/post-preview";
 import { InfoSection } from "./components/info-section";
 import { cn } from "@/lib/utils";
+import posthog from "posthog-js"; // [!code ++]
 
 // --- Reused Animated Button Component ---
 interface AnimatedButtonProps
@@ -81,6 +82,16 @@ export default function TextFormatterPage() {
   const handleCopy = () => {
     if (!convertedPreview) return;
     navigator.clipboard.writeText(convertedPreview);
+
+    // [!code ++] START TRACKING
+    posthog.capture("marketing_tool_used", {
+      tool_name: "linkedin-text-formatter",
+      action: "copy_text",
+      style: selectedStyle,
+      length: convertedPreview.length,
+    });
+    // [!code ++] END TRACKING
+
     toast.success("Formatted text copied to clipboard");
   };
 

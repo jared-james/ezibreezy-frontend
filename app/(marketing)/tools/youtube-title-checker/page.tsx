@@ -11,6 +11,7 @@ import { TitleAnalyzer } from "./components/title-analyzer";
 import { PreviewMonitor } from "./components/preview-monitor";
 import { InfoSection } from "./components/info-section"; // Reusing or creating new
 import { cn } from "@/lib/utils";
+import posthog from "posthog-js"; // [!code ++]
 
 // --- Reused Animated Button Component ---
 interface AnimatedButtonProps
@@ -80,6 +81,16 @@ export default function TitleCheckerPage() {
   const handleCopy = () => {
     if (!title) return;
     navigator.clipboard.writeText(title);
+
+    // [!code ++] START TRACKING
+    posthog.capture("marketing_tool_used", {
+      tool_name: "youtube-title-checker",
+      action: "copy_title",
+      title_length: title.length,
+      has_thumbnail: !!thumbnail,
+    });
+    // [!code ++] END TRACKING
+
     toast.success("Title copied to clipboard");
   };
 

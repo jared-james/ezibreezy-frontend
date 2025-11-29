@@ -25,6 +25,7 @@ import { AspectRatio, TextLayer, DEFAULT_SETTINGS } from "./constants";
 import { useImageUpload } from "./hooks/use-image-upload";
 import { useTextDrag } from "./hooks/use-text-drag";
 import { BackgroundSelector } from "./components/controls/background-selector";
+import posthog from "posthog-js"; // [!code ++]
 
 export default function ScreenshotStudioPage() {
   const { image, setImage, fileInputRef, handleFileSelect } = useImageUpload();
@@ -109,6 +110,19 @@ export default function ScreenshotStudioPage() {
   const handleDownload = () => {
     if (canvasRef.current) {
       setIsProcessing(true);
+
+      // [!code ++] START TRACKING
+      posthog.capture("marketing_tool_used", {
+        tool_name: "screenshot-studio",
+        action: "download",
+        settings: {
+          background_id: backgroundId,
+          aspect_ratio: aspectRatio,
+          window_chrome: windowChrome,
+        },
+      });
+      // [!code ++] END TRACKING
+
       setTimeout(() => {
         canvasRef.current?.download();
         setIsProcessing(false);

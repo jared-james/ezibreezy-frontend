@@ -13,6 +13,7 @@ import { CarouselControls } from "./components/carousel-controls";
 import { ImagePreview } from "./components/image-preview";
 import { InfoSection } from "./components/info-section";
 import { cn } from "@/lib/utils";
+import posthog from "posthog-js"; // [!code ++]
 
 // --- Technical/Schematic Animated Button ---
 interface AnimatedButtonProps
@@ -111,6 +112,17 @@ export default function CarouselSplitterPage() {
     if (!selectedFile) return;
     try {
       setIsProcessing(true);
+
+      // [!code ++] START TRACKING
+      posthog.capture("marketing_tool_used", {
+        tool_name: "instagram-carousel-splitter",
+        settings: {
+          columns,
+          aspect_ratio: aspectRatio,
+        },
+      });
+      // [!code ++] END TRACKING
+
       await processAndDownload({
         file: selectedFile,
         mode: "carousel",

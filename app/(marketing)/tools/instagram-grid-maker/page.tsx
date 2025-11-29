@@ -13,6 +13,7 @@ import { GridControls } from "./components/grid-controls";
 import { ImagePreview } from "./components/image-preview";
 import { InfoSection } from "./components/info-section";
 import { cn } from "@/lib/utils";
+import posthog from "posthog-js"; // [!code ++]
 
 // --- Technical/Schematic Animated Button ---
 interface AnimatedButtonProps
@@ -103,6 +104,18 @@ export default function GridMakerPage() {
     if (!selectedFile) return;
     try {
       setIsProcessing(true);
+
+      // [!code ++] START TRACKING
+      posthog.capture("marketing_tool_used", {
+        tool_name: "instagram-grid-maker",
+        settings: {
+          columns,
+          rows,
+          gap,
+        },
+      });
+      // [!code ++] END TRACKING
+
       await processAndDownload({
         file: selectedFile,
         mode: "grid",

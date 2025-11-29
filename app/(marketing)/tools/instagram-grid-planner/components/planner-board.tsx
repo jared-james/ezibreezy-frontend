@@ -47,6 +47,7 @@ import {
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import * as db from "../lib/db";
+import posthog from "posthog-js"; // [!code ++]
 
 export type VisualPost = {
   id: string;
@@ -96,6 +97,15 @@ export default function PlannerBoard() {
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!e.target.files?.length) return;
     const newFiles = Array.from(e.target.files);
+
+    // [!code ++] START TRACKING
+    posthog.capture("marketing_tool_used", {
+      tool_name: "instagram-grid-planner",
+      action: "upload_photos",
+      photo_count: newFiles.length,
+    });
+    // [!code ++] END TRACKING
+
     const newPosts: VisualPost[] = [];
     const currentLength = items.length;
 
