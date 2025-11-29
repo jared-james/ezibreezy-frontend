@@ -8,6 +8,8 @@ import {
   Smartphone,
   Monitor,
   Square,
+  CircleUser,
+  Youtube,
   type LucideIcon,
 } from "lucide-react";
 
@@ -20,10 +22,11 @@ export interface SocialFormat {
   aspectRatio: number; // width / height
   icon: LucideIcon;
   description: string;
+  round?: boolean; // New property for circular preview
 }
 
 export const SOCIAL_FORMATS: SocialFormat[] = [
-  // Instagram
+  // --- Instagram ---
   {
     id: "ig_square",
     platform: "Instagram",
@@ -54,8 +57,19 @@ export const SOCIAL_FORMATS: SocialFormat[] = [
     icon: Smartphone,
     description: "Vertical format (9:16).",
   },
+  {
+    id: "ig_profile",
+    platform: "Instagram",
+    label: "Profile Pic",
+    width: 320,
+    height: 320,
+    aspectRatio: 1,
+    icon: CircleUser,
+    description: "Circular avatar display.",
+    round: true,
+  },
 
-  // Twitter / X
+  // --- Twitter / X ---
   {
     id: "tw_post",
     platform: "Twitter",
@@ -76,8 +90,19 @@ export const SOCIAL_FORMATS: SocialFormat[] = [
     icon: Monitor,
     description: "Panoramic profile banner (3:1).",
   },
+  {
+    id: "tw_profile",
+    platform: "Twitter",
+    label: "Profile Pic",
+    width: 400,
+    height: 400,
+    aspectRatio: 1,
+    icon: CircleUser,
+    description: "Circular avatar display.",
+    round: true,
+  },
 
-  // LinkedIn
+  // --- LinkedIn ---
   {
     id: "li_post",
     platform: "LinkedIn",
@@ -88,8 +113,42 @@ export const SOCIAL_FORMATS: SocialFormat[] = [
     icon: Linkedin,
     description: "Professional link/image (1.91:1).",
   },
+  {
+    id: "li_profile",
+    platform: "LinkedIn",
+    label: "Profile Pic",
+    width: 400,
+    height: 400,
+    aspectRatio: 1,
+    icon: CircleUser,
+    description: "Circular avatar display.",
+    round: true,
+  },
 
-  // Facebook
+  // --- YouTube ---
+  {
+    id: "yt_thumb",
+    platform: "YouTube",
+    label: "Thumbnail",
+    width: 1280,
+    height: 720,
+    aspectRatio: 16 / 9,
+    icon: Youtube,
+    description: "High res video thumbnail.",
+  },
+  {
+    id: "yt_profile",
+    platform: "YouTube",
+    label: "Channel Icon",
+    width: 800,
+    height: 800,
+    aspectRatio: 1,
+    icon: CircleUser,
+    description: "Circular channel avatar.",
+    round: true,
+  },
+
+  // --- Facebook ---
   {
     id: "fb_cover",
     platform: "Facebook",

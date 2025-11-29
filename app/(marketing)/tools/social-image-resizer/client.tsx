@@ -13,28 +13,26 @@ import { CropCanvas, CropCanvasRef } from "./components/crop-canvas";
 import { FormatSelector } from "./components/controls/format-selector";
 import { ImageControls } from "./components/controls/image-controls";
 import { InfoSection } from "./components/info-section";
+import { LayerCropModal } from "./components/layer-crop-modal";
 
 import { SOCIAL_FORMATS, DEFAULT_FORMAT } from "./constants";
 
-// --- Types ---
-
 export interface Layer {
   id: string;
-  type: "background" | "image";
+  type: "image"; // Unified type
   image: HTMLImageElement;
   settings: {
     zoom: number;
     rotation: number;
-    x: number; // Offset X
-    y: number; // Offset Y
+    x: number;
+    y: number;
   };
 }
-
-// --- Main Component ---
 
 export default function SocialResizerClient() {
   const [layers, setLayers] = useState<Layer[]>([]);
   const [activeLayerId, setActiveLayerId] = useState<string | null>(null);
+  const [croppingLayerId, setCroppingLayerId] = useState<string | null>(null);
 
   const [activeFormatId, setActiveFormatId] = useState(DEFAULT_FORMAT.id);
   const [backgroundColor, setBackgroundColor] = useState("#000000");
@@ -55,14 +53,15 @@ export default function SocialResizerClient() {
     reader.onload = (e) => {
       const img = new Image();
       img.onload = () => {
-        const bgLayer: Layer = {
-          id: "bg-main",
-          type: "background",
+        const newLayer: Layer = {
+          id: `layer-${Date.now()}`,
+          type: "image",
           image: img,
-          settings: { zoom: 1, rotation: 0, x: 0, y: 0 },
+          // Start at Zoom 2 so it roughly fills the width (since base scale is 50% width)
+          settings: { zoom: 2, rotation: 0, x: 0, y: 0 },
         };
-        setLayers([bgLayer]);
-        setActiveLayerId("bg-main");
+        setLayers([newLayer]);
+        setActiveLayerId(newLayer.id);
         toast.success("Image loaded");
       };
       img.src = e.target?.result as string;
@@ -110,6 +109,26 @@ export default function SocialResizerClient() {
     );
   };
 
+  // Move layer in the stack (Array index determines Z-index)
+  const handleMoveLayer = (id: string, direction: "up" | "down") => {
+    const index = layers.findIndex((l) => l.id === id);
+    if (index === -1) return;
+
+    if (direction === "up" && index === layers.length - 1) return; // Already top
+    if (direction === "down" && index === 0) return; // Already bottom
+
+    const newLayers = [...layers];
+    const swapIndex = direction === "up" ? index + 1 : index - 1;
+
+    // Swap
+    [newLayers[index], newLayers[swapIndex]] = [
+      newLayers[swapIndex],
+      newLayers[index],
+    ];
+
+    setLayers(newLayers);
+  };
+
   const handleRemoveLayer = (id: string) => {
     setLayers((prev) => prev.filter((l) => l.id !== id));
     if (activeLayerId === id) {
@@ -147,20 +166,40 @@ export default function SocialResizerClient() {
     }, 100);
   };
 
-  // Callback from Canvas when user clicks an image
   const handleCanvasSelectLayer = (id: string) => {
     setActiveLayerId(id);
   };
 
-  // Callback from Canvas when dragging (updates X/Y in real time)
-  const handleCanvasUpdatePosition = (id: string, x: number, y: number) => {
+  const handleCanvasUpdateLayer = (
+    id: string,
+    updates: Partial<Layer["settings"]>
+  ) => {
     setLayers((prev) =>
       prev.map((layer) =>
         layer.id === id
-          ? { ...layer, settings: { ...layer.settings, x, y } }
+          ? { ...layer, settings: { ...layer.settings, ...updates } }
           : layer
       )
     );
+  };
+
+  const handleCropComplete = (newImage: HTMLImageElement) => {
+    if (!croppingLayerId) return;
+
+    setLayers((prev) =>
+      prev.map((layer) => {
+        if (layer.id === croppingLayerId) {
+          return {
+            ...layer,
+            image: newImage,
+            settings: { ...layer.settings, zoom: 1 },
+          };
+        }
+        return layer;
+      })
+    );
+    setCroppingLayerId(null);
+    toast.success("Layer cropped");
   };
 
   return (
@@ -179,7 +218,7 @@ export default function SocialResizerClient() {
           <div className="inline-flex w-fit items-center gap-2 border border-dashed border-foreground/40 bg-white/50 px-3 py-1">
             <Images className="h-4 w-4 fill-current text-brand-primary" />
             <span className="text-xs font-bold font-mono uppercase tracking-widest text-foreground">
-              Utility v2.0
+              Utility v2.1
             </span>
           </div>
 
@@ -194,7 +233,7 @@ export default function SocialResizerClient() {
 
         <div className="bg-white border-2 border-double border-foreground p-1.5">
           <div className="border border-dashed border-foreground/30 min-h-[600px] flex flex-col xl:flex-row relative bg-surface-hover/30">
-            {/* Corner Marks */}
+            {/* Corner decorations */}
             <div className="absolute top-0 left-0 w-3 h-3 border-l-2 border-t-2 border-foreground z-20 -translate-x-0.5 -translate-y-0.5" />
             <div className="absolute top-0 right-0 w-3 h-3 border-r-2 border-t-2 border-foreground z-20 translate-x-0.5 -translate-y-0.5" />
             <div className="absolute bottom-0 left-0 w-3 h-3 border-l-2 border-b-2 border-foreground z-20 -translate-x-0.5 translate-y-0.5" />
@@ -204,9 +243,7 @@ export default function SocialResizerClient() {
               <FileUpload onFileSelect={handleMainFileSelect} />
             ) : (
               <>
-                {/* Left Controls */}
                 <div className="w-full xl:w-[400px] p-6 md:p-8 flex flex-col gap-8 border-b xl:border-b-0 xl:border-r border-dashed border-foreground/30 bg-background-editorial z-10 overflow-y-auto max-h-[800px]">
-                  {/* Format */}
                   <div className="space-y-4">
                     <div className="flex items-center justify-between">
                       <label className="font-mono text-[10px] uppercase tracking-widest text-foreground/50 font-bold">
@@ -224,7 +261,6 @@ export default function SocialResizerClient() {
 
                   <div className="w-full h-px bg-foreground/10 border-t border-dashed border-foreground/20" />
 
-                  {/* Layers & Adjustments */}
                   <div className="space-y-4">
                     <label className="font-mono text-[10px] uppercase tracking-widest text-foreground/50 font-bold">
                       2. Layers & Controls
@@ -236,6 +272,7 @@ export default function SocialResizerClient() {
                       onSelectLayer={setActiveLayerId}
                       onAddLayer={() => layerInputRef.current?.click()}
                       onRemoveLayer={handleRemoveLayer}
+                      onMoveLayer={handleMoveLayer}
                       zoom={activeLayer?.settings.zoom || 1}
                       onZoomChange={(val) => handleUpdateSettings("zoom", val)}
                       rotation={activeLayer?.settings.rotation || 0}
@@ -245,6 +282,9 @@ export default function SocialResizerClient() {
                       backgroundColor={backgroundColor}
                       onBackgroundColorChange={setBackgroundColor}
                       onReset={handleResetActiveLayer}
+                      onCropClick={() =>
+                        activeLayerId && setCroppingLayerId(activeLayerId)
+                      }
                     />
 
                     <input
@@ -256,7 +296,6 @@ export default function SocialResizerClient() {
                     />
                   </div>
 
-                  {/* Footer Actions */}
                   <div className="mt-auto pt-8 border-t border-dashed border-foreground/30 flex flex-col gap-3">
                     <button
                       onClick={() => {
@@ -286,7 +325,6 @@ export default function SocialResizerClient() {
                   </div>
                 </div>
 
-                {/* Right Canvas */}
                 <div className="flex-1 bg-[#1a1a1a] relative flex flex-col overflow-hidden">
                   <div className="absolute top-4 left-4 z-10 flex gap-2">
                     <div className="bg-black/50 text-white px-3 py-1 rounded-full backdrop-blur-md border border-white/10 flex items-center gap-2">
@@ -305,7 +343,7 @@ export default function SocialResizerClient() {
                       format={activeFormat}
                       backgroundColor={backgroundColor}
                       onSelectLayer={handleCanvasSelectLayer}
-                      onUpdatePosition={handleCanvasUpdatePosition}
+                      onUpdateLayer={handleCanvasUpdateLayer}
                     />
                   </div>
                 </div>
@@ -316,6 +354,13 @@ export default function SocialResizerClient() {
 
         <InfoSection />
       </div>
+
+      <LayerCropModal
+        isOpen={!!croppingLayerId}
+        onClose={() => setCroppingLayerId(null)}
+        layer={layers.find((l) => l.id === croppingLayerId) || null}
+        onCropComplete={handleCropComplete}
+      />
     </main>
   );
 }

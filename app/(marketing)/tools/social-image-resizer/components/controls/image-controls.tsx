@@ -8,8 +8,10 @@ import {
   Plus,
   Undo2,
   X,
-  Image as ImageIcon,
   Box,
+  Crop,
+  ArrowUp,
+  ArrowDown,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Layer } from "../../client";
@@ -20,6 +22,7 @@ interface ImageControlsProps {
   onSelectLayer: (id: string) => void;
   onAddLayer: () => void;
   onRemoveLayer: (id: string) => void;
+  onMoveLayer: (id: string, direction: "up" | "down") => void;
 
   zoom: number;
   onZoomChange: (val: number) => void;
@@ -29,6 +32,7 @@ interface ImageControlsProps {
   backgroundColor: string;
   onBackgroundColorChange: (val: string) => void;
   onReset: () => void;
+  onCropClick: () => void;
 }
 
 export function ImageControls({
@@ -37,6 +41,7 @@ export function ImageControls({
   onSelectLayer,
   onAddLayer,
   onRemoveLayer,
+  onMoveLayer,
   zoom,
   onZoomChange,
   rotation,
@@ -44,8 +49,9 @@ export function ImageControls({
   backgroundColor,
   onBackgroundColorChange,
   onReset,
+  onCropClick,
 }: ImageControlsProps) {
-  // Create a reversed copy for the UI list so top layers appear first
+  // Display layers reversed (Top layer at top of list)
   const displayLayers = [...layers].reverse();
 
   return (
@@ -55,7 +61,7 @@ export function ImageControls({
         <div className="flex items-center justify-between">
           <label className="font-mono text-[10px] uppercase tracking-widest text-foreground/50 flex items-center gap-2">
             <Layers className="w-3 h-3" />
-            Layers
+            Layers ({layers.length})
           </label>
           <button
             onClick={onAddLayer}
@@ -65,48 +71,88 @@ export function ImageControls({
           </button>
         </div>
 
-        <div className="flex flex-col gap-2 max-h-[160px] overflow-y-auto pr-1 custom-scrollbar bg-white border border-foreground/10 rounded-lg p-2">
-          {displayLayers.map((layer) => (
-            <div
-              key={layer.id}
-              onClick={() => onSelectLayer(layer.id)}
-              className={cn(
-                "flex items-center gap-3 p-2 rounded cursor-pointer border transition-all",
-                activeLayerId === layer.id
-                  ? "bg-brand-primary/10 border-brand-primary"
-                  : "bg-transparent border-transparent hover:bg-surface-hover hover:border-foreground/10"
-              )}
-            >
-              <div className="w-8 h-8 rounded overflow-hidden bg-gray-100 shrink-0 border border-black/5">
-                <img
-                  src={layer.image.src}
-                  className="w-full h-full object-cover"
-                  alt="Layer thumb"
-                />
-              </div>
+        <div className="flex flex-col gap-2 max-h-[200px] overflow-y-auto pr-1 custom-scrollbar bg-white border border-foreground/10 rounded-lg p-2">
+          {displayLayers.map((layer, index) => {
+            const isTop = index === 0; // Visual top (Array end)
+            const isBottom = index === displayLayers.length - 1; // Visual bottom (Array start)
 
-              <div className="flex-1 min-w-0">
-                <div className="text-xs font-bold truncate">
-                  {layer.type === "background" ? "Background" : `Image Layer`}
+            return (
+              <div
+                key={layer.id}
+                onClick={() => onSelectLayer(layer.id)}
+                className={cn(
+                  "group flex items-center gap-3 p-2 rounded cursor-pointer border transition-all relative",
+                  activeLayerId === layer.id
+                    ? "bg-brand-primary/10 border-brand-primary"
+                    : "bg-transparent border-transparent hover:bg-surface-hover hover:border-foreground/10"
+                )}
+              >
+                {/* Z-Index Controls - Always Visible */}
+                <div className="flex flex-col gap-0.5">
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onMoveLayer(layer.id, "up");
+                    }}
+                    disabled={isTop}
+                    className="p-0.5 bg-black/5 hover:bg-black/10 rounded disabled:opacity-30 disabled:hover:bg-black/5 text-foreground"
+                    title="Bring Forward"
+                  >
+                    <ArrowUp className="w-2.5 h-2.5" />
+                  </button>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onMoveLayer(layer.id, "down");
+                    }}
+                    disabled={isBottom}
+                    className="p-0.5 bg-black/5 hover:bg-black/10 rounded disabled:opacity-30 disabled:hover:bg-black/5 text-foreground"
+                    title="Send Backward"
+                  >
+                    <ArrowDown className="w-2.5 h-2.5" />
+                  </button>
                 </div>
-                <div className="text-[9px] font-mono text-foreground/40 truncate">
-                  {layer.type === "background" ? "Cover" : "Overlay"}
-                </div>
-              </div>
 
-              {layer.type !== "background" && (
+                <div className="w-8 h-8 rounded overflow-hidden bg-gray-100 shrink-0 border border-black/5">
+                  <img
+                    src={layer.image.src}
+                    className="w-full h-full object-cover"
+                    alt="Layer thumb"
+                  />
+                </div>
+
+                <div className="flex-1 min-w-0">
+                  <div className="text-xs font-bold truncate">Image Layer</div>
+                  <div className="text-[9px] font-mono text-foreground/40 truncate flex items-center gap-1">
+                    <span>
+                      {layer.image.naturalWidth} x {layer.image.naturalHeight}
+                    </span>
+                    {isTop && (
+                      <span className="text-brand-primary font-bold ml-1 uppercase tracking-wider">
+                        - Front
+                      </span>
+                    )}
+                    {isBottom && layers.length > 1 && (
+                      <span className="text-foreground/30 font-bold ml-1 uppercase tracking-wider">
+                        - Back
+                      </span>
+                    )}
+                  </div>
+                </div>
+
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
                     onRemoveLayer(layer.id);
                   }}
                   className="p-1 hover:bg-red-100 hover:text-red-500 rounded transition-colors text-foreground/30"
+                  title="Remove Layer"
                 >
                   <X className="w-3 h-3" />
                 </button>
-              )}
-            </div>
-          ))}
+              </div>
+            );
+          })}
         </div>
       </div>
 
@@ -129,6 +175,14 @@ export function ImageControls({
             <Undo2 className="w-3 h-3" /> Reset
           </button>
         </div>
+
+        <button
+          onClick={onCropClick}
+          className="w-full flex items-center justify-center gap-2 py-2.5 bg-surface-hover/50 hover:bg-surface-hover border border-foreground/10 rounded text-xs font-bold uppercase tracking-widest transition-all hover:border-foreground/30 hover:shadow-sm"
+        >
+          <Crop className="w-3 h-3" />
+          Crop Selected Layer
+        </button>
 
         <div className="space-y-3">
           <div className="flex justify-between items-center">
