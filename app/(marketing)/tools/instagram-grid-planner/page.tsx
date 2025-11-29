@@ -1,55 +1,76 @@
 // app/(marketing)/tools/instagram-grid-planner/page.tsx
 
+import { Metadata } from "next";
 import LandingPageHeader from "@/components/landing-page/landing-page-header";
 import LandingPageFooter from "@/components/landing-page/landing-page-footer";
-import PlannerBoard from "./components/planner-board";
-import { InfoSection } from "../instagram-carousel-splitter/components/info-section";
+import { SoftwareApplicationJsonLd } from "@/components/seo/json-ld";
+import GridPlannerClient from "./client"; // Logic moved to client component
+
+export const metadata: Metadata = {
+  title: "Instagram Grid Planner | Free Visual Feed Preview Tool",
+  description:
+    "Plan your Instagram feed visually. Drag and drop photos, rearrange your grid, and curate your aesthetic before posting. Free online tool, no login required.",
+  alternates: {
+    canonical: "/tools/instagram-grid-planner",
+  },
+  openGraph: {
+    title: "Instagram Grid Planner | Visual Feed Preview",
+    description:
+      "The easiest way to plan your Instagram grid. Drag, drop, and rearrange photos to find your perfect aesthetic.",
+    url: "https://www.ezibreezy.com/tools/instagram-grid-planner",
+    siteName: "EziBreezy",
+    images: [
+      {
+        url: "/og-instagram-grid-planner.jpg",
+        width: 1200,
+        height: 630,
+        alt: "Instagram Grid Planner Interface",
+      },
+    ],
+    locale: "en_US",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Instagram Grid Planner",
+    description: "Visually plan your Instagram feed with drag and drop.",
+    images: ["/og-instagram-grid-planner.jpg"],
+  },
+  keywords: [
+    "instagram grid planner",
+    "visual feed planner",
+    "instagram layout tool",
+    "preview instagram feed",
+    "drag and drop instagram",
+    "aesthetic planner",
+    "grid preview tool",
+    "instagram feed organizer",
+  ],
+};
 
 export default function GridPlannerPage() {
   return (
-    <div className="min-h-screen flex flex-col bg-background-editorial text-foreground font-serif">
-      <LandingPageHeader />
+    <>
+      <SoftwareApplicationJsonLd
+        name="Instagram Grid Planner"
+        description="A browser-based tool to visually plan and rearrange Instagram posts in a grid layout before publishing."
+        applicationCategory="MultimediaApplication"
+        url="https://www.ezibreezy.com/tools/instagram-grid-planner"
+        operatingSystem="Any"
+        price="0.00"
+        rating={{
+          ratingValue: 4.9,
+          ratingCount: 156,
+        }}
+      />
 
-      <main className="flex-1 py-16 px-4 md:px-8 relative overflow-hidden">
-        <div
-          className="absolute inset-0 pointer-events-none opacity-[0.03]"
-          style={{
-            backgroundImage:
-              "linear-gradient(var(--foreground) 1px, transparent 1px), linear-gradient(90deg, var(--foreground) 1px, transparent 1px)",
-            backgroundSize: "40px 40px",
-          }}
-        />
+      <div className="min-h-screen flex flex-col bg-background-editorial text-foreground font-serif">
+        <LandingPageHeader />
 
-        <div className="max-w-6xl mx-auto space-y-12 relative z-10">
-          <div className="flex flex-col items-center text-center space-y-6">
-            <h1 className="font-serif text-5xl md:text-7xl font-bold leading-[0.9] tracking-tight uppercase">
-              Visual Grid Planner
-            </h1>
-            <p className="font-serif text-xl md:text-2xl text-foreground/80 max-w-2xl leading-relaxed italic border-l-2 border-dotted border-brand-primary pl-6">
-              Curate your feed before you post. Drag, drop, and organize your
-              aesthetic.
-              <span className="text-brand-primary text-sm not-italic font-bold block mt-2 font-mono uppercase tracking-widest">
-                * Saves automatically to your device
-              </span>
-            </p>
-          </div>
+        <GridPlannerClient />
 
-          <div className="bg-white border-2 border-double border-foreground p-1.5">
-            <div className="border border-dashed border-foreground/30 min-h-[600px] flex flex-col relative bg-surface-hover/30 p-4 md:p-8">
-              <div className="absolute top-0 left-0 w-3 h-3 border-l-2 border-t-2 border-foreground z-20 -translate-x-0.5 -translate-y-0.5" />
-              <div className="absolute top-0 right-0 w-3 h-3 border-r-2 border-t-2 border-foreground z-20 translate-x-0.5 -translate-y-0.5" />
-              <div className="absolute bottom-0 left-0 w-3 h-3 border-l-2 border-b-2 border-foreground z-20 -translate-x-0.5 translate-y-0.5" />
-              <div className="absolute bottom-0 right-0 w-3 h-3 border-r-2 border-b-2 border-foreground z-20 translate-x-0.5 translate-y-0.5" />
-
-              <PlannerBoard />
-            </div>
-          </div>
-
-          <InfoSection />
-        </div>
-      </main>
-
-      <LandingPageFooter />
-    </div>
+        <LandingPageFooter />
+      </div>
+    </>
   );
 }
