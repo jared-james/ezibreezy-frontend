@@ -8,7 +8,7 @@ import {
   useState,
 } from "react";
 import { SocialFormat } from "../constants";
-import { Layer } from "../../client";
+import { Layer } from "../client";
 
 interface CropCanvasProps {
   layers: Layer[];
