@@ -14,6 +14,7 @@ export type PlatformCrops = {
   x?: CropData;
   threads?: CropData;
   tiktok?: CropData;
+  youtube?: CropData;
 };
 
 export type SocialPlatform = keyof PlatformCrops;
@@ -60,6 +61,11 @@ export const PLATFORM_ASPECT_RATIOS: Record<
     { label: "Portrait (3:4)", value: 3 / 4 },
     { label: "Square (1:1)", value: 1 },
     { label: "Landscape (16:9)", value: 16 / 9 },
+  ],
+  youtube: [
+    { label: "Landscape (16:9)", value: 16 / 9 },
+    { label: "Square (1:1)", value: 1 },
+    { label: "Shorts (9:16)", value: 9 / 16 },
   ],
 };
 
