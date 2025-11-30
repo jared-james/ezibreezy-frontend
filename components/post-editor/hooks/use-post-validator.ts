@@ -12,14 +12,13 @@ interface UsePostValidatorProps {
   platformMediaSelections: Record<string, string[]>;
   stagedMediaItems: MediaItem[];
   facebookPostType: "post" | "story" | "reel";
-  postType: "post" | "story" | "reel"; // <--- FIXED TYPE
+  postType: "post" | "story" | "reel";
 }
 
-// Unified Metadata Interface
 interface MediaMetadata {
   width: number;
   height: number;
-  duration: number; // 0 for images
+  duration: number;
   ratio: number;
   mimeType?: string;
   size?: number;
@@ -38,7 +37,6 @@ export function usePostValidator({
   const [mediaErrors, setMediaErrors] = useState<MediaErrors>({});
   const [isValidating, setIsValidating] = useState(false);
 
-  // Helper for Videos
   const getVideoMetadata = (source: File | string): Promise<MediaMetadata> => {
     return new Promise((resolve) => {
       const video = document.createElement("video");
@@ -56,7 +54,6 @@ export function usePostValidator({
       } else {
         const separator = source.includes("?") ? "&" : "?";
         url = `${source}${separator}t=${new Date().getTime()}`;
-        // Simple extension check for library items
         if (source.endsWith(".mp4")) mimeType = "video/mp4";
         if (source.endsWith(".mov")) mimeType = "video/quicktime";
       }
@@ -82,7 +79,6 @@ export function usePostValidator({
     });
   };
 
-  // Helper for Images
   const getImageMetadata = (source: File | string): Promise<MediaMetadata> => {
     return new Promise((resolve) => {
       const img = new Image();
@@ -103,7 +99,7 @@ export function usePostValidator({
         resolve({
           width: img.naturalWidth,
           height: img.naturalHeight,
-          duration: 0, // Images have no duration
+          duration: 0,
           ratio: img.naturalWidth / img.naturalHeight,
           mimeType,
           size,
@@ -124,8 +120,11 @@ export function usePostValidator({
     metadata: MediaMetadata
   ): string | null => {
     const hasDimensions = metadata.width > 0 && metadata.height > 0;
+    const isVideo = metadata.duration > 0;
 
-    // Safety check: Don't check duration rules on images
+    if (rule.mediaType === "image" && isVideo) return null;
+    if (rule.mediaType === "video" && !isVideo) return null;
+
     if (rule.type === "duration" && metadata.duration === 0) return null;
 
     switch (rule.type) {
@@ -175,15 +174,11 @@ export function usePostValidator({
     const runValidation = async () => {
       const newMediaErrors: MediaErrors = {};
 
-      // ---------------------------------------------------------
-      // FACEBOOK
-      // ---------------------------------------------------------
       if (selectedAccounts["facebook"]?.length > 0) {
         const fbRules =
           POST_EDITOR_VALIDATION_RULES["facebook"]?.[facebookPostType] || [];
         const fbMediaUids = platformMediaSelections["facebook"] || [];
 
-        // Mixed Media Checks
         const fbVideoItems = fbMediaUids
           .map((uid) => stagedMediaItems.find((i) => i.uid === uid))
           .filter((item) => item?.type === "video");
@@ -242,9 +237,6 @@ export function usePostValidator({
         }
       }
 
-      // ---------------------------------------------------------
-      // TIKTOK
-      // ---------------------------------------------------------
       if (selectedAccounts["tiktok"]?.length > 0) {
         const tiktokRules =
           POST_EDITOR_VALIDATION_RULES["tiktok"]?.["post"] || [];
@@ -271,11 +263,7 @@ export function usePostValidator({
         }
       }
 
-      // ---------------------------------------------------------
-      // INSTAGRAM (UPDATED)
-      // ---------------------------------------------------------
       if (selectedAccounts["instagram"]?.length > 0) {
-        // Map global postType ("post" | "story" | "reel") to rules key
         const igRules =
           POST_EDITOR_VALIDATION_RULES["instagram"]?.[postType] || [];
         const igMediaUids = platformMediaSelections["instagram"] || [];
@@ -284,11 +272,9 @@ export function usePostValidator({
           const item = stagedMediaItems.find((i) => i.uid === uid);
           if (!item) continue;
 
-          // Determine Source
           const source = item.file || item.mediaUrl || item.preview;
           if (!source) continue;
 
-          // Get Metadata
           let metadata: MediaMetadata;
           if (item.type === "video") {
             metadata = await getVideoMetadata(source);
@@ -298,13 +284,9 @@ export function usePostValidator({
           if (!isMounted) return;
 
           const itemErrors: string[] = [];
-
-          // CHECK: Has user already cropped this for Instagram?
           const hasCrop = item.crops && item.crops["instagram"];
 
           for (const rule of igRules) {
-            // SKIP Aspect Ratio checks if the user has applied a crop via UI
-            // We assume the Cropper UI enforces the correct ratio
             if (rule.type === "aspectRatio" && hasCrop) {
               continue;
             }
@@ -333,7 +315,7 @@ export function usePostValidator({
     platformMediaSelections,
     stagedMediaItems,
     facebookPostType,
-    postType, // Dependency updated
+    postType,
   ]);
 
   const validatePost = useCallback(async (): Promise<boolean> => {
