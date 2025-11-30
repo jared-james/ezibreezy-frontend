@@ -131,6 +131,7 @@ export default function EditorialCore({
       platformMediaSelections,
       stagedMediaItems,
       facebookPostType,
+      postType: postTypeFromStore,
     });
 
   useEffect(() => {

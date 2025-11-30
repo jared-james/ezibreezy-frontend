@@ -55,10 +55,56 @@ export const POST_EDITOR_VALIDATION_RULES: SocialPlatformRules = {
     ],
   },
   instagram: {
-    story: [],
-    post: [],
+    post: [
+      // FEED POSTS (Portrait 4:5 to Landscape 1.91:1)
+      {
+        type: "aspectRatio",
+        min: 0.8, // 4:5
+        max: 1.91, // 1.91:1
+        message:
+          "Instagram Feed images must be between 4:5 (portrait) and 1.91:1 (landscape). Please crop the image.",
+      },
+      {
+        type: "fileSize",
+        max: 8 * 1024 * 1024, // 8MB
+        message: "Image exceeds Instagram's 8MB limit.",
+      },
+      {
+        type: "duration",
+        min: 3,
+        max: 900, // 15 mins
+        message: "Instagram Videos must be between 3 seconds and 15 minutes.",
+      },
+    ],
+    story: [
+      // STORIES (Vertical 9:16)
+      {
+        type: "duration",
+        min: 3,
+        max: 60,
+        message: "Instagram Stories must be under 60 seconds.",
+      },
+      {
+        type: "aspectRatio",
+        max: 0.6, // Loose check for vertical (~9:16 is 0.5625)
+        message: "Instagram Stories should be vertical (9:16).",
+      },
+    ],
+    reel: [
+      // REELS (Vertical 9:16)
+      {
+        type: "duration",
+        min: 3,
+        max: 900, // 15 mins
+        message: "Instagram Reels must be between 3 seconds and 15 minutes.",
+      },
+      {
+        type: "aspectRatio",
+        max: 0.6, // Loose check for vertical
+        message: "Instagram Reels should be vertical (9:16).",
+      },
+    ],
   },
-  // --- ADDED TIKTOK RULES ---
   tiktok: {
     post: [
       {
