@@ -1,3 +1,5 @@
+// components/post-editor/panels/schedule-panel.tsx
+
 "use client";
 
 import * as React from "react";

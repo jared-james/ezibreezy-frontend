@@ -1,3 +1,5 @@
+// components/post-editor/panels/channel-selector.tsx
+
 // components/post-editor/channel-selector.tsx
 
 "use client";
