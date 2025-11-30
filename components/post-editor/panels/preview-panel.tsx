@@ -1,5 +1,7 @@
 // components/post-editor/panels/preview-panel.tsx
 
+"use client";
+
 import { useMemo, memo } from "react";
 import {
   Twitter,
@@ -195,6 +197,7 @@ function PreviewPanel({
             avatarUrl={activeAccount.avatarUrl}
             postType={mediaPostType}
             singleMediaItem={singleMediaItem}
+            mediaItems={activeMediaItems} // <--- Added this property
           />
         );
       }

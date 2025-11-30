@@ -20,7 +20,7 @@ interface XPreviewProps {
   avatarUrl: string | null;
   postType?: "text" | "image" | "video";
   singleMediaItem?: MediaItem;
-  mediaItems?: MediaItem[]; // Added support for multiple items in cropper
+  mediaItems?: MediaItem[];
 }
 
 const MediaGrid = ({
@@ -147,8 +147,11 @@ function XPreview({
     Boolean
   );
 
+  // Check if we can crop (has items, and at least one is an image)
   const canCrop =
-    singleMediaItem?.id && postType === "image" && mediaPreview.length > 0;
+    mediaItems.length > 0
+      ? mediaItems.some((item) => item.type === "image" && !!item.id)
+      : singleMediaItem?.type === "image" && !!singleMediaItem?.id;
 
   const handleCropClick = () => {
     setIsCropperOpen(true);
