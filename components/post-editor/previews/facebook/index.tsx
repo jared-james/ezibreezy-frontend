@@ -20,8 +20,8 @@ import { toast } from "sonner";
 // Sub-components
 import { FacebookHeader } from "./facebook-header";
 import { FacebookPostFooter } from "./facebook-post-footer";
-import { FacebookCarousel } from "./facebook-carousel";
 import { FacebookStoryView } from "./facebook-story-view";
+import { FacebookMediaGrid } from "./facebook-media-grid"; // Import the grid view
 
 const URL_REGEX =
   /(https?:\/\/[^\s]+|www\.[^\s]+|[a-zA-Z0-9][-a-zA-Z0-9]*\.[a-zA-Z]{2,}(?:\/[^\s]*)?)/gi;
@@ -95,18 +95,8 @@ function FacebookPreview({
 
   // Determine if we have multiple media items
   const hasMultipleMedia = mediaItems.length > 1;
-  const isCarousel = hasMultipleMedia;
 
-  const previewAspectRatio = isStory
-    ? STORY_ASPECT_RATIO
-    : isCarousel
-    ? 1
-    : aspectRatio;
-
-  // Determine the active media item.
-  // If in Story mode, we use mediaItems[currentCarouselIndex] if multiple exist, otherwise singleMediaItem.
-  // If in Post mode, we check isCarousel.
-  // This unifies logic: mediaItems[currentCarouselIndex] covers both carousel post and story slide cases.
+  // Determine the active media item for cropping context
   const activeMediaForCrop =
     mediaItems.length > 0 ? mediaItems[currentCarouselIndex] : singleMediaItem;
 
@@ -126,7 +116,7 @@ function FacebookPreview({
     : activeMediaForCrop?.originalUrlForCropping;
 
   const detectedUrl = useMemo(() => extractFirstUrl(caption), [caption]);
-  const showLinkPreview = detectedUrl && !displayMediaSrc && !isCarousel;
+  const showLinkPreview = detectedUrl && !displayMediaSrc && !hasMultipleMedia;
 
   const displayCaption = useMemo(() => {
     if (showLinkPreview && detectedUrl) {
@@ -134,20 +124,6 @@ function FacebookPreview({
     }
     return caption;
   }, [caption, showLinkPreview, detectedUrl]);
-
-  const onCropComplete = (
-    cropData: CropData | undefined,
-    croppedPreviewUrl: string
-  ) => {
-    if (activeMediaForCrop) {
-      setCropForMedia(
-        activeMediaForCrop.uid,
-        "facebook",
-        cropData,
-        croppedPreviewUrl
-      );
-    }
-  };
 
   const handleCropComplete = async (
     croppedAreaPixels: PixelCrop,
@@ -192,7 +168,14 @@ function FacebookPreview({
         aspectRatio: newAspectRatio,
       };
 
-      onCropComplete(cropData, croppedUrl);
+      if (activeMediaForCrop) {
+        setCropForMedia(
+          activeMediaForCrop.uid,
+          "facebook",
+          cropData,
+          croppedUrl
+        );
+      }
     } catch (error) {
       console.error("Failed to crop image:", error);
     }
@@ -278,13 +261,15 @@ function FacebookPreview({
             </div>
           )}
 
-          {isCarousel ? (
-            <FacebookCarousel
+          {hasMultipleMedia ? (
+            // Use MediaGrid for multiple items in Feed
+            <FacebookMediaGrid
               mediaItems={mediaItems}
-              aspectRatio={previewAspectRatio}
-              onCurrentIndexChange={setCurrentCarouselIndex}
+              selectedIndex={currentCarouselIndex}
+              onSelect={setCurrentCarouselIndex}
             />
           ) : displayMediaSrc ? (
+            // Single Item View
             <div className="relative bg-gray-100">
               {mediaType === "video" ? (
                 <video
@@ -305,6 +290,7 @@ function FacebookPreview({
               )}
             </div>
           ) : showLinkPreview && detectedUrl ? (
+            // Link Preview
             <div className="border-t border-b border-[--border] bg-[--background]">
               <div className="aspect-[1.91/1] bg-[--muted] flex items-center justify-center">
                 <Link2 className="w-12 h-12 text-[--muted-foreground]" />
@@ -338,7 +324,7 @@ function FacebookPreview({
               <Crop className="h-3.5 w-3.5" />
             )}
             Crop{" "}
-            {(isCarousel || (isStory && mediaItems.length > 1)) &&
+            {(hasMultipleMedia || (isStory && mediaItems.length > 1)) &&
               `(${currentCarouselIndex + 1}/${Math.max(mediaItems.length, 1)})`}
           </button>
         ) : (
