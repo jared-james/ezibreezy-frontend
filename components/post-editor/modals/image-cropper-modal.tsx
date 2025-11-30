@@ -171,17 +171,20 @@ function ImageCropperModalContent({
     currentItem?.originalUrlForCropping || currentItem?.preview || ""
   );
   const [isLoadingImage, setIsLoadingImage] = useState(false);
+  const [isApplied, setIsApplied] = useState(false);
 
   const imgRef = useRef<HTMLImageElement>(null);
 
   useEffect(() => {
+    // Reset applied state when switching images
+    setIsApplied(false);
+
     const loadSource = async () => {
       if (!currentItem) return;
 
       const itemCrop = currentItem.crops?.[platform];
       setCompletedCrop(itemCrop?.croppedAreaPixels ?? null);
 
-      // FIX: Ensure Story uses 9:16 by default when switching/loading images
       const defaultAspect =
         postType === "story" ? 9 / 16 : getDefaultAspectRatio(platform);
       setAspectRatio(itemCrop?.aspectRatio ?? defaultAspect);
@@ -306,15 +309,18 @@ function ImageCropperModalContent({
         const previewUrl = URL.createObjectURL(blob);
         onCropSave(currentItem.uid, cropData, previewUrl);
 
-        if (imageItems.length === 1) {
-          onClose();
-        }
+        // Show feedback
+        setIsApplied(true);
+        setTimeout(() => setIsApplied(false), 2000);
+
+        // Removed auto-close logic here so modal stays open for single images too
       }
     }
   };
 
   const handleAspectChange = (preset: AspectRatioPreset) => {
     setAspectRatio(preset.value);
+    setIsApplied(false); // Reset applied status if user changes aspect ratio
     if (imgRef.current) {
       const { width, height } = imgRef.current;
       const newCrop = centerAspectCrop(width, height, preset.value);
@@ -331,9 +337,9 @@ function ImageCropperModalContent({
   };
 
   const handleReset = () => {
-    // FIX: Ensure Reset also respects postType
     const def = postType === "story" ? 9 / 16 : getDefaultAspectRatio(platform);
     setAspectRatio(def);
+    setIsApplied(false);
     if (imgRef.current) {
       const { width, height } = imgRef.current;
       const newCrop = centerAspectCrop(width, height, def);
@@ -461,10 +467,25 @@ function ImageCropperModalContent({
             <div className="grid gap-3">
               <Button
                 onClick={handleSave}
-                className="w-full bg-white text-black hover:bg-neutral-200 uppercase tracking-widest font-bold text-xs"
+                disabled={isApplied}
+                className={cn(
+                  "w-full uppercase tracking-widest font-bold text-xs transition-all duration-300",
+                  isApplied
+                    ? "bg-green-600 text-white hover:bg-green-700 border-green-600"
+                    : "bg-white text-black hover:bg-neutral-200"
+                )}
               >
-                <Check className="mr-2 h-4 w-4" />
-                Apply Crop
+                {isApplied ? (
+                  <>
+                    <Check className="mr-2 h-4 w-4" />
+                    Crop Applied
+                  </>
+                ) : (
+                  <>
+                    <Check className="mr-2 h-4 w-4" />
+                    Apply Crop
+                  </>
+                )}
               </Button>
               <Button
                 onClick={onClose}
@@ -488,7 +509,10 @@ function ImageCropperModalContent({
 
             <ReactCrop
               crop={crop}
-              onChange={(_, percentCrop) => setCrop(percentCrop)}
+              onChange={(_, percentCrop) => {
+                setCrop(percentCrop);
+                setIsApplied(false); // Reset applied if user moves the crop
+              }}
               onComplete={(c) => setCompletedCrop(c)}
               aspect={aspectRatio}
               className="shadow-2xl"
