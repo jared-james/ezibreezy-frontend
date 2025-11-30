@@ -23,20 +23,21 @@ export function ThreadsCarousel({
   const isSingle = mediaUrls.length === 1;
 
   const handleScroll = () => {
+    // Note: Scroll index calculation is approximate with variable widths
+    // We stick to simple scroll functionality here
     if (containerRef.current) {
       const scrollLeft = containerRef.current.scrollLeft;
-      const itemWidth = containerRef.current.scrollWidth / mediaUrls.length;
-      const index = Math.round(scrollLeft / itemWidth);
-      const clampedIndex = Math.max(0, Math.min(index, mediaUrls.length - 1));
-      setCurrentIndex(clampedIndex);
+      // We can't easily calculate exact index with variable widths without measuring children
+      // For the preview UI, simpler index tracking or just relying on scroll is often enough
+      // But let's try to estimate for the arrows
     }
   };
 
-  const scrollToIndex = (index: number) => {
+  const scrollByAmount = (direction: "left" | "right") => {
     if (containerRef.current) {
-      const itemWidth = containerRef.current.scrollWidth / mediaUrls.length;
-      containerRef.current.scrollTo({
-        left: itemWidth * index,
+      const scrollAmount = 280; // approximate slide width
+      containerRef.current.scrollBy({
+        left: direction === "left" ? -scrollAmount : scrollAmount,
         behavior: "smooth",
       });
     }
@@ -44,23 +45,18 @@ export function ThreadsCarousel({
 
   const handlePrev = (e: React.MouseEvent) => {
     e.stopPropagation();
-    if (currentIndex > 0) {
-      scrollToIndex(currentIndex - 1);
-    }
+    scrollByAmount("left");
   };
 
   const handleNext = (e: React.MouseEvent) => {
     e.stopPropagation();
-    if (currentIndex < mediaUrls.length - 1) {
-      scrollToIndex(currentIndex + 1);
-    }
+    scrollByAmount("right");
   };
 
   return (
     <div className="relative group">
       <div
         ref={containerRef}
-        onScroll={handleScroll}
         className={cn(
           "mt-3 flex gap-2.5 overflow-x-auto pb-1 snap-x snap-mandatory",
           "scrollbar-none mask-fade-right"
@@ -75,15 +71,16 @@ export function ThreadsCarousel({
             key={index}
             className={cn(
               "relative shrink-0 overflow-hidden rounded-xl border border-border bg-muted snap-center",
-              isSingle
-                ? "w-full max-h-[500px]"
-                : "h-[280px] w-auto max-w-[85%] aspect-[3/4]"
+              isSingle ? "w-full max-h-[500px]" : "h-[280px] w-auto max-w-[85%]" // Removed fixed aspect ratio
             )}
           >
             {mediaType === "video" ? (
               <video
                 src={url}
-                className="h-full w-full object-cover"
+                className={cn(
+                  "h-full object-cover",
+                  isSingle ? "w-full" : "w-auto" // Let video define width in carousel
+                )}
                 muted
                 loop
                 autoPlay
@@ -93,7 +90,10 @@ export function ThreadsCarousel({
               <img
                 src={url}
                 alt={`Media ${index + 1}`}
-                className="h-full w-full object-cover"
+                className={cn(
+                  "h-full object-cover",
+                  isSingle ? "w-full" : "w-auto" // Let image define width in carousel
+                )}
               />
             )}
           </div>
@@ -105,20 +105,14 @@ export function ThreadsCarousel({
         <>
           <button
             onClick={handlePrev}
-            className={cn(
-              "absolute left-2 top-1/2 -translate-y-1/2 z-10 p-1.5 bg-white/80 hover:bg-white rounded-full shadow-lg transition-all",
-              currentIndex === 0 && "invisible"
-            )}
+            className="absolute left-2 top-1/2 -translate-y-1/2 z-10 p-1.5 bg-white/80 hover:bg-white rounded-full shadow-lg transition-all opacity-0 group-hover:opacity-100"
           >
             <ChevronLeft className="w-4 h-4 text-gray-800" />
           </button>
 
           <button
             onClick={handleNext}
-            className={cn(
-              "absolute right-2 top-1/2 -translate-y-1/2 z-10 p-1.5 bg-white/80 hover:bg-white rounded-full shadow-lg transition-all",
-              currentIndex === mediaUrls.length - 1 && "invisible"
-            )}
+            className="absolute right-2 top-1/2 -translate-y-1/2 z-10 p-1.5 bg-white/80 hover:bg-white rounded-full shadow-lg transition-all opacity-0 group-hover:opacity-100"
           >
             <ChevronRight className="w-4 h-4 text-gray-800" />
           </button>
