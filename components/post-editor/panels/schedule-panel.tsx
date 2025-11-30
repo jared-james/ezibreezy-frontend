@@ -1,16 +1,7 @@
-// components/post-editor/schedule-card.tsx
-
 "use client";
 
 import * as React from "react";
-import {
-  CalendarIcon,
-  CheckSquare,
-  Loader2,
-  Clock,
-  Repeat2,
-  Lightbulb,
-} from "lucide-react";
+import { CalendarIcon, CheckSquare, Loader2, Clock, Check } from "lucide-react";
 import { format, isToday, isBefore, parse } from "date-fns";
 import { useEditorialStore } from "@/lib/store/editorial-store";
 import { Button } from "@/components/ui/button";
@@ -23,7 +14,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
-import { Input } from "@/components/ui/input";
 
 interface ScheduleCardProps {
   onPublish: () => void;
@@ -37,16 +27,6 @@ const formatToAmPm = (time24: string) => {
   return format(date, "h:mm a");
 };
 
-const recycleIntervalOptions = [
-  { value: 7, label: "7 days" },
-  { value: 14, label: "14 days" },
-  { value: 30, label: "30 days (1 month)" },
-  { value: 60, label: "60 days (2 months)" },
-  { value: 90, label: "90 days (3 months)" },
-  { value: 180, label: "180 days (6 months)" },
-  { value: 365, label: "365 days (1 year)" },
-];
-
 export default function ScheduleCard({
   onPublish,
   isPublishing,
@@ -56,18 +36,16 @@ export default function ScheduleCard({
   const isScheduling = useEditorialStore((state) => state.isScheduling);
   const scheduleDate = useEditorialStore((state) => state.scheduleDate);
   const scheduleTime = useEditorialStore((state) => state.scheduleTime);
-  const recycleInterval = useEditorialStore((state) => state.recycleInterval);
-  const aiGenerated = useEditorialStore((state) => state.aiGenerated);
   const setState = useEditorialStore((state) => state.setState);
 
   const onSchedulingChange = (value: boolean) =>
     setState({ isScheduling: value });
   const onDateChange = (date: string) => setState({ scheduleDate: date });
   const onTimeChange = (time: string) => setState({ scheduleTime: time });
-  const onRecycleIntervalChange = (interval: string) =>
-    setState({ recycleInterval: parseInt(interval) || null });
-  const onAiGeneratedChange = (value: boolean) =>
-    setState({ aiGenerated: value });
+
+  React.useEffect(() => {
+    onSchedulingChange(true);
+  }, []);
 
   const selectedDate = React.useMemo(
     () => (scheduleDate ? new Date(scheduleDate) : undefined),
@@ -115,27 +93,29 @@ export default function ScheduleCard({
         <div className="flex gap-2">
           <button
             type="button"
-            onClick={() => onSchedulingChange(false)}
+            onClick={() => onSchedulingChange(true)}
             className={cn(
-              "flex-1 border px-4 py-3 text-sm font-serif transition-all",
-              !isScheduling
-                ? "border-[--foreground] bg-[--surface] font-bold text-[--foreground] shadow-sm"
-                : "border-[--border] bg-transparent text-[--muted-foreground] hover:bg-[--surface-hover]"
+              "flex flex-1 cursor-pointer items-center justify-center px-4 py-3 text-sm font-serif",
+              isScheduling
+                ? "border-2 border-brand-primary bg-[--surface] font-bold text-brand-primary"
+                : "border border-[--border] bg-transparent text-[--muted-foreground] hover:bg-[--surface-hover]"
             )}
           >
-            Post Now
+            {isScheduling && <Check className="mr-2 h-4 w-4" />}
+            Schedule
           </button>
           <button
             type="button"
-            onClick={() => onSchedulingChange(true)}
+            onClick={() => onSchedulingChange(false)}
             className={cn(
-              "flex-1 border px-4 py-3 text-sm font-serif transition-all",
-              isScheduling
-                ? "border-[--foreground] bg-[--surface] font-bold text-[--foreground] shadow-sm"
-                : "border-[--border] bg-transparent text-[--muted-foreground] hover:bg-[--surface-hover]"
+              "flex flex-1 cursor-pointer items-center justify-center px-4 py-3 text-sm font-serif",
+              !isScheduling
+                ? "border-2 border-brand-primary bg-[--surface] font-bold text-brand-primary"
+                : "border border-[--border] bg-transparent text-[--muted-foreground] hover:bg-[--surface-hover]"
             )}
           >
-            Schedule
+            {!isScheduling && <Check className="mr-2 h-4 w-4" />}
+            Post Now
           </button>
         </div>
 
@@ -192,42 +172,6 @@ export default function ScheduleCard({
             </div>
           </div>
         )}
-
-        <div className="border border-[--border] bg-[--surface] p-4 space-y-4">
-          <div className="space-y-2">
-            <label className="flex items-center gap-2 font-serif text-xs font-bold uppercase tracking-wider text-[--muted-foreground]">
-              <Repeat2 className="h-3 w-3" />
-              Recycle Post? (Evergreen)
-            </label>
-            <Select
-              value={recycleInterval ? String(recycleInterval) : "null"}
-              onValueChange={onRecycleIntervalChange}
-            >
-              <SelectTrigger className="w-full border-[--border] bg-[--background] font-serif">
-                <SelectValue placeholder="Do not recycle" />
-              </SelectTrigger>
-              <SelectContent className="font-serif">
-                <SelectItem value="null">Do not recycle</SelectItem>
-                {recycleIntervalOptions.map((option) => (
-                  <SelectItem key={option.value} value={String(option.value)}>
-                    Every {option.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          <label className="flex items-center gap-3 font-serif text-sm text-[--foreground] pt-2 cursor-pointer">
-            <Input
-              type="checkbox"
-              checked={aiGenerated}
-              onChange={(e) => onAiGeneratedChange(e.target.checked)}
-              className="h-4! w-4! rounded border-brand-primary accent-brand-primary shrink-0"
-            />
-            <Lightbulb className="h-4 w-4 text-[--muted]" />
-            Mark as AI Generated
-          </label>
-        </div>
 
         <Button
           onClick={onPublish}
