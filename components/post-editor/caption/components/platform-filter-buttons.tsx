@@ -20,12 +20,12 @@ export function PlatformFilterButtons({
   if (selectedPlatformIds.length <= 1) return null;
 
   return (
-    <div className="flex flex-wrap items-center gap-2">
+    <div className="flex flex-wrap items-center gap-3">
       <button
         type="button"
         onClick={() => onFilterChange("all")}
         className={cn(
-          "flex items-center gap-1.5 rounded-full px-4 py-1.5 text-sm font-medium transition-all",
+          "flex items-center justify-center rounded-full px-6 h-12 text-base font-medium transition-all",
           activeCaptionFilter === "all"
             ? "border-2 border-brand-primary bg-surface text-brand-primary"
             : "border border-border bg-surface text-muted-foreground hover:bg-surface-hover hover:text-foreground"
@@ -46,7 +46,7 @@ export function PlatformFilterButtons({
             onClick={() => onFilterChange(platformId)}
             title={platform.name}
             className={cn(
-              "flex items-center justify-center rounded-full p-2 border-2",
+              "flex items-center justify-center rounded-full border-2 h-12 w-12 transition-all",
               isActive
                 ? "border-brand-primary bg-surface"
                 : "border-border bg-surface text-muted-foreground hover:bg-surface-hover hover:text-foreground"
@@ -54,7 +54,10 @@ export function PlatformFilterButtons({
           >
             <PlatformIcon
               platformId={platformId}
-              className={isActive ? "text-brand-primary" : undefined}
+              className={cn(
+                "h-6 w-6",
+                isActive ? "text-brand-primary" : "text-current"
+              )}
             />
           </button>
         );

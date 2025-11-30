@@ -3,16 +3,7 @@
 "use client";
 
 import { useCallback, useState, useMemo, useEffect, useRef } from "react";
-import {
-  Upload,
-  X,
-  Loader2,
-  Plus,
-  FolderOpen,
-  Video,
-  CheckCircle,
-  File as FileIcon,
-} from "lucide-react";
+import { Upload, X, Loader2, FolderOpen, Video } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useQuery } from "@tanstack/react-query";
 import { getConnections } from "@/lib/api/integrations";
@@ -56,7 +47,7 @@ export default function MediaUpload({
     [connections]
   );
 
-  const MAX_FILES = 10;
+  const MAX_FILES = 20;
 
   useEffect(() => {
     return () => {
@@ -240,9 +231,9 @@ export default function MediaUpload({
             {!isFull && (
               <div className="relative aspect-square border-2 border-dashed border-[--border] rounded-md flex flex-col items-center justify-center gap-1 text-[--muted-foreground]">
                 <span className="text-[9px] uppercase font-bold text-center leading-tight">
-                  Add Additional
+                  Additional
                   <br />
-                  Images/Videos
+                  Images
                 </span>
               </div>
             )}
@@ -298,16 +289,6 @@ export default function MediaUpload({
               Browse Media Library
             </Button>
           </div>
-
-          {/* Hidden input for the ref */}
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept="image/*,video/*"
-            multiple
-            onChange={handleFileSelect}
-            className="hidden"
-          />
         </div>
       ) : (
         <div
@@ -315,43 +296,37 @@ export default function MediaUpload({
           onDragLeave={handleFileDragLeave}
           onDrop={handleFileDrop}
           className={cn(
-            "border-2 border-dashed rounded-lg transition-colors p-8",
+            "border-2 border-dashed rounded-lg transition-colors flex flex-col items-center justify-center text-center",
+            "min-h-[220px] py-6 px-4",
             isDraggingFiles
-              ? "border-[--foreground] bg-[--surface-hover]"
-              : "border-[--border] hover:border-[--foreground]/50"
+              ? "border-brand-primary bg-brand-primary/5"
+              : "border-border hover:border-brand-primary/50"
           )}
         >
-          <label className="block cursor-pointer">
-            <input
-              type="file"
-              accept="image/*,video/*"
-              multiple
-              onChange={handleFileSelect}
-              className="hidden"
-            />
-            <div className="text-center">
-              <Upload className="w-10 h-10 mx-auto mb-4 text-[--muted]" />
-              <p className="font-serif text-base text-[--foreground] mb-2">
-                Drag & drop or click to upload
-              </p>
-              <p className="text-sm text-[--muted] mb-4">
-                Up to {MAX_FILES} items
-              </p>
+          <div className="flex flex-col gap-3 w-full max-w-xs">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={handleUploadClick}
+              className="w-full gap-2 border-brand-primary text-brand-primary hover:bg-brand-primary hover:text-white h-11"
+            >
+              <Upload className="h-4 w-4" />
+              Upload from Device
+            </Button>
+
+            <div className="relative flex items-center py-1">
+              <div className="flex-grow border-t border-border"></div>
+              <span className="flex-shrink-0 mx-3 text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
+                Or
+              </span>
+              <div className="flex-grow border-t border-border"></div>
             </div>
-          </label>
 
-          <div className="flex items-center gap-3 my-4">
-            <div className="flex-1 border-t border-border" />
-            <span className="text-xs text-muted-foreground uppercase">Or</span>
-            <div className="flex-1 border-t border-border" />
-          </div>
-
-          <div className="flex justify-center">
             <Button
               type="button"
               variant="outline"
               onClick={() => setIsMediaRoomOpen(true)}
-              className="gap-2 border-brand-primary text-brand-primary hover:bg-brand-primary hover:text-white"
+              className="w-full gap-2 border-brand-primary text-brand-primary hover:bg-brand-primary hover:text-white h-11"
             >
               <FolderOpen className="h-4 w-4" />
               Browse Media Library
@@ -359,6 +334,16 @@ export default function MediaUpload({
           </div>
         </div>
       )}
+
+      {/* Shared Input */}
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="image/*,video/*"
+        multiple
+        onChange={handleFileSelect}
+        className="hidden"
+      />
 
       <MediaRoomModal
         isOpen={isMediaRoomOpen}
