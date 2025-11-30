@@ -228,7 +228,7 @@ function FacebookPreview({
       className={cn(
         "w-full max-w-sm mx-auto shadow-lg overflow-hidden transition-all duration-300",
         isStory
-          ? "rounded-t-[2rem] rounded-b-lg border border-[--border] bg-white"
+          ? "rounded-t-[1rem] rounded-b-lg border border-[--border] bg-white"
           : "rounded-lg border border-[--border] bg-[--surface]"
       )}
     >
