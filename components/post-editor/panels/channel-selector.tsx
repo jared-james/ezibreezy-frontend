@@ -28,7 +28,7 @@ export default function ChannelSelector({
           className="flex items-center gap-2 font-serif text-xs text-brand-accent hover:underline"
         >
           <PlusCircle className="h-3 w-3" />
-          Connect Accounts
+          Connect Channels
         </Link>
       </div>
 

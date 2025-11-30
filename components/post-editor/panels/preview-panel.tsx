@@ -155,7 +155,7 @@ function PreviewPanel({
           />
           <h3 className="font-serif text-lg font-bold">Select a Channel</h3>
           <p className="font-serif text-sm text-[--muted-foreground] max-w-xs mt-2">
-            Select an account on the left to see a live preview of your post
+            Select a channel on the left to see a live preview of your post
             here.
           </p>
         </div>
