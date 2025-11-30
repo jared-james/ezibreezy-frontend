@@ -555,16 +555,7 @@ export default function EditorialCore({
             platformCaptions={localPlatformCaptions}
             collaborators={localCollaborators}
           />
-          <DistributionPanel
-            showActionButtons={mode === "clipping"}
-            onSaveClipping={onSaveClipping}
-            onOpenInEditorial={onOpenInEditorial}
-            isSaving={isSavingClipping}
-            onLocalFieldsChange={(labels, collaborators) => {
-              setLocalLabels(labels);
-              setLocalCollaborators(collaborators);
-            }}
-          />
+          <DistributionPanel />
           {mode === "editorial" && (
             <SchedulePanel
               onPublish={handlePublish}
