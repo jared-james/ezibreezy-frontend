@@ -161,4 +161,26 @@ export const POST_EDITOR_VALIDATION_RULES: SocialPlatformRules = {
       },
     ],
   },
+  youtube: {
+    post: [
+      {
+        type: "fileType",
+        allowedTypes: [
+          "video/mp4",
+          "video/quicktime",
+          "video/x-msvideo",
+          "video/webm",
+        ],
+        message:
+          "Unsupported video format. YouTube accepts MP4, MOV, AVI, or WebM.",
+        mediaType: "video",
+      },
+      {
+        type: "fileSize",
+        max: 128 * 1024 * 1024 * 1024,
+        message: "Video exceeds YouTube's 128GB file size limit.",
+        mediaType: "video",
+      },
+    ],
+  },
 };

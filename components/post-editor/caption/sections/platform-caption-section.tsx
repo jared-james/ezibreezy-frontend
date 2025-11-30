@@ -12,6 +12,8 @@ import { PostTypeSelector } from "../components/post-type-selector";
 import { ThreadSection } from "./thread-section";
 import { FirstCommentSection } from "./first-comment-section";
 import PlatformMediaSelector from "../../media/platform-media-selector";
+import { YouTubeOptions } from "../../previews/youtube/youtube-options";
+import { useEditorialStore } from "@/lib/store/editorial-store";
 
 interface PlatformCaptionSectionProps {
   platformId: string;
@@ -30,6 +32,11 @@ interface PlatformCaptionSectionProps {
     state: Partial<{
       postType: "post" | "story" | "reel";
       facebookPostType: "post" | "story" | "reel";
+      youtubePrivacy: "public" | "private" | "unlisted";
+      youtubeCategory: string;
+      youtubeTags: string;
+      youtubeMadeForKids: boolean;
+      youtubeThumbnailUrl: string | null;
     }>
   ) => void;
   localPlatformTitles: Record<string, string>;
@@ -103,13 +110,24 @@ export function PlatformCaptionSection({
     platformId === "instagram" || platformId === "facebook";
   const supportsPostTypeSelection =
     platformId === "instagram" || platformId === "facebook";
-  const supportsTitle = platformId === "tiktok";
+  const supportsTitle = platformId === "tiktok" || platformId === "youtube";
 
   const isInstagramStory =
     platformId === "instagram" && currentPostType === "story";
   const isFacebookStory =
     platformId === "facebook" && facebookPostType === "story";
   const isStory = isInstagramStory || isFacebookStory;
+
+  const youtubePrivacy = useEditorialStore((state) => state.youtubePrivacy);
+  const youtubeCategory = useEditorialStore((state) => state.youtubeCategory);
+  const youtubeTags = useEditorialStore((state) => state.youtubeTags);
+  const youtubeMadeForKids = useEditorialStore(
+    (state) => state.youtubeMadeForKids
+  );
+  const youtubeThumbnailUrl = useEditorialStore(
+    (state) => state.youtubeThumbnailUrl
+  );
+  const integrationId = selectedAccounts["youtube"]?.[0];
 
   let characterLimit: number | undefined;
   let commentLimit: number | undefined;
@@ -238,9 +256,11 @@ export function PlatformCaptionSection({
               <Type className="h-3 w-3" />
               Title
               <span className="ml-auto text-[0.65rem] text-muted-foreground">
-                {postType === "video"
-                  ? "Video: Max 2200 chars"
-                  : "Photo: Max 90 chars"}
+                {platformId === "tiktok"
+                  ? postType === "video"
+                    ? "Video: Max 2200 chars"
+                    : "Photo: Max 90 chars"
+                  : "Max 100 chars"}
               </span>
             </label>
             <Input
@@ -253,11 +273,11 @@ export function PlatformCaptionSection({
                 }))
               }
               placeholder={
-                postType === "video"
-                  ? "Add a title for your TikTok video..."
-                  : "Add a title for your TikTok photos..."
+                platformId === "tiktok"
+                  ? "Add a title for your TikTok..."
+                  : "Add a title for your YouTube video..."
               }
-              maxLength={postType === "video" ? 2200 : 90}
+              maxLength={platformId === "youtube" ? 100 : 2200}
             />
           </div>
         )}
@@ -274,7 +294,7 @@ export function PlatformCaptionSection({
           placeholder={
             isStory
               ? "Captions are not used for stories."
-              : `${platform.name} specific caption...`
+              : `${platform.name} specific caption / description...`
           }
           platformId={platformId}
           onHashtagClick={openHashtagModal}
@@ -287,6 +307,22 @@ export function PlatformCaptionSection({
           platformId={platformId}
           mediaErrors={mediaErrors}
         />
+
+        {platformId === "youtube" && (
+          <YouTubeOptions
+            integrationId={integrationId}
+            privacy={youtubePrivacy}
+            onPrivacyChange={(v) => setState({ youtubePrivacy: v })}
+            category={youtubeCategory}
+            onCategoryChange={(v) => setState({ youtubeCategory: v })}
+            tags={youtubeTags}
+            onTagsChange={(v) => setState({ youtubeTags: v })}
+            madeForKids={youtubeMadeForKids}
+            onMadeForKidsChange={(v) => setState({ youtubeMadeForKids: v })}
+            thumbnailUrl={youtubeThumbnailUrl}
+            onThumbnailChange={(v) => setState({ youtubeThumbnailUrl: v })}
+          />
+        )}
 
         {supportsThreading && (
           <ThreadSection

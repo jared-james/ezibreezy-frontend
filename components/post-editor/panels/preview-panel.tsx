@@ -21,6 +21,7 @@ import LinkedInPreview from "../previews/linkedin";
 import FacebookPreview from "../previews/facebook";
 import ThreadsPreview from "../previews/threads";
 import TikTokPreview from "../previews/tiktok";
+import YouTubePreview from "../previews/youtube";
 import { cn } from "@/lib/utils";
 import {
   LocationState,
@@ -197,7 +198,7 @@ function PreviewPanel({
             avatarUrl={activeAccount.avatarUrl}
             postType={mediaPostType}
             singleMediaItem={singleMediaItem}
-            mediaItems={activeMediaItems} // <--- Added this property
+            mediaItems={activeMediaItems}
           />
         );
       }
@@ -285,6 +286,18 @@ function PreviewPanel({
             singleMediaItem={singleMediaItem || null}
             mediaItems={activeMediaItems}
             mediaType={mediaPostType}
+            platformUsername={activeAccount.platformUsername}
+            displayName={activeAccount.name}
+            avatarUrl={activeAccount.avatarUrl}
+          />
+        );
+      }
+      case "youtube": {
+        return (
+          <YouTubePreview
+            caption={currentCaption}
+            title={platformTitles["youtube"]}
+            singleMediaItem={singleMediaItem || null}
             platformUsername={activeAccount.platformUsername}
             displayName={activeAccount.name}
             avatarUrl={activeAccount.avatarUrl}

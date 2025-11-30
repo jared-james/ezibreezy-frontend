@@ -69,6 +69,11 @@ export interface EditorialState {
   tiktokVideoCoverTimestamp: number | null;
   threadsTopicTag: string;
   threadsLinkAttachment: string;
+  youtubePrivacy: "public" | "private" | "unlisted";
+  youtubeCategory: string;
+  youtubeTags: string;
+  youtubeMadeForKids: boolean;
+  youtubeThumbnailUrl: string | null;
 }
 
 export interface EditorialActions {
@@ -130,6 +135,11 @@ export const initialState: EditorialState = {
   tiktokVideoCoverTimestamp: null,
   threadsTopicTag: "",
   threadsLinkAttachment: "",
+  youtubePrivacy: "public",
+  youtubeCategory: "22",
+  youtubeTags: "",
+  youtubeMadeForKids: false,
+  youtubeThumbnailUrl: null,
 };
 
 export const useEditorialStore = create<EditorialState & EditorialActions>(
@@ -197,7 +207,6 @@ export const useEditorialStore = create<EditorialState & EditorialActions>(
             } else if (currentSelectionItems.length < rules.maxVideos) {
               newSelectionUids.push(mediaUid);
             } else if (rules.maxVideos === 1) {
-              // Auto-replace existing video if limit is 1
               newSelectionUids = [mediaUid];
             }
           } else if (itemToToggle.type === "image") {

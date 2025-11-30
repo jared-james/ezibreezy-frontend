@@ -23,29 +23,32 @@ export interface ProductTagDto {
 export interface PostSettings {
   labels?: string;
   hashtags?: string;
-  collaborators?: string | string[]; // Instagram: array of usernames
+  collaborators?: string | string[];
 
   location?: string;
   locationId?: string;
   firstComment?: string;
   canonicalContent?: string;
   postType?: "post" | "reel" | "story";
-  userTags?: Record<string, UserTagDto[]>; // Changed: now keyed by mediaId
-  productTags?: Record<string, ProductTagDto[]>; // Keyed by mediaId
+  userTags?: Record<string, UserTagDto[]>;
+  productTags?: Record<string, ProductTagDto[]>;
   facebookPostType?: "post" | "reel" | "story";
   facebookFirstComment?: string;
 
-  // Instagram Reel specific settings
   coverUrl?: string;
-  thumbOffset?: number; // in milliseconds
+  thumbOffset?: number;
   shareToFeed?: boolean;
 
-  // TikTok specific settings
-  video_cover_timestamp_ms?: number; // Video cover frame timestamp in milliseconds
+  video_cover_timestamp_ms?: number;
 
-  // Threads specific settings
-  topicTag?: string; // 1-50 chars, no special chars (. &)
-  linkAttachment?: string; // URL, only valid if no media attached
+  topicTag?: string;
+  linkAttachment?: string;
+
+  privacyStatus?: "public" | "private" | "unlisted";
+  categoryId?: string;
+  tags?: string[];
+  madeForKids?: boolean;
+  thumbnailUrl?: string;
 }
 
 export interface CreatePostPayload {
@@ -61,8 +64,8 @@ export interface CreatePostPayload {
   aiGenerated?: boolean;
   sourceDraftId?: string;
   postType?: "post" | "reel" | "story";
-  userTags?: Record<string, UserTagDto[]>; // Changed: now keyed by mediaId
-  productTags?: Record<string, ProductTagDto[]>; // Keyed by mediaId
+  userTags?: Record<string, UserTagDto[]>;
+  productTags?: Record<string, ProductTagDto[]>;
   mediaCrops?: Record<string, PlatformCrops>;
 }
 

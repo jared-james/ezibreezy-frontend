@@ -106,6 +106,16 @@ export default function EditorialCore({
     (state) => state.threadsLinkAttachment
   );
 
+  const youtubePrivacy = useEditorialStore((state) => state.youtubePrivacy);
+  const youtubeCategory = useEditorialStore((state) => state.youtubeCategory);
+  const youtubeTags = useEditorialStore((state) => state.youtubeTags);
+  const youtubeMadeForKids = useEditorialStore(
+    (state) => state.youtubeMadeForKids
+  );
+  const youtubeThumbnailUrl = useEditorialStore(
+    (state) => state.youtubeThumbnailUrl
+  );
+
   const {
     stagedMediaFiles,
     stagedMediaItems: editorStagedMediaItems,
@@ -227,15 +237,6 @@ export default function EditorialCore({
     const isValid = await validatePost();
     if (!isValid) {
       console.log("[Publish-Flow] Validation failed. Stopping publish.");
-      // --- ADDED LOGS START ---
-      console.group("[Publish-Flow] Debug Info");
-      console.log("Validation Errors Array:", validationErrors);
-      console.log("Full Media Errors Object:", mediaErrors);
-      console.log("Selected Accounts:", selectedAccounts);
-      console.log("Platform Media Selections:", platformMediaSelections);
-      console.log("Facebook Post Type:", facebookPostType);
-      console.groupEnd();
-      // --- ADDED LOGS END ---
       return;
     }
 
@@ -342,9 +343,6 @@ export default function EditorialCore({
 
           let contentToSend = "";
 
-          // Determine the effective post type for this specific platform
-          // If platform is Facebook, use the specific facebookPostType setting
-          // Otherwise fall back to the global postType (usually "post" or "story" for IG)
           const effectivePostType =
             platformId === "facebook" ? facebookPostType : postTypeFromStore;
 
@@ -368,7 +366,7 @@ export default function EditorialCore({
             content: contentToSend,
             settings: {
               ...baseSettings,
-              postType: effectivePostType, // Override base settings postType with platform-specific one
+              postType: effectivePostType,
             },
             scheduledAt,
             mediaIds:
@@ -380,7 +378,7 @@ export default function EditorialCore({
             recycleInterval: recycleInterval || undefined,
             aiGenerated: aiGenerated || undefined,
             sourceDraftId: sourceDraftId || undefined,
-            postType: effectivePostType, // Override top-level postType with platform-specific one
+            postType: effectivePostType,
             userTags,
             mediaCrops,
           };
@@ -428,6 +426,25 @@ export default function EditorialCore({
             ) {
               payload.settings!.video_cover_timestamp_ms =
                 tiktokVideoCoverTimestamp;
+            }
+          }
+
+          if (platformId === "youtube") {
+            const youtubeTitle = platformTitles["youtube"];
+            if (youtubeTitle && youtubeTitle.trim().length > 0) {
+              payload.title = youtubeTitle.trim();
+            }
+
+            payload.settings!.privacyStatus = youtubePrivacy;
+            payload.settings!.categoryId = youtubeCategory;
+            payload.settings!.madeForKids = youtubeMadeForKids;
+            payload.settings!.thumbnailUrl = youtubeThumbnailUrl || undefined;
+
+            if (youtubeTags.trim()) {
+              payload.settings!.tags = youtubeTags
+                .split(",")
+                .map((t) => t.trim())
+                .filter(Boolean);
             }
           }
 
