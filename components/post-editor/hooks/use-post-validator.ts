@@ -20,6 +20,7 @@ interface VideoMetadata {
   duration: number;
   ratio: number;
   mimeType?: string;
+  size?: number; // Added size property
 }
 
 export type MediaErrors = Record<string, Record<string, string[]>>;
@@ -42,15 +43,20 @@ export function usePostValidator({
 
       let url = "";
       let mimeType: string | undefined;
+      let size: number | undefined;
 
       if (source instanceof File) {
         url = URL.createObjectURL(source);
         mimeType = source.type;
+        size = source.size; // Capture size from File object
       } else {
         const separator = source.includes("?") ? "&" : "?";
         url = `${source}${separator}t=${new Date().getTime()}`;
         if (source.endsWith(".mp4")) mimeType = "video/mp4";
         if (source.endsWith(".mov")) mimeType = "video/quicktime";
+        if (source.endsWith(".webm")) mimeType = "video/webm";
+        // Note: We can't easily get size from a URL without a HEAD request,
+        // so library items might skip size validation in frontend.
       }
 
       video.onloadedmetadata = () => {
@@ -61,12 +67,13 @@ export function usePostValidator({
           duration: video.duration,
           ratio: video.videoWidth / video.videoHeight,
           mimeType,
+          size,
         });
       };
 
       video.onerror = () => {
         if (source instanceof File) URL.revokeObjectURL(url);
-        resolve({ width: 0, height: 0, duration: 0, ratio: 0, mimeType });
+        resolve({ width: 0, height: 0, duration: 0, ratio: 0, mimeType, size });
       };
 
       video.src = url;
@@ -111,6 +118,13 @@ export function usePostValidator({
           }
         }
         break;
+
+      // New rule handler for file size
+      case "fileSize":
+        if (metadata.size) {
+          if (rule.max && metadata.size > rule.max) return rule.message;
+        }
+        break;
     }
     return null;
   };
@@ -119,58 +133,91 @@ export function usePostValidator({
     let isMounted = true;
 
     const runValidation = async () => {
-      const hasFacebook = selectedAccounts["facebook"]?.length > 0;
-
-      if (!hasFacebook) {
-        if (isMounted) setMediaErrors({});
-        return;
-      }
-
       const newMediaErrors: MediaErrors = {};
 
-      // --- FACEBOOK VALIDATION ---
-      const fbRules =
-        POST_EDITOR_VALIDATION_RULES["facebook"]?.[facebookPostType] || [];
-      const fbMediaUids = platformMediaSelections["facebook"] || [];
+      // ---------------------------------------------------------
+      // FACEBOOK VALIDATION
+      // ---------------------------------------------------------
+      if (selectedAccounts["facebook"]?.length > 0) {
+        const fbRules =
+          POST_EDITOR_VALIDATION_RULES["facebook"]?.[facebookPostType] || [];
+        const fbMediaUids = platformMediaSelections["facebook"] || [];
 
-      // 1. Check Video Count & Mixed Media Limits
-      const fbVideoItems = fbMediaUids
-        .map((uid) => stagedMediaItems.find((i) => i.uid === uid))
-        .filter((item) => item?.type === "video");
+        const fbVideoItems = fbMediaUids
+          .map((uid) => stagedMediaItems.find((i) => i.uid === uid))
+          .filter((item) => item?.type === "video");
 
-      const fbImageItems = fbMediaUids
-        .map((uid) => stagedMediaItems.find((i) => i.uid === uid))
-        .filter((item) => item?.type === "image");
+        const fbImageItems = fbMediaUids
+          .map((uid) => stagedMediaItems.find((i) => i.uid === uid))
+          .filter((item) => item?.type === "image");
 
-      if (fbVideoItems.length > 1) {
-        if (!newMediaErrors["facebook"]) newMediaErrors["facebook"] = {};
-        fbVideoItems.forEach((item) => {
-          if (item) {
-            newMediaErrors["facebook"][item.uid] = [
-              ...(newMediaErrors["facebook"][item.uid] || []),
-              "Facebook allows only one video per post.",
-            ];
+        // Mixed Media / Counts
+        if (fbVideoItems.length > 1) {
+          if (!newMediaErrors["facebook"]) newMediaErrors["facebook"] = {};
+          fbVideoItems.forEach((item) => {
+            if (item) {
+              newMediaErrors["facebook"][item.uid] = [
+                ...(newMediaErrors["facebook"][item.uid] || []),
+                "Facebook allows only one video per post.",
+              ];
+            }
+          });
+        }
+
+        if (fbVideoItems.length > 0 && fbImageItems.length > 0) {
+          if (!newMediaErrors["facebook"]) newMediaErrors["facebook"] = {};
+          [...fbVideoItems, ...fbImageItems].forEach((item) => {
+            if (item) {
+              newMediaErrors["facebook"][item.uid] = [
+                ...(newMediaErrors["facebook"][item.uid] || []),
+                "Facebook does not support mixing photos and videos.",
+              ];
+            }
+          });
+        }
+
+        // Technical Rules
+        if (fbRules.length > 0) {
+          for (const uid of fbMediaUids) {
+            const item = stagedMediaItems.find((i) => i.uid === uid);
+            if (item?.type === "video") {
+              const source = item.file || item.mediaUrl || item.preview;
+              if (!source) continue;
+
+              const metadata = await getVideoMetadata(source);
+              if (!isMounted) return;
+
+              const itemErrors: string[] = [];
+              for (const rule of fbRules) {
+                const error = checkRule(rule, metadata);
+                if (error) itemErrors.push(error);
+              }
+
+              if (itemErrors.length > 0) {
+                if (!newMediaErrors["facebook"])
+                  newMediaErrors["facebook"] = {};
+                newMediaErrors["facebook"][uid] = [
+                  ...(newMediaErrors["facebook"][uid] || []),
+                  ...itemErrors,
+                ];
+              }
+            }
           }
-        });
+        }
       }
 
-      if (fbVideoItems.length > 0 && fbImageItems.length > 0) {
-        if (!newMediaErrors["facebook"]) newMediaErrors["facebook"] = {};
-        [...fbVideoItems, ...fbImageItems].forEach((item) => {
-          if (item) {
-            newMediaErrors["facebook"][item.uid] = [
-              ...(newMediaErrors["facebook"][item.uid] || []),
-              "Facebook does not support mixing photos and videos.",
-            ];
-          }
-        });
-      }
+      // ---------------------------------------------------------
+      // TIKTOK VALIDATION
+      // ---------------------------------------------------------
+      if (selectedAccounts["tiktok"]?.length > 0) {
+        const tiktokRules =
+          POST_EDITOR_VALIDATION_RULES["tiktok"]?.["post"] || [];
+        const tiktokMediaUids = platformMediaSelections["tiktok"] || [];
 
-      // 2. Check Technical Rules (Duration, Aspect Ratio, etc)
-      if (fbRules.length > 0) {
-        for (const uid of fbMediaUids) {
+        for (const uid of tiktokMediaUids) {
           const item = stagedMediaItems.find((i) => i.uid === uid);
 
+          // TikTok validation primarily focuses on Video restrictions
           if (item?.type === "video") {
             const source = item.file || item.mediaUrl || item.preview;
             if (!source) continue;
@@ -179,17 +226,15 @@ export function usePostValidator({
             if (!isMounted) return;
 
             const itemErrors: string[] = [];
-            for (const rule of fbRules) {
+            for (const rule of tiktokRules) {
               const error = checkRule(rule, metadata);
               if (error) itemErrors.push(error);
             }
 
             if (itemErrors.length > 0) {
-              // Only initialize if we actually have errors
-              if (!newMediaErrors["facebook"]) newMediaErrors["facebook"] = {};
-
-              newMediaErrors["facebook"][uid] = [
-                ...(newMediaErrors["facebook"][uid] || []),
+              if (!newMediaErrors["tiktok"]) newMediaErrors["tiktok"] = {};
+              newMediaErrors["tiktok"][uid] = [
+                ...(newMediaErrors["tiktok"][uid] || []),
                 ...itemErrors,
               ];
             }
@@ -215,7 +260,6 @@ export function usePostValidator({
   const validatePost = useCallback(async (): Promise<boolean> => {
     setIsValidating(true);
 
-    // SAFEGUARD: Check if there are ACTUAL errors, not just empty platform keys
     const flatErrors = Object.values(mediaErrors).flatMap((platformErrors) =>
       Object.values(platformErrors).flat()
     );

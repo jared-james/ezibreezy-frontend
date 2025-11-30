@@ -5,8 +5,8 @@ export type ValidationRuleType =
   | "aspectRatio"
   | "fileSize"
   | "required"
-  | "resolution" // New
-  | "fileType"; // New
+  | "resolution"
+  | "fileType";
 
 export interface ValidationRule {
   type: ValidationRuleType;
@@ -14,7 +14,6 @@ export interface ValidationRule {
   min?: number;
   max?: number;
   message: string;
-  // Specific properties for new rules
   minWidth?: number;
   minHeight?: number;
   allowedTypes?: string[];
@@ -34,7 +33,7 @@ export const POST_EDITOR_VALIDATION_RULES: SocialPlatformRules = {
       {
         type: "duration",
         min: 3,
-        max: 60, // Capped at 60s for Pages per specs
+        max: 60,
         message: "Facebook Stories must be between 3 and 60 seconds.",
       },
       {
@@ -58,5 +57,33 @@ export const POST_EDITOR_VALIDATION_RULES: SocialPlatformRules = {
   instagram: {
     story: [],
     post: [],
+  },
+  // --- ADDED TIKTOK RULES ---
+  tiktok: {
+    post: [
+      {
+        type: "fileSize",
+        max: 4 * 1024 * 1024 * 1024, // 4GB
+        message: "Video exceeds TikTok's 4GB file size limit.",
+      },
+      {
+        type: "duration",
+        min: 3,
+        max: 600, // 10 minutes
+        message: "TikTok videos must be between 3 seconds and 10 minutes.",
+      },
+      {
+        type: "resolution",
+        minWidth: 360,
+        minHeight: 360,
+        message:
+          "Video resolution is too low. TikTok requires at least 360 pixels.",
+      },
+      {
+        type: "fileType",
+        allowedTypes: ["video/mp4", "video/webm", "video/quicktime"], // .mp4, .webm, .mov
+        message: "Unsupported video format. TikTok accepts MP4, WebM, or MOV.",
+      },
+    ],
   },
 };
