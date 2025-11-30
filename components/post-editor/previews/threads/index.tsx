@@ -17,16 +17,13 @@ import { Input } from "@/components/ui/input";
 import { ThreadsHeader } from "./threads-header";
 import { ThreadsCarousel } from "./threads-carousel";
 import { ThreadsPostFooter } from "./threads-post-footer";
-import { cn } from "@/lib/utils";
 
 interface ThreadsPreviewProps {
   caption: string;
-  mediaPreview: string[];
-  mediaType?: "text" | "image" | "video";
+  mediaItems: MediaItem[];
   platformUsername: string;
   displayName: string | null;
   avatarUrl: string | null;
-  singleMediaItem?: MediaItem;
 }
 
 const ProfileAvatar = ({
@@ -61,12 +58,10 @@ const ProfileAvatar = ({
 
 function ThreadsPreview({
   caption,
-  mediaPreview,
-  mediaType = "image",
+  mediaItems = [],
   platformUsername,
   displayName,
   avatarUrl,
-  singleMediaItem,
 }: ThreadsPreviewProps) {
   const accountName = platformUsername.replace(/^@/, "");
   const primaryName = displayName || accountName || "Account";
@@ -84,19 +79,14 @@ function ThreadsPreview({
   );
   const location = useEditorialStore((state) => state.location);
 
-  const croppedPreview = singleMediaItem?.croppedPreviews?.threads;
-
-  const firstMediaSrc =
-    mediaType === "video" && singleMediaItem?.mediaUrl
-      ? singleMediaItem.mediaUrl
-      : croppedPreview || mediaPreview[0];
-
-  const carouselItems = [firstMediaSrc, ...mediaPreview.slice(1)].filter(
-    Boolean
-  );
+  // For cropping logic, currently defaulting to the first item
+  // Future enhancement: Allow selecting which item to crop in carousel
+  const singleMediaItem = mediaItems[0];
 
   const canCrop =
-    singleMediaItem?.id && mediaType === "image" && mediaPreview.length > 0;
+    singleMediaItem?.id &&
+    singleMediaItem.type === "image" &&
+    mediaItems.length > 0;
 
   const originalMediaSrc = singleMediaItem?.file
     ? singleMediaItem.preview
@@ -223,11 +213,8 @@ function ThreadsPreview({
               {renderCaptionWithHashtags(caption)}
             </div>
 
-            {carouselItems.length > 0 ? (
-              <ThreadsCarousel
-                mediaUrls={carouselItems}
-                mediaType={mediaType}
-              />
+            {mediaItems.length > 0 ? (
+              <ThreadsCarousel mediaItems={mediaItems} />
             ) : caption.length === 0 ? (
               <div className="mt-3 flex items-center gap-2 rounded-md bg-muted/50 p-2 text-sm text-muted-foreground">
                 <ImageIcon className="h-4 w-4" />
@@ -253,7 +240,7 @@ function ThreadsPreview({
                 ) : (
                   <Crop className="h-3.5 w-3.5" />
                 )}
-                Crop
+                Crop (First Item)
               </button>
             ) : (
               <p className="text-xs text-muted-foreground text-center italic">
@@ -284,7 +271,7 @@ function ThreadsPreview({
             </div>
           </div>
 
-          {carouselItems.length === 0 && (
+          {mediaItems.length === 0 && (
             <div className="px-3 py-2 border-t border-[--border]">
               <label
                 htmlFor="link-attachment"

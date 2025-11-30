@@ -98,14 +98,12 @@ function PreviewPanel({
 
   const validActiveTab = useMemo(() => {
     if (activePlatforms.length === 0) return "empty";
-    // If a specific platform is selected in filters, show that preview.
     if (
       activeCaptionFilter !== "all" &&
       activePlatforms.includes(activeCaptionFilter)
     ) {
       return activeCaptionFilter;
     }
-    // Fallback: If "All" is selected or filter is invalid, show the first active platform.
     return activePlatforms[0];
   }, [activePlatforms, activeCaptionFilter]);
 
@@ -269,12 +267,10 @@ function PreviewPanel({
         return (
           <ThreadsPreview
             caption={currentCaption}
-            mediaPreview={mediaPreviews}
-            mediaType={mediaPostType}
+            mediaItems={activeMediaItems}
             platformUsername={activeAccount.platformUsername}
             displayName={activeAccount.name}
             avatarUrl={activeAccount.avatarUrl}
-            singleMediaItem={singleMediaItem}
           />
         );
       }
@@ -314,7 +310,6 @@ function PreviewPanel({
       </div>
 
       <div className="bg-[--surface] border border-[--border] mt-4">
-        {/* Simplified Header: Displays active channel icon and name only */}
         <div className="flex items-center gap-2 px-5 py-3 border-b border-[--border] bg-[--background]">
           {PlatformIcon && (
             <PlatformIcon className="w-5 h-5 text-brand-primary" />

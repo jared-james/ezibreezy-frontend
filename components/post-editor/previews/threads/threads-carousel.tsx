@@ -5,37 +5,22 @@
 import { useState, useRef } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { MediaItem } from "@/lib/store/editorial-store";
 
 interface ThreadsCarouselProps {
-  mediaUrls: string[];
-  mediaType?: "text" | "image" | "video";
+  mediaItems: MediaItem[];
 }
 
-export function ThreadsCarousel({
-  mediaUrls,
-  mediaType = "image",
-}: ThreadsCarouselProps) {
-  const [currentIndex, setCurrentIndex] = useState(0);
+export function ThreadsCarousel({ mediaItems }: ThreadsCarouselProps) {
   const containerRef = useRef<HTMLDivElement>(null);
 
-  if (!mediaUrls.length) return null;
+  if (!mediaItems || mediaItems.length === 0) return null;
 
-  const isSingle = mediaUrls.length === 1;
-
-  const handleScroll = () => {
-    // Note: Scroll index calculation is approximate with variable widths
-    // We stick to simple scroll functionality here
-    if (containerRef.current) {
-      const scrollLeft = containerRef.current.scrollLeft;
-      // We can't easily calculate exact index with variable widths without measuring children
-      // For the preview UI, simpler index tracking or just relying on scroll is often enough
-      // But let's try to estimate for the arrows
-    }
-  };
+  const isSingle = mediaItems.length === 1;
 
   const scrollByAmount = (direction: "left" | "right") => {
     if (containerRef.current) {
-      const scrollAmount = 280; // approximate slide width
+      const scrollAmount = 280;
       containerRef.current.scrollBy({
         left: direction === "left" ? -scrollAmount : scrollAmount,
         behavior: "smooth",
@@ -66,41 +51,54 @@ export function ThreadsCarousel({
           msOverflowStyle: "none",
         }}
       >
-        {mediaUrls.map((url, index) => (
-          <div
-            key={index}
-            className={cn(
-              "relative shrink-0 overflow-hidden rounded-xl border border-border bg-muted snap-center",
-              isSingle ? "w-full max-h-[500px]" : "h-[280px] w-auto max-w-[85%]" // Removed fixed aspect ratio
-            )}
-          >
-            {mediaType === "video" ? (
-              <video
-                src={url}
-                className={cn(
-                  "h-full object-cover",
-                  isSingle ? "w-full" : "w-auto" // Let video define width in carousel
-                )}
-                muted
-                loop
-                autoPlay
-                playsInline
-              />
-            ) : (
-              <img
-                src={url}
-                alt={`Media ${index + 1}`}
-                className={cn(
-                  "h-full object-cover",
-                  isSingle ? "w-full" : "w-auto" // Let image define width in carousel
-                )}
-              />
-            )}
-          </div>
-        ))}
+        {mediaItems.map((item, index) => {
+          // Resolve media source
+          // For videos from library, use mediaUrl.
+          // For images, prioritize cropped preview.
+          let src = "";
+          if (item.type === "video") {
+            src = item.mediaUrl || item.preview;
+          } else {
+            src = item.croppedPreviews?.threads || item.preview;
+          }
+
+          return (
+            <div
+              key={item.uid}
+              className={cn(
+                "relative shrink-0 overflow-hidden rounded-xl border border-border bg-muted snap-center",
+                isSingle
+                  ? "w-full max-h-[500px]"
+                  : "h-[280px] w-auto max-w-[85%]"
+              )}
+            >
+              {item.type === "video" ? (
+                <video
+                  src={src}
+                  className={cn(
+                    "h-full object-cover",
+                    isSingle ? "w-full" : "w-auto"
+                  )}
+                  muted
+                  loop
+                  autoPlay
+                  playsInline
+                />
+              ) : (
+                <img
+                  src={src}
+                  alt={`Media ${index + 1}`}
+                  className={cn(
+                    "h-full object-cover",
+                    isSingle ? "w-full" : "w-auto"
+                  )}
+                />
+              )}
+            </div>
+          );
+        })}
       </div>
 
-      {/* Navigation Arrows - Only show for multiple items */}
       {!isSingle && (
         <>
           <button
