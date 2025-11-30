@@ -1,4 +1,4 @@
-// components/post-editor/image-cropper-modal.tsx
+// components/post-editor/modals/image-cropper-modal.tsx
 
 "use client";
 
@@ -36,6 +36,7 @@ interface ImageCropperModalProps {
   ) => void;
 }
 
+// Helper: Calculate a centered crop based on aspect ratio
 function centerAspectCrop(
   mediaWidth: number,
   mediaHeight: number,
@@ -45,7 +46,7 @@ function centerAspectCrop(
     makeAspectCrop(
       {
         unit: "%",
-        width: 90,
+        width: 100, // CHANGED: 90 -> 100 to make the crop box full width/height
       },
       aspect,
       mediaWidth,
@@ -66,7 +67,7 @@ export function ImageCropperModal({
   initialAspectRatio,
   onCropComplete,
 }: ImageCropperModalProps) {
-  // Close on Escape key
+  // Keyboard trap for Escape
   useEffect(() => {
     const handleEsc = (e: KeyboardEvent) => {
       if (e.key === "Escape") onClose();
@@ -75,7 +76,7 @@ export function ImageCropperModal({
     return () => window.removeEventListener("keydown", handleEsc);
   }, [open, onClose]);
 
-  // Lock body scroll
+  // Lock scroll when open
   useEffect(() => {
     if (open) {
       document.body.style.overflow = "hidden";
@@ -126,208 +127,181 @@ function ImageCropperModalContent({
   initialAspectRatio,
   onCropComplete,
 }: ImageCropperModalContentProps) {
-  // Filter crop presets based on post type
+  // 1. Determine available presets
   const presets = PLATFORM_ASPECT_RATIOS[platform].filter((preset) => {
     const isStoryPreset = preset.label.toLowerCase().includes("story");
-    // For posts: hide story presets
-    if (postType === "post" && isStoryPreset) {
-      return false;
-    }
-    // For stories: only show story presets
-    if (postType === "story" && !isStoryPreset) {
-      return false;
-    }
+    if (postType === "post" && isStoryPreset) return false;
+    if (postType === "story" && !isStoryPreset) return false;
     return true;
   });
 
-  // Default to story aspect ratio (9:16) when postType is "story", otherwise use platform default
+  // 2. Determine default aspect ratio
   const getDefaultAspect = () => {
     if (initialAspectRatio) return initialAspectRatio;
     if (postType === "story") return 9 / 16;
     return getDefaultAspectRatio(platform);
   };
-  const defaultAspect = getDefaultAspect();
 
+  // State
+  const [aspectRatio, setAspectRatio] = useState<number>(getDefaultAspect());
   const [crop, setCrop] = useState<Crop>();
   const [completedCrop, setCompletedCrop] = useState<PixelCrop | null>(
     initialCrop ?? null
   );
-  const [aspectRatio, setAspectRatio] = useState<number>(defaultAspect);
+
   const imgRef = useRef<HTMLImageElement>(null);
 
+  // 3. Image Load Handler
   const onImageLoad = useCallback(
     (e: React.SyntheticEvent<HTMLImageElement>) => {
-      const { width, height } = e.currentTarget;
+      const { width, height, naturalWidth, naturalHeight } = e.currentTarget;
+
       if (initialCrop && initialCrop.width > 0 && initialCrop.height > 0) {
+        // RECOVERY LOGIC:
         const percentCrop: Crop = {
           unit: "%",
-          x: (initialCrop.x / width) * 100,
-          y: (initialCrop.y / height) * 100,
-          width: (initialCrop.width / width) * 100,
-          height: (initialCrop.height / height) * 100,
+          x: (initialCrop.x / naturalWidth) * 100,
+          y: (initialCrop.y / naturalHeight) * 100,
+          width: (initialCrop.width / naturalWidth) * 100,
+          height: (initialCrop.height / naturalHeight) * 100,
         };
         setCrop(percentCrop);
+
+        const displayPixelCrop: PixelCrop = {
+          unit: "px",
+          x: (initialCrop.x / naturalWidth) * width,
+          y: (initialCrop.y / naturalHeight) * height,
+          width: (initialCrop.width / naturalWidth) * width,
+          height: (initialCrop.height / naturalHeight) * height,
+        };
+        setCompletedCrop(displayPixelCrop);
       } else {
+        // NEW CROP LOGIC:
         const newCrop = centerAspectCrop(width, height, aspectRatio);
         setCrop(newCrop);
       }
     },
-    [initialCrop, aspectRatio, setCrop]
+    [initialCrop, aspectRatio]
   );
 
-  const handleSave = useCallback(() => {
+  const handleSave = () => {
     if (
       completedCrop &&
       completedCrop.width > 0 &&
       completedCrop.height > 0 &&
       imgRef.current
     ) {
-      const { width, height } = imgRef.current;
-      onCropComplete(completedCrop, aspectRatio, width, height);
+      onCropComplete(
+        completedCrop,
+        aspectRatio,
+        imgRef.current.width,
+        imgRef.current.height
+      );
       onClose();
     }
-  }, [completedCrop, aspectRatio, onCropComplete, onClose]);
+  };
 
-  const handleAspectChange = useCallback((preset: AspectRatioPreset) => {
+  const handleAspectChange = (preset: AspectRatioPreset) => {
     setAspectRatio(preset.value);
     if (imgRef.current) {
       const { width, height } = imgRef.current;
+      // This will now use width: 100 to maximize the crop box
       const newCrop = centerAspectCrop(width, height, preset.value);
       setCrop(newCrop);
-      // Convert percent crop to pixel crop for completedCrop
-      const pixelCrop: PixelCrop = {
+
+      // Re-calculate completed crop immediately
+      setCompletedCrop({
         unit: "px",
         x: (newCrop.x / 100) * width,
         y: (newCrop.y / 100) * height,
         width: (newCrop.width / 100) * width,
         height: (newCrop.height / 100) * height,
-      };
-      setCompletedCrop(pixelCrop);
+      });
     }
-  }, [setCrop, setCompletedCrop]);
+  };
 
-  const handleReset = useCallback(() => {
+  const handleReset = () => {
     const def = getDefaultAspectRatio(platform);
     setAspectRatio(def);
     if (imgRef.current) {
       const { width, height } = imgRef.current;
       const newCrop = centerAspectCrop(width, height, def);
       setCrop(newCrop);
-      // Convert percent crop to pixel crop for completedCrop
-      const pixelCrop: PixelCrop = {
-        unit: "px",
-        x: (newCrop.x / 100) * width,
-        y: (newCrop.y / 100) * height,
-        width: (newCrop.width / 100) * width,
-        height: (newCrop.height / 100) * height,
-      };
-      setCompletedCrop(pixelCrop);
     }
-  }, [platform, setCrop, setCompletedCrop]);
-
-  const platformNames: Record<SocialPlatform, string> = {
-    instagram: "Instagram",
-    facebook: "Facebook",
-    linkedin: "LinkedIn",
-    x: "X / Twitter",
-    threads: "Threads",
-    tiktok: "TikTok",
   };
 
   return (
-    // BACKDROP
-    <div className="fixed inset-0 z-[50] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 animate-in fade-in duration-200">
-      {/* MODAL CONTAINER */}
-      <div className="relative w-full max-w-[1300px] h-[85vh] bg-background border border-border shadow-2xl rounded-xl overflow-hidden flex flex-row">
-        {/* LEFT SIDEBAR - CONTROLS */}
-        <div className="w-[280px] md:w-[320px] flex flex-col border-r border-border bg-surface h-full shrink-0 z-10">
+    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/90 p-4 sm:p-6 animate-in fade-in duration-200">
+      <div className="flex h-[90vh] w-full max-w-6xl overflow-hidden rounded-lg bg-[#1a1a1a] shadow-2xl border border-white/10">
+        {/* --- LEFT PANEL: Controls --- */}
+        <div className="flex w-80 flex-col border-r border-white/10 bg-[#222]">
           {/* Header */}
-          <div className="p-5 border-b border-border">
-            <h2 className="font-serif text-lg font-bold text-foreground flex items-center gap-2">
-              <CropIcon className="w-4 h-4" />
-              Transform
-            </h2>
-            <p className="text-xs text-muted-foreground mt-1">
-              For {platformNames[platform]}
-            </p>
+          <div className="flex items-center justify-between border-b border-white/10 p-5">
+            <div>
+              <h2 className="text-sm font-semibold text-white">Transform</h2>
+              <p className="text-xs text-neutral-400 capitalize">
+                For {platform}
+              </p>
+            </div>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleReset}
+              className="h-8 px-2 text-xs text-neutral-400 hover:text-white"
+            >
+              <RotateCcw className="mr-1.5 h-3 w-3" />
+              Reset
+            </Button>
           </div>
 
-          {/* Scrollable Controls */}
-          <div className="flex-1 overflow-y-auto p-5 space-y-6">
-            {/* Aspect Ratio Section */}
-            <div className="space-y-3">
-              <div className="flex items-center justify-between">
-                <label className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
-                  Size Preset
-                </label>
-                <button
-                  onClick={handleReset}
-                  className="text-[11px] text-brand-primary hover:text-foreground transition-colors flex items-center gap-1"
-                >
-                  <RotateCcw className="w-3 h-3" />
-                  Reset
-                </button>
-              </div>
-
-              <div className="flex flex-col gap-2">
+          {/* Presets List */}
+          <div className="flex-1 overflow-y-auto p-5">
+            <div className="space-y-2">
+              <label className="text-[10px] font-bold uppercase tracking-wider text-neutral-500">
+                Aspect Ratio
+              </label>
+              <div className="grid gap-2">
                 {presets.map((preset) => {
-                  // Calculate icon dimensions dynamically to preserve aspect ratio in the button
-                  const isLandscape = preset.value >= 1;
-                  const iconBaseSize = 18;
-                  const iconWidth = isLandscape
-                    ? iconBaseSize
-                    : iconBaseSize * preset.value;
-                  const iconHeight = isLandscape
-                    ? iconBaseSize / preset.value
-                    : iconBaseSize;
+                  const isActive = Math.abs(aspectRatio - preset.value) < 0.01;
+
+                  // Dynamic icon calculation
+                  const isLandscape = preset.value > 1;
+                  const w = isLandscape ? 20 : 20 * preset.value;
+                  const h = isLandscape ? 20 / preset.value : 20;
 
                   return (
                     <button
                       key={preset.label}
                       onClick={() => handleAspectChange(preset)}
                       className={cn(
-                        "flex items-center gap-3 px-3 py-2.5 border rounded-sm transition-all duration-200 group",
-                        aspectRatio === preset.value
-                          ? "border-foreground bg-background shadow-sm"
-                          : "border-border bg-transparent hover:bg-surface-hover"
+                        "flex items-center gap-3 rounded-md border px-3 py-2.5 text-left text-sm transition-colors",
+                        isActive
+                          ? "border-brand-primary bg-brand-primary/10 text-white"
+                          : "border-white/10 text-neutral-400 hover:border-white/20 hover:bg-white/5 hover:text-white"
                       )}
                     >
-                      {/* Dynamic Aspect Ratio Icon */}
-                      <div className="flex items-center justify-center w-[20px] shrink-0">
+                      <div className="flex w-6 items-center justify-center">
                         <div
                           className={cn(
-                            "border-2 rounded-[2px] transition-colors",
-                            aspectRatio === preset.value
-                              ? "border-foreground"
-                              : "border-muted-foreground group-hover:border-foreground"
+                            "border-2",
+                            isActive
+                              ? "border-brand-primary"
+                              : "border-neutral-500"
                           )}
-                          style={{
-                            width: `${iconWidth}px`,
-                            height: `${iconHeight}px`,
-                          }}
+                          style={{ width: w, height: h }}
                         />
                       </div>
-                      <span
-                        className={cn(
-                          "text-xs font-medium",
-                          aspectRatio === preset.value
-                            ? "text-foreground"
-                            : "text-muted-foreground"
-                        )}
-                      >
-                        {preset.label}
-                      </span>
+                      <span className="font-medium">{preset.label}</span>
                     </button>
                   );
                 })}
               </div>
             </div>
 
-            {/* Instruction Box */}
-            <div className="rounded-sm border border-border bg-surface-hover p-3">
-              <div className="flex gap-3">
-                <Move className="w-4 h-4 text-muted-foreground shrink-0 mt-0.5" />
-                <p className="text-xs text-muted-foreground leading-relaxed">
+            <div className="mt-6 rounded-md bg-white/5 p-4">
+              <div className="flex gap-3 text-neutral-400">
+                <Move className="mt-0.5 h-4 w-4 shrink-0" />
+                <p className="text-xs leading-relaxed">
                   Drag corners to resize. <br />
                   Drag inside to move.
                 </p>
@@ -336,53 +310,63 @@ function ImageCropperModalContent({
           </div>
 
           {/* Footer Actions */}
-          <div className="p-5 border-t border-border bg-surface space-y-3">
-            <Button onClick={handleSave} className="w-full" variant="primary">
-              <Check className="mr-2 h-4 w-4" />
-              Done
-            </Button>
-            <Button
-              onClick={onClose}
-              variant="outline"
-              className="w-full border-error text-error hover:bg-error/10 hover:text-error"
-            >
-              Cancel
-            </Button>
+          <div className="border-t border-white/10 p-5">
+            <div className="grid gap-3">
+              <Button
+                onClick={handleSave}
+                className="w-full bg-white text-black hover:bg-neutral-200"
+              >
+                <Check className="mr-2 h-4 w-4" />
+                Apply Crop
+              </Button>
+              <Button
+                onClick={onClose}
+                variant="ghost"
+                className="w-full text-neutral-400 hover:text-white hover:bg-white/10"
+              >
+                Cancel
+              </Button>
+            </div>
           </div>
         </div>
 
-        {/* RIGHT AREA - CANVAS */}
-        <div className="flex-1 relative bg-neutral-900 flex flex-col h-full overflow-hidden">
-          {/* Top floating label */}
+        {/* --- RIGHT PANEL: Canvas --- */}
+        <div className="flex flex-1 items-center justify-center overflow-hidden bg-[#0a0a0a] p-8 relative">
+          <ReactCrop
+            crop={crop}
+            onChange={(_, percentCrop) => setCrop(percentCrop)}
+            onComplete={(c) => setCompletedCrop(c)}
+            aspect={aspectRatio}
+            className="shadow-2xl"
+            style={{
+              maxWidth: "100%",
+              maxHeight: "100%",
+            }}
+          >
+            <img
+              ref={imgRef}
+              src={imageSrc}
+              alt="Crop preview"
+              onLoad={onImageLoad}
+              crossOrigin="anonymous"
+              style={{
+                display: "block",
+                maxWidth: "100%",
+                maxHeight: "100%",
+                width: "auto",
+                height: "auto",
+              }}
+            />
+          </ReactCrop>
 
-          <div className="flex-1 flex items-center justify-center p-8 md:p-12 overflow-hidden">
-            <ReactCrop
-              crop={crop}
-              onChange={(_, percentCrop) => setCrop(percentCrop)}
-              onComplete={(c) => setCompletedCrop(c)}
-              aspect={aspectRatio}
-              className="shadow-[0_0_60px_rgba(0,0,0,0.4)]"
-              style={{ maxHeight: "100%" }}
-            >
-              <img
-                ref={imgRef}
-                src={imageSrc}
-                alt="Crop preview"
-                onLoad={onImageLoad}
-                className="max-h-[calc(85vh-6rem)] max-w-full object-contain block"
-                crossOrigin="anonymous"
-              />
-            </ReactCrop>
-          </div>
+          {/* Close X */}
+          <button
+            onClick={onClose}
+            className="absolute right-4 top-4 rounded-full bg-black/50 p-2 text-white/70 hover:bg-black/80 hover:text-white transition-colors"
+          >
+            <X className="h-5 w-5" />
+          </button>
         </div>
-
-        {/* Close Button */}
-        <button
-          onClick={onClose}
-          className="absolute top-3 right-3 z-50 p-2 text-white/60 hover:text-white bg-black/30 hover:bg-black/50 rounded-full transition-all"
-        >
-          <X className="w-4 h-4" />
-        </button>
       </div>
     </div>
   );
