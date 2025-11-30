@@ -214,7 +214,7 @@ export default function MediaUpload({
                       handleRemove(index);
                     }}
                     disabled={isItemUploading}
-                    className="absolute top-1 right-1 p-0.5 bg-black/60 hover:bg-red-600 text-white rounded-full transition-colors z-20 opacity-0 group-hover:opacity-100 cursor-pointer disabled:opacity-0"
+                    className="absolute top-1 right-1 p-0.5 bg-black/60 hover:bg-red-600 text-white rounded-full transition-colors z-20 cursor-pointer disabled:opacity-0"
                   >
                     <X className="w-3 h-3" />
                   </button>
