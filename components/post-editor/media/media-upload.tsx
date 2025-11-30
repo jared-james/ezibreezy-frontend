@@ -2,7 +2,7 @@
 
 "use client";
 
-import { useCallback, useState, useMemo, useEffect } from "react";
+import { useCallback, useState, useMemo, useEffect, useRef } from "react";
 import {
   Upload,
   X,
@@ -44,6 +44,7 @@ export default function MediaUpload({
 }: MediaUploadProps) {
   const [isDraggingFiles, setIsDraggingFiles] = useState(false);
   const [isMediaRoomOpen, setIsMediaRoomOpen] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const { data: connections = [] } = useQuery({
     queryKey: ["connections"],
@@ -117,6 +118,10 @@ export default function MediaUpload({
     },
     [handleFiles]
   );
+
+  const handleUploadClick = () => {
+    fileInputRef.current?.click();
+  };
 
   const handleRemove = useCallback(
     (indexToRemove: number) => {
@@ -233,17 +238,13 @@ export default function MediaUpload({
             })}
 
             {!isFull && (
-              <label className="relative aspect-square border-2 border-dashed border-[--border] hover:border-[--foreground] hover:bg-[--surface-hover] rounded-md cursor-pointer flex flex-col items-center justify-center gap-1 text-[--muted-foreground] hover:text-[--foreground] transition-colors">
-                <input
-                  type="file"
-                  accept="image/*,video/*"
-                  multiple
-                  onChange={handleFileSelect}
-                  className="hidden"
-                />
-                <Plus className="w-5 h-5" />
-                <span className="text-[9px] uppercase font-bold">Add</span>
-              </label>
+              <div className="relative aspect-square border-2 border-dashed border-[--border] rounded-md flex flex-col items-center justify-center gap-1 text-[--muted-foreground]">
+                <span className="text-[9px] uppercase font-bold text-center leading-tight">
+                  Add Additional
+                  <br />
+                  Images/Videos
+                </span>
+              </div>
             )}
           </div>
 
@@ -274,7 +275,18 @@ export default function MediaUpload({
             </div>
           )}
 
-          <div className="flex items-center justify-center pt-2">
+          <div className="flex items-center justify-center pt-2 gap-3">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={handleUploadClick}
+              disabled={isFull}
+              className="gap-2 border-brand-primary text-brand-primary hover:bg-brand-primary hover:text-white"
+            >
+              <Upload className="h-4 w-4" />
+              Upload from Device
+            </Button>
+
             <Button
               type="button"
               variant="outline"
@@ -286,6 +298,16 @@ export default function MediaUpload({
               Browse Media Library
             </Button>
           </div>
+
+          {/* Hidden input for the ref */}
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/*,video/*"
+            multiple
+            onChange={handleFileSelect}
+            className="hidden"
+          />
         </div>
       ) : (
         <div
