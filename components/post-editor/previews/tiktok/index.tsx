@@ -3,20 +3,13 @@
 "use client";
 
 import { memo, useState, useRef } from "react";
-import {
-  ImageIcon,
-  Crop,
-  Loader2,
-  ChevronLeft,
-  ChevronRight,
-} from "lucide-react";
+import { ImageIcon, Crop, ChevronLeft, ChevronRight } from "lucide-react";
 import { ImageCropperModal } from "../../modals/image-cropper-modal";
 import { TikTokVideoOptions } from "./tiktok-video-options";
 import { TikTokSidebar } from "./tiktok-sidebar";
 import { TikTokFooter } from "./tiktok-footer";
 import { TikTokCarousel } from "./tiktok-carousel";
-import type { PixelCrop } from "react-image-crop";
-import { createCroppedPreviewUrl, type CropData } from "@/lib/utils/crop-utils";
+import { type CropData } from "@/lib/utils/crop-utils";
 import { useEditorialStore, MediaItem } from "@/lib/store/editorial-store";
 import { getMediaViewUrl } from "@/lib/api/media";
 import { toast } from "sonner";
@@ -47,7 +40,6 @@ function TikTokPreview({
   const primaryName = displayName || accountName || "Account";
 
   const [isCropperOpen, setIsCropperOpen] = useState(false);
-  const [isFetchingOriginal, setIsFetchingOriginal] = useState(false);
   const [videoDuration, setVideoDuration] = useState(0);
   const [carouselIndex, setCarouselIndex] = useState(0);
   const carouselRef = useRef<HTMLDivElement>(null);
@@ -85,111 +77,46 @@ function TikTokPreview({
       ? singleMediaItem.mediaUrl
       : singleMediaItem?.preview);
 
-  // Get the active media item for cropping (current carousel item or single item)
-  const activeMediaForCrop = isCarousel
-    ? mediaItems?.[carouselIndex]
-    : singleMediaItem;
+  // Check if we have images to crop
+  const canCrop = isCarousel
+    ? mediaItems.some((item) => item.type === "image")
+    : singleMediaItem?.type === "image";
 
-  const canCrop =
-    !!activeMediaForCrop?.id && activeMediaForCrop?.type === "image";
-  const originalMediaSrc = activeMediaForCrop?.file
-    ? activeMediaForCrop.preview
-    : activeMediaForCrop?.originalUrlForCropping;
+  const handleCropClick = () => {
+    setIsCropperOpen(true);
+  };
 
-  const onCropComplete = (
-    cropData: CropData | undefined,
-    croppedPreviewUrl: string
+  const handleCropSave = (
+    mediaUid: string,
+    cropData: CropData,
+    previewUrl: string
   ) => {
-    if (activeMediaForCrop) {
-      setCropForMedia(
-        activeMediaForCrop.uid,
-        "tiktok",
-        cropData,
-        croppedPreviewUrl
-      );
-    }
+    setCropForMedia(mediaUid, "tiktok", cropData, previewUrl);
   };
 
-  const handleCropComplete = async (
-    croppedAreaPixels: PixelCrop,
-    aspectRatio: number,
-    displayedWidth: number,
-    displayedHeight: number
-  ) => {
-    if (!originalMediaSrc) return;
-
+  const handleGetOriginalUrl = async (
+    item: MediaItem
+  ): Promise<string | null> => {
+    if (!item.id || !integrationId) return null;
     try {
-      const getOriginalDimensions = (
-        src: string
-      ): Promise<{ width: number; height: number }> =>
-        new Promise((resolve, reject) => {
-          const img = new window.Image();
-          img.onload = () =>
-            resolve({ width: img.naturalWidth, height: img.naturalHeight });
-          img.onerror = reject;
-          img.src = src;
-        });
-
-      const originalDimensions = await getOriginalDimensions(originalMediaSrc);
-      const scalingFactor = originalDimensions.width / displayedWidth;
-
-      const scaledCroppedAreaPixels: PixelCrop = {
-        ...croppedAreaPixels,
-        x: Math.round(croppedAreaPixels.x * scalingFactor),
-        y: Math.round(croppedAreaPixels.y * scalingFactor),
-        width: Math.round(croppedAreaPixels.width * scalingFactor),
-        height: Math.round(croppedAreaPixels.height * scalingFactor),
-      };
-
-      const croppedUrl = await createCroppedPreviewUrl(
-        originalMediaSrc,
-        croppedAreaPixels,
-        displayedWidth,
-        displayedHeight
-      );
-      const cropData: CropData = {
-        croppedAreaPixels: scaledCroppedAreaPixels,
-        aspectRatio,
-      };
-      onCropComplete(cropData, croppedUrl);
+      const { downloadUrl } = await getMediaViewUrl(item.id, integrationId);
+      return downloadUrl;
     } catch (error) {
-      console.error("Failed to crop image:", error);
+      console.error("Failed to fetch original URL", error);
+      toast.error("Failed to load high-quality image");
+      return null;
     }
   };
 
-  const handleCropClick = async () => {
-    if (!canCrop || !activeMediaForCrop || !activeMediaForCrop.id) return;
+  // Construct list for cropper modal
+  const cropperMediaItems =
+    mediaItems.length > 0
+      ? mediaItems
+      : singleMediaItem
+      ? [singleMediaItem]
+      : [];
 
-    if (activeMediaForCrop.originalUrlForCropping) {
-      setIsCropperOpen(true);
-      return;
-    }
-
-    setIsFetchingOriginal(true);
-    try {
-      if (!integrationId) throw new Error("TikTok account not selected.");
-      const { downloadUrl } = await getMediaViewUrl(
-        activeMediaForCrop.id,
-        integrationId
-      );
-
-      const currentItems = useEditorialStore.getState().stagedMediaItems;
-      const updatedItems = currentItems.map((item) =>
-        item.uid === activeMediaForCrop.uid
-          ? { ...item, originalUrlForCropping: downloadUrl }
-          : item
-      );
-      useEditorialStore.getState().setStagedMediaItems(updatedItems);
-      setIsCropperOpen(true);
-    } catch (error) {
-      console.error(error);
-      toast.error(
-        "Could not load original image for cropping. Please try again."
-      );
-    } finally {
-      setIsFetchingOriginal(false);
-    }
-  };
+  const cropperInitialIndex = isCarousel ? carouselIndex : 0;
 
   return (
     <div className="w-full max-w-[300px] mx-auto space-y-4 transition-all duration-300">
@@ -299,13 +226,8 @@ function TikTokPreview({
                 onClick={handleCropClick}
                 title="Crop Image"
                 className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
-                disabled={isFetchingOriginal}
               >
-                {isFetchingOriginal ? (
-                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                ) : (
-                  <Crop className="h-3.5 w-3.5" />
-                )}
+                <Crop className="h-3.5 w-3.5" />
                 Crop{" "}
                 {isCarousel && `(${carouselIndex + 1}/${mediaItems?.length})`}
               </button>
@@ -329,13 +251,15 @@ function TikTokPreview({
         />
       )}
 
-      {originalMediaSrc && (
+      {isCropperOpen && (
         <ImageCropperModal
           open={isCropperOpen}
           onClose={() => setIsCropperOpen(false)}
-          imageSrc={originalMediaSrc}
+          mediaItems={cropperMediaItems}
+          initialIndex={cropperInitialIndex}
           platform="tiktok"
-          onCropComplete={handleCropComplete}
+          onCropSave={handleCropSave}
+          getOriginalUrl={handleGetOriginalUrl}
         />
       )}
     </div>

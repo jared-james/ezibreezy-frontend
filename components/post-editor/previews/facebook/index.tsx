@@ -7,12 +7,7 @@ import { Crop, Link2, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { renderCaptionWithHashtags } from "../../render-caption";
 import { ImageCropperModal } from "../../modals/image-cropper-modal";
-import type { PixelCrop } from "react-image-crop";
-import {
-  createCroppedPreviewUrl,
-  type CropData,
-  STORY_ASPECT_RATIO,
-} from "@/lib/utils/crop-utils";
+import { type CropData } from "@/lib/utils/crop-utils";
 import { useEditorialStore, MediaItem } from "@/lib/store/editorial-store";
 import { getMediaViewUrl } from "@/lib/api/media";
 import { toast } from "sonner";
@@ -21,7 +16,7 @@ import { toast } from "sonner";
 import { FacebookHeader } from "./facebook-header";
 import { FacebookPostFooter } from "./facebook-post-footer";
 import { FacebookStoryView } from "./facebook-story-view";
-import { FacebookMediaGrid } from "./facebook-media-grid"; // Import the grid view
+import { FacebookMediaGrid } from "./facebook-media-grid";
 
 const URL_REGEX =
   /(https?:\/\/[^\s]+|www\.[^\s]+|[a-zA-Z0-9][-a-zA-Z0-9]*\.[a-zA-Z]{2,}(?:\/[^\s]*)?)/gi;
@@ -84,7 +79,6 @@ function FacebookPreview({
   const primaryName = displayName || accountName || "Account";
 
   const [isCropperOpen, setIsCropperOpen] = useState(false);
-  const [isFetchingOriginal, setIsFetchingOriginal] = useState(false);
   const [currentCarouselIndex, setCurrentCarouselIndex] = useState(0);
 
   const setCropForMedia = useEditorialStore((state) => state.setCropForMedia);
@@ -111,10 +105,6 @@ function FacebookPreview({
   const canCrop =
     !!activeMediaForCrop?.id && activeMediaForCrop?.type === "image";
 
-  const originalMediaSrc = activeMediaForCrop?.file
-    ? activeMediaForCrop.preview
-    : activeMediaForCrop?.originalUrlForCropping;
-
   const detectedUrl = useMemo(() => extractFirstUrl(caption), [caption]);
   const showLinkPreview = detectedUrl && !displayMediaSrc && !hasMultipleMedia;
 
@@ -125,103 +115,41 @@ function FacebookPreview({
     return caption;
   }, [caption, showLinkPreview, detectedUrl]);
 
-  const handleCropComplete = async (
-    croppedAreaPixels: PixelCrop,
-    newAspectRatio: number,
-    displayedWidth: number,
-    displayedHeight: number
+  const handleCropClick = () => {
+    setIsCropperOpen(true);
+  };
+
+  const handleCropSave = (
+    mediaUid: string,
+    cropData: CropData,
+    previewUrl: string
   ) => {
-    if (!originalMediaSrc) return;
+    setCropForMedia(mediaUid, "facebook", cropData, previewUrl);
+  };
 
+  const handleGetOriginalUrl = async (
+    item: MediaItem
+  ): Promise<string | null> => {
+    if (!item.id || !integrationId) return null;
     try {
-      const getOriginalDimensions = (
-        src: string
-      ): Promise<{ width: number; height: number }> =>
-        new Promise((resolve, reject) => {
-          const img = new window.Image();
-          img.onload = () =>
-            resolve({ width: img.naturalWidth, height: img.naturalHeight });
-          img.onerror = reject;
-          img.src = src;
-        });
-
-      const originalDimensions = await getOriginalDimensions(originalMediaSrc);
-      const scalingFactor = originalDimensions.width / displayedWidth;
-
-      const scaledCroppedAreaPixels: PixelCrop = {
-        ...croppedAreaPixels,
-        x: Math.round(croppedAreaPixels.x * scalingFactor),
-        y: Math.round(croppedAreaPixels.y * scalingFactor),
-        width: Math.round(croppedAreaPixels.width * scalingFactor),
-        height: Math.round(croppedAreaPixels.height * scalingFactor),
-      };
-
-      const croppedUrl = await createCroppedPreviewUrl(
-        originalMediaSrc,
-        croppedAreaPixels,
-        displayedWidth,
-        displayedHeight
-      );
-
-      const cropData: CropData = {
-        croppedAreaPixels: scaledCroppedAreaPixels,
-        aspectRatio: newAspectRatio,
-      };
-
-      if (activeMediaForCrop) {
-        setCropForMedia(
-          activeMediaForCrop.uid,
-          "facebook",
-          cropData,
-          croppedUrl
-        );
-      }
+      const { downloadUrl } = await getMediaViewUrl(item.id, integrationId);
+      return downloadUrl;
     } catch (error) {
-      console.error("Failed to crop image:", error);
+      console.error("Failed to fetch original URL", error);
+      toast.error("Failed to load high-quality image");
+      return null;
     }
   };
 
-  const handleCropClick = async () => {
-    if (
-      !activeMediaForCrop ||
-      !activeMediaForCrop.id ||
-      activeMediaForCrop.type !== "image"
-    ) {
-      return;
-    }
+  // Construct list for cropper modal
+  const cropperMediaItems =
+    mediaItems.length > 0
+      ? mediaItems
+      : singleMediaItem
+      ? [singleMediaItem]
+      : [];
 
-    if (activeMediaForCrop.originalUrlForCropping) {
-      setIsCropperOpen(true);
-      return;
-    }
-
-    setIsFetchingOriginal(true);
-    try {
-      if (!integrationId) throw new Error("Facebook account not selected.");
-
-      const { downloadUrl } = await getMediaViewUrl(
-        activeMediaForCrop.id,
-        integrationId
-      );
-
-      const currentItems = useEditorialStore.getState().stagedMediaItems;
-      const updatedItems = currentItems.map((item) =>
-        item.uid === activeMediaForCrop.uid
-          ? { ...item, originalUrlForCropping: downloadUrl }
-          : item
-      );
-      useEditorialStore.getState().setStagedMediaItems(updatedItems);
-
-      setIsCropperOpen(true);
-    } catch (error) {
-      console.error("Failed to get download URL for cropping:", error);
-      toast.error(
-        "Could not load original image for cropping. Please try again."
-      );
-    } finally {
-      setIsFetchingOriginal(false);
-    }
-  };
+  const cropperInitialIndex = hasMultipleMedia ? currentCarouselIndex : 0;
 
   return (
     <div
@@ -316,13 +244,8 @@ function FacebookPreview({
           <button
             onClick={handleCropClick}
             className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
-            disabled={isFetchingOriginal}
           >
-            {isFetchingOriginal ? (
-              <Loader2 className="h-3.5 w-3.5 animate-spin" />
-            ) : (
-              <Crop className="h-3.5 w-3.5" />
-            )}
+            <Crop className="h-3.5 w-3.5" />
             Crop{" "}
             {(hasMultipleMedia || (isStory && mediaItems.length > 1)) &&
               `(${currentCarouselIndex + 1}/${Math.max(mediaItems.length, 1)})`}
@@ -335,16 +258,16 @@ function FacebookPreview({
       </div>
 
       {/* Cropper Modal */}
-      {originalMediaSrc && (
+      {isCropperOpen && (
         <ImageCropperModal
           open={isCropperOpen}
           onClose={() => setIsCropperOpen(false)}
-          imageSrc={originalMediaSrc}
+          mediaItems={cropperMediaItems}
+          initialIndex={cropperInitialIndex}
           platform="facebook"
           postType={postType}
-          initialCrop={activeMediaForCrop?.crops?.facebook?.croppedAreaPixels}
-          initialAspectRatio={activeMediaForCrop?.crops?.facebook?.aspectRatio}
-          onCropComplete={handleCropComplete}
+          onCropSave={handleCropSave}
+          getOriginalUrl={handleGetOriginalUrl}
         />
       )}
     </div>

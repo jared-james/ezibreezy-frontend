@@ -3,11 +3,10 @@
 "use client";
 
 import { memo, useState } from "react";
-import { Crop, Loader2, Link as LinkIcon, ImageIcon } from "lucide-react";
+import { Crop, Link as LinkIcon, ImageIcon } from "lucide-react";
 import { renderCaptionWithHashtags } from "../../render-caption";
 import { ImageCropperModal } from "../../modals/image-cropper-modal";
-import type { PixelCrop } from "react-image-crop";
-import { createCroppedPreviewUrl, type CropData } from "@/lib/utils/crop-utils";
+import { type CropData } from "@/lib/utils/crop-utils";
 import { useEditorialStore, MediaItem } from "@/lib/store/editorial-store";
 import { getMediaViewUrl } from "@/lib/api/media";
 import { toast } from "sonner";
@@ -66,7 +65,6 @@ function ThreadsPreview({
   const accountName = platformUsername.replace(/^@/, "");
   const primaryName = displayName || accountName || "Account";
   const [isCropperOpen, setIsCropperOpen] = useState(false);
-  const [isFetchingOriginal, setIsFetchingOriginal] = useState(false);
 
   const setCropForMedia = useEditorialStore((state) => state.setCropForMedia);
   const setState = useEditorialStore((state) => state.setState);
@@ -79,109 +77,31 @@ function ThreadsPreview({
   );
   const location = useEditorialStore((state) => state.location);
 
-  // For cropping logic, currently defaulting to the first item
-  // Future enhancement: Allow selecting which item to crop in carousel
-  const singleMediaItem = mediaItems[0];
+  const canCrop = mediaItems.some((item) => item.id && item.type === "image");
 
-  const canCrop =
-    singleMediaItem?.id &&
-    singleMediaItem.type === "image" &&
-    mediaItems.length > 0;
-
-  const originalMediaSrc = singleMediaItem?.file
-    ? singleMediaItem.preview
-    : singleMediaItem?.originalUrlForCropping;
-
-  const onCropComplete = (
-    cropData: CropData | undefined,
-    croppedPreviewUrl: string
-  ) => {
-    if (singleMediaItem) {
-      setCropForMedia(
-        singleMediaItem.uid,
-        "threads",
-        cropData,
-        croppedPreviewUrl
-      );
-    }
+  const handleCropClick = () => {
+    setIsCropperOpen(true);
   };
 
-  const handleCropComplete = async (
-    croppedAreaPixels: PixelCrop,
-    aspectRatio: number,
-    displayedWidth: number,
-    displayedHeight: number
+  const handleCropSave = (
+    mediaUid: string,
+    cropData: CropData,
+    previewUrl: string
   ) => {
-    if (!originalMediaSrc) return;
-
-    try {
-      const getOriginalDimensions = (
-        src: string
-      ): Promise<{ width: number; height: number }> =>
-        new Promise((resolve, reject) => {
-          const img = new window.Image();
-          img.onload = () =>
-            resolve({ width: img.naturalWidth, height: img.naturalHeight });
-          img.onerror = reject;
-          img.src = src;
-        });
-
-      const originalDimensions = await getOriginalDimensions(originalMediaSrc);
-      const scalingFactor = originalDimensions.width / displayedWidth;
-
-      const scaledCroppedAreaPixels: PixelCrop = {
-        ...croppedAreaPixels,
-        x: Math.round(croppedAreaPixels.x * scalingFactor),
-        y: Math.round(croppedAreaPixels.y * scalingFactor),
-        width: Math.round(croppedAreaPixels.width * scalingFactor),
-        height: Math.round(croppedAreaPixels.height * scalingFactor),
-      };
-
-      const croppedUrl = await createCroppedPreviewUrl(
-        originalMediaSrc,
-        croppedAreaPixels,
-        displayedWidth,
-        displayedHeight
-      );
-
-      onCropComplete(
-        { croppedAreaPixels: scaledCroppedAreaPixels, aspectRatio },
-        croppedUrl
-      );
-    } catch (error) {
-      console.error("Failed to crop image:", error);
-    }
+    setCropForMedia(mediaUid, "threads", cropData, previewUrl);
   };
 
-  const handleCropClick = async () => {
-    if (!canCrop || !singleMediaItem || !singleMediaItem.id) return;
-
-    if (singleMediaItem.originalUrlForCropping) {
-      setIsCropperOpen(true);
-      return;
-    }
-
-    setIsFetchingOriginal(true);
+  const handleGetOriginalUrl = async (
+    item: MediaItem
+  ): Promise<string | null> => {
+    if (!item.id || !integrationId) return null;
     try {
-      if (!integrationId) throw new Error("Threads account not selected.");
-      const { downloadUrl } = await getMediaViewUrl(
-        singleMediaItem.id,
-        integrationId
-      );
-
-      const currentItems = useEditorialStore.getState().stagedMediaItems;
-      const updatedItems = currentItems.map((item) =>
-        item.uid === singleMediaItem.uid
-          ? { ...item, originalUrlForCropping: downloadUrl }
-          : item
-      );
-      useEditorialStore.getState().setStagedMediaItems(updatedItems);
-      setIsCropperOpen(true);
+      const { downloadUrl } = await getMediaViewUrl(item.id, integrationId);
+      return downloadUrl;
     } catch (error) {
-      console.error(error);
-      toast.error("Could not load original image for cropping.");
-    } finally {
-      setIsFetchingOriginal(false);
+      console.error("Failed to fetch original URL", error);
+      toast.error("Failed to load high-quality image");
+      return null;
     }
   };
 
@@ -233,14 +153,9 @@ function ThreadsPreview({
               <button
                 onClick={handleCropClick}
                 className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
-                disabled={isFetchingOriginal}
               >
-                {isFetchingOriginal ? (
-                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                ) : (
-                  <Crop className="h-3.5 w-3.5" />
-                )}
-                Crop (First Item)
+                <Crop className="h-3.5 w-3.5" />
+                Crop
               </button>
             ) : (
               <p className="text-xs text-muted-foreground text-center italic">
@@ -306,13 +221,15 @@ function ThreadsPreview({
         </div>
       </div>
 
-      {originalMediaSrc && (
+      {isCropperOpen && (
         <ImageCropperModal
           open={isCropperOpen}
           onClose={() => setIsCropperOpen(false)}
-          imageSrc={originalMediaSrc}
+          mediaItems={mediaItems}
+          initialIndex={0}
           platform="threads"
-          onCropComplete={handleCropComplete}
+          onCropSave={handleCropSave}
+          getOriginalUrl={handleGetOriginalUrl}
         />
       )}
     </div>

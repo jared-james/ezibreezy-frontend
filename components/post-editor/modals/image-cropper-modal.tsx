@@ -10,7 +10,15 @@ import ReactCrop, {
   makeAspectCrop,
 } from "react-image-crop";
 import "react-image-crop/dist/ReactCrop.css";
-import { X, Check, RotateCcw, Crop as CropIcon, Move } from "lucide-react";
+import {
+  X,
+  Check,
+  RotateCcw,
+  Crop as CropIcon,
+  Move,
+  Loader2,
+  ImageIcon,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import {
@@ -18,25 +26,25 @@ import {
   type AspectRatioPreset,
   PLATFORM_ASPECT_RATIOS,
   getDefaultAspectRatio,
+  type CropData,
 } from "@/lib/utils/crop-utils";
+import { MediaItem } from "@/lib/store/editorial-store";
 
 interface ImageCropperModalProps {
   open: boolean;
   onClose: () => void;
-  imageSrc: string;
+  mediaItems: MediaItem[];
+  initialIndex: number;
   platform: SocialPlatform;
   postType?: "post" | "reel" | "story";
-  initialCrop?: PixelCrop;
-  initialAspectRatio?: number;
-  onCropComplete: (
-    croppedAreaPixels: PixelCrop,
-    aspectRatio: number,
-    displayedWidth: number,
-    displayedHeight: number
+  onCropSave: (
+    mediaUid: string,
+    cropData: CropData,
+    previewUrl: string
   ) => void;
+  getOriginalUrl?: (item: MediaItem) => Promise<string | null>;
 }
 
-// Helper: Calculate a centered crop based on aspect ratio
 function centerAspectCrop(
   mediaWidth: number,
   mediaHeight: number,
@@ -46,7 +54,7 @@ function centerAspectCrop(
     makeAspectCrop(
       {
         unit: "%",
-        width: 100, // CHANGED: 90 -> 100 to make the crop box full width/height
+        width: 100,
       },
       aspect,
       mediaWidth,
@@ -60,14 +68,13 @@ function centerAspectCrop(
 export function ImageCropperModal({
   open,
   onClose,
-  imageSrc,
+  mediaItems,
+  initialIndex,
   platform,
   postType,
-  initialCrop,
-  initialAspectRatio,
-  onCropComplete,
+  onCropSave,
+  getOriginalUrl,
 }: ImageCropperModalProps) {
-  // Keyboard trap for Escape
   useEffect(() => {
     const handleEsc = (e: KeyboardEvent) => {
       if (e.key === "Escape") onClose();
@@ -76,7 +83,6 @@ export function ImageCropperModal({
     return () => window.removeEventListener("keydown", handleEsc);
   }, [open, onClose]);
 
-  // Lock scroll when open
   useEffect(() => {
     if (open) {
       document.body.style.overflow = "hidden";
@@ -93,41 +99,56 @@ export function ImageCropperModal({
   return (
     <ImageCropperModalContent
       onClose={onClose}
-      imageSrc={imageSrc}
+      mediaItems={mediaItems}
+      initialIndex={initialIndex}
       platform={platform}
       postType={postType}
-      initialCrop={initialCrop}
-      initialAspectRatio={initialAspectRatio}
-      onCropComplete={onCropComplete}
+      onCropSave={onCropSave}
+      getOriginalUrl={getOriginalUrl}
     />
   );
 }
 
 interface ImageCropperModalContentProps {
   onClose: () => void;
-  imageSrc: string;
+  mediaItems: MediaItem[];
+  initialIndex: number;
   platform: SocialPlatform;
   postType?: "post" | "reel" | "story";
-  initialCrop?: PixelCrop;
-  initialAspectRatio?: number;
-  onCropComplete: (
-    croppedAreaPixels: PixelCrop,
-    aspectRatio: number,
-    displayedWidth: number,
-    displayedHeight: number
+  onCropSave: (
+    mediaUid: string,
+    cropData: CropData,
+    previewUrl: string
   ) => void;
+  getOriginalUrl?: (item: MediaItem) => Promise<string | null>;
 }
 
 function ImageCropperModalContent({
   onClose,
-  imageSrc,
+  mediaItems,
+  initialIndex,
   platform,
   postType,
-  initialCrop,
-  initialAspectRatio,
-  onCropComplete,
+  onCropSave,
+  getOriginalUrl,
 }: ImageCropperModalContentProps) {
-  // 1. Determine available presets
+  const imageItems = mediaItems.filter((m) => m.type === "image");
+
+  const initialMediaItem = mediaItems[initialIndex];
+  const initialImageIndex = imageItems.findIndex(
+    (img) => img.uid === initialMediaItem?.uid
+  );
+
+  const [currentIndex, setCurrentIndex] = useState(
+    initialImageIndex >= 0 ? initialImageIndex : 0
+  );
+
+  const currentItem = imageItems[currentIndex];
+
+  const savedCropData = currentItem?.crops?.[platform];
+  const initialAspectRatio = savedCropData?.aspectRatio;
+  const initialCrop = savedCropData?.croppedAreaPixels;
+
   const presets = PLATFORM_ASPECT_RATIOS[platform].filter((preset) => {
     const isStoryPreset = preset.label.toLowerCase().includes("story");
     if (postType === "post" && isStoryPreset) return false;
@@ -135,69 +156,160 @@ function ImageCropperModalContent({
     return true;
   });
 
-  // 2. Determine default aspect ratio
   const getDefaultAspect = () => {
     if (initialAspectRatio) return initialAspectRatio;
     if (postType === "story") return 9 / 16;
     return getDefaultAspectRatio(platform);
   };
 
-  // State
   const [aspectRatio, setAspectRatio] = useState<number>(getDefaultAspect());
   const [crop, setCrop] = useState<Crop>();
   const [completedCrop, setCompletedCrop] = useState<PixelCrop | null>(
     initialCrop ?? null
   );
+  const [currentImageSrc, setCurrentImageSrc] = useState<string>(
+    currentItem?.originalUrlForCropping || currentItem?.preview || ""
+  );
+  const [isLoadingImage, setIsLoadingImage] = useState(false);
 
   const imgRef = useRef<HTMLImageElement>(null);
 
-  // 3. Image Load Handler
+  useEffect(() => {
+    const loadSource = async () => {
+      if (!currentItem) return;
+
+      const itemCrop = currentItem.crops?.[platform];
+      setCompletedCrop(itemCrop?.croppedAreaPixels ?? null);
+
+      // FIX: Ensure Story uses 9:16 by default when switching/loading images
+      const defaultAspect =
+        postType === "story" ? 9 / 16 : getDefaultAspectRatio(platform);
+      setAspectRatio(itemCrop?.aspectRatio ?? defaultAspect);
+
+      setCrop(undefined);
+
+      if (currentItem.originalUrlForCropping) {
+        setCurrentImageSrc(currentItem.originalUrlForCropping);
+        return;
+      }
+
+      if (currentItem.file) {
+        setCurrentImageSrc(currentItem.preview);
+        return;
+      }
+
+      if (getOriginalUrl) {
+        setIsLoadingImage(true);
+        try {
+          const url = await getOriginalUrl(currentItem);
+          if (url) {
+            setCurrentImageSrc(url);
+          } else {
+            setCurrentImageSrc(currentItem.preview);
+          }
+        } catch (e) {
+          console.error("Failed to load original", e);
+          setCurrentImageSrc(currentItem.preview);
+        } finally {
+          setIsLoadingImage(false);
+        }
+      } else {
+        setCurrentImageSrc(currentItem.preview);
+      }
+    };
+
+    loadSource();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentIndex, currentItem?.uid]);
+
   const onImageLoad = useCallback(
     (e: React.SyntheticEvent<HTMLImageElement>) => {
       const { width, height, naturalWidth, naturalHeight } = e.currentTarget;
 
-      if (initialCrop && initialCrop.width > 0 && initialCrop.height > 0) {
-        // RECOVERY LOGIC:
+      const itemCrop = currentItem?.crops?.[platform];
+      const savedPixels = itemCrop?.croppedAreaPixels;
+
+      if (savedPixels && savedPixels.width > 0 && savedPixels.height > 0) {
         const percentCrop: Crop = {
           unit: "%",
-          x: (initialCrop.x / naturalWidth) * 100,
-          y: (initialCrop.y / naturalHeight) * 100,
-          width: (initialCrop.width / naturalWidth) * 100,
-          height: (initialCrop.height / naturalHeight) * 100,
+          x: (savedPixels.x / naturalWidth) * 100,
+          y: (savedPixels.y / naturalHeight) * 100,
+          width: (savedPixels.width / naturalWidth) * 100,
+          height: (savedPixels.height / naturalHeight) * 100,
         };
         setCrop(percentCrop);
 
         const displayPixelCrop: PixelCrop = {
           unit: "px",
-          x: (initialCrop.x / naturalWidth) * width,
-          y: (initialCrop.y / naturalHeight) * height,
-          width: (initialCrop.width / naturalWidth) * width,
-          height: (initialCrop.height / naturalHeight) * height,
+          x: (savedPixels.x / naturalWidth) * width,
+          y: (savedPixels.y / naturalHeight) * height,
+          width: (savedPixels.width / naturalWidth) * width,
+          height: (savedPixels.height / naturalHeight) * height,
         };
         setCompletedCrop(displayPixelCrop);
       } else {
-        // NEW CROP LOGIC:
         const newCrop = centerAspectCrop(width, height, aspectRatio);
         setCrop(newCrop);
       }
     },
-    [initialCrop, aspectRatio]
+    [currentItem, platform, aspectRatio]
   );
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (
       completedCrop &&
       completedCrop.width > 0 &&
       completedCrop.height > 0 &&
-      imgRef.current
+      imgRef.current &&
+      currentItem
     ) {
-      onCropComplete(
-        completedCrop,
-        aspectRatio,
-        imgRef.current.width,
-        imgRef.current.height
+      const scaleX = imgRef.current.naturalWidth / imgRef.current.width;
+      const scaleY = imgRef.current.naturalHeight / imgRef.current.height;
+
+      const naturalCrop: PixelCrop = {
+        unit: "px",
+        x: Math.round(completedCrop.x * scaleX),
+        y: Math.round(completedCrop.y * scaleY),
+        width: Math.round(completedCrop.width * scaleX),
+        height: Math.round(completedCrop.height * scaleY),
+      };
+
+      const cropData: CropData = {
+        croppedAreaPixels: naturalCrop,
+        aspectRatio: aspectRatio,
+      };
+
+      const canvas = document.createElement("canvas");
+      const ctx = canvas.getContext("2d");
+      if (!ctx) return;
+
+      canvas.width = naturalCrop.width;
+      canvas.height = naturalCrop.height;
+
+      ctx.drawImage(
+        imgRef.current,
+        naturalCrop.x,
+        naturalCrop.y,
+        naturalCrop.width,
+        naturalCrop.height,
+        0,
+        0,
+        naturalCrop.width,
+        naturalCrop.height
       );
-      onClose();
+
+      const blob = await new Promise<Blob | null>((resolve) =>
+        canvas.toBlob(resolve, "image/jpeg", 0.95)
+      );
+
+      if (blob) {
+        const previewUrl = URL.createObjectURL(blob);
+        onCropSave(currentItem.uid, cropData, previewUrl);
+
+        if (imageItems.length === 1) {
+          onClose();
+        }
+      }
     }
   };
 
@@ -205,11 +317,9 @@ function ImageCropperModalContent({
     setAspectRatio(preset.value);
     if (imgRef.current) {
       const { width, height } = imgRef.current;
-      // This will now use width: 100 to maximize the crop box
       const newCrop = centerAspectCrop(width, height, preset.value);
       setCrop(newCrop);
 
-      // Re-calculate completed crop immediately
       setCompletedCrop({
         unit: "px",
         x: (newCrop.x / 100) * width,
@@ -221,7 +331,8 @@ function ImageCropperModalContent({
   };
 
   const handleReset = () => {
-    const def = getDefaultAspectRatio(platform);
+    // FIX: Ensure Reset also respects postType
+    const def = postType === "story" ? 9 / 16 : getDefaultAspectRatio(platform);
     setAspectRatio(def);
     if (imgRef.current) {
       const { width, height } = imgRef.current;
@@ -233,38 +344,73 @@ function ImageCropperModalContent({
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/90 p-4 sm:p-6 animate-in fade-in duration-200">
       <div className="flex h-[90vh] w-full max-w-6xl overflow-hidden rounded-lg bg-[#1a1a1a] shadow-2xl border border-white/10">
-        {/* --- LEFT PANEL: Controls --- */}
+        {/* --- LEFT PANEL: Controls & Thumbnails --- */}
         <div className="flex w-80 flex-col border-r border-white/10 bg-[#222]">
-          {/* Header */}
-          <div className="flex items-center justify-between border-b border-white/10 p-5">
-            <div>
-              <h2 className="text-sm font-semibold text-white">Transform</h2>
-              <p className="text-xs text-neutral-400 capitalize">
-                For {platform}
-              </p>
-            </div>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={handleReset}
-              className="h-8 px-2 text-xs text-neutral-400 hover:text-white"
-            >
-              <RotateCcw className="mr-1.5 h-3 w-3" />
-              Reset
-            </Button>
+          <div className="p-5 border-b border-white/10">
+            <h2 className="text-sm font-semibold text-white flex items-center gap-2">
+              <CropIcon className="h-4 w-4" />
+              Transform
+            </h2>
+            <p className="text-xs text-neutral-400 capitalize mt-1">
+              For {platform}
+            </p>
           </div>
 
-          {/* Presets List */}
-          <div className="flex-1 overflow-y-auto p-5">
+          <div className="flex-1 overflow-y-auto p-5 space-y-6">
+            {/* THUMBNAILS */}
+            {imageItems.length > 1 && (
+              <div className="space-y-2">
+                <label className="text-[10px] font-bold uppercase tracking-wider text-neutral-500 flex items-center gap-2">
+                  <ImageIcon className="h-3 w-3" />
+                  Select Image
+                </label>
+                <div className="grid grid-cols-4 gap-2">
+                  {imageItems.map((item, idx) => {
+                    const isSelected = idx === currentIndex;
+                    const thumbnailSrc =
+                      item.croppedPreviews?.[platform] || item.preview;
+
+                    return (
+                      <button
+                        key={item.uid}
+                        onClick={() => setCurrentIndex(idx)}
+                        className={cn(
+                          "relative aspect-square w-full overflow-hidden rounded-md border-2 transition-all",
+                          isSelected
+                            ? "border-brand-primary ring-2 ring-brand-primary/20"
+                            : "border-white/10 opacity-60 hover:opacity-100 hover:border-white/30"
+                        )}
+                        title={`Image ${idx + 1}`}
+                      >
+                        <img
+                          src={thumbnailSrc}
+                          alt=""
+                          className="h-full w-full object-cover"
+                        />
+                        {item.crops?.[platform] && !isSelected && (
+                          <div className="absolute top-0 right-0 p-0.5 bg-brand-primary/80 text-white rounded-bl-sm backdrop-blur-sm">
+                            <Check className="w-2 h-2" />
+                          </div>
+                        )}
+                        {isSelected && (
+                          <div className="absolute inset-0 bg-brand-primary/10" />
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
+            {/* PRESETS */}
             <div className="space-y-2">
               <label className="text-[10px] font-bold uppercase tracking-wider text-neutral-500">
                 Aspect Ratio
               </label>
+
               <div className="grid gap-2">
                 {presets.map((preset) => {
                   const isActive = Math.abs(aspectRatio - preset.value) < 0.01;
-
-                  // Dynamic icon calculation
                   const isLandscape = preset.value > 1;
                   const w = isLandscape ? 20 : 20 * preset.value;
                   const h = isLandscape ? 20 / preset.value : 20;
@@ -298,7 +444,8 @@ function ImageCropperModalContent({
               </div>
             </div>
 
-            <div className="mt-6 rounded-md bg-white/5 p-4">
+            {/* Instructions */}
+            <div className="rounded-md border border-border bg-white/5 p-4">
               <div className="flex gap-3 text-neutral-400">
                 <Move className="mt-0.5 h-4 w-4 shrink-0" />
                 <p className="text-xs leading-relaxed">
@@ -310,11 +457,11 @@ function ImageCropperModalContent({
           </div>
 
           {/* Footer Actions */}
-          <div className="border-t border-white/10 p-5">
+          <div className="p-5 border-t border-white/10 bg-[#222]">
             <div className="grid gap-3">
               <Button
                 onClick={handleSave}
-                className="w-full bg-white text-black hover:bg-neutral-200"
+                className="w-full bg-white text-black hover:bg-neutral-200 uppercase tracking-widest font-bold text-xs"
               >
                 <Check className="mr-2 h-4 w-4" />
                 Apply Crop
@@ -322,50 +469,67 @@ function ImageCropperModalContent({
               <Button
                 onClick={onClose}
                 variant="ghost"
-                className="w-full text-neutral-400 hover:text-white hover:bg-white/10"
+                className="w-full text-neutral-400 hover:text-white hover:bg-white/10 uppercase tracking-widest text-xs"
               >
-                Cancel
+                Close
               </Button>
             </div>
           </div>
         </div>
 
-        {/* --- RIGHT PANEL: Canvas --- */}
-        <div className="flex flex-1 items-center justify-center overflow-hidden bg-[#0a0a0a] p-8 relative">
-          <ReactCrop
-            crop={crop}
-            onChange={(_, percentCrop) => setCrop(percentCrop)}
-            onComplete={(c) => setCompletedCrop(c)}
-            aspect={aspectRatio}
-            className="shadow-2xl"
-            style={{
-              maxWidth: "100%",
-              maxHeight: "100%",
-            }}
-          >
-            <img
-              ref={imgRef}
-              src={imageSrc}
-              alt="Crop preview"
-              onLoad={onImageLoad}
-              crossOrigin="anonymous"
+        {/* --- RIGHT PANEL: Canvas Only --- */}
+        <div className="flex flex-1 flex-col min-w-0 bg-[#0a0a0a]">
+          <div className="flex-1 flex items-center justify-center p-8 overflow-hidden relative">
+            {isLoadingImage && (
+              <div className="absolute inset-0 flex items-center justify-center z-20 bg-black/50 backdrop-blur-sm">
+                <Loader2 className="w-8 h-8 animate-spin text-white" />
+              </div>
+            )}
+
+            <ReactCrop
+              crop={crop}
+              onChange={(_, percentCrop) => setCrop(percentCrop)}
+              onComplete={(c) => setCompletedCrop(c)}
+              aspect={aspectRatio}
+              className="shadow-2xl"
               style={{
-                display: "block",
                 maxWidth: "100%",
                 maxHeight: "100%",
-                width: "auto",
-                height: "auto",
               }}
-            />
-          </ReactCrop>
+            >
+              <img
+                ref={imgRef}
+                src={currentImageSrc}
+                alt="Crop preview"
+                onLoad={onImageLoad}
+                crossOrigin="anonymous"
+                style={{
+                  display: "block",
+                  maxWidth: "100%",
+                  maxHeight: "100%",
+                  width: "auto",
+                  height: "auto",
+                }}
+              />
+            </ReactCrop>
 
-          {/* Close X */}
-          <button
-            onClick={onClose}
-            className="absolute right-4 top-4 rounded-full bg-black/50 p-2 text-white/70 hover:bg-black/80 hover:text-white transition-colors"
-          >
-            <X className="h-5 w-5" />
-          </button>
+            <div className="absolute top-4 right-4 flex gap-2 z-30">
+              <button
+                onClick={handleReset}
+                className="rounded-full bg-black/50 p-2 text-white/70 hover:bg-black/80 hover:text-white transition-colors"
+                title="Reset Crop"
+              >
+                <RotateCcw className="h-5 w-5" />
+              </button>
+              <button
+                onClick={onClose}
+                className="rounded-full bg-black/50 p-2 text-white/70 hover:bg-black/80 hover:text-white transition-colors"
+                title="Close"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+          </div>
         </div>
       </div>
     </div>

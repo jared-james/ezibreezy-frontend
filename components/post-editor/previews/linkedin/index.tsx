@@ -3,13 +3,12 @@
 "use client";
 
 import { memo, useState } from "react";
-import { ImageIcon, Crop, Loader2, FileText } from "lucide-react";
+import { ImageIcon, Crop, FileText } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { renderCaptionWithHashtags } from "../../render-caption";
 import { ImageCropperModal } from "../../modals/image-cropper-modal";
-import { AltTextModal } from "../../modals/alt-text-modal"; // Import AltTextModal
-import type { PixelCrop } from "react-image-crop";
-import { createCroppedPreviewUrl, type CropData } from "@/lib/utils/crop-utils";
+import { AltTextModal } from "../../modals/alt-text-modal";
+import { type CropData } from "@/lib/utils/crop-utils";
 import { useEditorialStore, MediaItem } from "@/lib/store/editorial-store";
 import { getMediaViewUrl } from "@/lib/api/media";
 import { toast } from "sonner";
@@ -43,9 +42,8 @@ function LinkedInPreview({
   const accountName = platformUsername.replace(/^@/, "");
   const primaryName = displayName || accountName || "Account";
   const [isCropperOpen, setIsCropperOpen] = useState(false);
-  const [isAltTextModalOpen, setIsAltTextModalOpen] = useState(false); // Alt Text State
-  const [altTextInitialIndex, setAltTextInitialIndex] = useState(0); // Alt Text State
-  const [isFetchingOriginal, setIsFetchingOriginal] = useState(false);
+  const [isAltTextModalOpen, setIsAltTextModalOpen] = useState(false);
+  const [altTextInitialIndex, setAltTextInitialIndex] = useState(0);
   const [currentCarouselIndex, setCurrentCarouselIndex] = useState(0);
 
   const setCropForMedia = useEditorialStore((state) => state.setCropForMedia);
@@ -69,7 +67,6 @@ function LinkedInPreview({
 
   const croppedPreview = singleMediaItem?.croppedPreviews?.linkedin;
 
-  // UPDATED: Use mediaUrl for video source if available
   const displayMediaSrc =
     croppedPreview ||
     (singleMediaItem?.type === "video" && singleMediaItem.mediaUrl
@@ -89,113 +86,29 @@ function LinkedInPreview({
 
   const canEditAltText = editableMediaItems.length > 0;
 
-  const originalMediaSrc = activeMediaForCrop?.file
-    ? activeMediaForCrop.preview
-    : activeMediaForCrop?.originalUrlForCropping;
-
-  const onCropComplete = (
-    cropData: CropData | undefined,
-    croppedPreviewUrl: string
-  ) => {
-    // Use activeMediaForCrop (handles both carousel and single media)
-    if (activeMediaForCrop) {
-      setCropForMedia(
-        activeMediaForCrop.uid,
-        "linkedin",
-        cropData,
-        croppedPreviewUrl
-      );
-    }
+  const handleCropClick = () => {
+    setIsCropperOpen(true);
   };
 
-  const handleCropComplete = async (
-    croppedAreaPixels: PixelCrop,
-    aspectRatio: number,
-    displayedWidth: number,
-    displayedHeight: number
+  const handleCropSave = (
+    mediaUid: string,
+    cropData: CropData,
+    previewUrl: string
   ) => {
-    if (!originalMediaSrc) return;
-
-    try {
-      const getOriginalDimensions = (
-        src: string
-      ): Promise<{ width: number; height: number }> =>
-        new Promise((resolve, reject) => {
-          const img = new window.Image();
-          img.onload = () =>
-            resolve({ width: img.naturalWidth, height: img.naturalHeight });
-          img.onerror = reject;
-          img.src = src;
-        });
-
-      const originalDimensions = await getOriginalDimensions(originalMediaSrc);
-      const scalingFactor = originalDimensions.width / displayedWidth;
-
-      const scaledCroppedAreaPixels: PixelCrop = {
-        ...croppedAreaPixels,
-        x: Math.round(croppedAreaPixels.x * scalingFactor),
-        y: Math.round(croppedAreaPixels.y * scalingFactor),
-        width: Math.round(croppedAreaPixels.width * scalingFactor),
-        height: Math.round(croppedAreaPixels.height * scalingFactor),
-      };
-
-      const croppedUrl = await createCroppedPreviewUrl(
-        originalMediaSrc,
-        croppedAreaPixels,
-        displayedWidth,
-        displayedHeight
-      );
-      const cropData: CropData = {
-        croppedAreaPixels: scaledCroppedAreaPixels,
-        aspectRatio,
-      };
-      onCropComplete(cropData, croppedUrl);
-    } catch (error) {
-      console.error("Failed to crop image:", error);
-    }
+    setCropForMedia(mediaUid, "linkedin", cropData, previewUrl);
   };
 
-  const handleCropClick = async () => {
-    // Use activeMediaForCrop which already handles carousel vs single media
-    if (
-      !activeMediaForCrop ||
-      !activeMediaForCrop.id ||
-      activeMediaForCrop.type !== "image"
-    ) {
-      return;
-    }
-
-    if (activeMediaForCrop.originalUrlForCropping) {
-      setIsCropperOpen(true);
-      return;
-    }
-
-    setIsFetchingOriginal(true);
+  const handleGetOriginalUrl = async (
+    item: MediaItem
+  ): Promise<string | null> => {
+    if (!item.id || !integrationId) return null;
     try {
-      if (!integrationId) throw new Error("LinkedIn account not selected.");
-
-      const { downloadUrl } = await getMediaViewUrl(
-        activeMediaForCrop.id,
-        integrationId
-      );
-
-      // Update store so next time we don't fetch
-      const currentItems = useEditorialStore.getState().stagedMediaItems;
-      const updatedItems = currentItems.map((item) =>
-        item.uid === activeMediaForCrop.uid
-          ? { ...item, originalUrlForCropping: downloadUrl }
-          : item
-      );
-      useEditorialStore.getState().setStagedMediaItems(updatedItems);
-
-      setIsCropperOpen(true);
+      const { downloadUrl } = await getMediaViewUrl(item.id, integrationId);
+      return downloadUrl;
     } catch (error) {
-      console.error("Failed to get view URL for cropping:", error);
-      toast.error(
-        "Could not load original image for cropping. Please try again."
-      );
-    } finally {
-      setIsFetchingOriginal(false);
+      console.error("Failed to fetch original URL", error);
+      toast.error("Failed to load high-quality image");
+      return null;
     }
   };
 
@@ -212,6 +125,16 @@ function LinkedInPreview({
     }
     setIsAltTextModalOpen(true);
   };
+
+  // Construct list for cropper modal
+  const cropperMediaItems =
+    mediaItems.length > 0
+      ? mediaItems
+      : singleMediaItem
+      ? [singleMediaItem]
+      : [];
+
+  const cropperInitialIndex = isCarousel ? currentCarouselIndex : 0;
 
   return (
     <div className="w-full bg-[--surface] border border-[--border] shadow-lg max-w-sm mx-auto rounded-lg overflow-hidden">
@@ -281,13 +204,8 @@ function LinkedInPreview({
             <button
               onClick={handleCropClick}
               className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
-              disabled={isFetchingOriginal}
             >
-              {isFetchingOriginal ? (
-                <Loader2 className="h-3.5 w-3.5 animate-spin" />
-              ) : (
-                <Crop className="h-3.5 w-3.5" />
-              )}
+              <Crop className="h-3.5 w-3.5" />
               Crop{" "}
               {isCarousel &&
                 `(${currentCarouselIndex + 1}/${mediaItems?.length})`}
@@ -313,15 +231,15 @@ function LinkedInPreview({
       </div>
 
       {/* Cropper Modal */}
-      {originalMediaSrc && (
+      {isCropperOpen && (
         <ImageCropperModal
           open={isCropperOpen}
           onClose={() => setIsCropperOpen(false)}
-          imageSrc={originalMediaSrc}
+          mediaItems={cropperMediaItems}
+          initialIndex={cropperInitialIndex}
           platform="linkedin"
-          initialCrop={activeMediaForCrop?.crops?.linkedin?.croppedAreaPixels}
-          initialAspectRatio={activeMediaForCrop?.crops?.linkedin?.aspectRatio}
-          onCropComplete={handleCropComplete}
+          onCropSave={handleCropSave}
+          getOriginalUrl={handleGetOriginalUrl}
         />
       )}
 
