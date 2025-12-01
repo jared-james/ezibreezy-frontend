@@ -68,6 +68,10 @@ function centerAspectCrop(
 // Helper to bypass browser cache for CORS images by adding a timestamp
 const addCacheBuster = (url: string) => {
   if (!url || url.startsWith("blob:") || url.startsWith("data:")) return url;
+
+  // FIX: Do not modify signed URLs (AWS/R2), or the signature will break.
+  if (url.includes("X-Amz-Signature")) return url;
+
   const separator = url.includes("?") ? "&" : "?";
   return `${url}${separator}t=${new Date().getTime()}`;
 };
