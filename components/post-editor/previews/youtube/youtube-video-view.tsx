@@ -1,12 +1,7 @@
+// components/post-editor/previews/youtube/youtube-video-view.tsx
+
 "use client";
 
-import {
-  ThumbsUp,
-  ThumbsDown,
-  Share2,
-  Download,
-  MoreHorizontal,
-} from "lucide-react";
 import { cn } from "@/lib/utils";
 import { MediaItem } from "@/lib/store/editorial/draft-store";
 import { renderCaptionWithHashtags } from "../../render-caption";
@@ -62,14 +57,15 @@ export function YouTubeVideoView({
       </div>
 
       {/* Video Info */}
-      <div className="p-3">
-        <h1 className="text-lg font-bold leading-tight text-[--foreground] mb-2 line-clamp-2">
+      <div className="p-3 space-y-3">
+        <h1 className="text-base font-bold leading-tight text-[--foreground] line-clamp-2">
           {title || "Add a title to your video..."}
         </h1>
 
-        <div className="flex items-center justify-between pb-3 border-b border-[--border]">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-full bg-[--muted] overflow-hidden border border-[--border]">
+        {/* Channel & Subscribe Row */}
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2.5">
+            <div className="w-9 h-9 rounded-full bg-[--muted] overflow-hidden border border-[--border] shrink-0">
               {avatarUrl ? (
                 <img
                   src={avatarUrl}
@@ -82,57 +78,29 @@ export function YouTubeVideoView({
                 </div>
               )}
             </div>
-            <div>
-              <p className="text-sm font-semibold text-[--foreground] leading-none">
+            <div className="flex flex-col">
+              <span className="text-sm font-semibold text-[--foreground] leading-none">
                 {primaryName}
-              </p>
-              <p className="text-xs text-[--muted-foreground]">
+              </span>
+              <span className="text-xs text-[--muted-foreground] mt-0.5">
                 1.2K subscribers
-              </p>
+              </span>
             </div>
-            <button className="ml-2 bg-[--foreground] text-[--background] text-xs font-medium px-3 py-1.5 rounded-full">
-              Subscribe
-            </button>
-          </div>
-        </div>
-
-        {/* Actions Bar */}
-        <div className="flex items-center gap-2 overflow-x-auto py-3 no-scrollbar">
-          <div className="flex items-center bg-[--muted]/50 rounded-full h-8">
-            <button className="flex items-center gap-1.5 pl-3 pr-2 h-full hover:bg-[--muted] rounded-l-full border-r border-[--border]">
-              <ThumbsUp className="w-4 h-4" />
-              <span className="text-xs font-medium">Like</span>
-            </button>
-            <button className="flex items-center px-3 h-full hover:bg-[--muted] rounded-r-full">
-              <ThumbsDown className="w-4 h-4" />
-            </button>
           </div>
 
-          <button className="flex items-center gap-1.5 px-3 h-8 bg-[--muted]/50 hover:bg-[--muted] rounded-full whitespace-nowrap">
-            <Share2 className="w-4 h-4" />
-            <span className="text-xs font-medium">Share</span>
-          </button>
-
-          <button className="flex items-center gap-1.5 px-3 h-8 bg-[--muted]/50 hover:bg-[--muted] rounded-full whitespace-nowrap">
-            <Download className="w-4 h-4" />
-            <span className="text-xs font-medium">Download</span>
-          </button>
-
-          <button className="flex items-center justify-center w-8 h-8 bg-[--muted]/50 hover:bg-[--muted] rounded-full shrink-0">
-            <MoreHorizontal className="w-4 h-4" />
+          <button className="bg-[--foreground] text-[--background] text-xs font-semibold px-3 py-1.5 rounded-full hover:opacity-90 transition-opacity">
+            Subscribe
           </button>
         </div>
 
-        {/* Description Box */}
-        <div className="bg-[--muted]/30 rounded-lg p-3 text-sm">
-          <div className="flex gap-2 font-bold text-xs mb-1">
-            <span>0 views</span>
-            <span>Just now</span>
+        {/* Caption / Description (Simplified) */}
+        {caption && (
+          <div className="bg-[--muted]/30 rounded-lg p-2.5">
+            <p className="whitespace-pre-wrap text-[--foreground] line-clamp-3 text-xs leading-relaxed">
+              {renderCaptionWithHashtags(caption)}
+            </p>
           </div>
-          <p className="whitespace-pre-wrap text-[--foreground] line-clamp-3 text-xs leading-relaxed">
-            {renderCaptionWithHashtags(caption)}
-          </p>
-        </div>
+        )}
       </div>
     </div>
   );
