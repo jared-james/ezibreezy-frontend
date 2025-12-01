@@ -1,5 +1,3 @@
-// components/calendar/components/calendar-header.tsx
-
 "use client";
 
 import { Plus, Tag, Monitor, Layers } from "lucide-react";
@@ -32,6 +30,11 @@ export default function CalendarHeader({
     { value: "x", label: "X (Twitter)" },
     { value: "linkedin", label: "LinkedIn" },
     { value: "instagram", label: "Instagram" },
+    { value: "facebook", label: "Facebook" },
+    { value: "youtube", label: "YouTube" },
+    { value: "tiktok", label: "TikTok" },
+    { value: "threads", label: "Threads" },
+    { value: "pinterest", label: "Pinterest" },
   ];
 
   const labels = [
@@ -40,7 +43,6 @@ export default function CalendarHeader({
     { value: "promo", label: "Promo" },
   ];
 
-  // Styling to match the "btn" aesthetic from globals.css and previous requests
   const triggerClasses =
     "h-9 w-[160px] rounded-sm border-border bg-surface text-xs font-bold uppercase tracking-wider text-muted-foreground hover:text-foreground hover:bg-surface-hover hover:border-border-hover focus:ring-brand-primary";
 
@@ -53,7 +55,6 @@ export default function CalendarHeader({
       </div>
 
       <div className="flex flex-wrap items-center gap-3">
-        {/* Dotted Aesthetic View Switcher */}
         <div className="flex items-center p-1 rounded-sm border-2 border-dashed border-border bg-transparent">
           {(["Month", "Week", "List"] as CalendarView[]).map((view) => (
             <button
@@ -73,7 +74,6 @@ export default function CalendarHeader({
 
         <div className="hidden h-8 w-px bg-border sm:block" />
 
-        {/* Status Filter */}
         <Select
           value={filters.status}
           onValueChange={(val) => onFilterChange("status", val)}
@@ -92,7 +92,6 @@ export default function CalendarHeader({
           </SelectContent>
         </Select>
 
-        {/* Channel Filter */}
         <Select
           value={filters.channel}
           onValueChange={(val) => onFilterChange("channel", val)}
@@ -113,7 +112,6 @@ export default function CalendarHeader({
           </SelectContent>
         </Select>
 
-        {/* Label Filter */}
         <Select
           value={filters.label}
           onValueChange={(val) => onFilterChange("label", val)}
@@ -134,7 +132,6 @@ export default function CalendarHeader({
           </SelectContent>
         </Select>
 
-        {/* Create Post Button */}
         <button
           className="btn btn-primary h-9 ml-2 shadow-md hover:shadow-lg transition-all active:scale-95"
           onClick={onCreatePost}
