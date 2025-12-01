@@ -3,11 +3,12 @@
 "use client";
 
 import { useCallback, useState, useMemo, useEffect, useRef } from "react";
-import { Upload, X, Loader2, FolderOpen, Video } from "lucide-react";
+import { Upload, X, Loader2, Video, Plus } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useQuery } from "@tanstack/react-query";
 import { getConnections } from "@/lib/api/integrations";
 import MediaRoomModal from "../modals/media-room-modal";
+import MediaSourceModal from "../modals/media-source-modal";
 import type { MediaItem as LibraryMediaItem } from "@/lib/api/media";
 import { Button } from "@/components/ui/button";
 import { MediaItem } from "@/lib/store/editorial-store";
@@ -35,6 +36,7 @@ export default function MediaUpload({
 }: MediaUploadProps) {
   const [isDraggingFiles, setIsDraggingFiles] = useState(false);
   const [isMediaRoomOpen, setIsMediaRoomOpen] = useState(false);
+  const [isSourceModalOpen, setIsSourceModalOpen] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const { data: connections = [] } = useQuery({
@@ -167,14 +169,12 @@ export default function MediaUpload({
               const itemState = items[index];
               const isItemUploading = itemState?.isUploading;
 
-              // Determine if video based on item state type (reliable) or fallback to file/extension
               const isVideo = itemState
                 ? itemState.type === "video"
                 : mediaFiles[index]?.type.startsWith("video/") ||
                   preview.includes(".mp4") ||
                   preview.includes(".mov");
 
-              // Use the actual mediaUrl for playback if it exists (e.g. from library), otherwise use preview (blob for fresh uploads)
               const mediaSrc =
                 isVideo && itemState?.mediaUrl ? itemState.mediaUrl : preview;
 
@@ -229,13 +229,16 @@ export default function MediaUpload({
             })}
 
             {!isFull && (
-              <div className="relative aspect-square border-2 border-dashed border-[--border] rounded-md flex flex-col items-center justify-center gap-1 text-[--muted-foreground]">
+              <button
+                type="button"
+                onClick={() => setIsSourceModalOpen(true)}
+                className="relative aspect-square border-2 border-dashed border-[--border] hover:border-brand-primary/50 hover:bg-brand-primary/5 rounded-md flex flex-col items-center justify-center gap-1 text-[--muted-foreground] transition-colors"
+              >
+                <Plus className="w-6 h-6" />
                 <span className="text-[9px] uppercase font-bold text-center leading-tight">
-                  Additional
-                  <br />
-                  Images
+                  Add Media
                 </span>
-              </div>
+              </button>
             )}
           </div>
 
@@ -265,30 +268,6 @@ export default function MediaUpload({
               </div>
             </div>
           )}
-
-          <div className="flex items-center justify-center pt-2 gap-3">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={handleUploadClick}
-              disabled={isFull}
-              className="gap-2 border-brand-primary text-brand-primary hover:bg-brand-primary hover:text-white"
-            >
-              <Upload className="h-4 w-4" />
-              Upload from Device
-            </Button>
-
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => setIsMediaRoomOpen(true)}
-              disabled={isFull}
-              className="gap-2 border-brand-primary text-brand-primary hover:bg-brand-primary hover:text-white"
-            >
-              <FolderOpen className="h-4 w-4" />
-              Browse Media Library
-            </Button>
-          </div>
         </div>
       ) : (
         <div
@@ -303,39 +282,23 @@ export default function MediaUpload({
               : "border-border hover:border-brand-primary/50"
           )}
         >
-          <div className="flex flex-col gap-3 w-full max-w-xs">
+          <div className="flex flex-col gap-3 w-full max-w-xs items-center">
             <Button
               type="button"
               variant="outline"
-              onClick={handleUploadClick}
+              onClick={() => setIsSourceModalOpen(true)}
               className="w-full gap-2 border-brand-primary text-brand-primary hover:bg-brand-primary hover:text-white h-11"
             >
               <Upload className="h-4 w-4" />
-              Upload from Device
+              Upload Media
             </Button>
-
-            <div className="relative flex items-center py-1">
-              <div className="flex-grow border-t border-border"></div>
-              <span className="flex-shrink-0 mx-3 text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
-                Or
-              </span>
-              <div className="flex-grow border-t border-border"></div>
-            </div>
-
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => setIsMediaRoomOpen(true)}
-              className="w-full gap-2 border-brand-primary text-brand-primary hover:bg-brand-primary hover:text-white h-11"
-            >
-              <FolderOpen className="h-4 w-4" />
-              Browse Media Library
-            </Button>
+            <p className="text-xs text-muted-foreground mt-2">
+              Drag and drop files here to upload
+            </p>
           </div>
         </div>
       )}
 
-      {/* Shared Input */}
       <input
         ref={fileInputRef}
         type="file"
@@ -343,6 +306,13 @@ export default function MediaUpload({
         multiple
         onChange={handleFileSelect}
         className="hidden"
+      />
+
+      <MediaSourceModal
+        isOpen={isSourceModalOpen}
+        onClose={() => setIsSourceModalOpen(false)}
+        onUploadClick={handleUploadClick}
+        onLibraryClick={() => setIsMediaRoomOpen(true)}
       />
 
       <MediaRoomModal
