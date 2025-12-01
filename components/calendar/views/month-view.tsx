@@ -16,14 +16,7 @@ import {
   addDays,
   subDays,
 } from "date-fns";
-import {
-  Twitter,
-  Instagram,
-  Linkedin,
-  Plus,
-  Clock,
-  Loader2,
-} from "lucide-react";
+import { Plus, Loader2 } from "lucide-react";
 import type { ScheduledPost } from "../types";
 import { cn } from "@/lib/utils";
 import {
@@ -39,6 +32,7 @@ import {
   PointerSensor,
 } from "@dnd-kit/core";
 import { CSS } from "@dnd-kit/utilities";
+import PlatformIcon from "../components/platform-icon";
 
 interface MonthViewProps {
   currentDate: Date;
@@ -49,12 +43,6 @@ interface MonthViewProps {
   onOpenDayView: (date: Date, posts: ScheduledPost[]) => void;
   lockedPostId?: string | null;
 }
-
-const platformIcons: Record<string, React.ElementType> = {
-  x: Twitter,
-  linkedin: Linkedin,
-  instagram: Instagram,
-};
 
 interface DraggablePostProps {
   post: ScheduledPost;
@@ -87,7 +75,8 @@ function DraggablePost({
     opacity: isDragging || hidden ? 0 : 1,
   };
 
-  const Icon = platformIcons[post.platform] || Clock;
+  const firstMedia = post.media?.[0];
+  const mediaUrl = firstMedia?.thumbnailUrl || firstMedia?.url;
 
   return (
     <button
@@ -104,7 +93,7 @@ function DraggablePost({
         onEditPost(post);
       }}
       className={cn(
-        "group/item relative flex w-full items-center gap-2 rounded-sm border border-border bg-white p-1.5 text-left text-xs shadow-sm transition-all hover:border-brand-primary hover:shadow-md active:scale-[0.98]",
+        "group/item relative flex w-full items-center gap-1.5 rounded-sm border border-border bg-white p-1.5 text-left text-xs shadow-sm transition-all hover:border-brand-primary hover:shadow-md active:scale-[0.98]",
         disabled
           ? "cursor-default opacity-70"
           : "cursor-grab active:cursor-grabbing",
@@ -116,11 +105,26 @@ function DraggablePost({
         {disabled ? (
           <Loader2 className="h-2.5 w-2.5 animate-spin text-brand-primary" />
         ) : (
-          <Icon className="h-2.5 w-2.5 text-muted-foreground" />
+          <PlatformIcon
+            platform={post.platform}
+            className="text-muted-foreground"
+            size={10}
+          />
         )}
       </div>
 
-      <div className="flex min-w-0 flex-1 items-center gap-2">
+      {mediaUrl && (
+        <div className="relative shrink-0 overflow-hidden rounded-sm bg-muted h-4 w-4 border border-border/50">
+          <img
+            src={mediaUrl}
+            alt=""
+            className="h-full w-full object-cover"
+            loading="lazy"
+          />
+        </div>
+      )}
+
+      <div className="flex min-w-0 flex-1 items-center gap-1.5">
         <span className="truncate font-medium text-foreground leading-tight">
           {post.content || "Untitled Post"}
         </span>
@@ -133,7 +137,8 @@ function DraggablePost({
 }
 
 function PostCardForOverlay({ post }: { post: ScheduledPost }) {
-  const Icon = platformIcons[post.platform] || Clock;
+  const firstMedia = post.media?.[0];
+  const mediaUrl = firstMedia?.thumbnailUrl || firstMedia?.url;
 
   return (
     <div
@@ -142,8 +147,19 @@ function PostCardForOverlay({ post }: { post: ScheduledPost }) {
       )}
     >
       <div className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-brand-primary/10">
-        <Icon className="h-3 w-3 text-brand-primary" />
+        <PlatformIcon
+          platform={post.platform}
+          className="text-brand-primary"
+          size={12}
+        />
       </div>
+
+      {mediaUrl && (
+        <div className="relative shrink-0 overflow-hidden rounded-sm bg-muted h-5 w-5 border border-border/50">
+          <img src={mediaUrl} alt="" className="h-full w-full object-cover" />
+        </div>
+      )}
+
       <div className="flex min-w-0 flex-1 flex-col gap-0.5">
         <span className="truncate font-medium text-foreground">
           {post.content || "Untitled Post"}

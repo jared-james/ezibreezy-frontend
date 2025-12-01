@@ -1,5 +1,3 @@
-// components/calendar/views/week-view.tsx
-
 "use client";
 
 import { useMemo } from "react";
@@ -47,10 +45,8 @@ export default function WeekView({
 
   return (
     <div className="flex h-full min-h-[600px] overflow-hidden bg-surface">
-      {/* Time Sidebar */}
       <div className="w-16 flex-none border-r border-border bg-background overflow-y-auto scrollbar-hide">
         <div className="sticky top-0 z-20 h-12 border-b border-border bg-background" />{" "}
-        {/* Spacer for header */}
         {HOURS.map((hour) => (
           <div
             key={hour}
@@ -63,7 +59,6 @@ export default function WeekView({
         ))}
       </div>
 
-      {/* Days Grid */}
       <div className="flex flex-1 overflow-x-auto overflow-y-auto">
         <div className="flex min-w-[800px] w-full">
           {weekDays.map((day) => {
@@ -80,7 +75,6 @@ export default function WeekView({
                   isCurrentDay ? "bg-surface" : "bg-background"
                 )}
               >
-                {/* Day Header */}
                 <div
                   className={cn(
                     "sticky top-0 z-10 flex h-12 items-center justify-between border-b border-border px-3 transition-colors",
@@ -103,7 +97,6 @@ export default function WeekView({
                   )}
                 </div>
 
-                {/* Time Slots (Buckets) */}
                 <div className="flex-1">
                   {HOURS.map((hour) => {
                     const slotDate = addHours(startOfDay(day), hour);
@@ -126,17 +119,18 @@ export default function WeekView({
                           isCurrentDay && "bg-brand-primary/[0.02]"
                         )}
                       >
-                        {/* Invisible Click Target for "New Post" */}
                         <div
                           className="absolute inset-0 z-0 cursor-pointer"
                           onClick={() => onNewPost(slotDate)}
                           title={`Add post at ${format(slotDate, "h:mm a")}`}
                         />
 
-                        {/* Render Posts Stacked */}
                         {postsForHour.map((post) => {
                           const Icon = platformIcons[post.platform] || Clock;
                           const isSent = post.status === "sent";
+                          const firstMedia = post.media?.[0];
+                          const mediaUrl =
+                            firstMedia?.thumbnailUrl || firstMedia?.url;
 
                           return (
                             <button
@@ -146,7 +140,7 @@ export default function WeekView({
                                 onEditPost(post);
                               }}
                               className={cn(
-                                "relative z-10 flex w-full flex-col gap-0.5 rounded-sm border border-border bg-white p-1.5 text-left shadow-sm transition-all hover:border-brand-primary hover:shadow-md active:scale-[0.98]",
+                                "relative z-10 flex w-full flex-col gap-1.5 rounded-sm border border-border bg-white p-1.5 text-left shadow-sm transition-all hover:border-brand-primary hover:shadow-md active:scale-[0.98]",
                                 isSent && "opacity-60 bg-muted/50"
                               )}
                             >
@@ -157,6 +151,16 @@ export default function WeekView({
                                     !isSent && "text-brand-primary"
                                   )}
                                 />
+                                {mediaUrl && (
+                                  <div className="relative shrink-0 overflow-hidden rounded-sm bg-muted h-4 w-4 border border-border/50">
+                                    <img
+                                      src={mediaUrl}
+                                      alt=""
+                                      className="h-full w-full object-cover"
+                                      loading="lazy"
+                                    />
+                                  </div>
+                                )}
                                 <span className="font-serif font-bold">
                                   {format(new Date(post.scheduledAt), "h:mm a")}
                                 </span>
@@ -168,7 +172,6 @@ export default function WeekView({
                           );
                         })}
 
-                        {/* Hover Add Button */}
                         <div className="absolute right-1 bottom-1 z-0 opacity-0 transition-opacity group-hover:opacity-100 pointer-events-none">
                           <Plus className="h-3 w-3 text-muted-foreground/30" />
                         </div>

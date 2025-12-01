@@ -88,6 +88,7 @@ export interface CalendarMediaItem {
   id: string;
   url: string;
   type: string;
+  thumbnailUrl?: string | null;
 }
 
 export interface ScheduledPostResponse {

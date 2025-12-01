@@ -1,39 +1,24 @@
-// components/calendar/views/list-view.tsx
-
 "use client";
 
 import { useState } from "react";
-import {
-  Twitter,
-  Instagram,
-  Linkedin,
-  Clock,
-  Loader2,
-  Trash2,
-} from "lucide-react";
+import { Clock, Loader2, Trash2 } from "lucide-react";
 import { format, isToday, isTomorrow } from "date-fns";
 import type { ScheduledPost } from "../types";
 import { deletePost } from "@/lib/api/publishing";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import PlatformIcon from "../components/platform-icon";
 
 interface ListViewProps {
   posts: ScheduledPost[];
   onEditPost: (post: ScheduledPost) => void;
 }
 
-const platformIcons: Record<string, React.ElementType> = {
-  x: Twitter,
-  linkedin: Linkedin,
-  instagram: Instagram,
-};
-
 export default function ListView({ posts, onEditPost }: ListViewProps) {
   const queryClient = useQueryClient();
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
-  // Sort posts by scheduled date (Ascending: Earliest to Latest)
   const sortedPosts = [...posts].sort((a, b) => {
     return (
       new Date(a.scheduledAt).getTime() - new Date(b.scheduledAt).getTime()
@@ -50,7 +35,9 @@ export default function ListView({ posts, onEditPost }: ListViewProps) {
       queryClient.invalidateQueries({ queryKey: ["contentLibrary"] });
       setDeletingId(null);
     },
-    onError: (error: Error & { response?: { data?: { message?: string } } }) => {
+    onError: (
+      error: Error & { response?: { data?: { message?: string } } }
+    ) => {
       toast.error(
         `Failed to cancel post: ${
           error?.response?.data?.message || "Please try again."
@@ -79,8 +66,8 @@ export default function ListView({ posts, onEditPost }: ListViewProps) {
           No Upcoming Posts
         </h3>
         <p className="font-serif text-sm text-muted-foreground mt-1 max-w-xs">
-          Your schedule is clear. Click &quot;Create Post&quot; to start planning your
-          content.
+          Your schedule is clear. Click &quot;Create Post&quot; to start
+          planning your content.
         </p>
       </div>
     );
@@ -90,18 +77,19 @@ export default function ListView({ posts, onEditPost }: ListViewProps) {
     <div className="mx-auto max-w-5xl py-8 px-4">
       <div className="space-y-4">
         {sortedPosts.map((post) => {
-          const Icon = platformIcons[post.platform] || Clock;
           const postDate = new Date(post.scheduledAt);
           const isDeleting = deletingId === post.id;
 
-          // Date formatting logic
-          const dayName = format(postDate, "EEE"); // Mon
-          const dayNumber = format(postDate, "d"); // 12
-          const monthName = format(postDate, "MMM"); // Dec
+          const dayName = format(postDate, "EEE");
+          const dayNumber = format(postDate, "d");
+          const monthName = format(postDate, "MMM");
 
           let dateLabel = format(postDate, "MMMM d, yyyy");
           if (isToday(postDate)) dateLabel = "Today";
           if (isTomorrow(postDate)) dateLabel = "Tomorrow";
+
+          const firstMedia = post.media?.[0];
+          const mediaUrl = firstMedia?.thumbnailUrl || firstMedia?.url;
 
           return (
             <div
@@ -124,6 +112,18 @@ export default function ListView({ posts, onEditPost }: ListViewProps) {
                   {dayName}
                 </span>
               </div>
+
+              {/* Thumbnail */}
+              {mediaUrl && (
+                <div className="hidden sm:flex shrink-0 w-24 items-center justify-center bg-muted/20 my-1 rounded-md overflow-hidden border border-border/50">
+                  <img
+                    src={mediaUrl}
+                    alt=""
+                    className="h-full w-full object-cover"
+                    loading="lazy"
+                  />
+                </div>
+              )}
 
               {/* Content Block */}
               <div className="flex flex-1 flex-col justify-center py-3 pr-4">
@@ -152,7 +152,11 @@ export default function ListView({ posts, onEditPost }: ListViewProps) {
 
                 <div className="mt-3 flex items-center gap-4">
                   <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                    <Icon className="h-3.5 w-3.5" />
+                    <PlatformIcon
+                      platform={post.platform}
+                      className="text-muted-foreground"
+                      size={14}
+                    />
                     <span className="font-medium">
                       @{post.platformUsername}
                     </span>
