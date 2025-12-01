@@ -1,5 +1,3 @@
-// components/post-editor/caption/sections/platform-caption-section.tsx
-
 "use client";
 
 import { Type } from "lucide-react";
@@ -22,9 +20,7 @@ interface PlatformCaptionSectionProps {
   selectedAccounts: Record<string, string[]>;
   onAccountSelect: (platformId: string, accountId: string) => void;
   currentCaption: string;
-  setLocalPlatformCaptions: (
-    update: (prev: Record<string, string>) => Record<string, string>
-  ) => void;
+  onCaptionChange: (value: string) => void;
   openHashtagModal: (platformId: string) => void;
   postType: "text" | "image" | "video";
   currentPostType: "post" | "story" | "reel";
@@ -87,7 +83,7 @@ export function PlatformCaptionSection({
   selectedAccounts,
   onAccountSelect,
   currentCaption,
-  setLocalPlatformCaptions,
+  onCaptionChange,
   openHashtagModal,
   postType,
   currentPostType,
@@ -318,12 +314,7 @@ export function PlatformCaptionSection({
         <CaptionTextarea
           id={`caption-${platformId}`}
           value={isStory ? "" : currentCaption}
-          onChange={(event) =>
-            setLocalPlatformCaptions((prev) => ({
-              ...prev,
-              [platformId]: event.target.value,
-            }))
-          }
+          onChange={(event) => onCaptionChange(event.target.value)}
           placeholder={
             isStory
               ? "Captions are not used for stories."

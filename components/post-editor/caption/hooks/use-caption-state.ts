@@ -1,6 +1,8 @@
 // components/post-editor/caption/hooks/use-caption-state.ts
 
-import { useState, useEffect } from "react";
+"use client";
+
+import { useState, useEffect, useCallback } from "react";
 import { useEditorialStore } from "@/lib/store/editorial-store";
 import { ThreadMessage } from "@/lib/types/editorial";
 
@@ -30,6 +32,19 @@ export function useCaptionState(
   const [localMainCaption, setLocalMainCaption] = useState(mainCaption);
   const [localPlatformCaptions, setLocalPlatformCaptions] =
     useState(platformCaptions);
+
+  const [dirtyPlatforms, setDirtyPlatforms] = useState<Record<string, boolean>>(
+    () => {
+      const dirty: Record<string, boolean> = {};
+      Object.entries(platformCaptions).forEach(([key, val]) => {
+        if (val && val !== mainCaption) {
+          dirty[key] = true;
+        }
+      });
+      return dirty;
+    }
+  );
+
   const [localPlatformTitles, setLocalPlatformTitles] =
     useState(platformTitles);
   const [localThreadMessages, setLocalThreadMessages] =
@@ -49,14 +64,23 @@ export function useCaptionState(
   const [localPinterestBoardId, setLocalPinterestBoardId] =
     useState(pinterestBoardId);
 
-  // Sync global state to local state
   useEffect(() => {
     setLocalMainCaption(mainCaption);
   }, [mainCaption]);
 
   useEffect(() => {
     setLocalPlatformCaptions(platformCaptions);
-  }, [platformCaptions]);
+
+    setDirtyPlatforms((prev) => {
+      const nextDirty = { ...prev };
+      Object.entries(platformCaptions).forEach(([key, val]) => {
+        if (val && val !== mainCaption && prev[key] === undefined) {
+          nextDirty[key] = true;
+        }
+      });
+      return nextDirty;
+    });
+  }, [platformCaptions, mainCaption]);
 
   useEffect(() => {
     setLocalPlatformTitles(platformTitles);
@@ -98,7 +122,6 @@ export function useCaptionState(
     setLocalPinterestBoardId(pinterestBoardId);
   }, [pinterestBoardId]);
 
-  // Clear captions for stories
   useEffect(() => {
     if (currentPostType === "story") {
       setLocalPlatformCaptions((prev) => ({ ...prev, instagram: "" }));
@@ -111,7 +134,6 @@ export function useCaptionState(
     }
   }, [facebookPostType]);
 
-  // Sync local state to global state
   useEffect(() => {
     onLocalCaptionsChange?.(localMainCaption, localPlatformCaptions);
   }, [localMainCaption, localPlatformCaptions, onLocalCaptionsChange]);
@@ -140,11 +162,50 @@ export function useCaptionState(
     setState({ pinterestBoardId: localPinterestBoardId });
   }, [localPinterestBoardId, setState]);
 
+  const handleMainCaptionChange = useCallback(
+    (newCaption: string) => {
+      setLocalMainCaption(newCaption);
+
+      setLocalPlatformCaptions((prev) => {
+        const next = { ...prev };
+        const currentPlatforms = Object.keys(
+          useEditorialStore.getState().selectedAccounts
+        );
+
+        currentPlatforms.forEach((platformId) => {
+          if (!dirtyPlatforms[platformId]) {
+            next[platformId] = newCaption;
+          }
+        });
+
+        return next;
+      });
+    },
+    [dirtyPlatforms]
+  );
+
+  const handlePlatformCaptionChange = useCallback(
+    (platformId: string, newCaption: string) => {
+      setLocalPlatformCaptions((prev) => ({
+        ...prev,
+        [platformId]: newCaption,
+      }));
+
+      setDirtyPlatforms((prev) => ({
+        ...prev,
+        [platformId]: true,
+      }));
+    },
+    []
+  );
+
   return {
     localMainCaption,
     setLocalMainCaption,
     localPlatformCaptions,
     setLocalPlatformCaptions,
+    handleMainCaptionChange,
+    handlePlatformCaptionChange,
     localPlatformTitles,
     setLocalPlatformTitles,
     localThreadMessages,

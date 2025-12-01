@@ -90,9 +90,9 @@ export default function CaptionEditor({
 
   const hashtagModal = useHashtagModal(
     captionState.localMainCaption,
-    captionState.setLocalMainCaption,
+    captionState.handleMainCaptionChange,
     captionState.localPlatformCaptions,
-    captionState.setLocalPlatformCaptions,
+    captionState.setLocalPlatformCaptions, // Kept for modal internal logic, though modal handles specific platform updates via this
     threadMessagesHook.currentThreadMessages,
     threadMessagesHook.isEditingPlatformThread,
     activeCaptionFilter,
@@ -130,7 +130,7 @@ export default function CaptionEditor({
           id="caption"
           value={captionState.localMainCaption}
           onChange={(event) =>
-            captionState.setLocalMainCaption(event.target.value)
+            captionState.handleMainCaptionChange(event.target.value)
           }
           placeholder={mainPlaceholder}
           platformId="main"
@@ -177,7 +177,9 @@ export default function CaptionEditor({
               selectedAccounts={selectedAccounts}
               onAccountSelect={onAccountSelect}
               currentCaption={currentCaption}
-              setLocalPlatformCaptions={captionState.setLocalPlatformCaptions}
+              onCaptionChange={(value) =>
+                captionState.handlePlatformCaptionChange(platformId, value)
+              }
               openHashtagModal={hashtagModal.openHashtagModal}
               postType={postType}
               currentPostType={captionState.currentPostType}
