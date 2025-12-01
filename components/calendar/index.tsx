@@ -30,7 +30,7 @@ export default function CalendarContainer() {
   // Calendar state hook
   const calendarState = useCalendarState();
 
-  // Data fetching hook
+  // Data fetching hook - NOW WITH FILTERS
   const {
     scheduledPosts,
     isLoading,
@@ -43,7 +43,10 @@ export default function CalendarContainer() {
     errorFullPost,
     isFetchingFullPost,
     allContent,
-  } = useCalendarData({ postIdToEdit: calendarState.postIdToEdit });
+  } = useCalendarData({
+    postIdToEdit: calendarState.postIdToEdit,
+    filters: calendarState.filters,
+  });
 
   // Navigation hook
   const navigation = useCalendarNavigation({
@@ -123,11 +126,13 @@ export default function CalendarContainer() {
   return (
     <>
       <div className="flex h-full w-full flex-col p-6">
-        {/* Calendar Header */}
+        {/* Calendar Header with Filters */}
         <CalendarHeader
           activeView={calendarState.activeView}
           onViewChange={calendarState.setActiveView}
           onCreatePost={() => editor.handleNewPost(new Date())}
+          filters={calendarState.filters}
+          onFilterChange={calendarState.updateFilter}
         />
 
         {/* Calendar Navigation */}
@@ -136,8 +141,8 @@ export default function CalendarContainer() {
           onNavigate={navigation.navigateDate}
         />
 
-        {/* Active View */}
-        <div className="flex-1 overflow-hidden rounded-lg border border-foreground bg-surface shadow-sm">
+        {/* Active View - Updated to dotted border aesthetic */}
+        <div className="flex-1 overflow-hidden rounded-lg bg-surface shadow-none">
           {calendarState.activeView === "Month" && (
             <MonthView
               currentDate={calendarState.currentDate}

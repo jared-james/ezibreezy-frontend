@@ -4,13 +4,20 @@ import type { CalendarMediaItem } from "@/lib/api/publishing";
 
 export type ScheduledPost = {
   id: string;
-  title?: string | null; // ADDED: Optional title for the post/idea
-  content: string; // Updated from 'title' to 'content' to match backend DTO
-  scheduledAt: string; // ISO 8601 format string
+  title?: string | null;
+  content: string;
+  scheduledAt: string;
   status: "draft" | "scheduled" | "sent" | "failed" | "cancelled";
-  platform: string; // The primary platform (e.g., 'x')
-  platformUsername: string; // The username for the connected account
-  media: CalendarMediaItem[]; // Array of media objects
+  platform: string;
+  platformUsername: string;
+  media: CalendarMediaItem[];
+  labels?: string[]; // Added for the new label filter
 };
 
 export type CalendarView = "Month" | "Week" | "List";
+
+export type CalendarFilters = {
+  status: "all" | "draft" | "scheduled" | "sent";
+  channel: string; // 'all' or platform name
+  label: string; // 'all' or label name
+};

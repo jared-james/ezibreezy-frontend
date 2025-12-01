@@ -36,8 +36,8 @@ export default function EditorialModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center overflow-hidden bg-black/50 backdrop-blur-sm">
-      <div className="flex h-[90vh] w-full max-w-7xl flex-col overflow-hidden border-4 border-foreground bg-surface shadow-2xl">
-        <div className="z-10 flex shrink-0 items-center justify-between border-b-4 border-double border-foreground bg-surface p-6">
+      <div className="flex h-[90vh] w-full max-w-7xl flex-col overflow-hidden rounded-lg border border-border bg-surface shadow-2xl">
+        <div className="z-10 flex shrink-0 items-center justify-between border-b border-border bg-surface p-6">
           <div>
             <p className="eyebrow mb-1">Editorial Desk</p>
             <h2 className="font-serif text-2xl font-bold uppercase tracking-tight text-foreground md:text-3xl">

@@ -14,13 +14,7 @@ import {
   addHours,
   startOfDay,
 } from "date-fns";
-import {
-  Twitter,
-  Instagram,
-  Linkedin,
-  Clock,
-  Plus,
-} from "lucide-react";
+import { Twitter, Instagram, Linkedin, Clock, Plus } from "lucide-react";
 import type { ScheduledPost } from "../types";
 import { cn } from "@/lib/utils";
 
@@ -52,7 +46,7 @@ export default function WeekView({
   }, [currentDate]);
 
   return (
-    <div className="flex h-full min-h-[600px] overflow-hidden rounded-lg border border-border bg-surface shadow-sm">
+    <div className="flex h-full min-h-[600px] overflow-hidden bg-surface">
       {/* Time Sidebar */}
       <div className="w-16 flex-none border-r border-border bg-background overflow-y-auto scrollbar-hide">
         <div className="sticky top-0 z-20 h-12 border-b border-border bg-background" />{" "}

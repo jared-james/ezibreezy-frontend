@@ -161,6 +161,7 @@ interface DroppableDayProps {
   isCurrentMonth: boolean;
   onNewPost: (date: Date) => void;
   children: React.ReactNode;
+  postCount: number;
 }
 
 function DroppableDay({
@@ -168,6 +169,7 @@ function DroppableDay({
   isCurrentMonth,
   onNewPost,
   children,
+  postCount,
 }: DroppableDayProps) {
   const dayId = format(day, "yyyy-MM-dd");
 
@@ -195,18 +197,25 @@ function DroppableDay({
       )}
     >
       <div className="flex w-full items-start justify-between mb-2 flex-shrink-0">
-        <span
-          className={cn(
-            "font-serif text-lg font-bold leading-none select-none",
-            isToday
-              ? "text-brand-primary"
-              : isCurrentMonth
-              ? "text-foreground"
-              : "text-muted-foreground/50"
+        <div className="flex flex-col">
+          <span
+            className={cn(
+              "font-serif text-lg font-bold leading-none select-none",
+              isToday
+                ? "text-brand-primary"
+                : isCurrentMonth
+                ? "text-foreground"
+                : "text-muted-foreground/50"
+            )}
+          >
+            {format(day, "d")}
+          </span>
+          {postCount > 0 && (
+            <span className="mt-0.5 text-[10px] font-medium text-muted-foreground">
+              {postCount} {postCount === 1 ? "post" : "posts"}
+            </span>
           )}
-        >
-          {format(day, "d")}
-        </span>
+        </div>
 
         <button
           onClick={(e) => {
@@ -220,16 +229,10 @@ function DroppableDay({
         </button>
       </div>
 
-      {/*
-        Container for posts with Overflow Scroll.
-        pointer-events-auto ensures dragging and clicking works.
-        h-full ensures it takes remaining height.
-      */}
       <div className="relative z-10 flex-1 space-y-1.5 overflow-y-auto overflow-x-hidden scrollbar-thin scrollbar-thumb-border scrollbar-track-transparent pr-1">
         {children}
       </div>
 
-      {/* Background Click Target for adding new posts */}
       <div
         className="absolute inset-0 z-0 cursor-pointer"
         onClick={() => onNewPost(day)}
@@ -305,8 +308,7 @@ export default function MonthView({
       onDragStart={handleDragStart}
       onDragEnd={handleDragEnd}
     >
-      <div className="bg-border border border-border shadow-sm rounded-lg overflow-hidden">
-        {/* Header Row */}
+      <div className="bg-border overflow-hidden">
         <div className="grid grid-cols-7 gap-px bg-border border-b border-border">
           {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((day) => (
             <div key={day} className="bg-surface-hover p-3 text-center">
@@ -317,7 +319,6 @@ export default function MonthView({
           ))}
         </div>
 
-        {/* Days Grid */}
         <div className="grid grid-cols-7 gap-px bg-border">
           {monthData.map((day) => {
             const isCurrentMonth = isSameMonth(day, currentDate);
@@ -335,6 +336,7 @@ export default function MonthView({
                 day={day}
                 isCurrentMonth={isCurrentMonth}
                 onNewPost={onNewPost}
+                postCount={postsForDay.length}
               >
                 {postsForDay.map((post) => (
                   <DraggablePost
