@@ -1,3 +1,5 @@
+// components/post-editor/previews/youtube/youtube-options.tsx
+
 "use client";
 
 import { useState } from "react";
@@ -12,6 +14,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { useClientData } from "@/lib/hooks/use-client-data";
 
 const YOUTUBE_CATEGORIES = [
   { id: "22", name: "People & Blogs" },
@@ -54,6 +57,7 @@ export function YouTubeOptions({
   onThumbnailChange,
 }: YouTubeOptionsProps) {
   const [isUploadingThumb, setIsUploadingThumb] = useState(false);
+  const { organizationId } = useClientData();
 
   const handleThumbnailUpload = async (
     e: React.ChangeEvent<HTMLInputElement>
@@ -66,9 +70,15 @@ export function YouTubeOptions({
       return;
     }
 
+    if (!organizationId) {
+      toast.error("Organization context missing.");
+      return;
+    }
+
     try {
       setIsUploadingThumb(true);
-      const response = await uploadMedia(file, integrationId);
+      // Fixed: Passing organizationId instead of integrationId
+      const response = await uploadMedia(file, organizationId);
       onThumbnailChange(response.url);
       toast.success("Thumbnail uploaded");
     } catch (error) {

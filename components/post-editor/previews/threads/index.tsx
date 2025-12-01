@@ -8,8 +8,8 @@ import { renderCaptionWithHashtags } from "../../render-caption";
 import { ImageCropperModal } from "../../modals/image-cropper-modal";
 import { type CropData } from "@/lib/utils/crop-utils";
 import { useEditorialStore, MediaItem } from "@/lib/store/editorial-store";
-import { getMediaViewUrl } from "@/lib/api/media";
-import { toast } from "sonner";
+import { useClientData } from "@/lib/hooks/use-client-data";
+import { useOriginalUrl } from "@/lib/hooks/use-original-url";
 import LocationSearchInput from "../../location-search-input";
 import { Input } from "@/components/ui/input";
 
@@ -77,6 +77,10 @@ function ThreadsPreview({
   );
   const location = useEditorialStore((state) => state.location);
 
+  // Data Hooks
+  const { organizationId } = useClientData();
+  const { getOriginalUrl } = useOriginalUrl(organizationId);
+
   const canCrop = mediaItems.some((item) => item.id && item.type === "image");
 
   const handleCropClick = () => {
@@ -89,20 +93,6 @@ function ThreadsPreview({
     previewUrl: string
   ) => {
     setCropForMedia(mediaUid, "threads", cropData, previewUrl);
-  };
-
-  const handleGetOriginalUrl = async (
-    item: MediaItem
-  ): Promise<string | null> => {
-    if (!item.id || !integrationId) return null;
-    try {
-      const { downloadUrl } = await getMediaViewUrl(item.id, integrationId);
-      return downloadUrl;
-    } catch (error) {
-      console.error("Failed to fetch original URL", error);
-      toast.error("Failed to load high-quality image");
-      return null;
-    }
   };
 
   const handleTopicTagChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -229,7 +219,7 @@ function ThreadsPreview({
           initialIndex={0}
           platform="threads"
           onCropSave={handleCropSave}
-          getOriginalUrl={handleGetOriginalUrl}
+          getOriginalUrl={getOriginalUrl}
         />
       )}
     </div>

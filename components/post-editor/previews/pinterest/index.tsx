@@ -7,9 +7,8 @@ import { Crop, ImageIcon, Play } from "lucide-react";
 import { ImageCropperModal } from "../../modals/image-cropper-modal";
 import { type CropData } from "@/lib/utils/crop-utils";
 import { useEditorialStore, MediaItem } from "@/lib/store/editorial-store";
-import { getMediaViewUrl } from "@/lib/api/media";
-import { toast } from "sonner";
-import { cn } from "@/lib/utils";
+import { useClientData } from "@/lib/hooks/use-client-data";
+import { useOriginalUrl } from "@/lib/hooks/use-original-url";
 
 // import { PinterestHeader } from "./pinterest-header";
 import { PinterestFooter } from "./pinterest-footer";
@@ -38,8 +37,10 @@ function PinterestPreview({
 
   const [isCropperOpen, setIsCropperOpen] = useState(false);
   const setCropForMedia = useEditorialStore((state) => state.setCropForMedia);
-  const integrationId =
-    useEditorialStore.getState().selectedAccounts["pinterest"]?.[0];
+
+  // Data Hooks
+  const { organizationId } = useClientData();
+  const { getOriginalUrl } = useOriginalUrl(organizationId);
 
   const croppedPreview = singleMediaItem?.croppedPreviews?.pinterest;
 
@@ -61,20 +62,6 @@ function PinterestPreview({
     previewUrl: string
   ) => {
     setCropForMedia(mediaUid, "pinterest", cropData, previewUrl);
-  };
-
-  const handleGetOriginalUrl = async (
-    item: MediaItem
-  ): Promise<string | null> => {
-    if (!item.id || !integrationId) return null;
-    try {
-      const { downloadUrl } = await getMediaViewUrl(item.id, integrationId);
-      return downloadUrl;
-    } catch (error) {
-      console.error("Failed to fetch original URL", error);
-      toast.error("Failed to load high-quality image");
-      return null;
-    }
   };
 
   return (
@@ -155,7 +142,7 @@ function PinterestPreview({
           initialIndex={0}
           platform="pinterest"
           onCropSave={handleCropSave}
-          getOriginalUrl={handleGetOriginalUrl}
+          getOriginalUrl={getOriginalUrl}
         />
       )}
     </div>

@@ -27,7 +27,7 @@ import {
   reschedulePostOnly,
   RescheduleOnlyPayload,
 } from "@/lib/api/publishing";
-import { getClientDataForEditor } from "@/app/actions/data";
+import { useClientData } from "@/lib/hooks/use-client-data"; // Updated import
 import { toast } from "sonner";
 import {
   AlertDialog,
@@ -62,13 +62,8 @@ export default function CalendarPage() {
 
   const [postIdToEdit, setPostIdToEdit] = useState<string | null>(null);
 
-  const { data: clientData, isLoading: isLoadingClientData } = useQuery({
-    queryKey: ["clientEditorData"],
-    queryFn: getClientDataForEditor,
-    staleTime: 60000,
-  });
-
-  const userId = clientData?.userId;
+  // Use the shared hook
+  const { userId } = useClientData();
 
   const {
     data: allContent = [],
@@ -305,7 +300,9 @@ export default function CalendarPage() {
     </Button>
   );
 
-  if (isLoadingList || isLoadingClientData) {
+  // Note: userId check is used as a proxy for client data loading if needed,
+  // but we primarily rely on isLoadingList for UI blocking.
+  if (isLoadingList) {
     return (
       <div className="flex h-full w-full items-center justify-center p-8">
         <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />

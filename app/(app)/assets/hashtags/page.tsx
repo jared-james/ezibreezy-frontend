@@ -4,7 +4,7 @@
 
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { getClientDataForEditor } from "@/app/actions/data";
+import { useClientData } from "@/lib/hooks/use-client-data"; // Updated import
 import {
   listHashtagGroups,
   createHashtagGroup,
@@ -33,14 +33,8 @@ export default function HashtagsPage() {
   const [hashtags, setHashtags] = useState<string[]>([]);
   const [hashtagInput, setHashtagInput] = useState("");
 
-  // Fetch user context to get organizationId
-  const { data: clientData } = useQuery({
-    queryKey: ["clientEditorData"],
-    queryFn: getClientDataForEditor,
-    staleTime: 60000,
-  });
-
-  const organizationId = clientData?.organizationId;
+  // Use the shared hook for organization context
+  const { organizationId } = useClientData();
 
   // Fetch hashtag groups
   const { data: groups = [], isLoading } = useQuery({
@@ -143,7 +137,9 @@ export default function HashtagsPage() {
     setHashtagInput("");
   };
 
-  const handleHashtagInputKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+  const handleHashtagInputKeyDown = (
+    e: React.KeyboardEvent<HTMLInputElement>
+  ) => {
     if (e.key === "Enter") {
       e.preventDefault();
       handleAddHashtag();
@@ -239,8 +235,9 @@ export default function HashtagsPage() {
                 </h2>
               </div>
               <p className="font-serif text-muted-foreground mb-6 italic">
-                Create your first hashtag group to quickly insert curated hashtags
-                into your posts across different platforms and content niches.
+                Create your first hashtag group to quickly insert curated
+                hashtags into your posts across different platforms and content
+                niches.
               </p>
               <Button
                 onClick={() => handleOpenDialog()}
@@ -309,7 +306,10 @@ export default function HashtagsPage() {
           <form onSubmit={handleSubmit}>
             <div className="space-y-4 py-4">
               <div className="space-y-2">
-                <label htmlFor="name" className="font-serif text-sm font-medium">
+                <label
+                  htmlFor="name"
+                  className="font-serif text-sm font-medium"
+                >
                   Group Name
                 </label>
                 <Input

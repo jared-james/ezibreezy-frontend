@@ -1,9 +1,12 @@
 // components/post-editor/previews/instagram/instagram-reel-options.tsx
 
+"use client";
+
 import { useState } from "react";
 import { Film, Upload, Trash2, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { uploadMedia } from "@/lib/api/media";
+import { useClientData } from "@/lib/hooks/use-client-data";
 
 interface InstagramReelOptionsProps {
   integrationId?: string;
@@ -29,6 +32,7 @@ export function InstagramReelOptions({
   videoDuration,
 }: InstagramReelOptionsProps) {
   const [isUploadingCover, setIsUploadingCover] = useState(false);
+  const { organizationId } = useClientData();
 
   const handleCoverUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -39,9 +43,15 @@ export function InstagramReelOptions({
       return;
     }
 
+    if (!organizationId) {
+      toast.error("Organization context missing. Please refresh.");
+      return;
+    }
+
     try {
       setIsUploadingCover(true);
-      const response = await uploadMedia(file, integrationId);
+      // Fixed: Passing organizationId instead of integrationId
+      const response = await uploadMedia(file, organizationId);
       onCoverChange?.(response.url);
       toast.success("Cover image uploaded");
     } catch (error) {
@@ -91,7 +101,7 @@ export function InstagramReelOptions({
         </label>
 
         <div className="flex gap-4 items-start">
-          <div className="relative w-20 aspect-9/16 bg-muted border border-border rounded-md overflow-hidden shrink-0">
+          <div className="relative w-20 aspect-[9/16] bg-muted border border-border rounded-md overflow-hidden shrink-0">
             {coverUrl ? (
               <>
                 <img

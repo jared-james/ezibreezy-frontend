@@ -1,3 +1,5 @@
+// components/post-editor/previews/youtube/index.tsx
+
 "use client";
 
 import { memo, useState } from "react";
@@ -5,8 +7,8 @@ import { Crop, ImageIcon } from "lucide-react";
 import { ImageCropperModal } from "../../modals/image-cropper-modal";
 import { type CropData } from "@/lib/utils/crop-utils";
 import { useEditorialStore, MediaItem } from "@/lib/store/editorial-store";
-import { getMediaViewUrl } from "@/lib/api/media";
-import { toast } from "sonner";
+import { useClientData } from "@/lib/hooks/use-client-data";
+import { useOriginalUrl } from "@/lib/hooks/use-original-url";
 import { cn } from "@/lib/utils";
 
 import { YouTubeHeader } from "./youtube-header";
@@ -35,20 +37,16 @@ function YouTubePreview({
 
   const [isCropperOpen, setIsCropperOpen] = useState(false);
   const setCropForMedia = useEditorialStore((state) => state.setCropForMedia);
-  const integrationId =
-    useEditorialStore.getState().selectedAccounts["youtube"]?.[0];
+
+  // Data Hooks
+  const { organizationId } = useClientData();
+  const { getOriginalUrl } = useOriginalUrl(organizationId);
 
   // Determine viewing mode based on media aspect ratio or type
   // Shorts = 9:16 aspect ratio OR explicit crop
   const cropData = singleMediaItem?.crops?.youtube;
-  const isShorts = cropData
-    ? Math.abs(cropData.aspectRatio - 9 / 16) < 0.01
-    : singleMediaItem?.type === "video"; // Default video to shorts preview? Maybe better default to landscape if not cropped.
 
-  // Actually, standard videos are landscape. Shorts are vertical.
-  // If no crop is set, we can infer from dimensions if available, but here we don't have dims easily.
-  // Let's toggle view based on the aspect ratio stored in the crop data.
-  // If no crop data, default to Video View (16:9) unless user selects Shorts crop.
+  // If crop data exists and is vertical, default to shorts view
   const previewMode =
     cropData && Math.abs(cropData.aspectRatio - 9 / 16) < 0.01
       ? "shorts"
@@ -66,20 +64,6 @@ function YouTubePreview({
     previewUrl: string
   ) => {
     setCropForMedia(mediaUid, "youtube", cropData, previewUrl);
-  };
-
-  const handleGetOriginalUrl = async (
-    item: MediaItem
-  ): Promise<string | null> => {
-    if (!item.id || !integrationId) return null;
-    try {
-      const { downloadUrl } = await getMediaViewUrl(item.id, integrationId);
-      return downloadUrl;
-    } catch (error) {
-      console.error("Failed to fetch original URL", error);
-      toast.error("Failed to load high-quality image");
-      return null;
-    }
   };
 
   return (
@@ -162,7 +146,7 @@ function YouTubePreview({
           initialIndex={0}
           platform="youtube"
           onCropSave={handleCropSave}
-          getOriginalUrl={handleGetOriginalUrl}
+          getOriginalUrl={getOriginalUrl}
         />
       )}
     </div>

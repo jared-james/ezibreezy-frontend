@@ -2,11 +2,10 @@
 
 "use client";
 
-import { useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   RefreshCw,
-  PenLine,
+  // PenLine,
   BookmarkPlus,
   Lightbulb,
   Loader2,
@@ -18,9 +17,7 @@ import {
 } from "@/lib/api/ideas";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { getUserAndOrganization } from "@/lib/auth";
-import { getConnections } from "@/lib/api/integrations";
-import { useQuery } from "@tanstack/react-query";
+import { useClientData } from "@/lib/hooks/use-client-data"; // Updated import
 
 interface LatestBriefingProps {
   clippings: GeneratedClipping[];
@@ -32,19 +29,8 @@ export default function LatestBriefing({ clippings }: LatestBriefingProps) {
   // );
   const queryClient = useQueryClient();
 
-  // Fetch user context for IDs
-  const { data: userContext } = useQuery({
-    queryKey: ["userContext"],
-    queryFn: getUserAndOrganization,
-    staleTime: Infinity,
-  });
-
-  // Fetch connections to get a default integration ID
-  const { data: connections = [] } = useQuery({
-    queryKey: ["connections"],
-    queryFn: getConnections,
-    staleTime: 60000,
-  });
+  // Consolidate user and connection fetching
+  const { userId, organizationId, connections } = useClientData();
 
   const saveMutation = useMutation({
     mutationFn: saveClippingAsDraft,
@@ -68,7 +54,7 @@ export default function LatestBriefing({ clippings }: LatestBriefingProps) {
   });
 
   const handleSaveClipping = (idea: GeneratedClipping) => {
-    if (!userContext?.userId || !userContext?.organizationId) {
+    if (!userId || !organizationId) {
       return toast.error("User context data missing. Cannot save.");
     }
 
@@ -80,8 +66,8 @@ export default function LatestBriefing({ clippings }: LatestBriefingProps) {
     }
 
     saveMutation.mutate({
-      userId: userContext.userId,
-      organizationId: userContext.organizationId,
+      userId: userId,
+      organizationId: organizationId,
       integrationId: defaultIntegrationId,
       title: idea.title,
       content: idea.body,
@@ -158,7 +144,7 @@ export default function LatestBriefing({ clippings }: LatestBriefingProps) {
                   onClick={() => handleSaveClipping(idea)}
                   disabled={
                     saveMutation.isPending ||
-                    !userContext ||
+                    !userId ||
                     connections.length === 0
                   }
                 >

@@ -17,6 +17,7 @@ import { PinterestBoardSelector } from "./pinterest-board-selector";
 import { MediaItem } from "@/lib/store/editorial-store";
 import { toast } from "sonner";
 import { uploadMedia } from "@/lib/api/media";
+import { useClientData } from "@/lib/hooks/use-client-data";
 
 interface PinterestOptionsProps {
   integrationId: string | null;
@@ -44,6 +45,7 @@ export function PinterestOptions({
   onCoverChange,
 }: PinterestOptionsProps) {
   const [isUploadingCover, setIsUploadingCover] = useState(false);
+  const { organizationId } = useClientData();
 
   const isVideo = activeMediaItem?.type === "video";
   const displayMediaSrc = activeMediaItem?.mediaUrl || activeMediaItem?.preview;
@@ -57,9 +59,15 @@ export function PinterestOptions({
       return;
     }
 
+    if (!organizationId) {
+      toast.error("Organization context missing.");
+      return;
+    }
+
     try {
       setIsUploadingCover(true);
-      const response = await uploadMedia(file, integrationId);
+      // Fixed: Passing organizationId instead of integrationId
+      const response = await uploadMedia(file, organizationId);
       onCoverChange?.(response.url);
       toast.success("Cover image uploaded");
     } catch (error) {

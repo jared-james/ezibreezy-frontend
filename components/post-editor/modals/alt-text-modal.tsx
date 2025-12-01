@@ -1,21 +1,12 @@
-// components/post-editor/modals/alt-text-modal.tsx
-
 "use client";
 
 import { useState, useEffect, useMemo, useCallback } from "react";
-import {
-  X,
-  Save,
-  Info,
-  Check,
-  AlertCircle,
-  Loader2,
-  type LucideIcon,
-} from "lucide-react";
+import { X, Save, Info, AlertCircle, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { MediaItem, useEditorialStore } from "@/lib/store/editorial-store";
 import { useUpdateMedia } from "@/lib/hooks/use-media";
 import { toast } from "sonner";
+import { useClientData } from "@/lib/hooks/use-client-data"; // <--- 1. Import this
 
 interface AltTextModalProps {
   open: boolean;
@@ -110,16 +101,13 @@ function AltTextModalContent({
 }: AltTextModalContentProps) {
   const CHARACTER_LIMIT = 125;
 
-  const selectedAccounts = useEditorialStore((state) => state.selectedAccounts);
   const setStagedMediaItems = useEditorialStore(
     (state) => state.setStagedMediaItems
   );
   const stagedMediaItems = useEditorialStore((state) => state.stagedMediaItems);
 
-  const integrationId = useMemo(() => {
-    const allIds = Object.values(selectedAccounts).flat();
-    return allIds[0] || null;
-  }, [selectedAccounts]);
+  // 2. Use Organization ID instead of deriving Integration ID
+  const { organizationId } = useClientData();
 
   const [currentMediaIndex, setCurrentMediaIndex] = useState(initialMediaIndex);
   const [localAltTexts, setLocalAltTexts] = useState<Record<string, string>>(
@@ -144,7 +132,9 @@ function AltTextModalContent({
     setLocalAltTexts(initialTexts);
   }, [initialTexts]);
 
-  const updateMediaMutation = useUpdateMedia(integrationId);
+  // 3. Pass organizationId here
+  const updateMediaMutation = useUpdateMedia(organizationId);
+
   const currentMedia = mediaItems[currentMediaIndex];
   const currentId = currentMedia?.id;
   const currentAltText = currentId ? localAltTexts[currentId] ?? "" : "";
@@ -177,7 +167,7 @@ function AltTextModalContent({
   };
 
   const handleSave = async () => {
-    if (!currentId || !integrationId) {
+    if (!currentId || !organizationId) {
       toast.error("Cannot save alt text at this time");
       return;
     }

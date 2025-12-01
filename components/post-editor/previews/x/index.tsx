@@ -3,14 +3,14 @@
 "use client";
 
 import { memo, useState } from "react";
-import { MessageSquare, Repeat2, ImageIcon, Crop, Loader2 } from "lucide-react";
+import { MessageSquare, Repeat2, ImageIcon, Crop } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { renderCaptionWithHashtags } from "../../render-caption";
 import { ImageCropperModal } from "../../modals/image-cropper-modal";
 import { type CropData } from "@/lib/utils/crop-utils";
 import { useEditorialStore, MediaItem } from "@/lib/store/editorial-store";
-import { getMediaViewUrl } from "@/lib/api/media";
-import { toast } from "sonner";
+import { useClientData } from "@/lib/hooks/use-client-data";
+import { useOriginalUrl } from "@/lib/hooks/use-original-url";
 
 interface XPreviewProps {
   caption: string;
@@ -132,7 +132,10 @@ function XPreview({
   const handle = accountName ? `@${accountName}` : "";
   const [isCropperOpen, setIsCropperOpen] = useState(false);
   const setCropForMedia = useEditorialStore((state) => state.setCropForMedia);
-  const integrationId = useEditorialStore.getState().selectedAccounts["x"]?.[0];
+
+  // Data Hooks
+  const { organizationId } = useClientData();
+  const { getOriginalUrl } = useOriginalUrl(organizationId);
 
   const croppedPreview = singleMediaItem?.croppedPreviews?.x;
 
@@ -163,20 +166,6 @@ function XPreview({
     previewUrl: string
   ) => {
     setCropForMedia(mediaUid, "x", cropData, previewUrl);
-  };
-
-  const handleGetOriginalUrl = async (
-    item: MediaItem
-  ): Promise<string | null> => {
-    if (!item.id || !integrationId) return null;
-    try {
-      const { downloadUrl } = await getMediaViewUrl(item.id, integrationId);
-      return downloadUrl;
-    } catch (error) {
-      console.error("Failed to fetch original URL", error);
-      toast.error("Failed to load high-quality image");
-      return null;
-    }
   };
 
   // Construct list for cropper modal
@@ -267,7 +256,7 @@ function XPreview({
           initialIndex={0}
           platform="x"
           onCropSave={handleCropSave}
-          getOriginalUrl={handleGetOriginalUrl}
+          getOriginalUrl={getOriginalUrl}
         />
       )}
     </div>

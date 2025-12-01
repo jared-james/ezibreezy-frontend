@@ -11,8 +11,8 @@ import { TikTokFooter } from "./tiktok-footer";
 import { TikTokCarousel } from "./tiktok-carousel";
 import { type CropData } from "@/lib/utils/crop-utils";
 import { useEditorialStore, MediaItem } from "@/lib/store/editorial-store";
-import { getMediaViewUrl } from "@/lib/api/media";
-import { toast } from "sonner";
+import { useClientData } from "@/lib/hooks/use-client-data";
+import { useOriginalUrl } from "@/lib/hooks/use-original-url";
 import { cn } from "@/lib/utils";
 
 interface TikTokPreviewProps {
@@ -49,8 +49,10 @@ function TikTokPreview({
   const tiktokVideoCoverTimestamp = useEditorialStore(
     (state) => state.tiktokVideoCoverTimestamp
   );
-  const integrationId =
-    useEditorialStore.getState().selectedAccounts["tiktok"]?.[0];
+
+  // Data Hooks
+  const { organizationId } = useClientData();
+  const { getOriginalUrl } = useOriginalUrl(organizationId);
 
   const isCarousel = mediaItems && mediaItems.length > 1;
 
@@ -92,20 +94,6 @@ function TikTokPreview({
     previewUrl: string
   ) => {
     setCropForMedia(mediaUid, "tiktok", cropData, previewUrl);
-  };
-
-  const handleGetOriginalUrl = async (
-    item: MediaItem
-  ): Promise<string | null> => {
-    if (!item.id || !integrationId) return null;
-    try {
-      const { downloadUrl } = await getMediaViewUrl(item.id, integrationId);
-      return downloadUrl;
-    } catch (error) {
-      console.error("Failed to fetch original URL", error);
-      toast.error("Failed to load high-quality image");
-      return null;
-    }
   };
 
   // Construct list for cropper modal
@@ -259,7 +247,7 @@ function TikTokPreview({
           initialIndex={cropperInitialIndex}
           platform="tiktok"
           onCropSave={handleCropSave}
-          getOriginalUrl={handleGetOriginalUrl}
+          getOriginalUrl={getOriginalUrl}
         />
       )}
     </div>
