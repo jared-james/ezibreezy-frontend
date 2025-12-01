@@ -1,5 +1,3 @@
-// components/post-editor/media/media-upload.tsx
-
 "use client";
 
 import { useCallback, useState, useEffect, useRef } from "react";
@@ -162,7 +160,8 @@ export default function MediaUpload({
     <>
       {hasMedia ? (
         <div className="space-y-4">
-          <div className="grid grid-cols-5 gap-2">
+          {/* INCREASED COLS FROM 5 TO 6 HERE */}
+          <div className="grid grid-cols-6 gap-2">
             {mediaPreviews.map((preview, index) => {
               const itemState = items[index];
               const isItemUploading = itemState?.isUploading;

@@ -1,5 +1,3 @@
-// components/post-editor/media/platform-media-selector.tsx
-
 "use client";
 
 import {
@@ -219,7 +217,8 @@ export default function PlatformMediaSelector({
         </div>
       </div>
 
-      <div className="grid grid-cols-5 gap-x-2 gap-y-4">
+      {/* INCREASED COLS FROM 5 TO 6 HERE */}
+      <div className="grid grid-cols-6 gap-x-2 gap-y-4">
         {stagedMediaItems.map((item) => (
           <MediaThumbnail
             key={item.uid}

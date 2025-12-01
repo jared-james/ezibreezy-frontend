@@ -32,7 +32,7 @@ export default function ChannelSelector({
   return (
     <div>
       <div className="mb-3 flex items-center justify-between">
-        <p className="eyebrow text-foreground">Channels</p>
+        <p className="eyebrow text-foreground">Select Channels</p>
         <Link
           href="/settings/integrations"
           className="flex items-center gap-2 font-serif text-xs text-brand-accent hover:underline"
