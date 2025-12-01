@@ -19,8 +19,8 @@ interface UsePostEditorWorkflowProps {
   isFetchingFullPost: boolean;
   isErrorFullPost: boolean;
   errorFullPost: Error | null;
-  postIdToEdit: string | null;
-  setPostIdToEdit: (id: string | null) => void;
+  selectedPost: ScheduledPost | null;
+  setSelectedPost: (post: ScheduledPost | null) => void;
   openEditorialModal: () => void;
   closeEditorialModal: () => void;
 }
@@ -30,8 +30,8 @@ export function usePostEditorWorkflow({
   isFetchingFullPost,
   isErrorFullPost,
   errorFullPost,
-  postIdToEdit,
-  setPostIdToEdit,
+  selectedPost,
+  setSelectedPost,
   openEditorialModal,
   closeEditorialModal,
 }: UsePostEditorWorkflowProps) {
@@ -48,17 +48,16 @@ export function usePostEditorWorkflow({
 
   const resetUI = useEditorialUIStore((state) => state.resetUI);
 
-  // Effect to populate stores when post data is loaded
-  useEffect(() => {
-    if (fullPostData && !isFetchingFullPost && postIdToEdit) {
+  const populateStoreFromFullDetails = useCallback(
+    (fullPost: FullPostDetails) => {
       const newMediaItems: MediaItem[] = [];
-      const mediaMap = fullPostData.allMedia || {};
+      const mediaMap = fullPost.allMedia || {};
       const idToUidMap = new Map<string, string>();
 
       const allMediaIds = Array.from(
         new Set([
-          ...fullPostData.mediaIds,
-          ...(fullPostData.threadMessages || []).flatMap((m) => m.mediaIds),
+          ...fullPost.mediaIds,
+          ...(fullPost.threadMessages || []).flatMap((m) => m.mediaIds),
         ])
       );
 
@@ -82,20 +81,19 @@ export function usePostEditorWorkflow({
 
       setStagedMediaItems(newMediaItems);
 
-      const threadMessages = (fullPostData.threadMessages || []).map((msg) => ({
+      const threadMessages = (fullPost.threadMessages || []).map((msg) => ({
         content: msg.content,
         mediaIds: msg.mediaIds
           .map((id) => idToUidMap.get(id))
           .filter(Boolean) as string[],
       }));
 
-      const platform = fullPostData.integration.platform;
+      const platform = fullPost.integration.platform;
 
       setDraftState({
-        mainCaption:
-          fullPostData.settings?.canonicalContent || fullPostData.content,
+        mainCaption: fullPost.settings?.canonicalContent || fullPost.content,
         platformMediaSelections: {
-          [platform]: fullPostData.mediaIds
+          [platform]: fullPost.mediaIds
             .map((id) => idToUidMap.get(id))
             .filter(Boolean) as string[],
         },
@@ -103,20 +101,48 @@ export function usePostEditorWorkflow({
           [platform]: threadMessages,
         },
         threadMessages: threadMessages,
+        // Hydrate other settings
+        postType: fullPost.settings?.postType || "post",
+        userTags: fullPost.settings?.userTags || {},
+        productTags: fullPost.settings?.productTags || {},
       });
 
       setPublishingState({
         selectedAccounts: {
-          [platform]: [fullPostData.integrationId],
+          [platform]: [fullPost.integrationId],
         },
+        recycleInterval: fullPost.recycleInterval,
+        // If editing a scheduled post, hydrate schedule data
+        ...(fullPost.status === "scheduled" && fullPost.scheduledAt
+          ? {
+              isScheduling: true,
+              scheduleDate: format(
+                new Date(fullPost.scheduledAt),
+                "yyyy-MM-dd"
+              ),
+              scheduleTime: format(new Date(fullPost.scheduledAt), "HH:mm"),
+            }
+          : {}),
       });
+    },
+    [setStagedMediaItems, setDraftState, setPublishingState]
+  );
 
-      setPostIdToEdit(null);
+  // Effect to populate stores when post data is loaded (Edit Mode)
+  useEffect(() => {
+    if (
+      fullPostData &&
+      !isFetchingFullPost &&
+      selectedPost &&
+      selectedPost.status !== "sent" && // Only populate for editable posts
+      selectedPost.id === fullPostData.id
+    ) {
+      populateStoreFromFullDetails(fullPostData);
     }
 
-    if (isErrorFullPost) {
+    if (isErrorFullPost && selectedPost?.status !== "sent") {
       toast.error(`Failed to load post for editing: ${errorFullPost?.message}`);
-      setPostIdToEdit(null);
+      setSelectedPost(null);
       closeEditorialModal();
     }
   }, [
@@ -124,27 +150,22 @@ export function usePostEditorWorkflow({
     isFetchingFullPost,
     isErrorFullPost,
     errorFullPost,
-    postIdToEdit,
-    setDraftState,
-    setStagedMediaItems,
-    setPublishingState,
-    setPostIdToEdit,
+    selectedPost,
+    populateStoreFromFullDetails,
+    setSelectedPost,
     closeEditorialModal,
   ]);
 
   const handleEditPost = useCallback(
     (post: ScheduledPost) => {
-      if (post.status === "sent") {
-        toast.info("Sent posts cannot be edited. A copy will be created.");
-      }
       resetDraft();
       resetPublishing();
       resetUI();
 
+      setSelectedPost(post);
       openEditorialModal();
-      setPostIdToEdit(post.id);
     },
-    [resetDraft, resetPublishing, resetUI, openEditorialModal, setPostIdToEdit]
+    [resetDraft, resetPublishing, resetUI, openEditorialModal, setSelectedPost]
   );
 
   const handleNewPost = useCallback(
@@ -152,24 +173,82 @@ export function usePostEditorWorkflow({
       resetDraft();
       resetPublishing();
       resetUI();
+      setSelectedPost(null);
       setPublishingState({
         scheduleDate: format(date, "yyyy-MM-dd"),
         isScheduling: true,
       });
       openEditorialModal();
     },
-    [resetDraft, resetPublishing, resetUI, setPublishingState, openEditorialModal]
+    [
+      resetDraft,
+      resetPublishing,
+      resetUI,
+      setPublishingState,
+      openEditorialModal,
+      setSelectedPost,
+    ]
   );
 
-  const resetStores = useCallback(() => {
-    resetDraft();
-    resetPublishing();
-    resetUI();
-  }, [resetDraft, resetPublishing, resetUI]);
+  const handleReusePost = useCallback(() => {
+    if (!selectedPost) return;
+
+    // If we have the full details loaded (e.g. background fetch completed), use them
+    if (fullPostData && fullPostData.id === selectedPost.id) {
+      populateStoreFromFullDetails(fullPostData);
+    } else {
+      // Fallback: Populate from the summary available in selectedPost
+      // This loses crop data and precise settings, but works for basic reuse
+      const mediaItems: MediaItem[] = selectedPost.media.map((m) => ({
+        uid: crypto.randomUUID(),
+        id: null, // Reset ID for new post
+        file: null,
+        preview: m.thumbnailUrl || m.url,
+        mediaUrl: m.url,
+        isUploading: false,
+        type: m.type.startsWith("video") ? "video" : "image",
+      }));
+
+      setStagedMediaItems(mediaItems);
+
+      const platform = selectedPost.platform;
+      const mediaUids = mediaItems.map((m) => m.uid);
+
+      setDraftState({
+        mainCaption: selectedPost.content,
+        platformMediaSelections: {
+          [platform]: mediaUids,
+        },
+      });
+
+      // Note: Integration ID is missing in summary, so selectedAccounts can't be set accurately
+      // without fullPostData. User will need to re-select account or we rely on fullPostData fetch.
+    }
+
+    // Crucial: Clear the "selectedPost" so the Modal switches to Edit Mode (Create State)
+    setSelectedPost(null);
+
+    // Clear scheduling so it defaults to draft/now
+    setPublishingState({
+      isScheduling: false,
+      scheduleDate: format(new Date(), "yyyy-MM-dd"),
+      scheduleTime: "12:00",
+    });
+
+    toast.success("Post reused. You can now edit it as a new draft.");
+  }, [
+    selectedPost,
+    fullPostData,
+    populateStoreFromFullDetails,
+    setStagedMediaItems,
+    setDraftState,
+    setPublishingState,
+    setSelectedPost,
+  ]);
 
   return {
     handleEditPost,
     handleNewPost,
-    resetStores,
+    handleReusePost,
   };
 }

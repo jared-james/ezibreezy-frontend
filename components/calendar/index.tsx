@@ -30,7 +30,7 @@ export default function CalendarContainer() {
   // Calendar state hook
   const calendarState = useCalendarState();
 
-  // Data fetching hook - NOW WITH FILTERS
+  // Data fetching hook
   const {
     scheduledPosts,
     isLoading,
@@ -44,7 +44,7 @@ export default function CalendarContainer() {
     isFetchingFullPost,
     allContent,
   } = useCalendarData({
-    postIdToEdit: calendarState.postIdToEdit,
+    postIdToEdit: calendarState.selectedPost?.id || null,
     filters: calendarState.filters,
   });
 
@@ -64,8 +64,8 @@ export default function CalendarContainer() {
     isFetchingFullPost,
     isErrorFullPost,
     errorFullPost,
-    postIdToEdit: calendarState.postIdToEdit,
-    setPostIdToEdit: calendarState.setPostIdToEdit,
+    selectedPost: calendarState.selectedPost,
+    setSelectedPost: calendarState.setSelectedPost,
     openEditorialModal: calendarState.openEditorialModal,
     closeEditorialModal: calendarState.closeEditorialModal,
   });
@@ -141,7 +141,7 @@ export default function CalendarContainer() {
           onNavigate={navigation.navigateDate}
         />
 
-        {/* Active View - Updated to dotted border aesthetic */}
+        {/* Active View */}
         <div className="flex-1 overflow-hidden rounded-lg bg-surface shadow-none">
           {calendarState.activeView === "Month" && (
             <MonthView
@@ -179,6 +179,8 @@ export default function CalendarContainer() {
         onClose={handleCloseEditorialModal}
         title={modalTitle}
         isLoading={isLoadingFullPost || isFetchingFullPost}
+        selectedPost={calendarState.selectedPost}
+        onReuse={editor.handleReusePost}
       />
 
       {/* Reschedule Confirmation Modal */}

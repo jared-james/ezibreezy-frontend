@@ -58,6 +58,7 @@ function DraggablePost({
   disabled,
 }: DraggablePostProps) {
   const startDayId = format(new Date(post.scheduledAt), "yyyy-MM-dd");
+  const isSent = post.status === "sent";
 
   const { attributes, listeners, setNodeRef, transform, isDragging } =
     useDraggable({
@@ -67,7 +68,7 @@ function DraggablePost({
         startDayId: startDayId,
         status: post.status,
       },
-      disabled: disabled || post.status === "sent",
+      disabled: disabled || isSent,
     });
 
   const style = {
@@ -83,7 +84,7 @@ function DraggablePost({
       type="button"
       ref={setNodeRef}
       style={style}
-      {...listeners}
+      {...(!isSent ? listeners : {})}
       {...attributes}
       onClick={(e) => {
         if (disabled) {
@@ -93,28 +94,35 @@ function DraggablePost({
         onEditPost(post);
       }}
       className={cn(
-        "group/item relative flex w-full items-center gap-1.5 rounded-sm border border-border bg-white p-1.5 text-left text-xs shadow-sm transition-all hover:border-brand-primary hover:shadow-md active:scale-[0.98]",
-        disabled
-          ? "cursor-default opacity-70"
-          : "cursor-grab active:cursor-grabbing",
-        post.status === "sent" && "cursor-not-allowed opacity-60 bg-muted/30"
+        "group/item relative flex w-full items-center gap-3 rounded-md border border-border bg-white p-2 text-left text-xs shadow-sm transition-all hover:border-brand-primary hover:shadow-md active:scale-[0.98]",
+        disabled ? "cursor-default opacity-70" : "cursor-pointer",
+        isSent &&
+          "opacity-75 bg-muted/30 border-muted-foreground/20 hover:border-muted-foreground/40",
+        !isSent && !disabled && "cursor-grab active:cursor-grabbing"
       )}
-      disabled={post.status === "sent" || disabled}
+      disabled={disabled}
     >
-      <div className="flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-muted/50">
+      <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-muted/50">
         {disabled ? (
-          <Loader2 className="h-2.5 w-2.5 animate-spin text-brand-primary" />
+          <Loader2 className="h-4 w-4 animate-spin text-brand-primary" />
         ) : (
           <PlatformIcon
             platform={post.platform}
-            className="text-muted-foreground"
-            size={10}
+            className={cn(
+              isSent ? "text-muted-foreground/70" : "text-muted-foreground"
+            )}
+            size={16}
           />
         )}
       </div>
 
       {mediaUrl && (
-        <div className="relative shrink-0 overflow-hidden rounded-sm bg-muted h-4 w-4 border border-border/50">
+        <div
+          className={cn(
+            "relative shrink-0 overflow-hidden rounded-md bg-muted h-8 w-8 border border-border/50",
+            isSent && "opacity-80 grayscale-[0.2]"
+          )}
+        >
           <img
             src={mediaUrl}
             alt=""
@@ -124,12 +132,17 @@ function DraggablePost({
         </div>
       )}
 
-      <div className="flex min-w-0 flex-1 items-center gap-1.5">
-        <span className="truncate font-medium text-foreground leading-tight">
+      <div className="flex min-w-0 flex-1 flex-col gap-0.5 justify-center">
+        <span
+          className={cn(
+            "truncate font-medium text-foreground leading-tight",
+            isSent && "text-muted-foreground"
+          )}
+        >
           {post.content || "Untitled Post"}
         </span>
-        <span className="ml-auto font-serif text-[9px] font-bold text-muted-foreground shrink-0">
-          {format(new Date(post.scheduledAt), "h:mma")}
+        <span className="font-serif text-[10px] font-bold text-muted-foreground shrink-0">
+          {format(new Date(post.scheduledAt), "h:mm a")}
         </span>
       </div>
     </button>
@@ -143,24 +156,24 @@ function PostCardForOverlay({ post }: { post: ScheduledPost }) {
   return (
     <div
       className={cn(
-        "flex w-[180px] items-center gap-2 rounded-sm border border-brand-primary bg-white p-2 text-left text-xs shadow-xl cursor-grabbing rotate-2"
+        "flex w-[220px] items-center gap-3 rounded-md border border-brand-primary bg-white p-2 text-left text-xs shadow-xl cursor-grabbing rotate-2"
       )}
     >
-      <div className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-brand-primary/10">
+      <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-brand-primary/10">
         <PlatformIcon
           platform={post.platform}
           className="text-brand-primary"
-          size={12}
+          size={16}
         />
       </div>
 
       {mediaUrl && (
-        <div className="relative shrink-0 overflow-hidden rounded-sm bg-muted h-5 w-5 border border-border/50">
+        <div className="relative shrink-0 overflow-hidden rounded-md bg-muted h-8 w-8 border border-border/50">
           <img src={mediaUrl} alt="" className="h-full w-full object-cover" />
         </div>
       )}
 
-      <div className="flex min-w-0 flex-1 flex-col gap-0.5">
+      <div className="flex min-w-0 flex-1 flex-col gap-0.5 justify-center">
         <span className="truncate font-medium text-foreground">
           {post.content || "Untitled Post"}
         </span>
@@ -203,7 +216,7 @@ function DroppableDay({
     <div
       ref={setNodeRef}
       className={cn(
-        "group relative flex h-48 flex-col p-2 transition-colors bg-surface overflow-hidden",
+        "group relative flex h-52 flex-col p-2 transition-colors bg-surface overflow-hidden",
         !isCurrentMonth && "bg-muted/10 opacity-60",
         isPastDay &&
           !isToday &&
@@ -245,7 +258,7 @@ function DroppableDay({
         </button>
       </div>
 
-      <div className="relative z-10 flex-1 space-y-1.5 overflow-y-auto overflow-x-hidden scrollbar-thin scrollbar-thumb-border scrollbar-track-transparent pr-1">
+      <div className="relative z-10 flex-1 space-y-2 overflow-y-auto overflow-x-hidden scrollbar-thin scrollbar-thumb-border scrollbar-track-transparent pr-1">
         {children}
       </div>
 

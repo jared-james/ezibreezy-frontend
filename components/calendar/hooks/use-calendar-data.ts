@@ -13,7 +13,7 @@ import type { ScheduledPost, CalendarFilters } from "../types";
 
 interface UseCalendarDataProps {
   postIdToEdit: string | null;
-  filters?: CalendarFilters; // Optional filters to process data
+  filters?: CalendarFilters;
 }
 
 export function useCalendarData({
@@ -32,19 +32,15 @@ export function useCalendarData({
     staleTime: 60000,
   });
 
-  // Filter logic moved here (or can remain in the parent, but clean to do here)
   const filteredPosts = useMemo(() => {
     if (!filters) return allContent;
 
     return allContent.filter((post) => {
       // 1. Status Filter
-      // specific logic: 'all' usually excludes cancelled/failed unless specifically asked,
-      // but for this request, let's map the UI status to data status.
       if (filters.status !== "all" && post.status !== filters.status) {
         return false;
       }
-      // If status is 'all', we usually still hide 'cancelled' or 'failed' to keep calendar clean,
-      // unless you want a specific 'Trash' view. Let's hide cancelled by default.
+
       if (
         filters.status === "all" &&
         (post.status === "cancelled" || post.status === "failed")
@@ -67,6 +63,9 @@ export function useCalendarData({
     });
   }, [allContent, filters]);
 
+  // Background Fetch logic
+  // We fetch details if a post is selected, regardless of status.
+  // This allows "Reuse" to eventually hydrate with full details even for sent posts.
   const {
     data: fullPostData,
     isLoading: isLoadingFullPost,
@@ -77,21 +76,17 @@ export function useCalendarData({
     queryKey: ["fullPostDetails", postIdToEdit],
     queryFn: () => getPostDetails(postIdToEdit!),
     enabled: !!postIdToEdit,
-    staleTime: 0,
+    staleTime: 5 * 60 * 1000, // Cache details for 5 mins
   });
 
   return {
-    // All posts (raw)
     allContent,
-    // Filtered posts for view
     scheduledPosts: filteredPosts,
-
     isLoading: isLoadingList,
     isError: isErrorList,
     error: errorList,
     refetch,
 
-    // Full post details (for editing)
     fullPostData,
     isLoadingFullPost,
     isErrorFullPost,

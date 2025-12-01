@@ -3,13 +3,12 @@
 "use client";
 
 import { useState, useCallback } from "react";
-import type { CalendarView, CalendarFilters } from "../types";
+import type { CalendarView, CalendarFilters, ScheduledPost } from "../types";
 
 export function useCalendarState() {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [activeView, setActiveView] = useState<CalendarView>("Month");
 
-  // New Filter State
   const [filters, setFilters] = useState<CalendarFilters>({
     status: "all",
     channel: "all",
@@ -17,7 +16,7 @@ export function useCalendarState() {
   });
 
   const [isEditorialModalOpen, setIsEditorialModalOpen] = useState(false);
-  const [postIdToEdit, setPostIdToEdit] = useState<string | null>(null);
+  const [selectedPost, setSelectedPost] = useState<ScheduledPost | null>(null);
 
   const openEditorialModal = useCallback(() => {
     setIsEditorialModalOpen(true);
@@ -25,6 +24,7 @@ export function useCalendarState() {
 
   const closeEditorialModal = useCallback(() => {
     setIsEditorialModalOpen(false);
+    setSelectedPost(null);
   }, []);
 
   const updateFilter = useCallback(
@@ -35,19 +35,17 @@ export function useCalendarState() {
   );
 
   return {
-    // State
     currentDate,
     activeView,
-    filters, // Export filters
+    filters,
     isEditorialModalOpen,
-    postIdToEdit,
+    selectedPost,
 
-    // Actions
     setCurrentDate,
     setActiveView,
-    updateFilter, // Export filter updater
+    updateFilter,
     openEditorialModal,
     closeEditorialModal,
-    setPostIdToEdit,
+    setSelectedPost,
   };
 }

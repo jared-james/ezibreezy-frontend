@@ -1,5 +1,3 @@
-// components/calendar/components/calendar-post-card.tsx
-
 "use client";
 
 import { format } from "date-fns";
@@ -25,6 +23,7 @@ export default function CalendarPostCard({
 }: CalendarPostCardProps) {
   const isCompact = variant === "compact";
   const isList = variant === "list";
+  const isSent = post.status === "sent";
 
   // Resolve media URL (prefer thumbnail, fallback to raw URL)
   const firstMedia = post.media?.[0];
@@ -37,10 +36,13 @@ export default function CalendarPostCard({
       className={cn(
         "group/item relative flex w-full items-center gap-2 rounded-sm border border-border bg-white text-left shadow-sm transition-all hover:border-brand-primary hover:shadow-md active:scale-[0.98]",
         disabled ? "cursor-default opacity-70" : "cursor-pointer",
-        post.status === "sent" && "cursor-not-allowed opacity-60 bg-muted/30",
+        // Visual distinction for sent posts, but NOT cursor-not-allowed
+        isSent &&
+          "opacity-75 bg-muted/30 border-muted-foreground/20 hover:border-muted-foreground/40",
         isCompact ? "p-1.5 text-xs" : isList ? "p-3 text-sm" : "p-2 text-sm"
       )}
-      disabled={post.status === "sent" || disabled}
+      // Only disable if explicitly told to (e.g. during loading), NOT because it's sent
+      disabled={disabled}
     >
       {/* Platform Icon */}
       <div
@@ -59,7 +61,9 @@ export default function CalendarPostCard({
         ) : (
           <PlatformIcon
             platform={post.platform}
-            className="text-muted-foreground"
+            className={cn(
+              isSent ? "text-muted-foreground/70" : "text-muted-foreground"
+            )}
             size={isCompact ? 10 : 12}
           />
         )}
@@ -70,6 +74,7 @@ export default function CalendarPostCard({
         <div
           className={cn(
             "relative shrink-0 overflow-hidden rounded-sm bg-muted border border-border/50",
+            isSent && "opacity-80 grayscale-[0.2]",
             isCompact ? "h-4 w-4" : isList ? "h-10 w-10" : "h-5 w-5"
           )}
         >
@@ -87,6 +92,7 @@ export default function CalendarPostCard({
         <span
           className={cn(
             "truncate font-medium text-foreground leading-tight",
+            isSent && "text-muted-foreground",
             isList && "text-base"
           )}
         >

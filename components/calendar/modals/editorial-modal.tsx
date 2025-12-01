@@ -7,12 +7,16 @@ import { useEditorialDraftStore } from "@/lib/store/editorial/draft-store";
 import { usePublishingStore } from "@/lib/store/editorial/publishing-store";
 import { useEditorialUIStore } from "@/lib/store/editorial/ui-store";
 import EditorialCore from "@/components/post-editor";
+import ReadOnlyPostViewer from "../components/read-only-post-viewer";
+import type { ScheduledPost } from "../types";
 
 interface EditorialModalProps {
   isOpen: boolean;
   onClose: () => void;
   title?: string;
   isLoading?: boolean;
+  selectedPost?: ScheduledPost | null;
+  onReuse?: () => void;
 }
 
 export default function EditorialModal({
@@ -20,6 +24,8 @@ export default function EditorialModal({
   onClose,
   title = "Create New Post",
   isLoading = false,
+  selectedPost,
+  onReuse,
 }: EditorialModalProps) {
   const resetDraft = useEditorialDraftStore((state) => state.resetDraft);
   const resetPublishing = usePublishingStore((state) => state.resetPublishing);
@@ -34,38 +40,55 @@ export default function EditorialModal({
 
   if (!isOpen) return null;
 
+  const isSent = selectedPost?.status === "sent";
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center overflow-hidden bg-black/50 backdrop-blur-sm">
       <div className="flex h-[90vh] w-full max-w-7xl flex-col overflow-hidden rounded-lg border border-border bg-surface shadow-2xl">
-        <div className="z-10 flex shrink-0 items-center justify-between border-b border-border bg-surface p-6">
-          <div>
-            <p className="eyebrow mb-1">Editorial Desk</p>
-            <h2 className="font-serif text-2xl font-bold uppercase tracking-tight text-foreground md:text-3xl">
-              {title}
-            </h2>
-          </div>
-          <button
-            onClick={handleClose}
-            className="btn btn-icon hover:bg-surface-hover"
-          >
-            <X className="h-5 w-5" />
-          </button>
-        </div>
-
-        <div className="flex-1 overflow-y-auto p-6">
-          {isLoading ? (
-            <div className="flex items-center justify-center min-h-[400px]">
-              <div className="flex flex-col items-center gap-4">
-                <Loader2 className="h-8 w-8 animate-spin text-brand-primary" />
-                <p className="text-sm text-muted-foreground">
-                  Loading post data...
-                </p>
+        {/* Render Read-Only View for Sent Posts */}
+        {isSent && selectedPost ? (
+          <ReadOnlyPostViewer
+            post={selectedPost}
+            onReuse={() => {
+              if (onReuse) onReuse();
+            }}
+            onClose={handleClose}
+          />
+        ) : (
+          <>
+            {/* Standard Editor Header */}
+            <div className="z-10 flex shrink-0 items-center justify-between border-b border-border bg-surface p-6">
+              <div>
+                <p className="eyebrow mb-1">Editorial Desk</p>
+                <h2 className="font-serif text-2xl font-bold uppercase tracking-tight text-foreground md:text-3xl">
+                  {title}
+                </h2>
               </div>
+              <button
+                onClick={handleClose}
+                className="btn btn-icon hover:bg-surface-hover"
+              >
+                <X className="h-5 w-5" />
+              </button>
             </div>
-          ) : (
-            <EditorialCore mode="editorial" onPostSuccess={handleClose} />
-          )}
-        </div>
+
+            {/* Standard Editor Body */}
+            <div className="flex-1 overflow-y-auto p-6">
+              {isLoading ? (
+                <div className="flex items-center justify-center min-h-[400px]">
+                  <div className="flex flex-col items-center gap-4">
+                    <Loader2 className="h-8 w-8 animate-spin text-brand-primary" />
+                    <p className="text-sm text-muted-foreground">
+                      Loading post data...
+                    </p>
+                  </div>
+                </div>
+              ) : (
+                <EditorialCore mode="editorial" onPostSuccess={handleClose} />
+              )}
+            </div>
+          </>
+        )}
       </div>
     </div>
   );
