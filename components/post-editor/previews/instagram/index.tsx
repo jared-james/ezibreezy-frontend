@@ -15,10 +15,10 @@ import {
   calculateCenteredCrop,
 } from "@/lib/utils/crop-utils";
 import { useEditorialStore, MediaItem } from "@/lib/store/editorial-store";
-import { getMediaViewUrl } from "@/lib/api/media";
-import { toast } from "sonner";
 import LocationSearchInput from "../../location-search-input";
 import CollaboratorSearchInput from "../../collaborator-search-input";
+import { useClientData } from "@/lib/hooks/use-client-data";
+import { useOriginalUrl } from "@/lib/hooks/use-original-url"; // <--- NEW HOOK
 
 import { InstagramHeader } from "./instagram-header";
 import { InstagramGridView } from "./instagram-grid-view";
@@ -76,13 +76,24 @@ function InstagramPreview({
 }: InstagramPreviewProps) {
   const accountName = platformUsername.replace(/^@/, "");
   const primaryName = displayName || accountName || "Account";
+
+  // Stores
   const setCropForMedia = useEditorialStore((state) => state.setCropForMedia);
   const setState = useEditorialStore((state) => state.setState);
   const location = useEditorialStore((state) => state.location);
   const instagramCollaborators = useEditorialStore(
     (state) => state.instagramCollaborators
   );
+  const selectedAccounts = useEditorialStore((state) => state.selectedAccounts);
 
+  // Data Hooks
+  const { organizationId } = useClientData();
+  const { getOriginalUrl } = useOriginalUrl(organizationId); // <--- CLEANER
+
+  // Integration ID (Only needed for User Search / Location Search APIs)
+  const integrationId = selectedAccounts["instagram"]?.[0];
+
+  // Local State
   const [isTaggingMode, setIsTaggingMode] = useState(false);
   const [isProductTaggingMode, setIsProductTaggingMode] = useState(false);
   const [isProductSelectorOpen, setIsProductSelectorOpen] = useState(false);
@@ -98,71 +109,53 @@ function InstagramPreview({
   const [videoDuration, setVideoDuration] = useState(0);
   const [currentCarouselIndex, setCurrentCarouselIndex] = useState(0);
 
-  const selectedAccounts = useEditorialStore((state) => state.selectedAccounts);
-  const integrationId = selectedAccounts["instagram"]?.[0];
-
+  // ... (Derived state logic for carousel/media selection remains the same)
   const displayMediaSrc =
     singleMediaItem?.croppedPreviews?.instagram ||
     (singleMediaItem?.type === "video" && singleMediaItem.mediaUrl
       ? singleMediaItem.mediaUrl
       : singleMediaItem?.preview);
-
   const previewAspectRatio = postType === "story" ? 9 / 16 : aspectRatio;
-
   const hasMultipleMedia = mediaItems.length > 1;
   const isCarousel = hasMultipleMedia && postType === "post";
   const isStoryCarousel = hasMultipleMedia && postType === "story";
-
   const currentCarouselMedia = isCarousel
     ? mediaItems[currentCarouselIndex]
     : null;
-
   const activeMediaForCrop = currentCarouselMedia || singleMediaItem;
-
   const canCrop =
     !!activeMediaForCrop?.id && activeMediaForCrop?.type === "image";
-
   const isTaggingSupported = isCarousel
     ? postType === "post" && mediaItems.some((item) => item.type === "image")
     : !!displayMediaSrc && postType === "post" && mediaType !== "video";
-
   const isProductTaggingSupported = isTaggingSupported;
-
   const editableMediaItems = isCarousel
     ? mediaItems.filter((item) => item.type === "image" && !!item.id)
     : singleMediaItem?.type === "image" && singleMediaItem?.id
     ? [singleMediaItem]
     : [];
-
   const canEditAltText = editableMediaItems.length > 0;
 
   useEffect(() => {
-    if (postType === "story") {
-      setViewMode("post");
-    }
+    if (postType === "story") setViewMode("post");
   }, [postType]);
 
   useEffect(() => {
-    if (!isTaggingSupported) {
-      setIsTaggingMode(false);
-    }
+    if (!isTaggingSupported) setIsTaggingMode(false);
   }, [isTaggingSupported]);
 
   useEffect(() => {
-    if (!isProductTaggingSupported) {
-      setIsProductTaggingMode(false);
-    }
+    if (!isProductTaggingSupported) setIsProductTaggingMode(false);
   }, [isProductTaggingSupported]);
 
+  // ... (Auto Crop Logic remains the same)
   const prevPostTypeRef = useRef(postType);
   useEffect(() => {
     const applyAutoCrop = async () => {
       if (!singleMediaItem || isCarousel) return;
-
       const singleMediaSrc = singleMediaItem.file
         ? singleMediaItem.preview
         : singleMediaItem.originalUrlForCropping;
-
       if (!singleMediaSrc) return;
 
       if (prevPostTypeRef.current !== "story" && postType === "story") {
@@ -173,7 +166,6 @@ function InstagramPreview({
             img.onload = () => resolve();
             img.onerror = reject;
           });
-
           const displayedWidth = img.naturalWidth;
           const displayedHeight = img.naturalHeight;
           const cropPixels = calculateCenteredCrop(
@@ -187,7 +179,6 @@ function InstagramPreview({
             displayedWidth,
             displayedHeight
           );
-
           if (activeMediaForCrop) {
             setCropForMedia(
               activeMediaForCrop.uid,
@@ -228,30 +219,13 @@ function InstagramPreview({
     setCropForMedia,
   ]);
 
-  const handleCropClick = () => {
-    setIsCropperOpen(true);
-  };
-
+  const handleCropClick = () => setIsCropperOpen(true);
   const handleCropSave = (
     mediaUid: string,
     cropData: CropData,
     previewUrl: string
   ) => {
     setCropForMedia(mediaUid, "instagram", cropData, previewUrl);
-  };
-
-  const handleGetOriginalUrl = async (
-    item: MediaItem
-  ): Promise<string | null> => {
-    if (!item.id || !integrationId) return null;
-    try {
-      const { downloadUrl } = await getMediaViewUrl(item.id, integrationId);
-      return downloadUrl;
-    } catch (error) {
-      console.error("Failed to fetch original URL", error);
-      toast.error("Failed to load high-quality image");
-      return null;
-    }
   };
 
   const handleAltTextClick = () => {
@@ -267,14 +241,13 @@ function InstagramPreview({
     setIsAltTextModalOpen(true);
   };
 
+  // ... (Product Tagging Handlers remain the same)
   const handleProductTagClick = (mediaId: string, x: number, y: number) => {
     setPendingProductTag({ mediaId, x, y });
     setIsProductSelectorOpen(true);
   };
-
   const handleProductSelected = (product: Product) => {
     if (!pendingProductTag) return;
-
     const { mediaId, x, y } = pendingProductTag;
     const newTags = { ...productTags };
     newTags[mediaId] = [
@@ -282,26 +255,19 @@ function InstagramPreview({
       { productId: product.id, x, y },
     ];
     onProductTagsChange(newTags);
-
     setPendingProductTag(null);
     setIsProductSelectorOpen(false);
   };
-
   const handleRemoveProductTag = (mediaId: string, index: number) => {
     const newTags = { ...productTags };
     if (newTags[mediaId]) {
       newTags[mediaId] = newTags[mediaId].filter((_, i) => i !== index);
-      if (newTags[mediaId].length === 0) {
-        delete newTags[mediaId];
-      }
+      if (newTags[mediaId].length === 0) delete newTags[mediaId];
     }
     onProductTagsChange(newTags);
   };
 
-  // Determine initial index for cropper
   const cropperInitialIndex = isCarousel ? currentCarouselIndex : 0;
-
-  // If using single media item, construct a list for the modal
   const cropperMediaItems =
     mediaItems.length > 0
       ? mediaItems
@@ -311,13 +277,13 @@ function InstagramPreview({
 
   return (
     <div className="w-full max-w-[300px] mx-auto space-y-4 transition-all duration-300">
+      {/* ... (UI remains identical) ... */}
       <div className="bg-[--surface] border border-[--border] shadow-lg rounded-t-[2rem] rounded-b-lg overflow-hidden">
         <InstagramHeader
           avatarUrl={avatarUrl}
           primaryName={primaryName}
           location={location.name}
         />
-
         {viewMode === "grid" ? (
           <InstagramGridView
             displayMediaSrc={displayMediaSrc}
@@ -345,9 +311,7 @@ function InstagramPreview({
               const newTags = { ...userTags };
               if (newTags[mediaId]) {
                 newTags[mediaId] = newTags[mediaId].filter((_, i) => i !== idx);
-                if (newTags[mediaId].length === 0) {
-                  delete newTags[mediaId];
-                }
+                if (newTags[mediaId].length === 0) delete newTags[mediaId];
               }
               onUserTagsChange(newTags);
             }}
@@ -383,9 +347,8 @@ function InstagramPreview({
                   newTags[singleMediaItem.id] = newTags[
                     singleMediaItem.id
                   ].filter((_, i) => i !== idx);
-                  if (newTags[singleMediaItem.id].length === 0) {
+                  if (newTags[singleMediaItem.id].length === 0)
                     delete newTags[singleMediaItem.id];
-                  }
                 }
                 onUserTagsChange(newTags);
               }
@@ -395,21 +358,18 @@ function InstagramPreview({
               singleMediaItem?.id ? productTags[singleMediaItem.id] || [] : []
             }
             onProductTagClick={(x, y) => {
-              if (singleMediaItem?.id) {
+              if (singleMediaItem?.id)
                 handleProductTagClick(singleMediaItem.id, x, y);
-              }
             }}
             onRemoveProductTag={(idx) => {
-              if (singleMediaItem?.id) {
+              if (singleMediaItem?.id)
                 handleRemoveProductTag(singleMediaItem.id, idx);
-              }
             }}
             coverUrl={coverUrl}
             onVideoMetadataLoaded={setVideoDuration}
             isStory={postType === "story"}
           />
         )}
-
         {viewMode === "post" && (
           <InstagramPostFooter
             primaryName={primaryName}
@@ -417,7 +377,6 @@ function InstagramPreview({
             collaborators={collaborators}
           />
         )}
-
         <div className="px-3 py-2 border-t border-border">
           <InstagramToolbar
             viewMode={viewMode}
@@ -439,32 +398,28 @@ function InstagramPreview({
             onAltTextClick={handleAltTextClick}
           />
         </div>
-
         {postType !== "story" && (
-          <div className="px-3 py-2 border-t border-border">
-            <CollaboratorSearchInput
-              selectedCollaborators={instagramCollaborators}
-              onCollaboratorsChange={(collaborators) =>
-                setState({ instagramCollaborators: collaborators })
-              }
-              integrationId={integrationId || null}
-            />
-          </div>
-        )}
-
-        {postType !== "story" && (
-          <div className="px-3 py-2 border-t border-border">
-            <LocationSearchInput
-              initialLocation={location}
-              onLocationSelect={(newLocation) =>
-                setState({
-                  location: newLocation || { id: null, name: "" },
-                })
-              }
-              integrationId={integrationId || null}
-              isEnabled={true}
-            />
-          </div>
+          <>
+            <div className="px-3 py-2 border-t border-border">
+              <CollaboratorSearchInput
+                selectedCollaborators={instagramCollaborators}
+                onCollaboratorsChange={(collaborators) =>
+                  setState({ instagramCollaborators: collaborators })
+                }
+                integrationId={integrationId || null}
+              />
+            </div>
+            <div className="px-3 py-2 border-t border-border">
+              <LocationSearchInput
+                initialLocation={location}
+                onLocationSelect={(newLocation) =>
+                  setState({ location: newLocation || { id: null, name: "" } })
+                }
+                integrationId={integrationId || null}
+                isEnabled={true}
+              />
+            </div>
+          </>
         )}
       </div>
 
@@ -494,7 +449,7 @@ function InstagramPreview({
           platform="instagram"
           postType={postType}
           onCropSave={handleCropSave}
-          getOriginalUrl={handleGetOriginalUrl}
+          getOriginalUrl={getOriginalUrl} // <--- USING THE HOOK HERE
         />
       )}
 

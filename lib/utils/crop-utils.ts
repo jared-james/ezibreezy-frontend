@@ -86,12 +86,10 @@ function createImage(url: string): Promise<HTMLImageElement> {
     image.addEventListener("load", () => resolve(image));
     image.addEventListener("error", (error) => reject(error));
 
-    // 1. This is crucial for Canvas
+    // 1. Critical for Canvas usage
     image.crossOrigin = "anonymous";
 
-    // Append a cache-busting timestamp
-    // This forces the browser to fetch a fresh copy with the correct CORS headers
-    // instead of using the cached version from the media grid which might lack them.
+    // 2. Cache Buster: Forces browser to fetch fresh image with CORS headers
     const isBase64 = url.startsWith("data:");
     const isBlob = url.startsWith("blob:");
 
@@ -187,10 +185,6 @@ export async function createCroppedFile(
   return new File([blob], newFileName, { type: "image/jpeg" });
 }
 
-/**
- * Calculate a centered crop for a given aspect ratio.
- * Returns the crop coordinates in pixels relative to the displayed image dimensions.
- */
 export function calculateCenteredCrop(
   imageWidth: number,
   imageHeight: number,

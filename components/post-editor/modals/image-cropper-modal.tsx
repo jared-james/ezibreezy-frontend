@@ -1,5 +1,3 @@
-// components/post-editor/modals/image-cropper-modal.tsx
-
 "use client";
 
 import { useState, useCallback, useRef, useEffect } from "react";
@@ -64,6 +62,13 @@ function centerAspectCrop(
     mediaHeight
   );
 }
+
+// Helper to bypass browser cache for CORS images by adding a timestamp
+const addCacheBuster = (url: string) => {
+  if (!url || url.startsWith("blob:") || url.startsWith("data:")) return url;
+  const separator = url.includes("?") ? "&" : "?";
+  return `${url}${separator}t=${new Date().getTime()}`;
+};
 
 export function ImageCropperModal({
   open,
@@ -167,17 +172,25 @@ function ImageCropperModalContent({
   const [completedCrop, setCompletedCrop] = useState<PixelCrop | null>(
     initialCrop ?? null
   );
-  const [currentImageSrc, setCurrentImageSrc] = useState<string>(
-    currentItem?.originalUrlForCropping || currentItem?.preview || ""
-  );
+
+  // Initial state: use local file if present, otherwise cache-busted preview
+  const [currentImageSrc, setCurrentImageSrc] = useState<string>(() => {
+    if (currentItem?.file) return URL.createObjectURL(currentItem.file);
+    if (currentItem?.originalUrlForCropping)
+      return currentItem.originalUrlForCropping;
+    return ""; // Remote file? Wait for fetching.
+  });
+
   const [isLoadingImage, setIsLoadingImage] = useState(false);
   const [isApplied, setIsApplied] = useState(false);
 
   const imgRef = useRef<HTMLImageElement>(null);
 
   useEffect(() => {
-    // Reset applied state when switching images
     setIsApplied(false);
+
+    let isCancelled = false;
+    let localObjectUrl: string | null = null;
 
     const loadSource = async () => {
       if (!currentItem) return;
@@ -191,37 +204,55 @@ function ImageCropperModalContent({
 
       setCrop(undefined);
 
-      if (currentItem.originalUrlForCropping) {
-        setCurrentImageSrc(currentItem.originalUrlForCropping);
-        return;
-      }
-
+      // 1. Local File Strategy (Safe, Fast, No CORS)
       if (currentItem.file) {
-        setCurrentImageSrc(currentItem.preview);
+        localObjectUrl = URL.createObjectURL(currentItem.file);
+        if (!isCancelled) setCurrentImageSrc(localObjectUrl);
         return;
       }
 
+      // 2. Explicit High-Res URL Strategy
+      if (currentItem.originalUrlForCropping) {
+        if (!isCancelled)
+          setCurrentImageSrc(currentItem.originalUrlForCropping);
+        return;
+      }
+
+      // 3. Remote Fetch Strategy
       if (getOriginalUrl) {
         setIsLoadingImage(true);
+        // Clear previous to show loader
+        if (!isCancelled) setCurrentImageSrc("");
+
         try {
           const url = await getOriginalUrl(currentItem);
-          if (url) {
-            setCurrentImageSrc(url);
-          } else {
-            setCurrentImageSrc(currentItem.preview);
+          if (!isCancelled) {
+            if (url) {
+              setCurrentImageSrc(addCacheBuster(url));
+            } else {
+              setCurrentImageSrc(addCacheBuster(currentItem.preview));
+            }
           }
         } catch (e) {
           console.error("Failed to load original", e);
-          setCurrentImageSrc(currentItem.preview);
+          if (!isCancelled)
+            setCurrentImageSrc(addCacheBuster(currentItem.preview));
         } finally {
-          setIsLoadingImage(false);
+          if (!isCancelled) setIsLoadingImage(false);
         }
       } else {
-        setCurrentImageSrc(currentItem.preview);
+        // Fallback
+        if (!isCancelled)
+          setCurrentImageSrc(addCacheBuster(currentItem.preview));
       }
     };
 
     loadSource();
+
+    return () => {
+      isCancelled = true;
+      if (localObjectUrl) URL.revokeObjectURL(localObjectUrl);
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentIndex, currentItem?.uid]);
 
@@ -309,18 +340,15 @@ function ImageCropperModalContent({
         const previewUrl = URL.createObjectURL(blob);
         onCropSave(currentItem.uid, cropData, previewUrl);
 
-        // Show feedback
         setIsApplied(true);
         setTimeout(() => setIsApplied(false), 2000);
-
-        // Removed auto-close logic here so modal stays open for single images too
       }
     }
   };
 
   const handleAspectChange = (preset: AspectRatioPreset) => {
     setAspectRatio(preset.value);
-    setIsApplied(false); // Reset applied status if user changes aspect ratio
+    setIsApplied(false);
     if (imgRef.current) {
       const { width, height } = imgRef.current;
       const newCrop = centerAspectCrop(width, height, preset.value);
@@ -350,7 +378,6 @@ function ImageCropperModalContent({
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/90 p-4 sm:p-6 animate-in fade-in duration-200">
       <div className="flex h-[90vh] w-full max-w-6xl overflow-hidden rounded-lg bg-[#1a1a1a] shadow-2xl border border-white/10">
-        {/* --- LEFT PANEL: Controls & Thumbnails --- */}
         <div className="flex w-80 flex-col border-r border-white/10 bg-[#222]">
           <div className="p-5 border-b border-white/10">
             <h2 className="text-sm font-semibold text-white flex items-center gap-2">
@@ -363,7 +390,6 @@ function ImageCropperModalContent({
           </div>
 
           <div className="flex-1 overflow-y-auto p-5 space-y-6">
-            {/* THUMBNAILS */}
             {imageItems.length > 1 && (
               <div className="space-y-2">
                 <label className="text-[10px] font-bold uppercase tracking-wider text-neutral-500 flex items-center gap-2">
@@ -408,7 +434,6 @@ function ImageCropperModalContent({
               </div>
             )}
 
-            {/* PRESETS */}
             <div className="space-y-2">
               <label className="text-[10px] font-bold uppercase tracking-wider text-neutral-500">
                 Aspect Ratio
@@ -450,7 +475,6 @@ function ImageCropperModalContent({
               </div>
             </div>
 
-            {/* Instructions */}
             <div className="rounded-md border border-border bg-white/5 p-4">
               <div className="flex gap-3 text-neutral-400">
                 <Move className="mt-0.5 h-4 w-4 shrink-0" />
@@ -462,7 +486,6 @@ function ImageCropperModalContent({
             </div>
           </div>
 
-          {/* Footer Actions */}
           <div className="p-5 border-t border-white/10 bg-[#222]">
             <div className="grid gap-3">
               <Button
@@ -498,44 +521,45 @@ function ImageCropperModalContent({
           </div>
         </div>
 
-        {/* --- RIGHT PANEL: Canvas Only --- */}
         <div className="flex flex-1 flex-col min-w-0 bg-[#0a0a0a]">
           <div className="flex-1 flex items-center justify-center p-8 overflow-hidden relative">
-            {isLoadingImage && (
+            {(isLoadingImage || !currentImageSrc) && (
               <div className="absolute inset-0 flex items-center justify-center z-20 bg-black/50 backdrop-blur-sm">
                 <Loader2 className="w-8 h-8 animate-spin text-white" />
               </div>
             )}
 
-            <ReactCrop
-              crop={crop}
-              onChange={(_, percentCrop) => {
-                setCrop(percentCrop);
-                setIsApplied(false); // Reset applied if user moves the crop
-              }}
-              onComplete={(c) => setCompletedCrop(c)}
-              aspect={aspectRatio}
-              className="shadow-2xl"
-              style={{
-                maxWidth: "100%",
-                maxHeight: "100%",
-              }}
-            >
-              <img
-                ref={imgRef}
-                src={currentImageSrc}
-                alt="Crop preview"
-                onLoad={onImageLoad}
-                crossOrigin="anonymous"
+            {currentImageSrc && (
+              <ReactCrop
+                crop={crop}
+                onChange={(_, percentCrop) => {
+                  setCrop(percentCrop);
+                  setIsApplied(false);
+                }}
+                onComplete={(c) => setCompletedCrop(c)}
+                aspect={aspectRatio}
+                className="shadow-2xl"
                 style={{
-                  display: "block",
                   maxWidth: "100%",
                   maxHeight: "100%",
-                  width: "auto",
-                  height: "auto",
                 }}
-              />
-            </ReactCrop>
+              >
+                <img
+                  ref={imgRef}
+                  src={currentImageSrc}
+                  alt="Crop preview"
+                  onLoad={onImageLoad}
+                  crossOrigin="anonymous"
+                  style={{
+                    display: "block",
+                    maxWidth: "100%",
+                    maxHeight: "100%",
+                    width: "auto",
+                    height: "auto",
+                  }}
+                />
+              </ReactCrop>
+            )}
 
             <div className="absolute top-4 right-4 flex gap-2 z-30">
               <button
