@@ -14,6 +14,8 @@ import { FirstCommentSection } from "./first-comment-section";
 import PlatformMediaSelector from "../../media/platform-media-selector";
 import { YouTubeOptions } from "../../previews/youtube/youtube-options";
 import { PinterestOptions } from "../../previews/pinterest/pinterest-options";
+import { InstagramOptions } from "../../previews/instagram/instagram-options";
+import { ThreadsOptions } from "../../previews/threads/threads-options";
 import { useEditorialDraftStore } from "@/lib/store/editorial/draft-store";
 import { usePublishingStore } from "@/lib/store/editorial/publishing-store";
 
@@ -135,6 +137,16 @@ export function PlatformCaptionSection({
 
   const pinterestCoverUrl = usePublishingStore(
     (state) => state.pinterestCoverUrl
+  );
+
+  const instagramCollaborators = usePublishingStore(
+    (state) => state.instagramCollaborators
+  );
+  const location = usePublishingStore((state) => state.location);
+
+  const threadsTopicTag = usePublishingStore((state) => state.threadsTopicTag);
+  const threadsLinkAttachment = usePublishingStore(
+    (state) => state.threadsLinkAttachment
   );
 
   const stagedMediaItems = useEditorialDraftStore(
@@ -366,6 +378,38 @@ export function PlatformCaptionSection({
               }
             />
           )}
+
+        {platformId === "instagram" && (
+          <InstagramOptions
+            integrationId={integrationId || null}
+            collaborators={instagramCollaborators}
+            onCollaboratorsChange={(v) =>
+              setPublishingState({ instagramCollaborators: v })
+            }
+            location={location}
+            onLocationChange={(v) =>
+              setPublishingState({ location: v || { id: null, name: "" } })
+            }
+            postType={currentPostType}
+          />
+        )}
+
+        {platformId === "threads" && (
+          <ThreadsOptions
+            integrationId={integrationId || null}
+            topicTag={threadsTopicTag}
+            onTopicTagChange={(v) => setPublishingState({ threadsTopicTag: v })}
+            linkAttachment={threadsLinkAttachment}
+            onLinkAttachmentChange={(v) =>
+              setPublishingState({ threadsLinkAttachment: v })
+            }
+            hasMedia={activeMediaUids.length > 0}
+            location={location}
+            onLocationChange={(v) =>
+              setPublishingState({ location: v || { id: null, name: "" } })
+            }
+          />
+        )}
 
         {supportsThreading && (
           <ThreadSection

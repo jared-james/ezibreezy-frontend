@@ -16,8 +16,6 @@ import {
 } from "@/lib/utils/crop-utils";
 import { MediaItem, useEditorialDraftStore } from "@/lib/store/editorial/draft-store";
 import { usePublishingStore } from "@/lib/store/editorial/publishing-store";
-import LocationSearchInput from "../../location-search-input";
-import CollaboratorSearchInput from "../../collaborator-search-input";
 import { useClientData } from "@/lib/hooks/use-client-data";
 import { useOriginalUrl } from "@/lib/hooks/use-original-url"; // <--- NEW HOOK
 
@@ -80,11 +78,7 @@ function InstagramPreview({
 
   // Stores
   const setCropForMedia = useEditorialDraftStore((state) => state.setCropForMedia);
-  const setPublishingState = usePublishingStore((state) => state.setPublishingState);
   const location = usePublishingStore((state) => state.location);
-  const instagramCollaborators = usePublishingStore(
-    (state) => state.instagramCollaborators
-  );
   const selectedAccounts = usePublishingStore((state) => state.selectedAccounts);
 
   // Data Hooks
@@ -399,29 +393,6 @@ function InstagramPreview({
             onAltTextClick={handleAltTextClick}
           />
         </div>
-        {postType !== "story" && (
-          <>
-            <div className="px-3 py-2 border-t border-border">
-              <CollaboratorSearchInput
-                selectedCollaborators={instagramCollaborators}
-                onCollaboratorsChange={(collaborators) =>
-                  setPublishingState({ instagramCollaborators: collaborators })
-                }
-                integrationId={integrationId || null}
-              />
-            </div>
-            <div className="px-3 py-2 border-t border-border">
-              <LocationSearchInput
-                initialLocation={location}
-                onLocationSelect={(newLocation) =>
-                  setPublishingState({ location: newLocation || { id: null, name: "" } })
-                }
-                integrationId={integrationId || null}
-                isEnabled={true}
-              />
-            </div>
-          </>
-        )}
       </div>
 
       {postType === "post" &&

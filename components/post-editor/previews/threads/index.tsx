@@ -3,16 +3,13 @@
 "use client";
 
 import { memo, useState } from "react";
-import { Crop, Link as LinkIcon, ImageIcon } from "lucide-react";
+import { Crop, ImageIcon } from "lucide-react";
 import { renderCaptionWithHashtags } from "../../render-caption";
 import { ImageCropperModal } from "../../modals/image-cropper-modal";
 import { type CropData } from "@/lib/utils/crop-utils";
 import { MediaItem, useEditorialDraftStore } from "@/lib/store/editorial/draft-store";
-import { usePublishingStore } from "@/lib/store/editorial/publishing-store";
 import { useClientData } from "@/lib/hooks/use-client-data";
 import { useOriginalUrl } from "@/lib/hooks/use-original-url";
-import LocationSearchInput from "../../location-search-input";
-import { Input } from "@/components/ui/input";
 
 import { ThreadsHeader } from "./threads-header";
 import { ThreadsCarousel } from "./threads-carousel";
@@ -68,14 +65,6 @@ function ThreadsPreview({
   const [isCropperOpen, setIsCropperOpen] = useState(false);
 
   const setCropForMedia = useEditorialDraftStore((state) => state.setCropForMedia);
-  const setPublishingState = usePublishingStore((state) => state.setPublishingState);
-  const selectedAccounts = usePublishingStore((state) => state.selectedAccounts);
-  const integrationId = selectedAccounts["threads"]?.[0];
-  const threadsTopicTag = usePublishingStore((state) => state.threadsTopicTag);
-  const threadsLinkAttachment = usePublishingStore(
-    (state) => state.threadsLinkAttachment
-  );
-  const location = usePublishingStore((state) => state.location);
 
   // Data Hooks
   const { organizationId } = useClientData();
@@ -93,13 +82,6 @@ function ThreadsPreview({
     previewUrl: string
   ) => {
     setCropForMedia(mediaUid, "threads", cropData, previewUrl);
-  };
-
-  const handleTopicTagChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    let value = e.target.value;
-    if (value.startsWith("#")) value = value.slice(1);
-    value = value.replace(/[.&]/g, "");
-    if (value.length <= 50) setPublishingState({ threadsTopicTag: value });
   };
 
   return (
@@ -152,61 +134,6 @@ function ThreadsPreview({
                 Threads Preview
               </p>
             )}
-          </div>
-
-          <div className="px-3 py-2 border-t border-[--border]">
-            <label
-              htmlFor="topic-tag"
-              className="eyebrow mb-2 flex items-center"
-            >
-              Topic Tag
-            </label>
-            <div className="relative">
-              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">
-                #
-              </span>
-              <Input
-                id="topic-tag"
-                value={threadsTopicTag}
-                onChange={handleTopicTagChange}
-                placeholder="Topic (max 50 chars)"
-                className="h-9 pl-7"
-                maxLength={50}
-              />
-            </div>
-          </div>
-
-          {mediaItems.length === 0 && (
-            <div className="px-3 py-2 border-t border-[--border]">
-              <label
-                htmlFor="link-attachment"
-                className="eyebrow mb-2 flex items-center"
-              >
-                <LinkIcon className="mr-1.5 h-3 w-3" />
-                Link Attachment
-              </label>
-              <Input
-                id="link-attachment"
-                type="url"
-                value={threadsLinkAttachment}
-                onChange={(e) =>
-                  setPublishingState({ threadsLinkAttachment: e.target.value })
-                }
-                placeholder="https://example.com"
-                className="h-9"
-              />
-            </div>
-          )}
-
-          <div className="px-3 py-2 border-t border-[--border]">
-            <LocationSearchInput
-              initialLocation={location}
-              onLocationSelect={(newLocation) =>
-                setPublishingState({ location: newLocation || { id: null, name: "" } })
-              }
-              integrationId={integrationId || null}
-              isEnabled={true}
-            />
           </div>
         </div>
       </div>
