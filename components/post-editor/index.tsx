@@ -68,7 +68,7 @@ export default function EditorialCore({
   const threadMessages = useEditorialDraftStore(
     (state) => state.threadMessages
   );
-  const postType = useEditorialDraftStore((state) => state.postType);
+  const platformPostType = useEditorialDraftStore((state) => state.postType);
   const facebookPostType = useEditorialDraftStore(
     (state) => state.facebookPostType
   );
@@ -97,6 +97,7 @@ export default function EditorialCore({
     handleLibraryMediaSelect,
     selectedLibraryMediaIds,
     postMutation,
+    postType,
   } = usePostEditor({ mode });
 
   const { startPolling, isPolling: isPollingStatus } = usePostStatusPolling();
@@ -107,7 +108,7 @@ export default function EditorialCore({
       platformMediaSelections,
       stagedMediaItems,
       facebookPostType,
-      postType,
+      postType: platformPostType,
     });
 
   useEffect(() => {
@@ -399,8 +400,13 @@ export default function EditorialCore({
               payload.title = tiktokTitle.trim();
             }
 
+            const hasVideo = platformMediaUids.some((uid) => {
+              const item = draft.stagedMediaItems.find((i) => i.uid === uid);
+              return item?.type === "video";
+            });
+
             if (
-              draft.postType === "video" &&
+              hasVideo &&
               draft.tiktokVideoCoverTimestamp !== null &&
               draft.tiktokVideoCoverTimestamp !== undefined
             ) {

@@ -11,6 +11,8 @@ export interface DraftMediaItem {
 
 export type PostType = "text" | "image" | "video";
 
+export type PlatformPostType = "post" | "story" | "reel";
+
 export type PlatformId =
   | "x"
   | "linkedin"
