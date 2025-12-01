@@ -2,7 +2,7 @@
 
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { Settings, Upload, Trash2, Loader2, Info } from "lucide-react";
 import { toast } from "sonner";
 import { uploadMedia } from "@/lib/api/media";
@@ -15,6 +15,9 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useClientData } from "@/lib/hooks/use-client-data";
+import MediaSourceModal from "../../modals/media-source-modal";
+import MediaRoomModal from "../../modals/media-room-modal";
+import type { MediaItem as LibraryMediaItem } from "@/lib/api/media";
 
 const YOUTUBE_CATEGORIES = [
   { id: "22", name: "People & Blogs" },
@@ -57,6 +60,9 @@ export function YouTubeOptions({
   onThumbnailChange,
 }: YouTubeOptionsProps) {
   const [isUploadingThumb, setIsUploadingThumb] = useState(false);
+  const [isSourceModalOpen, setIsSourceModalOpen] = useState(false);
+  const [isMediaRoomOpen, setIsMediaRoomOpen] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const { organizationId } = useClientData();
 
   const handleThumbnailUpload = async (
@@ -87,6 +93,24 @@ export function YouTubeOptions({
     } finally {
       setIsUploadingThumb(false);
     }
+  };
+
+  const handleUploadClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleLibraryConfirm = async (selectedMedia: LibraryMediaItem[]) => {
+    if (selectedMedia.length === 0) return;
+
+    const media = selectedMedia[0];
+    if (!media.type.startsWith("image/")) {
+      toast.error("Please select an image for the thumbnail.");
+      return;
+    }
+
+    onThumbnailChange(media.url);
+    toast.success("Thumbnail selected from media room");
+    setIsMediaRoomOpen(false);
   };
 
   return (
@@ -170,21 +194,19 @@ export function YouTubeOptions({
           </div>
 
           <div className="flex-1">
-            <label className="inline-flex items-center gap-2 px-3 py-2 bg-surface border border-border hover:bg-surface-hover rounded-md text-xs font-medium cursor-pointer transition-colors">
+            <button
+              type="button"
+              onClick={() => setIsSourceModalOpen(true)}
+              disabled={isUploadingThumb}
+              className="inline-flex items-center gap-2 px-3 py-2 bg-surface border border-border hover:bg-surface-hover rounded-md text-xs font-medium cursor-pointer transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            >
               {isUploadingThumb ? (
                 <Loader2 className="w-3.5 h-3.5 animate-spin" />
               ) : (
                 <Upload className="w-3.5 h-3.5" />
               )}
               Upload Image
-              <input
-                type="file"
-                accept="image/jpeg,image/png"
-                className="hidden"
-                onChange={handleThumbnailUpload}
-                disabled={isUploadingThumb}
-              />
-            </label>
+            </button>
             <p className="text-[10px] text-muted-foreground mt-1.5">
               Ideal size: 1280x720 (16:9).
             </p>
@@ -210,6 +232,29 @@ export function YouTubeOptions({
           className="h-4 w-4 rounded border-brand-primary accent-brand-primary"
         />
       </div>
+
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="image/jpeg,image/png"
+        onChange={handleThumbnailUpload}
+        className="hidden"
+      />
+
+      <MediaSourceModal
+        isOpen={isSourceModalOpen}
+        onClose={() => setIsSourceModalOpen(false)}
+        onUploadClick={handleUploadClick}
+        onLibraryClick={() => setIsMediaRoomOpen(true)}
+      />
+
+      <MediaRoomModal
+        isOpen={isMediaRoomOpen}
+        onClose={() => setIsMediaRoomOpen(false)}
+        onConfirmSelection={handleLibraryConfirm}
+        organizationId={organizationId}
+        preSelectedIds={new Set()}
+      />
     </div>
   );
 }

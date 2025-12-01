@@ -2,7 +2,7 @@
 
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import {
   Link as LinkIcon,
   FileText,
@@ -18,6 +18,9 @@ import { MediaItem } from "@/lib/store/editorial/draft-store";
 import { toast } from "sonner";
 import { uploadMedia } from "@/lib/api/media";
 import { useClientData } from "@/lib/hooks/use-client-data";
+import MediaSourceModal from "../../modals/media-source-modal";
+import MediaRoomModal from "../../modals/media-room-modal";
+import type { MediaItem as LibraryMediaItem } from "@/lib/api/media";
 
 interface PinterestOptionsProps {
   integrationId: string | null;
@@ -45,6 +48,9 @@ export function PinterestOptions({
   onCoverChange,
 }: PinterestOptionsProps) {
   const [isUploadingCover, setIsUploadingCover] = useState(false);
+  const [isSourceModalOpen, setIsSourceModalOpen] = useState(false);
+  const [isMediaRoomOpen, setIsMediaRoomOpen] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const { organizationId } = useClientData();
 
   const isVideo = activeMediaItem?.type === "video";
@@ -76,6 +82,24 @@ export function PinterestOptions({
     } finally {
       setIsUploadingCover(false);
     }
+  };
+
+  const handleUploadClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleLibraryConfirm = async (selectedMedia: LibraryMediaItem[]) => {
+    if (selectedMedia.length === 0) return;
+
+    const media = selectedMedia[0];
+    if (!media.type.startsWith("image/")) {
+      toast.error("Please select an image for the cover.");
+      return;
+    }
+
+    onCoverChange?.(media.url);
+    toast.success("Cover image selected from media room");
+    setIsMediaRoomOpen(false);
   };
 
   return (
@@ -139,21 +163,19 @@ export function PinterestOptions({
 
               {/* Controls */}
               <div className="flex-1 space-y-2">
-                <label className="inline-flex items-center gap-2 px-3 py-2 bg-surface border border-border hover:bg-surface-hover rounded-md text-xs font-medium cursor-pointer transition-colors w-full justify-center">
+                <button
+                  type="button"
+                  onClick={() => setIsSourceModalOpen(true)}
+                  disabled={isUploadingCover}
+                  className="inline-flex items-center gap-2 px-3 py-2 bg-surface border border-border hover:bg-surface-hover rounded-md text-xs font-medium cursor-pointer transition-colors w-full justify-center disabled:opacity-50 disabled:cursor-not-allowed"
+                >
                   {isUploadingCover ? (
                     <Loader2 className="w-3.5 h-3.5 animate-spin" />
                   ) : (
                     <Upload className="w-3.5 h-3.5" />
                   )}
                   Upload Custom Cover
-                  <input
-                    type="file"
-                    accept="image/jpeg,image/jpg,image/png"
-                    className="hidden"
-                    onChange={handleCoverUpload}
-                    disabled={isUploadingCover}
-                  />
-                </label>
+                </button>
                 <p className="text-[10px] text-muted-foreground">
                   A custom cover image is required for Pinterest videos.
                 </p>
@@ -195,6 +217,29 @@ export function PinterestOptions({
           </p>
         </div>
       )}
+
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="image/jpeg,image/jpg,image/png"
+        onChange={handleCoverUpload}
+        className="hidden"
+      />
+
+      <MediaSourceModal
+        isOpen={isSourceModalOpen}
+        onClose={() => setIsSourceModalOpen(false)}
+        onUploadClick={handleUploadClick}
+        onLibraryClick={() => setIsMediaRoomOpen(true)}
+      />
+
+      <MediaRoomModal
+        isOpen={isMediaRoomOpen}
+        onClose={() => setIsMediaRoomOpen(false)}
+        onConfirmSelection={handleLibraryConfirm}
+        organizationId={organizationId}
+        preSelectedIds={new Set()}
+      />
     </div>
   );
 }

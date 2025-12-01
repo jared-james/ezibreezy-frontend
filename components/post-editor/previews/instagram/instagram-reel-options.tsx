@@ -2,11 +2,14 @@
 
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { Film, Upload, Trash2, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { uploadMedia } from "@/lib/api/media";
 import { useClientData } from "@/lib/hooks/use-client-data";
+import MediaSourceModal from "../../modals/media-source-modal";
+import MediaRoomModal from "../../modals/media-room-modal";
+import type { MediaItem as LibraryMediaItem } from "@/lib/api/media";
 
 interface InstagramReelOptionsProps {
   integrationId?: string;
@@ -32,6 +35,9 @@ export function InstagramReelOptions({
   videoDuration,
 }: InstagramReelOptionsProps) {
   const [isUploadingCover, setIsUploadingCover] = useState(false);
+  const [isSourceModalOpen, setIsSourceModalOpen] = useState(false);
+  const [isMediaRoomOpen, setIsMediaRoomOpen] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const { organizationId } = useClientData();
 
   const handleCoverUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -60,6 +66,24 @@ export function InstagramReelOptions({
     } finally {
       setIsUploadingCover(false);
     }
+  };
+
+  const handleUploadClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleLibraryConfirm = async (selectedMedia: LibraryMediaItem[]) => {
+    if (selectedMedia.length === 0) return;
+
+    const media = selectedMedia[0];
+    if (!media.type.startsWith("image/")) {
+      toast.error("Please select an image for the cover.");
+      return;
+    }
+
+    onCoverChange?.(media.url);
+    toast.success("Cover image selected from media room");
+    setIsMediaRoomOpen(false);
   };
 
   const handleSliderChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -137,21 +161,19 @@ export function InstagramReelOptions({
 
           <div className="flex-1 space-y-4">
             <div>
-              <label className="inline-flex items-center gap-2 px-3 py-2 bg-surface border border-border hover:bg-surface-hover rounded-md text-xs font-medium cursor-pointer transition-colors">
+              <button
+                type="button"
+                onClick={() => setIsSourceModalOpen(true)}
+                disabled={isUploadingCover}
+                className="inline-flex items-center gap-2 px-3 py-2 bg-surface border border-border hover:bg-surface-hover rounded-md text-xs font-medium cursor-pointer transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
                 {isUploadingCover ? (
                   <Loader2 className="w-3.5 h-3.5 animate-spin" />
                 ) : (
                   <Upload className="w-3.5 h-3.5" />
                 )}
                 Upload Custom Cover
-                <input
-                  type="file"
-                  accept="image/jpeg,image/jpg"
-                  className="hidden"
-                  onChange={handleCoverUpload}
-                  disabled={isUploadingCover}
-                />
-              </label>
+              </button>
               <p className="text-[10px] text-muted-foreground mt-1.5">
                 Must be a JPEG image (max 8MB). Overrides video frame.
               </p>
@@ -179,6 +201,29 @@ export function InstagramReelOptions({
           </div>
         </div>
       </div>
+
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="image/jpeg,image/jpg"
+        onChange={handleCoverUpload}
+        className="hidden"
+      />
+
+      <MediaSourceModal
+        isOpen={isSourceModalOpen}
+        onClose={() => setIsSourceModalOpen(false)}
+        onUploadClick={handleUploadClick}
+        onLibraryClick={() => setIsMediaRoomOpen(true)}
+      />
+
+      <MediaRoomModal
+        isOpen={isMediaRoomOpen}
+        onClose={() => setIsMediaRoomOpen(false)}
+        onConfirmSelection={handleLibraryConfirm}
+        organizationId={organizationId}
+        preSelectedIds={new Set()}
+      />
     </div>
   );
 }

@@ -1,3 +1,5 @@
+// components/post-editor/media/platform-media-selector.tsx
+
 "use client";
 
 import {

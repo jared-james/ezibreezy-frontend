@@ -1,3 +1,5 @@
+// components/post-editor/media/media-upload.tsx
+
 "use client";
 
 import { useCallback, useState, useEffect, useRef } from "react";
