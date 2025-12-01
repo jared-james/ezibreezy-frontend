@@ -2,7 +2,7 @@
 
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useEditorialDraftStore } from "@/lib/store/editorial/draft-store";
 import { usePublishingStore } from "@/lib/store/editorial/publishing-store";
 import { ThreadMessage } from "@/lib/types/editorial";
@@ -93,22 +93,43 @@ export function useCaptionState(
     setLocalMainCaption(mainCaption);
   }, [mainCaption]);
 
-  useEffect(() => {
-    setLocalPlatformCaptions(platformCaptions);
+  const prevPlatformCaptionsRef = useRef(platformCaptions);
+  const prevPlatformTitlesRef = useRef(platformTitles);
+  const prevPlatformThreadMessagesRef = useRef(platformThreadMessages);
 
-    setDirtyPlatforms((prev) => {
-      const nextDirty = { ...prev };
-      Object.entries(platformCaptions).forEach(([key, val]) => {
-        if (val && val !== mainCaption && prev[key] === undefined) {
-          nextDirty[key] = true;
-        }
+  useEffect(() => {
+    // Only update if values actually changed (shallow comparison)
+    const prev = prevPlatformCaptionsRef.current;
+    const hasChanges =
+      Object.keys(platformCaptions).length !== Object.keys(prev).length ||
+      Object.entries(platformCaptions).some(([key, val]) => prev[key] !== val);
+
+    if (hasChanges) {
+      prevPlatformCaptionsRef.current = platformCaptions;
+      setLocalPlatformCaptions(platformCaptions);
+
+      setDirtyPlatforms((prevDirty) => {
+        const nextDirty = { ...prevDirty };
+        Object.entries(platformCaptions).forEach(([key, val]) => {
+          if (val && val !== mainCaption && prevDirty[key] === undefined) {
+            nextDirty[key] = true;
+          }
+        });
+        return nextDirty;
       });
-      return nextDirty;
-    });
+    }
   }, [platformCaptions, mainCaption]);
 
   useEffect(() => {
-    setLocalPlatformTitles(platformTitles);
+    const prev = prevPlatformTitlesRef.current;
+    const hasChanges =
+      Object.keys(platformTitles).length !== Object.keys(prev).length ||
+      Object.entries(platformTitles).some(([key, val]) => prev[key] !== val);
+
+    if (hasChanges) {
+      prevPlatformTitlesRef.current = platformTitles;
+      setLocalPlatformTitles(platformTitles);
+    }
   }, [platformTitles]);
 
   useEffect(() => {
@@ -116,7 +137,26 @@ export function useCaptionState(
   }, [threadMessages]);
 
   useEffect(() => {
-    setLocalPlatformThreadMessages(platformThreadMessages);
+    const prev = prevPlatformThreadMessagesRef.current;
+    const hasChanges =
+      Object.keys(platformThreadMessages).length !== Object.keys(prev).length ||
+      Object.keys(platformThreadMessages).some(
+        (key) =>
+          !prev[key] ||
+          prev[key].length !== platformThreadMessages[key].length ||
+          prev[key].some((msg, i) => {
+            const newMsg = platformThreadMessages[key][i];
+            return (
+              msg.content !== newMsg?.content ||
+              JSON.stringify(msg.mediaIds) !== JSON.stringify(newMsg?.mediaIds)
+            );
+          })
+      );
+
+    if (hasChanges) {
+      prevPlatformThreadMessagesRef.current = platformThreadMessages;
+      setLocalPlatformThreadMessages(platformThreadMessages);
+    }
   }, [platformThreadMessages]);
 
   useEffect(() => {
@@ -156,6 +196,7 @@ export function useCaptionState(
     }, 500);
 
     return () => clearTimeout(handler);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     localMainCaption,
     localPlatformCaptions,
@@ -165,9 +206,8 @@ export function useCaptionState(
     localFacebookFirstComment,
     localPinterestLink,
     localPinterestBoardId,
-    setDraftState,
-    setPublishingState,
-    onLocalCaptionsChange,
+    // setDraftState and setPublishingState are stable Zustand actions
+    // onLocalCaptionsChange is optional callback
   ]);
 
   // -- Visibility Logic --
