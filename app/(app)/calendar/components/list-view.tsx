@@ -2,14 +2,23 @@
 
 "use client";
 
-import { Twitter, Instagram, Linkedin, Clock, X, Loader2 } from "lucide-react";
-import { format } from "date-fns";
+import { useState } from "react";
+import {
+  Twitter,
+  Instagram,
+  Linkedin,
+  Clock,
+  X,
+  Loader2,
+  Trash2,
+} from "lucide-react";
+import { format, isToday, isTomorrow } from "date-fns";
 import type { ScheduledPost } from "../types";
 import { Button } from "@/components/ui/button";
 import { deletePost } from "@/lib/api/publishing";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { useState } from "react";
+import { cn } from "@/lib/utils";
 
 interface ListViewProps {
   posts: ScheduledPost[];
@@ -26,25 +35,26 @@ export default function ListView({ posts, onEditPost }: ListViewProps) {
   const queryClient = useQueryClient();
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
-  // Sort posts by scheduled date (latest first)
+  // Sort posts by scheduled date (Ascending: Earliest to Latest)
   const sortedPosts = [...posts].sort((a, b) => {
-    return new Date(b.scheduledAt).getTime() - new Date(a.scheduledAt).getTime();
+    return (
+      new Date(a.scheduledAt).getTime() - new Date(b.scheduledAt).getTime()
+    );
   });
 
   const deleteMutation = useMutation({
     mutationFn: deletePost,
     onMutate: (postId) => {
       setDeletingId(postId);
-      toast.info(`Cancelling post ${postId}...`);
     },
     onSuccess: (_, postId) => {
       toast.success("Post successfully cancelled.");
-      queryClient.invalidateQueries({ queryKey: ["scheduledPosts"] });
+      queryClient.invalidateQueries({ queryKey: ["contentLibrary"] }); // Matches query key in page.tsx
       setDeletingId(null);
     },
     onError: (error: any, postId) => {
       toast.error(
-        `Failed to cancel post ${postId}: ${
+        `Failed to cancel post: ${
           error?.response?.data?.message || "Please try again."
         }`
       );
@@ -52,87 +62,124 @@ export default function ListView({ posts, onEditPost }: ListViewProps) {
     },
   });
 
-  const handleDelete = (postId: string) => {
-    if (confirm("Cancel and delete this scheduled post?")) {
+  const handleDelete = (e: React.MouseEvent, postId: string) => {
+    e.stopPropagation();
+    if (
+      confirm("Are you sure you want to cancel and delete this scheduled post?")
+    ) {
       deleteMutation.mutate(postId);
     }
   };
 
-  return (
-    <div className="mx-auto max-w-4xl">
-      {sortedPosts.length === 0 ? (
-        <p className="py-8 text-center font-serif text-muted-foreground">
-          No posts scheduled for this period.
+  if (sortedPosts.length === 0) {
+    return (
+      <div className="flex flex-col items-center justify-center py-24 text-center">
+        <div className="rounded-full bg-surface border border-border p-4 mb-4">
+          <Clock className="h-8 w-8 text-muted-foreground/50" />
+        </div>
+        <h3 className="font-serif text-lg font-bold text-foreground">
+          No Upcoming Posts
+        </h3>
+        <p className="font-serif text-sm text-muted-foreground mt-1 max-w-xs">
+          Your schedule is clear. Click "Create Post" to start planning your
+          content.
         </p>
-      ) : (
-        <div className="divide-y divide-border">
-          {sortedPosts.map((post) => {
-            const Icon = platformIcons[post.platform] || Clock;
-            const postDate = new Date(post.scheduledAt);
-            const isDeleting = deletingId === post.id;
+      </div>
+    );
+  }
 
-            return (
-              <div
-                key={post.id}
-                className="flex items-center gap-4 py-4 transition-colors hover:bg-muted/20"
-              >
-                  <div className="flex flex-col items-center">
-                    <span className="font-serif text-sm font-bold uppercase tracking-wider text-muted-foreground">
-                      {format(postDate, "MMM")}
+  return (
+    <div className="mx-auto max-w-5xl py-8 px-4">
+      <div className="space-y-4">
+        {sortedPosts.map((post) => {
+          const Icon = platformIcons[post.platform] || Clock;
+          const postDate = new Date(post.scheduledAt);
+          const isDeleting = deletingId === post.id;
+
+          // Date formatting logic
+          const dayName = format(postDate, "EEE"); // Mon
+          const dayNumber = format(postDate, "d"); // 12
+          const monthName = format(postDate, "MMM"); // Dec
+
+          let dateLabel = format(postDate, "MMMM d, yyyy");
+          if (isToday(postDate)) dateLabel = "Today";
+          if (isTomorrow(postDate)) dateLabel = "Tomorrow";
+
+          return (
+            <div
+              key={post.id}
+              onClick={() => onEditPost(post)}
+              className={cn(
+                "group relative flex items-stretch gap-6 rounded-lg border border-border bg-white p-1 transition-all hover:border-brand-primary hover:shadow-md cursor-pointer",
+                isDeleting && "opacity-50 pointer-events-none"
+              )}
+            >
+              {/* Date Block */}
+              <div className="flex w-24 shrink-0 flex-col items-center justify-center rounded-md bg-surface-hover/50 border-r border-border/50 py-4">
+                <span className="eyebrow text-[10px] text-muted-foreground">
+                  {monthName}
+                </span>
+                <span className="font-serif text-3xl font-bold text-foreground leading-none my-1">
+                  {dayNumber}
+                </span>
+                <span className="font-serif text-sm text-muted-foreground">
+                  {dayName}
+                </span>
+              </div>
+
+              {/* Content Block */}
+              <div className="flex flex-1 flex-col justify-center py-3 pr-4">
+                <div className="flex items-center gap-2 mb-1.5">
+                  <span
+                    className={cn(
+                      "inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider border",
+                      post.status === "sent"
+                        ? "bg-muted text-muted-foreground border-border"
+                        : "bg-brand-primary/5 text-brand-primary border-brand-primary/20"
+                    )}
+                  >
+                    {post.status === "sent" ? "Published" : dateLabel} •{" "}
+                    {format(postDate, "h:mm a")}
+                  </span>
+                </div>
+
+                <h3
+                  className={cn(
+                    "font-serif text-lg font-medium text-foreground line-clamp-2 leading-snug",
+                    !post.content && "italic text-muted-foreground"
+                  )}
+                >
+                  {post.content || "Untitled Post"}
+                </h3>
+
+                <div className="mt-3 flex items-center gap-4">
+                  <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                    <Icon className="h-3.5 w-3.5" />
+                    <span className="font-medium">
+                      @{post.platformUsername}
                     </span>
-                    <span className="font-serif text-3xl font-bold text-foreground">
-                      {format(postDate, "dd")}
-                    </span>
-                  </div>
-
-                  <div className="flex-1">
-                    <h3 className="line-clamp-1 font-serif font-bold text-foreground">
-                      {post.content}
-                    </h3>
-
-                    <div className="mt-1 flex items-center gap-4 text-xs text-muted-foreground">
-                      <div className="flex items-center gap-1.5">
-                        <Clock className="h-3 w-3" />
-                        <span>{format(postDate, "h:mm a")}</span>
-                      </div>
-
-                      <div className="flex items-center gap-1.5">
-                        <Icon className="h-3.5 w-3.5 text-brand-primary" />
-                        <span className="font-medium">
-                          @{post.platformUsername}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center gap-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => onEditPost(post)}
-                    >
-                      Edit
-                    </Button>
-
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="h-9 px-2 text-error hover:bg-error/10"
-                      onClick={() => handleDelete(post.id)}
-                      disabled={isDeleting}
-                    >
-                      {isDeleting ? (
-                        <Loader2 className="h-4 w-4 animate-spin" />
-                      ) : (
-                        <X className="h-4 w-4" />
-                      )}
-                    </Button>
                   </div>
                 </div>
-              );
-            })}
-        </div>
-      )}
+              </div>
+
+              {/* Actions - Visible on Hover */}
+              <div className="absolute top-3 right-3 opacity-0 transition-opacity group-hover:opacity-100 flex gap-2">
+                <button
+                  onClick={(e) => handleDelete(e, post.id)}
+                  className="p-2 text-muted-foreground hover:text-error hover:bg-error/10 rounded-full transition-colors"
+                  title="Cancel Post"
+                >
+                  {isDeleting ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <Trash2 className="h-4 w-4" />
+                  )}
+                </button>
+              </div>
+            </div>
+          );
+        })}
+      </div>
     </div>
   );
 }

@@ -11,7 +11,6 @@ import {
   AlertTriangle,
 } from "lucide-react";
 import { addDays, format, parseISO, isSameDay, isBefore } from "date-fns";
-import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import MonthView from "./components/month-view";
 import WeekView from "./components/week-view";
@@ -39,7 +38,6 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 
-// New Store Imports
 import {
   useEditorialDraftStore,
   MediaItem,
@@ -62,7 +60,6 @@ export default function CalendarPage() {
 
   const queryClient = useQueryClient();
 
-  // Store Actions
   const setDraftState = useEditorialDraftStore((state) => state.setDraftState);
   const setStagedMediaItems = useEditorialDraftStore(
     (state) => state.setStagedMediaItems
@@ -78,7 +75,6 @@ export default function CalendarPage() {
 
   const [postIdToEdit, setPostIdToEdit] = useState<string | null>(null);
 
-  // Use the shared hook
   const { userId } = useClientData();
 
   const {
@@ -115,10 +111,8 @@ export default function CalendarPage() {
     staleTime: 0,
   });
 
-  // Initialization Logic for Edit Mode
   useEffect(() => {
     if (fullPostData && !isFetchingFullPost && postIdToEdit) {
-      // 1. Map Media
       const newMediaItems: MediaItem[] = [];
       const mediaMap = fullPostData.allMedia || {};
       const idToUidMap = new Map<string, string>();
@@ -148,7 +142,6 @@ export default function CalendarPage() {
         }
       });
 
-      // 2. Draft State
       setStagedMediaItems(newMediaItems);
 
       const threadMessages = (fullPostData.threadMessages || []).map((msg) => ({
@@ -171,15 +164,13 @@ export default function CalendarPage() {
         platformThreadMessages: {
           [platform]: threadMessages,
         },
-        threadMessages: threadMessages, // Fallback for single platform editing
+        threadMessages: threadMessages,
       });
 
-      // 3. Publishing State
       setPublishingState({
         selectedAccounts: {
           [platform]: [fullPostData.integrationId],
         },
-        // We could populate scheduling info here if we wanted to show it in the editor
       });
 
       setPostIdToEdit(null);
@@ -237,15 +228,9 @@ export default function CalendarPage() {
     },
 
     onError: (error: any, variables, context) => {
-      console.error(
-        "[UI] Reschedule failed, reverting optimistic update.",
-        error
-      );
-
       if (context?.previousContent) {
         queryClient.setQueryData(["contentLibrary"], context.previousContent);
       }
-
       toast.error(`Rescheduling failed: ${error.message}`);
     },
   });
@@ -259,7 +244,6 @@ export default function CalendarPage() {
     if (post.status === "sent") {
       toast.info("Sent posts cannot be edited. A copy will be created.");
     }
-    // Clear stores before loading new data
     resetDraft();
     resetPublishing();
     resetUI();
@@ -272,7 +256,10 @@ export default function CalendarPage() {
     resetDraft();
     resetPublishing();
     resetUI();
-    // Optionally pre-fill schedule date in publishing store here if needed
+    setPublishingState({
+      scheduleDate: format(date, "yyyy-MM-dd"),
+      isScheduling: true,
+    });
     setIsEditorialModalOpen(true);
   };
 
@@ -379,17 +366,6 @@ export default function CalendarPage() {
     return `Week of ${format(currentDate, "MMM d")}`;
   };
 
-  const CreatePostButton = (
-    <Button
-      variant="primary"
-      className="gap-2 shrink-0"
-      onClick={() => handleNewPost(new Date())}
-    >
-      <Plus className="h-4 w-4" />
-      Create Post
-    </Button>
-  );
-
   if (isLoadingList) {
     return (
       <div className="flex h-full w-full items-center justify-center p-8">
@@ -411,85 +387,85 @@ export default function CalendarPage() {
 
   return (
     <>
-      <div className="flex h-full w-full flex-col">
-        <div className="mb-8 border-b-4 border-double border-foreground pb-6">
-          <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
-            <div>
-              <p className="eyebrow mb-2">The Schedule</p>
-              <h1 className="font-serif text-4xl font-bold uppercase tracking-tight text-foreground md:text-5xl">
-                Content Calendar
-              </h1>
+      <div className="flex h-full w-full flex-col p-6">
+        <div className="mb-8 flex flex-col justify-between gap-6 border-b-4 border-double border-foreground pb-6 md:flex-row md:items-end">
+          <div>
+            <p className="eyebrow mb-2">The Schedule</p>
+            <h1 className="font-serif text-4xl font-bold uppercase tracking-tight text-foreground md:text-5xl">
+              Content Calendar
+            </h1>
+          </div>
+
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2 rounded-full border border-border bg-surface p-1 shadow-sm">
+              {(["Month", "Week", "List"] as CalendarView[]).map((view) => (
+                <button
+                  key={view}
+                  onClick={() => setActiveView(view)}
+                  className={cn(
+                    "rounded-full px-4 py-1.5 text-xs font-bold uppercase tracking-wider transition-all",
+                    activeView === view
+                      ? "bg-foreground text-background shadow-sm"
+                      : "text-muted-foreground hover:bg-surface-hover hover:text-foreground"
+                  )}
+                >
+                  {view}
+                </button>
+              ))}
             </div>
+
+            <button
+              className="btn btn-primary"
+              onClick={() => handleNewPost(new Date())}
+            >
+              <Plus className="h-4 w-4" />
+              Create Post
+            </button>
           </div>
         </div>
 
-        <div className="mb-6 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+        <div className="mb-6 flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <Button
-              size="icon"
-              variant="outline"
+            <button
               onClick={() => navigateDate("prev")}
+              className="btn btn-icon"
             >
               <ChevronLeft className="h-4 w-4" />
-            </Button>
+            </button>
 
-            <h2 className="min-w-[200px] text-center font-serif text-xl font-bold text-foreground">
+            <h2 className="min-w-[200px] text-center font-serif text-2xl font-bold text-foreground">
               {getHeaderText()}
             </h2>
 
-            <Button
-              size="icon"
-              variant="outline"
+            <button
               onClick={() => navigateDate("next")}
+              className="btn btn-icon"
             >
               <ChevronRight className="h-4 w-4" />
-            </Button>
-          </div>
-
-          <div className="flex items-center gap-4">
-            {(["Month", "Week", "List"] as CalendarView[]).map((view) => (
-              <button
-                key={view}
-                onClick={() => setActiveView(view)}
-                className={cn(
-                  "px-2 py-1 text-xs font-serif font-bold uppercase tracking-widest transition-all border-b-2 border-solid",
-                  activeView === view
-                    ? "text-foreground border-brand-primary border-dotted"
-                    : "text-muted-foreground border-transparent hover:text-foreground hover:border-border"
-                )}
-              >
-                {view}
-              </button>
-            ))}
-
-            {CreatePostButton}
+            </button>
           </div>
         </div>
 
-        <div className="overflow-x-auto -mx-4 px-4 md:mx-0 md:px-0">
+        <div className="flex-1 overflow-hidden rounded-lg border border-foreground bg-surface shadow-sm">
           {activeView === "Month" && (
-            <div className="min-w-[800px]">
-              <MonthView
-                currentDate={currentDate}
-                posts={scheduledPosts}
-                onEditPost={handleEditPost}
-                onNewPost={handleNewPost}
-                onDropPost={handleDropPost}
-                onOpenDayView={() => {}}
-                lockedPostId={lockedPostId}
-              />
-            </div>
+            <MonthView
+              currentDate={currentDate}
+              posts={scheduledPosts}
+              onEditPost={handleEditPost}
+              onNewPost={handleNewPost}
+              onDropPost={handleDropPost}
+              onOpenDayView={() => {}}
+              lockedPostId={lockedPostId}
+            />
           )}
 
           {activeView === "Week" && (
-            <div className="min-w-[900px]">
-              <WeekView
-                currentDate={currentDate}
-                posts={scheduledPosts}
-                onEditPost={handleEditPost}
-                onNewPost={handleNewPost}
-              />
-            </div>
+            <WeekView
+              currentDate={currentDate}
+              posts={scheduledPosts}
+              onEditPost={handleEditPost}
+              onNewPost={handleNewPost}
+            />
           )}
 
           {activeView === "List" && (

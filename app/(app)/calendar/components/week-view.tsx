@@ -9,13 +9,21 @@ import {
   endOfWeek,
   eachDayOfInterval,
   format,
-  getHours,
-  getMinutes,
+  isToday,
+  isSameHour,
+  addHours,
+  startOfDay,
 } from "date-fns";
-import { Twitter, Instagram, Linkedin, Clock, Plus } from "lucide-react";
+import {
+  Twitter,
+  Instagram,
+  Linkedin,
+  Clock,
+  Plus,
+  Loader2,
+} from "lucide-react";
 import type { ScheduledPost } from "../types";
 import { cn } from "@/lib/utils";
-import { Button } from "@/components/ui/button";
 
 interface WeekViewProps {
   currentDate: Date;
@@ -30,13 +38,7 @@ const platformIcons: Record<string, React.ElementType> = {
   instagram: Instagram,
 };
 
-const TIME_SLOT_HEIGHT_PX = 120;
-const TIME_SLOT_COUNT = 24;
-
-const timeSlots = Array.from(
-  { length: TIME_SLOT_COUNT },
-  (_, i) => `${String(i).padStart(2, "0")}:00`
-);
+const HOURS = Array.from({ length: 24 }, (_, i) => i);
 
 export default function WeekView({
   currentDate,
@@ -51,114 +53,140 @@ export default function WeekView({
   }, [currentDate]);
 
   return (
-    <div className="border border-border bg-surface flex">
-      {/* TIME COLUMN */}
-      <div className="w-20 shrink-0 border-r border-border">
-        <div className="h-12 border-b border-border"></div>
-
-        {timeSlots.map((time) => (
+    <div className="flex h-full min-h-[600px] overflow-hidden rounded-lg border border-border bg-surface shadow-sm">
+      {/* Time Sidebar */}
+      <div className="w-16 flex-none border-r border-border bg-background overflow-y-auto scrollbar-hide">
+        <div className="sticky top-0 z-20 h-12 border-b border-border bg-background" />{" "}
+        {/* Spacer for header */}
+        {HOURS.map((hour) => (
           <div
-            key={time}
-            className="relative border-b border-border"
-            style={{ height: `${TIME_SLOT_HEIGHT_PX}px` }}
+            key={hour}
+            className="flex h-28 items-start justify-center border-b border-border/50 py-2"
           >
-            <span className="absolute -top-2.5 right-2 bg-surface px-1.5 font-serif text-sm text-muted-foreground">
-              {format(new Date(`1970-01-01T${time}`), "h a")}
+            <span className="font-serif text-[10px] text-muted-foreground">
+              {format(new Date().setHours(hour, 0, 0, 0), "h a")}
             </span>
           </div>
         ))}
       </div>
 
-      {/* DAY GRID */}
-      <div className="grid flex-1 grid-cols-7">
-        {weekDays.map((day, dayIndex) => {
-          const isToday = isSameDay(day, new Date());
-          const postsForDay = posts.filter((post) =>
-            isSameDay(new Date(post.scheduledAt), day)
-          );
+      {/* Days Grid */}
+      <div className="flex flex-1 overflow-x-auto overflow-y-auto">
+        <div className="flex min-w-[800px] w-full">
+          {weekDays.map((day, index) => {
+            const isCurrentDay = isToday(day);
+            const postsForDay = posts.filter((post) =>
+              isSameDay(new Date(post.scheduledAt), day)
+            );
 
-          return (
-            <div
-              key={day.toString()}
-              className={cn(
-                "border-r border-border",
-                dayIndex === 6 && "border-r-0"
-              )}
-            >
-              {/* DAY HEADER */}
-              <div className="relative group flex h-12 items-center justify-center gap-2 border-b border-border bg-surface-hover px-2">
-                <span className="font-serif text-sm font-medium text-muted-foreground">
-                  {format(day, "EEE")}
-                </span>
-
-                <span
+            return (
+              <div
+                key={day.toString()}
+                className={cn(
+                  "flex-1 min-w-[140px] border-r border-border last:border-r-0 flex flex-col",
+                  isCurrentDay ? "bg-surface" : "bg-background"
+                )}
+              >
+                {/* Day Header */}
+                <div
                   className={cn(
-                    "flex h-7 w-7 items-center justify-center rounded-full font-serif text-sm font-medium",
-                    isToday
-                      ? "bg-brand-primary text-brand-primary-foreground"
-                      : "text-foreground"
+                    "sticky top-0 z-10 flex h-12 items-center justify-between border-b border-border px-3 transition-colors",
+                    isCurrentDay
+                      ? "bg-brand-primary/5 border-b-brand-primary/20"
+                      : "bg-surface-hover"
                   )}
                 >
-                  {format(day, "d")}
-                </span>
+                  <div className="flex items-baseline gap-2">
+                    <span className="font-serif text-lg font-bold text-foreground">
+                      {format(day, "d")}
+                    </span>
+                    <span className="eyebrow text-[10px]">
+                      {format(day, "EEE")}
+                    </span>
+                  </div>
 
-                <Button
-                  size="icon"
-                  variant="outline"
-                  onClick={() => onNewPost(day)}
-                  className="absolute top-1 right-1 h-6 w-6 opacity-0 transition-opacity group-hover:opacity-100 hover:bg-brand-primary hover:text-brand-primary-foreground hover:border-brand-primary"
-                >
-                  <Plus className="h-4 w-4" />
-                </Button>
+                  {isCurrentDay && (
+                    <div className="h-2 w-2 rounded-full bg-brand-primary" />
+                  )}
+                </div>
+
+                {/* Time Slots (Buckets) */}
+                <div className="flex-1">
+                  {HOURS.map((hour) => {
+                    const slotDate = addHours(startOfDay(day), hour);
+
+                    const postsForHour = postsForDay
+                      .filter((post) =>
+                        isSameHour(new Date(post.scheduledAt), slotDate)
+                      )
+                      .sort(
+                        (a, b) =>
+                          new Date(a.scheduledAt).getTime() -
+                          new Date(b.scheduledAt).getTime()
+                      );
+
+                    return (
+                      <div
+                        key={hour}
+                        className={cn(
+                          "group relative min-h-[112px] border-b border-border/50 p-1 transition-colors hover:bg-muted/20 flex flex-col gap-1",
+                          isCurrentDay && "bg-brand-primary/[0.02]"
+                        )}
+                      >
+                        {/* Invisible Click Target for "New Post" */}
+                        <div
+                          className="absolute inset-0 z-0 cursor-pointer"
+                          onClick={() => onNewPost(slotDate)}
+                          title={`Add post at ${format(slotDate, "h:mm a")}`}
+                        />
+
+                        {/* Render Posts Stacked */}
+                        {postsForHour.map((post) => {
+                          const Icon = platformIcons[post.platform] || Clock;
+                          const isSent = post.status === "sent";
+
+                          return (
+                            <button
+                              key={post.id}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                onEditPost(post);
+                              }}
+                              className={cn(
+                                "relative z-10 flex w-full flex-col gap-0.5 rounded-sm border border-border bg-white p-1.5 text-left shadow-sm transition-all hover:border-brand-primary hover:shadow-md active:scale-[0.98]",
+                                isSent && "opacity-60 bg-muted/50"
+                              )}
+                            >
+                              <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground">
+                                <Icon
+                                  className={cn(
+                                    "h-3 w-3",
+                                    !isSent && "text-brand-primary"
+                                  )}
+                                />
+                                <span className="font-serif font-bold">
+                                  {format(new Date(post.scheduledAt), "h:mm a")}
+                                </span>
+                              </div>
+                              <span className="w-full truncate text-xs font-medium text-foreground">
+                                {post.content || "Untitled"}
+                              </span>
+                            </button>
+                          );
+                        })}
+
+                        {/* Hover Add Button */}
+                        <div className="absolute right-1 bottom-1 z-0 opacity-0 transition-opacity group-hover:opacity-100 pointer-events-none">
+                          <Plus className="h-3 w-3 text-muted-foreground/30" />
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
               </div>
-
-              {/* TIME GRID + POSTS */}
-              <div
-                className="relative"
-                style={{
-                  minHeight: `${TIME_SLOT_HEIGHT_PX * TIME_SLOT_COUNT + 40}px`,
-                }}
-              >
-                {timeSlots.map((_, timeIndex) => (
-                  <div
-                    key={timeIndex}
-                    className="border-b border-border"
-                    style={{ height: `${TIME_SLOT_HEIGHT_PX}px` }}
-                  ></div>
-                ))}
-
-                {postsForDay.map((post) => {
-                  const postDate = new Date(post.scheduledAt);
-                  const topPosition =
-                    getHours(postDate) * TIME_SLOT_HEIGHT_PX +
-                    (getMinutes(postDate) / 60) * TIME_SLOT_HEIGHT_PX;
-
-                  const Icon = platformIcons[post.platform] || Clock;
-
-                  return (
-                    <button
-                      type="button"
-                      onClick={() => onEditPost(post)}
-                      key={post.id}
-                      className="group/item absolute left-1 right-1 flex items-center gap-1.5 py-1.5 px-1 text-left text-xs text-foreground transition-colors hover:bg-brand-primary/5"
-                      style={{ top: `${topPosition}px` }}
-                    >
-                      <Icon className="h-3 w-3 shrink-0 text-muted-foreground" />
-
-                      <span className="font-serif font-bold text-muted-foreground">
-                        {format(postDate, "h:mma")}
-                      </span>
-
-                      <span className="truncate font-serif">
-                        {post.content}
-                      </span>
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-          );
-        })}
+            );
+          })}
+        </div>
       </div>
     </div>
   );
