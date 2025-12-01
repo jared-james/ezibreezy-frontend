@@ -3,12 +3,15 @@
 "use client";
 
 import { memo, useState } from "react";
-import { MessageSquare, Repeat2, ImageIcon, Crop } from "lucide-react";
+import { MessageSquare, Repeat2, ImageIcon, Crop, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { renderCaptionWithHashtags } from "../../render-caption";
 import { ImageCropperModal } from "../../modals/image-cropper-modal";
 import { type CropData } from "@/lib/utils/crop-utils";
-import { MediaItem, useEditorialDraftStore } from "@/lib/store/editorial/draft-store";
+import {
+  MediaItem,
+  useEditorialDraftStore,
+} from "@/lib/store/editorial/draft-store";
 import { useClientData } from "@/lib/hooks/use-client-data";
 import { useOriginalUrl } from "@/lib/hooks/use-original-url";
 
@@ -131,26 +134,24 @@ function XPreview({
   const primaryName = displayName || accountName || "Account";
   const handle = accountName ? `@${accountName}` : "";
   const [isCropperOpen, setIsCropperOpen] = useState(false);
-  const setCropForMedia = useEditorialDraftStore((state) => state.setCropForMedia);
+  const setCropForMedia = useEditorialDraftStore(
+    (state) => state.setCropForMedia
+  );
 
-  // Data Hooks
   const { organizationId } = useClientData();
-  const { getOriginalUrl } = useOriginalUrl(organizationId);
+  const { getOriginalUrl, isFetching } = useOriginalUrl(organizationId);
 
   const croppedPreview = singleMediaItem?.croppedPreviews?.x;
 
-  // Calculate the first media source
   const firstMediaSrc =
     postType === "video" && singleMediaItem?.mediaUrl
       ? singleMediaItem.mediaUrl
       : croppedPreview || mediaPreview[0];
 
-  // Construct the images array ensuring the first item uses the correct source
   const mainPostImages = [firstMediaSrc, ...mediaPreview.slice(1, 4)].filter(
     Boolean
   );
 
-  // Check if we can crop (has items, and at least one is an image)
   const canCrop =
     mediaItems.length > 0
       ? mediaItems.some((item) => item.type === "image" && !!item.id)
@@ -168,7 +169,6 @@ function XPreview({
     setCropForMedia(mediaUid, "x", cropData, previewUrl);
   };
 
-  // Construct list for cropper modal
   const cropperMediaItems =
     mediaItems.length > 0
       ? mediaItems
@@ -176,74 +176,79 @@ function XPreview({
       ? [singleMediaItem]
       : [];
 
-  return (
-    <div className="mx-auto w-full max-w-sm border border-border rounded-lg overflow-hidden bg-surface">
-      <div className="relative p-4">
-        <div className="relative z-10 flex items-start gap-3">
-          <div
-            className="flex shrink-0 flex-col items-center"
-            style={{ width: 40 }}
-          >
-            <ProfileAvatar
-              size={40}
-              avatarUrl={avatarUrl}
-              primaryName={primaryName}
-            />
-          </div>
+  const btnClass =
+    "flex items-center gap-1.5 px-3 py-2 text-xs font-medium rounded-md transition-colors hover:bg-muted focus:bg-muted text-muted-foreground hover:text-foreground";
 
-          <div className="min-w-0 flex-1">
-            <div className="flex items-center gap-1 text-sm">
-              <span className="truncate font-bold text-foreground">
-                {primaryName}
-              </span>
-              {handle && (
-                <span className="shrink text-muted-foreground truncate">
-                  {handle}
-                </span>
-              )}
-              <span className="shrink-0 text-muted-foreground">· Now</span>
+  return (
+    <div className="w-full max-w-[360px] mx-auto space-y-4 animate-in fade-in slide-in-from-bottom-2 duration-500">
+      <div className="bg-surface border border-border shadow-sm rounded-md overflow-hidden transition-all duration-200 hover:shadow-md">
+        {/* Post Content */}
+        <div className="relative p-4">
+          <div className="relative z-10 flex items-start gap-3">
+            <div
+              className="flex shrink-0 flex-col items-center"
+              style={{ width: 40 }}
+            >
+              <ProfileAvatar
+                size={40}
+                avatarUrl={avatarUrl}
+                primaryName={primaryName}
+              />
             </div>
 
-            <p className="mt-1 whitespace-pre-wrap wrap-break-word text-[0.95rem] leading-normal text-foreground">
-              {renderCaptionWithHashtags(caption)}
-            </p>
+            <div className="min-w-0 flex-1">
+              <div className="flex items-center gap-1 text-sm">
+                <span className="truncate font-bold text-foreground">
+                  {primaryName}
+                </span>
+                {handle && (
+                  <span className="shrink text-muted-foreground truncate">
+                    {handle}
+                  </span>
+                )}
+                <span className="shrink-0 text-muted-foreground">· Now</span>
+              </div>
 
-            {mainPostImages.length > 0 ? (
-              <MediaGrid images={mainPostImages} mediaType={postType} />
-            ) : (
-              (caption.length === 0 || caption.trim() === "") &&
-              postType !== "text" && (
-                <div className="mt-3 flex items-center gap-2 rounded-md bg-background p-2 text-sm text-muted-foreground">
-                  <ImageIcon className="h-4 w-4" />
-                  No media attached.
-                </div>
-              )
-            )}
+              <p className="mt-1 whitespace-pre-wrap wrap-break-word text-[0.95rem] leading-normal text-foreground">
+                {renderCaptionWithHashtags(caption)}
+              </p>
 
-            <div className="mt-3 flex justify-between px-2">
-              <XPostFooter icon={MessageSquare} value={0} />
-              <XPostFooter icon={Repeat2} value={0} />
+              {mainPostImages.length > 0 ? (
+                <MediaGrid images={mainPostImages} mediaType={postType} />
+              ) : (
+                (caption.length === 0 || caption.trim() === "") &&
+                postType !== "text" && (
+                  <div className="mt-3 flex items-center gap-2 rounded-md bg-background p-2 text-sm text-muted-foreground">
+                    <ImageIcon className="h-4 w-4" />
+                    No media attached.
+                  </div>
+                )
+              )}
+
+              <div className="mt-3 flex justify-between px-2">
+                <XPostFooter icon={MessageSquare} value={0} />
+                <XPostFooter icon={Repeat2} value={0} />
+              </div>
             </div>
           </div>
         </div>
-      </div>
 
-      <div className="px-3 py-2 border-t border-[--border]">
-        <div className="flex items-center gap-4">
+        {/* Toolbar */}
+        <div className="flex flex-wrap items-center gap-1 p-2 bg-surface border-t border-border">
           {canCrop && (
             <button
               onClick={handleCropClick}
-              className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
+              disabled={isFetching}
+              className={cn(btnClass)}
+              title="Crop Media"
             >
-              <Crop className="h-3.5 w-3.5" />
-              Crop
+              {isFetching ? (
+                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+              ) : (
+                <Crop className="h-3.5 w-3.5" />
+              )}
+              <span>Crop</span>
             </button>
-          )}
-
-          {!canCrop && (
-            <p className="text-xs text-muted-foreground text-center italic w-full">
-              X Preview
-            </p>
           )}
         </div>
       </div>

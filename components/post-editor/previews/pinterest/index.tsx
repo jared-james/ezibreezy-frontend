@@ -3,7 +3,7 @@
 "use client";
 
 import { memo, useState } from "react";
-import { Crop, ImageIcon, Play } from "lucide-react";
+import { Crop, ImageIcon, Play, Loader2 } from "lucide-react";
 import { ImageCropperModal } from "../../modals/image-cropper-modal";
 import { type CropData } from "@/lib/utils/crop-utils";
 import {
@@ -12,8 +12,8 @@ import {
 } from "@/lib/store/editorial/draft-store";
 import { useClientData } from "@/lib/hooks/use-client-data";
 import { useOriginalUrl } from "@/lib/hooks/use-original-url";
+import { cn } from "@/lib/utils";
 
-// import { PinterestHeader } from "./pinterest-header";
 import { PinterestFooter } from "./pinterest-footer";
 
 interface PinterestPreviewProps {
@@ -40,14 +40,12 @@ function PinterestPreview({
 
   const [isCropperOpen, setIsCropperOpen] = useState(false);
 
-  // Migrated to Draft Store
   const setCropForMedia = useEditorialDraftStore(
     (state) => state.setCropForMedia
   );
 
-  // Data Hooks
   const { organizationId } = useClientData();
-  const { getOriginalUrl } = useOriginalUrl(organizationId);
+  const { getOriginalUrl, isFetching } = useOriginalUrl(organizationId);
 
   const croppedPreview = singleMediaItem?.croppedPreviews?.pinterest;
 
@@ -71,13 +69,15 @@ function PinterestPreview({
     setCropForMedia(mediaUid, "pinterest", cropData, previewUrl);
   };
 
-  return (
-    <div className="w-full max-w-[300px] mx-auto space-y-4 transition-all duration-300">
-      <div className="bg-white border border-[--border] shadow-lg rounded-[2rem] overflow-hidden">
-        <div className="relative bg-gray-100 overflow-hidden group">
-          {/* <PinterestHeader /> */}
+  // Standardized toolbar button class
+  const btnClass =
+    "flex items-center gap-1.5 px-3 py-2 text-xs font-medium rounded-md transition-colors hover:bg-muted focus:bg-muted text-muted-foreground hover:text-foreground";
 
-          {/* Media Layer */}
+  return (
+    <div className="w-full max-w-[360px] mx-auto space-y-4 animate-in fade-in slide-in-from-bottom-2 duration-500">
+      <div className="bg-surface border border-border shadow-sm rounded-md overflow-hidden transition-all duration-200 hover:shadow-md">
+        {/* Main Content */}
+        <div className="relative bg-gray-100 overflow-hidden group">
           <div className="relative w-full">
             {displayMediaSrc ? (
               singleMediaItem?.type === "video" ? (
@@ -104,7 +104,7 @@ function PinterestPreview({
                 />
               )
             ) : (
-              <div className="aspect-[2/3] w-full flex flex-col items-center justify-center text-gray-400">
+              <div className="aspect-[2/3] w-full flex flex-col items-center justify-center text-muted-foreground bg-muted/30">
                 <ImageIcon className="w-12 h-12 mb-2" />
                 <p className="text-sm">No media attached</p>
               </div>
@@ -121,22 +121,21 @@ function PinterestPreview({
         />
 
         {/* Toolbar */}
-        <div className="px-3 py-2 border-t border-[--border] bg-[--surface]">
-          {canCrop ? (
-            <div className="flex items-center gap-4">
-              <button
-                onClick={handleCropClick}
-                title="Crop Image"
-                className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
-              >
+        <div className="flex flex-wrap items-center gap-1 p-2 bg-surface border-t border-border">
+          {canCrop && (
+            <button
+              onClick={handleCropClick}
+              disabled={isFetching}
+              className={cn(btnClass)}
+              title="Crop Image"
+            >
+              {isFetching ? (
+                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+              ) : (
                 <Crop className="h-3.5 w-3.5" />
-                Crop
-              </button>
-            </div>
-          ) : (
-            <p className="text-xs text-muted-foreground text-center italic">
-              Pinterest Preview
-            </p>
+              )}
+              <span>Crop</span>
+            </button>
           )}
         </div>
       </div>

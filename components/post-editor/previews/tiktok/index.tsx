@@ -3,7 +3,13 @@
 "use client";
 
 import { memo, useState, useRef } from "react";
-import { ImageIcon, Crop, ChevronLeft, ChevronRight } from "lucide-react";
+import {
+  ImageIcon,
+  Crop,
+  ChevronLeft,
+  ChevronRight,
+  Loader2,
+} from "lucide-react";
 import { ImageCropperModal } from "../../modals/image-cropper-modal";
 import { TikTokVideoOptions } from "./tiktok-video-options";
 import { TikTokSidebar } from "./tiktok-sidebar";
@@ -47,7 +53,6 @@ function TikTokPreview({
   const [carouselIndex, setCarouselIndex] = useState(0);
   const carouselRef = useRef<HTMLDivElement>(null);
 
-  // Migrated to Draft Store
   const setCropForMedia = useEditorialDraftStore(
     (state) => state.setCropForMedia
   );
@@ -56,9 +61,8 @@ function TikTokPreview({
     (state) => state.tiktokVideoCoverTimestamp
   );
 
-  // Data Hooks
   const { organizationId } = useClientData();
-  const { getOriginalUrl } = useOriginalUrl(organizationId);
+  const { getOriginalUrl, isFetching } = useOriginalUrl(organizationId);
 
   const isCarousel = mediaItems && mediaItems.length > 1;
 
@@ -85,7 +89,6 @@ function TikTokPreview({
       ? singleMediaItem.mediaUrl
       : singleMediaItem?.preview);
 
-  // Check if we have images to crop
   const canCrop = isCarousel
     ? mediaItems.some((item) => item.type === "image")
     : singleMediaItem?.type === "image";
@@ -102,7 +105,6 @@ function TikTokPreview({
     setCropForMedia(mediaUid, "tiktok", cropData, previewUrl);
   };
 
-  // Construct list for cropper modal
   const cropperMediaItems =
     mediaItems.length > 0
       ? mediaItems
@@ -112,16 +114,15 @@ function TikTokPreview({
 
   const cropperInitialIndex = isCarousel ? carouselIndex : 0;
 
+  // Standardized toolbar button class
+  const btnClass =
+    "flex items-center gap-1.5 px-3 py-2 text-xs font-medium rounded-md transition-colors hover:bg-muted focus:bg-muted text-muted-foreground hover:text-foreground";
+
   return (
-    <div className="w-full max-w-[300px] mx-auto space-y-4 transition-all duration-300">
-      {/* 
-        Updated borderRadius: 
-        rounded-t-[2rem] preserves the phone look at the top.
-        rounded-b-lg gives the bottom toolbar standard card corners instead of phone corners.
-      */}
-      <div className="bg-[--surface] border border-[--border] shadow-lg rounded-t-[2rem] rounded-b-lg overflow-hidden">
+    <div className="w-full max-w-[360px] mx-auto space-y-4 animate-in fade-in slide-in-from-bottom-2 duration-500">
+      <div className="bg-surface border border-border shadow-sm rounded-md overflow-hidden transition-all duration-200 hover:shadow-md">
+        {/* Main Content Layer - Vertical Ratio */}
         <div className="relative bg-black aspect-[9/16] overflow-hidden group">
-          {/* Main Content Layer */}
           <div className="absolute inset-0 z-0">
             {isCarousel ? (
               <TikTokCarousel
@@ -169,7 +170,7 @@ function TikTokPreview({
             title={title}
           />
 
-          {/* Carousel Navigation Arrows - Only show for carousel */}
+          {/* Carousel Navigation Arrows */}
           {isCarousel && (
             <>
               <button
@@ -194,7 +195,7 @@ function TikTokPreview({
             </>
           )}
 
-          {/* Carousel Pagination Dots - Only show for carousel */}
+          {/* Carousel Pagination Dots */}
           {isCarousel && (
             <div className="absolute bottom-20 left-0 right-0 z-50 flex items-center justify-center gap-2 pointer-events-none">
               {mediaItems.map((_, idx) => (
@@ -212,24 +213,25 @@ function TikTokPreview({
           )}
         </div>
 
-        {/* Action Buttons */}
-        <div className="px-3 py-2 border-t border-border bg-surface">
-          {canCrop ? (
-            <div className="flex items-center gap-4">
-              <button
-                onClick={handleCropClick}
-                title="Crop Image"
-                className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
-              >
+        {/* Toolbar */}
+        <div className="flex flex-wrap items-center gap-1 p-2 bg-surface border-t border-border">
+          {canCrop && (
+            <button
+              onClick={handleCropClick}
+              disabled={isFetching}
+              className={cn(btnClass)}
+              title="Crop Media"
+            >
+              {isFetching ? (
+                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+              ) : (
                 <Crop className="h-3.5 w-3.5" />
-                Crop{" "}
-                {isCarousel && `(${carouselIndex + 1}/${mediaItems?.length})`}
-              </button>
-            </div>
-          ) : (
-            <p className="text-xs text-muted-foreground text-center italic">
-              TikTok Preview
-            </p>
+              )}
+              <span>
+                Crop
+                {isCarousel && ` (${carouselIndex + 1}/${mediaItems?.length})`}
+              </span>
+            </button>
           )}
         </div>
       </div>

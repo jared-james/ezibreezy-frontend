@@ -3,7 +3,7 @@
 "use client";
 
 import { memo, useState } from "react";
-import { Crop, ImageIcon } from "lucide-react";
+import { Crop, ImageIcon, Loader2 } from "lucide-react";
 import { ImageCropperModal } from "../../modals/image-cropper-modal";
 import { type CropData } from "@/lib/utils/crop-utils";
 import {
@@ -40,14 +40,12 @@ function YouTubePreview({
 
   const [isCropperOpen, setIsCropperOpen] = useState(false);
 
-  // Migrated to Draft Store
   const setCropForMedia = useEditorialDraftStore(
     (state) => state.setCropForMedia
   );
 
-  // Data Hooks
   const { organizationId } = useClientData();
-  const { getOriginalUrl } = useOriginalUrl(organizationId);
+  const { getOriginalUrl, isFetching } = useOriginalUrl(organizationId);
 
   // Determine viewing mode based on media aspect ratio or type
   // Shorts = 9:16 aspect ratio OR explicit crop
@@ -73,20 +71,19 @@ function YouTubePreview({
     setCropForMedia(mediaUid, "youtube", cropData, previewUrl);
   };
 
+  // Standardized toolbar button class
+  const btnClass =
+    "flex items-center gap-1.5 px-3 py-2 text-xs font-medium rounded-md transition-colors hover:bg-muted focus:bg-muted text-muted-foreground hover:text-foreground";
+
   return (
-    <div className="w-full max-w-[320px] mx-auto space-y-4 transition-all duration-300">
-      <div
-        className={cn(
-          "bg-[--surface] border border-[--border] shadow-lg overflow-hidden transition-all",
-          previewMode === "shorts"
-            ? "rounded-t-[2rem] rounded-b-lg"
-            : "rounded-lg"
-        )}
-      >
+    <div className="w-full max-w-[360px] mx-auto space-y-4 animate-in fade-in slide-in-from-bottom-2 duration-500">
+      <div className="bg-surface border border-border shadow-sm rounded-md overflow-hidden transition-all duration-200 hover:shadow-md">
+        {/* Header - Only for Video Mode */}
         {previewMode === "video" && (
           <YouTubeHeader avatarUrl={avatarUrl} primaryName={primaryName} />
         )}
 
+        {/* Content Area */}
         {previewMode === "shorts" ? (
           <div className="relative bg-black aspect-[9/16] overflow-hidden group">
             {singleMediaItem ? (
@@ -105,7 +102,7 @@ function YouTubePreview({
             )}
           </div>
         ) : (
-          <div className="relative bg-[--surface]">
+          <div className="relative bg-surface">
             {singleMediaItem ? (
               <YouTubeVideoView
                 mediaItem={singleMediaItem}
@@ -116,7 +113,7 @@ function YouTubePreview({
                 accountName={accountName}
               />
             ) : (
-              <div className="aspect-video w-full flex flex-col items-center justify-center text-[--muted-foreground] bg-[--muted]/30">
+              <div className="aspect-video w-full flex flex-col items-center justify-center text-muted-foreground bg-muted/30">
                 <ImageIcon className="w-12 h-12 mb-2" />
                 <p className="text-sm">No media attached</p>
               </div>
@@ -125,22 +122,21 @@ function YouTubePreview({
         )}
 
         {/* Toolbar */}
-        <div className="px-3 py-2 border-t border-[--border] bg-[--surface]">
-          {canCrop ? (
-            <div className="flex items-center gap-4">
-              <button
-                onClick={handleCropClick}
-                title="Crop Image"
-                className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
-              >
+        <div className="flex flex-wrap items-center gap-1 p-2 bg-surface border-t border-border">
+          {canCrop && (
+            <button
+              onClick={handleCropClick}
+              disabled={isFetching}
+              className={cn(btnClass)}
+              title="Crop Image"
+            >
+              {isFetching ? (
+                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+              ) : (
                 <Crop className="h-3.5 w-3.5" />
-                Crop
-              </button>
-            </div>
-          ) : (
-            <p className="text-xs text-muted-foreground text-center italic">
-              YouTube {previewMode === "shorts" ? "Shorts" : "Video"} Preview
-            </p>
+              )}
+              <span>Crop</span>
+            </button>
           )}
         </div>
       </div>

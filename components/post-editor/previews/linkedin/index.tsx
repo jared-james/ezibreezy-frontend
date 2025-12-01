@@ -3,13 +3,16 @@
 "use client";
 
 import { memo, useState } from "react";
-import { ImageIcon, Crop, FileText } from "lucide-react";
+import { ImageIcon, Crop, FileText, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { renderCaptionWithHashtags } from "../../render-caption";
 import { ImageCropperModal } from "../../modals/image-cropper-modal";
 import { AltTextModal } from "../../modals/alt-text-modal";
 import { type CropData } from "@/lib/utils/crop-utils";
-import { MediaItem, useEditorialDraftStore } from "@/lib/store/editorial/draft-store";
+import {
+  MediaItem,
+  useEditorialDraftStore,
+} from "@/lib/store/editorial/draft-store";
 import { useClientData } from "@/lib/hooks/use-client-data";
 import { useOriginalUrl } from "@/lib/hooks/use-original-url";
 
@@ -46,25 +49,22 @@ function LinkedInPreview({
   const [altTextInitialIndex, setAltTextInitialIndex] = useState(0);
   const [currentCarouselIndex, setCurrentCarouselIndex] = useState(0);
 
-  const setCropForMedia = useEditorialDraftStore((state) => state.setCropForMedia);
+  const setCropForMedia = useEditorialDraftStore(
+    (state) => state.setCropForMedia
+  );
 
-  // Data Hooks
   const { organizationId } = useClientData();
-  const { getOriginalUrl } = useOriginalUrl(organizationId);
+  const { getOriginalUrl, isFetching } = useOriginalUrl(organizationId);
 
-  // Determine if we have multiple media items
   const hasMultipleMedia = mediaItems.length > 1;
   const isCarousel = hasMultipleMedia;
 
-  // LinkedIn uses 1:1 for carousels, 1.91:1 for single posts
   const previewAspectRatio = isCarousel ? 1 : aspectRatio;
 
-  // For carousel mode, get the current media item
   const currentCarouselMedia = isCarousel
     ? mediaItems[currentCarouselIndex]
     : null;
 
-  // Determine which media to use for cropping: carousel item or single item
   const activeMediaForCrop = currentCarouselMedia || singleMediaItem;
 
   const croppedPreview = singleMediaItem?.croppedPreviews?.linkedin;
@@ -75,11 +75,9 @@ function LinkedInPreview({
       ? singleMediaItem.mediaUrl
       : singleMediaItem?.preview);
 
-  // Can crop if we have an uploaded image (either single or in carousel)
   const canCrop =
     !!activeMediaForCrop?.id && activeMediaForCrop?.type === "image";
 
-  // Alt text editing: Filter to only uploaded images
   const editableMediaItems = isCarousel
     ? mediaItems.filter((item) => item.type === "image" && !!item.id)
     : singleMediaItem?.type === "image" && singleMediaItem?.id
@@ -102,7 +100,6 @@ function LinkedInPreview({
 
   const handleAltTextClick = () => {
     if (isCarousel) {
-      // Find the index of current carousel item in editable items
       const currentMedia = mediaItems[currentCarouselIndex];
       const editableIndex = editableMediaItems.findIndex(
         (item) => item.uid === currentMedia.uid
@@ -114,7 +111,6 @@ function LinkedInPreview({
     setIsAltTextModalOpen(true);
   };
 
-  // Construct list for cropper modal
   const cropperMediaItems =
     mediaItems.length > 0
       ? mediaItems
@@ -124,96 +120,102 @@ function LinkedInPreview({
 
   const cropperInitialIndex = isCarousel ? currentCarouselIndex : 0;
 
+  // Standardized toolbar button class
+  const btnClass =
+    "flex items-center gap-1.5 px-3 py-2 text-xs font-medium rounded-md transition-colors hover:bg-muted focus:bg-muted text-muted-foreground hover:text-foreground";
+
   return (
-    <div className="w-full bg-[--surface] border border-[--border] shadow-lg max-w-sm mx-auto rounded-lg overflow-hidden">
-      {/* Header */}
-      <LinkedInHeader
-        avatarUrl={avatarUrl}
-        primaryName={primaryName}
-        accountName={accountName}
-      />
-
-      {/* Caption */}
-      <div className="px-3 pb-3">
-        <p className="text-sm text-[--foreground] whitespace-pre-wrap">
-          {renderCaptionWithHashtags(caption)}
-        </p>
-      </div>
-
-      {/* Media Content */}
-      {isCarousel ? (
-        <LinkedInCarousel
-          mediaItems={mediaItems}
-          aspectRatio={previewAspectRatio}
-          onCurrentIndexChange={setCurrentCarouselIndex}
+    <div className="w-full max-w-[360px] mx-auto space-y-4 animate-in fade-in slide-in-from-bottom-2 duration-500">
+      <div className="bg-surface border border-border shadow-sm rounded-md overflow-hidden transition-all duration-200 hover:shadow-md">
+        {/* Header */}
+        <LinkedInHeader
+          avatarUrl={avatarUrl}
+          primaryName={primaryName}
+          accountName={accountName}
         />
-      ) : (
-        <div
-          className={cn(
-            "bg-gray-100",
-            displayMediaSrc ? "" : "flex items-center justify-center"
-          )}
-          style={{ aspectRatio: previewAspectRatio }}
-        >
-          {displayMediaSrc ? (
-            mediaType === "video" ? (
-              <video
-                src={displayMediaSrc}
-                className="w-full h-full object-contain"
-                muted
-                loop
-                autoPlay
-                playsInline
-              />
-            ) : (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
-                src={displayMediaSrc}
-                alt="Media Preview"
-                className="w-full h-full object-contain"
-              />
-            )
-          ) : (
-            <div className="flex flex-col items-center justify-center text-[--muted-foreground] text-center p-8">
-              <ImageIcon className="w-8 h-8 mb-2" />
-              <p className="text-sm">No media attached</p>
-            </div>
-          )}
+
+        {/* Caption */}
+        <div className="px-3 pb-3">
+          <p className="text-sm text-foreground whitespace-pre-wrap leading-relaxed">
+            {renderCaptionWithHashtags(caption)}
+          </p>
         </div>
-      )}
 
-      {/* Post Footer */}
-      <LinkedInPostFooter />
+        {/* Media Content */}
+        {isCarousel ? (
+          <LinkedInCarousel
+            mediaItems={mediaItems}
+            aspectRatio={previewAspectRatio}
+            onCurrentIndexChange={setCurrentCarouselIndex}
+          />
+        ) : (
+          <div
+            className={cn(
+              "bg-gray-100",
+              displayMediaSrc ? "" : "flex items-center justify-center"
+            )}
+            style={{ aspectRatio: previewAspectRatio }}
+          >
+            {displayMediaSrc ? (
+              mediaType === "video" ? (
+                <video
+                  src={displayMediaSrc}
+                  className="w-full h-full object-contain"
+                  muted
+                  loop
+                  autoPlay
+                  playsInline
+                />
+              ) : (
+                <img
+                  src={displayMediaSrc}
+                  alt="Media Preview"
+                  className="w-full h-full object-contain"
+                />
+              )
+            ) : (
+              <div className="flex flex-col items-center justify-center text-muted-foreground text-center p-8">
+                <ImageIcon className="w-8 h-8 mb-2" />
+                <p className="text-sm">No media attached</p>
+              </div>
+            )}
+          </div>
+        )}
 
-      {/* Toolbar */}
-      <div className="px-3 py-2 border-t border-[--border]">
-        <div className="flex items-center gap-4">
+        {/* Post Footer */}
+        <LinkedInPostFooter />
+
+        {/* Toolbar */}
+        <div className="flex flex-wrap items-center gap-1 p-2 bg-surface border-t border-border">
           {canCrop && (
             <button
               onClick={handleCropClick}
-              className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
+              disabled={isFetching}
+              className={cn(btnClass)}
+              title="Crop Media"
             >
-              <Crop className="h-3.5 w-3.5" />
-              Crop{" "}
-              {isCarousel &&
-                `(${currentCarouselIndex + 1}/${mediaItems?.length})`}
+              {isFetching ? (
+                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+              ) : (
+                <Crop className="h-3.5 w-3.5" />
+              )}
+              <span>
+                Crop
+                {isCarousel &&
+                  ` (${currentCarouselIndex + 1}/${mediaItems.length})`}
+              </span>
             </button>
           )}
 
           {canEditAltText && (
             <button
               onClick={handleAltTextClick}
-              className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
+              className={cn(btnClass)}
+              title="Edit Alt Text"
             >
               <FileText className="h-3.5 w-3.5" />
-              Alt Text
+              <span>Alt Text</span>
             </button>
-          )}
-
-          {!canCrop && !canEditAltText && (
-            <p className="text-xs text-muted-foreground text-center italic w-full">
-              LinkedIn Preview
-            </p>
           )}
         </div>
       </div>
@@ -245,3 +247,5 @@ function LinkedInPreview({
 }
 
 export default memo(LinkedInPreview);
+
+// Next file: components/post-editor/previews/tiktok/index.tsx

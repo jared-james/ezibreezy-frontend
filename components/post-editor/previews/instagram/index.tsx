@@ -14,10 +14,15 @@ import {
   STORY_ASPECT_RATIO,
   calculateCenteredCrop,
 } from "@/lib/utils/crop-utils";
-import { MediaItem, useEditorialDraftStore } from "@/lib/store/editorial/draft-store";
+import {
+  MediaItem,
+  useEditorialDraftStore,
+} from "@/lib/store/editorial/draft-store";
 import { usePublishingStore } from "@/lib/store/editorial/publishing-store";
 import { useClientData } from "@/lib/hooks/use-client-data";
-import { useOriginalUrl } from "@/lib/hooks/use-original-url"; // <--- NEW HOOK
+import { useOriginalUrl } from "@/lib/hooks/use-original-url";
+import { Grid3X3, Square } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 import { InstagramHeader } from "./instagram-header";
 import { InstagramGridView } from "./instagram-grid-view";
@@ -76,19 +81,17 @@ function InstagramPreview({
   const accountName = platformUsername.replace(/^@/, "");
   const primaryName = displayName || accountName || "Account";
 
-  // Stores
-  const setCropForMedia = useEditorialDraftStore((state) => state.setCropForMedia);
+  const setCropForMedia = useEditorialDraftStore(
+    (state) => state.setCropForMedia
+  );
   const location = usePublishingStore((state) => state.location);
-  const selectedAccounts = usePublishingStore((state) => state.selectedAccounts);
-
-  // Data Hooks
+  const selectedAccounts = usePublishingStore(
+    (state) => state.selectedAccounts
+  );
   const { organizationId } = useClientData();
-  const { getOriginalUrl } = useOriginalUrl(organizationId); // <--- CLEANER
-
-  // Integration ID (Only needed for User Search / Location Search APIs)
+  const { getOriginalUrl } = useOriginalUrl(organizationId);
   const integrationId = selectedAccounts["instagram"]?.[0];
 
-  // Local State
   const [isTaggingMode, setIsTaggingMode] = useState(false);
   const [isProductTaggingMode, setIsProductTaggingMode] = useState(false);
   const [isProductSelectorOpen, setIsProductSelectorOpen] = useState(false);
@@ -104,7 +107,6 @@ function InstagramPreview({
   const [videoDuration, setVideoDuration] = useState(0);
   const [currentCarouselIndex, setCurrentCarouselIndex] = useState(0);
 
-  // ... (Derived state logic for carousel/media selection remains the same)
   const displayMediaSrc =
     singleMediaItem?.croppedPreviews?.instagram ||
     (singleMediaItem?.type === "video" && singleMediaItem.mediaUrl
@@ -131,6 +133,8 @@ function InstagramPreview({
     : [];
   const canEditAltText = editableMediaItems.length > 0;
 
+  const prevPostTypeRef = useRef(postType);
+
   useEffect(() => {
     if (postType === "story") setViewMode("post");
   }, [postType]);
@@ -143,8 +147,6 @@ function InstagramPreview({
     if (!isProductTaggingSupported) setIsProductTaggingMode(false);
   }, [isProductTaggingSupported]);
 
-  // ... (Auto Crop Logic remains the same)
-  const prevPostTypeRef = useRef(postType);
   useEffect(() => {
     const applyAutoCrop = async () => {
       if (!singleMediaItem || isCarousel) return;
@@ -236,7 +238,6 @@ function InstagramPreview({
     setIsAltTextModalOpen(true);
   };
 
-  // ... (Product Tagging Handlers remain the same)
   const handleProductTagClick = (mediaId: string, x: number, y: number) => {
     setPendingProductTag({ mediaId, x, y });
     setIsProductSelectorOpen(true);
@@ -271,14 +272,44 @@ function InstagramPreview({
       : [];
 
   return (
-    <div className="w-full max-w-[300px] mx-auto space-y-4 transition-all duration-300">
-      {/* ... (UI remains identical) ... */}
-      <div className="bg-[--surface] border border-[--border] shadow-lg rounded-t-[2rem] rounded-b-lg overflow-hidden">
-        <InstagramHeader
-          avatarUrl={avatarUrl}
-          primaryName={primaryName}
-          location={location.name}
-        />
+    <div className="w-full max-w-[360px] mx-auto space-y-4 animate-in fade-in slide-in-from-bottom-2 duration-500">
+      <div className="bg-surface border border-border shadow-sm rounded-md overflow-hidden transition-all duration-200 hover:shadow-md">
+        <div className="relative">
+          <InstagramHeader
+            avatarUrl={avatarUrl}
+            primaryName={primaryName}
+            location={location.name}
+          />
+          {postType !== "story" && (
+            <div className="absolute right-3 top-1/2 -translate-y-1/2 flex gap-1 bg-muted/50 p-0.5 rounded-md">
+              <button
+                onClick={() => setViewMode("post")}
+                className={cn(
+                  "p-1 rounded-sm transition-all",
+                  viewMode === "post"
+                    ? "bg-white shadow-sm text-foreground"
+                    : "text-muted-foreground hover:text-foreground"
+                )}
+                title="Post View"
+              >
+                <Square className="w-3.5 h-3.5" />
+              </button>
+              <button
+                onClick={() => setViewMode("grid")}
+                className={cn(
+                  "p-1 rounded-sm transition-all",
+                  viewMode === "grid"
+                    ? "bg-white shadow-sm text-foreground"
+                    : "text-muted-foreground hover:text-foreground"
+                )}
+                title="Grid View"
+              >
+                <Grid3X3 className="w-3.5 h-3.5" />
+              </button>
+            </div>
+          )}
+        </div>
+
         {viewMode === "grid" ? (
           <InstagramGridView
             displayMediaSrc={displayMediaSrc}
@@ -365,6 +396,7 @@ function InstagramPreview({
             isStory={postType === "story"}
           />
         )}
+
         {viewMode === "post" && (
           <InstagramPostFooter
             primaryName={primaryName}
@@ -372,27 +404,24 @@ function InstagramPreview({
             collaborators={collaborators}
           />
         )}
-        <div className="px-3 py-2 border-t border-border">
-          <InstagramToolbar
-            viewMode={viewMode}
-            onViewModeChange={setViewMode}
-            canCrop={canCrop}
-            onCropClick={handleCropClick}
-            isFetchingOriginal={false}
-            isTaggingSupported={isTaggingSupported}
-            isTaggingMode={isTaggingMode}
-            onToggleTagging={() => setIsTaggingMode(!isTaggingMode)}
-            isProductTaggingSupported={isProductTaggingSupported}
-            isProductTaggingMode={isProductTaggingMode}
-            onToggleProductTagging={() =>
-              setIsProductTaggingMode(!isProductTaggingMode)
-            }
-            displayMediaSrc={displayMediaSrc}
-            isStory={postType === "story"}
-            canEditAltText={canEditAltText}
-            onAltTextClick={handleAltTextClick}
-          />
-        </div>
+
+        <InstagramToolbar
+          viewMode={viewMode}
+          canCrop={canCrop}
+          onCropClick={handleCropClick}
+          isFetchingOriginal={false}
+          isTaggingSupported={isTaggingSupported}
+          isTaggingMode={isTaggingMode}
+          onToggleTagging={() => setIsTaggingMode(!isTaggingMode)}
+          isProductTaggingSupported={isProductTaggingSupported}
+          isProductTaggingMode={isProductTaggingMode}
+          onToggleProductTagging={() =>
+            setIsProductTaggingMode(!isProductTaggingMode)
+          }
+          displayMediaSrc={displayMediaSrc}
+          canEditAltText={canEditAltText}
+          onAltTextClick={handleAltTextClick}
+        />
       </div>
 
       {postType === "post" &&
@@ -421,7 +450,7 @@ function InstagramPreview({
           platform="instagram"
           postType={postType}
           onCropSave={handleCropSave}
-          getOriginalUrl={getOriginalUrl} // <--- USING THE HOOK HERE
+          getOriginalUrl={getOriginalUrl}
         />
       )}
 

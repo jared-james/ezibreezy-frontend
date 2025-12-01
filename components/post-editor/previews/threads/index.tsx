@@ -3,13 +3,17 @@
 "use client";
 
 import { memo, useState } from "react";
-import { Crop, ImageIcon } from "lucide-react";
+import { Crop, ImageIcon, Loader2 } from "lucide-react";
 import { renderCaptionWithHashtags } from "../../render-caption";
 import { ImageCropperModal } from "../../modals/image-cropper-modal";
 import { type CropData } from "@/lib/utils/crop-utils";
-import { MediaItem, useEditorialDraftStore } from "@/lib/store/editorial/draft-store";
+import {
+  MediaItem,
+  useEditorialDraftStore,
+} from "@/lib/store/editorial/draft-store";
 import { useClientData } from "@/lib/hooks/use-client-data";
 import { useOriginalUrl } from "@/lib/hooks/use-original-url";
+import { cn } from "@/lib/utils";
 
 import { ThreadsHeader } from "./threads-header";
 import { ThreadsCarousel } from "./threads-carousel";
@@ -37,7 +41,7 @@ const ProfileAvatar = ({
       <img
         src={avatarUrl}
         alt={primaryName}
-        className="shrink-0 rounded-full border border-[--border] bg-[--surface] object-cover"
+        className="shrink-0 rounded-full border border-border bg-surface object-cover"
         style={{ width: size, height: size }}
       />
     );
@@ -45,7 +49,7 @@ const ProfileAvatar = ({
 
   return (
     <div
-      className="shrink-0 rounded-full border border-[--border] bg-[--muted]"
+      className="shrink-0 rounded-full border border-border bg-muted"
       style={{ width: size, height: size }}
       role="img"
       aria-label="Profile image placeholder"
@@ -64,11 +68,12 @@ function ThreadsPreview({
   const primaryName = displayName || accountName || "Account";
   const [isCropperOpen, setIsCropperOpen] = useState(false);
 
-  const setCropForMedia = useEditorialDraftStore((state) => state.setCropForMedia);
+  const setCropForMedia = useEditorialDraftStore(
+    (state) => state.setCropForMedia
+  );
 
-  // Data Hooks
   const { organizationId } = useClientData();
-  const { getOriginalUrl } = useOriginalUrl(organizationId);
+  const { getOriginalUrl, isFetching } = useOriginalUrl(organizationId);
 
   const canCrop = mediaItems.some((item) => item.id && item.type === "image");
 
@@ -84,9 +89,14 @@ function ThreadsPreview({
     setCropForMedia(mediaUid, "threads", cropData, previewUrl);
   };
 
+  // Standardized toolbar button class
+  const btnClass =
+    "flex items-center gap-1.5 px-3 py-2 text-xs font-medium rounded-md transition-colors hover:bg-muted focus:bg-muted text-muted-foreground hover:text-foreground";
+
   return (
-    <div className="mx-auto w-full max-w-sm space-y-4">
-      <div className="bg-[--surface] border border-[--border] rounded-lg shadow-sm overflow-hidden">
+    <div className="w-full max-w-[360px] mx-auto space-y-4 animate-in fade-in slide-in-from-bottom-2 duration-500">
+      <div className="bg-surface border border-border shadow-sm rounded-md overflow-hidden transition-all duration-200 hover:shadow-md">
+        {/* Post Content */}
         <div className="p-4 flex gap-3">
           <div className="flex-shrink-0 flex flex-col items-center">
             <ProfileAvatar
@@ -118,23 +128,23 @@ function ThreadsPreview({
           </div>
         </div>
 
-        {/* Toolbar Section */}
-        <div className="bg-[--background] border-t border-[--border]">
-          <div className="px-3 py-2">
-            {canCrop ? (
-              <button
-                onClick={handleCropClick}
-                className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
-              >
+        {/* Toolbar */}
+        <div className="flex flex-wrap items-center gap-1 p-2 bg-surface border-t border-border">
+          {canCrop && (
+            <button
+              onClick={handleCropClick}
+              disabled={isFetching}
+              className={cn(btnClass)}
+              title="Crop Media"
+            >
+              {isFetching ? (
+                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+              ) : (
                 <Crop className="h-3.5 w-3.5" />
-                Crop
-              </button>
-            ) : (
-              <p className="text-xs text-muted-foreground text-center italic">
-                Threads Preview
-              </p>
-            )}
-          </div>
+              )}
+              <span>Crop</span>
+            </button>
+          )}
         </div>
       </div>
 
