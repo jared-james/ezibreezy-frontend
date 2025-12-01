@@ -18,28 +18,24 @@ import { useFolderActions } from "./folder-actions";
 import { Button } from "@/components/ui/button";
 
 interface MediaRoomProps {
-  preloadedIntegrationId?: string | null;
+  preloadedOrganizationId?: string | null;
 }
 
-export default function MediaRoom({ preloadedIntegrationId }: MediaRoomProps) {
+export default function MediaRoom({ preloadedOrganizationId }: MediaRoomProps) {
   const [isUploadOpen, setIsUploadOpen] = useState(false);
   const reset = useMediaRoomStore((s) => s.reset);
 
   const { data: clientData, isLoading: isLoadingClientData } = useQuery({
     queryKey: ["clientEditorData"],
     queryFn: getClientDataForEditor,
-    staleTime: 60000,
-    // If we have a preloaded ID, we don't strictly need this to be blocking,
-    // but we fetch it to ensure we have the full connection list/details if needed later.
+    staleTime: Infinity,
   });
 
-  // Prefer preloaded ID (instant), fallback to client fetched data
-  const integrationId =
-    preloadedIntegrationId || clientData?.connections?.[0]?.id || null;
+  const organizationId =
+    preloadedOrganizationId || clientData?.organizationId || null;
 
-  // Hook up shared actions
   const { openCreateDialog, FolderActionDialogs } = useFolderActions({
-    integrationId,
+    organizationId,
   });
 
   useEffect(() => {
@@ -48,8 +44,7 @@ export default function MediaRoom({ preloadedIntegrationId }: MediaRoomProps) {
     };
   }, [reset]);
 
-  // Only block with a loader if we have NO ID and are still waiting for client data
-  if (isLoadingClientData && !integrationId) {
+  if (isLoadingClientData && !organizationId) {
     return (
       <div className="flex items-center justify-center h-full">
         <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
@@ -57,20 +52,19 @@ export default function MediaRoom({ preloadedIntegrationId }: MediaRoomProps) {
     );
   }
 
-  // If we loaded and still have no connections/ID
-  if (!isLoadingClientData && !integrationId) {
+  if (!isLoadingClientData && !organizationId) {
     return (
       <div className="flex items-center justify-center h-full">
         <div className="text-center max-w-md px-4">
           <div className="border-b-4 border-double border-foreground pb-4 mb-6">
             <p className="eyebrow mb-2">Media Room</p>
             <h1 className="font-serif text-3xl font-bold uppercase tracking-tight">
-              Connect an Account
+              Organization Not Found
             </h1>
           </div>
           <p className="font-serif text-muted-foreground">
-            To use the Media Room, you need to connect at least one social media
-            account. Visit Settings &rarr; Integrations to get started.
+            Unable to load organization context. Please refresh the page or
+            contact support.
           </p>
         </div>
       </div>
@@ -109,21 +103,20 @@ export default function MediaRoom({ preloadedIntegrationId }: MediaRoomProps) {
         </div>
       </div>
 
-      <MediaFolderBar integrationId={integrationId} />
+      <MediaFolderBar organizationId={organizationId} />
 
       <div className="py-4">
-        <MediaToolbar integrationId={integrationId} />
+        <MediaToolbar organizationId={organizationId} />
       </div>
 
       <div className="flex-1 overflow-y-auto pb-6">
-        <MediaGrid integrationId={integrationId} />
+        <MediaGrid organizationId={organizationId} />
       </div>
 
-      {/* Global Modals & Panels */}
-      <MediaDetailPanel integrationId={integrationId} />
-      <BulkActionBar integrationId={integrationId} />
+      <MediaDetailPanel organizationId={organizationId} />
+      <BulkActionBar organizationId={organizationId} />
       <MediaUploadZone
-        integrationId={integrationId}
+        organizationId={organizationId}
         isOpen={isUploadOpen}
         onClose={() => setIsUploadOpen(false)}
       />

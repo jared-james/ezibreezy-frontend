@@ -33,10 +33,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
 interface UseFolderActionsProps {
-  integrationId: string | null;
+  organizationId: string | null;
 }
 
-export function useFolderActions({ integrationId }: UseFolderActionsProps) {
+export function useFolderActions({ organizationId }: UseFolderActionsProps) {
   // State for dialogs
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [folderToRename, setFolderToRename] = useState<MediaFolder | null>(
@@ -52,9 +52,9 @@ export function useFolderActions({ integrationId }: UseFolderActionsProps) {
   const currentFolderId = useMediaRoomStore((s) => s.currentFolderId);
   const setCurrentFolder = useMediaRoomStore((s) => s.setCurrentFolder);
 
-  const createMutation = useCreateFolder(integrationId);
-  const renameMutation = useRenameFolder(integrationId);
-  const deleteMutation = useDeleteFolder(integrationId);
+  const createMutation = useCreateFolder(organizationId);
+  const renameMutation = useRenameFolder(organizationId);
+  const deleteMutation = useDeleteFolder(organizationId);
 
   // Reset input when any dialog opens
   useEffect(() => {

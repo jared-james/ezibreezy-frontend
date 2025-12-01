@@ -2,11 +2,11 @@
 
 "use client";
 
-import { useCallback, useState, useMemo, useEffect, useRef } from "react";
+import { useCallback, useState, useEffect, useRef } from "react";
 import { Upload, X, Loader2, Video, Plus } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useQuery } from "@tanstack/react-query";
-import { getConnections } from "@/lib/api/integrations";
+import { getClientDataForEditor } from "@/app/actions/data";
 import MediaRoomModal from "../modals/media-room-modal";
 import MediaSourceModal from "../modals/media-source-modal";
 import type { MediaItem as LibraryMediaItem } from "@/lib/api/media";
@@ -39,15 +39,13 @@ export default function MediaUpload({
   const [isSourceModalOpen, setIsSourceModalOpen] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const { data: connections = [] } = useQuery({
-    queryKey: ["connections"],
-    queryFn: getConnections,
+  const { data: clientData } = useQuery({
+    queryKey: ["clientEditorData"],
+    queryFn: getClientDataForEditor,
+    staleTime: Infinity,
   });
 
-  const integrationId = useMemo(
-    () => connections[0]?.id || null,
-    [connections]
-  );
+  const organizationId = clientData?.organizationId || null;
 
   const MAX_FILES = 20;
 
@@ -319,7 +317,7 @@ export default function MediaUpload({
         isOpen={isMediaRoomOpen}
         onClose={() => setIsMediaRoomOpen(false)}
         onConfirmSelection={handleLibraryConfirm}
-        integrationId={integrationId}
+        organizationId={organizationId}
         preSelectedIds={selectedLibraryMediaIds}
       />
     </>

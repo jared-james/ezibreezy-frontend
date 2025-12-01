@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { useUploadMedia } from "@/lib/hooks/use-media";
 
 interface MediaUploadZoneProps {
-  integrationId: string | null;
+  organizationId: string | null;
   isOpen: boolean;
   onClose: () => void;
 }
@@ -21,29 +21,26 @@ interface UploadItem {
 }
 
 export default function MediaUploadZone({
-  integrationId,
+  organizationId,
   isOpen,
   onClose,
 }: MediaUploadZoneProps) {
   const [isDragging, setIsDragging] = useState(false);
   const [uploadQueue, setUploadQueue] = useState<UploadItem[]>([]);
 
-  const uploadMedia = useUploadMedia(integrationId);
+  const uploadMedia = useUploadMedia(organizationId);
 
   const uploadFile = async (file: File) => {
-    // Set status to uploading
     setUploadQueue((prev) =>
       prev.map((u) => (u.file === file ? { ...u, status: "uploading" } : u))
     );
 
     try {
       await uploadMedia.mutateAsync(file);
-      // Set status to success
       setUploadQueue((prev) =>
         prev.map((u) => (u.file === file ? { ...u, status: "success" } : u))
       );
     } catch (error) {
-      // Set status to error
       setUploadQueue((prev) =>
         prev.map((u) =>
           u.file === file
@@ -69,7 +66,6 @@ export default function MediaUploadZone({
 
       if (validFiles.length === 0) return;
 
-      // Add all valid files to queue as 'pending'
       const newItems: UploadItem[] = validFiles.map((file) => ({
         file,
         status: "pending",
@@ -77,8 +73,6 @@ export default function MediaUploadZone({
 
       setUploadQueue((prev) => [...prev, ...newItems]);
 
-      // Trigger all uploads concurrently
-      // Browsers will automatically throttle requests to the per-domain limit (usually 6)
       await Promise.all(validFiles.map((file) => uploadFile(file)));
     },
     [uploadMedia]
@@ -108,7 +102,6 @@ export default function MediaUploadZone({
     (e: React.ChangeEvent<HTMLInputElement>) => {
       const files = e.target.files ? Array.from(e.target.files) : [];
       processFiles(files);
-      // Reset input value so the same file can be selected again if needed
       e.target.value = "";
     },
     [processFiles]
@@ -138,7 +131,6 @@ export default function MediaUploadZone({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
       <div className="w-full max-w-xl bg-background border-2 border-foreground shadow-2xl rounded-sm">
-        {/* Header */}
         <div className="flex items-center justify-between p-4 border-b border-border">
           <div>
             <p className="eyebrow">Upload Media</p>
@@ -155,7 +147,6 @@ export default function MediaUploadZone({
           </button>
         </div>
 
-        {/* Drop zone */}
         <div className="p-6">
           <div
             onDragOver={handleDragOver}
@@ -198,7 +189,6 @@ export default function MediaUploadZone({
           </div>
         </div>
 
-        {/* Upload queue */}
         {uploadQueue.length > 0 && (
           <div className="border-t border-border">
             <div className="flex items-center justify-between px-4 py-2 bg-surface">
@@ -221,7 +211,6 @@ export default function MediaUploadZone({
                   key={`${item.file.name}-${index}`}
                   className="flex items-center gap-3 px-4 py-2 border-b border-border last:border-0"
                 >
-                  {/* Status icon */}
                   <div className="shrink-0">
                     {item.status === "pending" && (
                       <div className="w-5 h-5 rounded-full border-2 border-muted-foreground" />
@@ -237,7 +226,6 @@ export default function MediaUploadZone({
                     )}
                   </div>
 
-                  {/* File info */}
                   <div className="flex-1 min-w-0">
                     <p className="font-serif text-sm truncate">
                       {item.file.name}
@@ -249,7 +237,6 @@ export default function MediaUploadZone({
                     )}
                   </div>
 
-                  {/* File size */}
                   <span className="text-xs text-muted-foreground shrink-0">
                     {(item.file.size / (1024 * 1024)).toFixed(1)} MB
                   </span>
@@ -259,7 +246,6 @@ export default function MediaUploadZone({
           </div>
         )}
 
-        {/* Footer */}
         <div className="flex items-center justify-end gap-3 p-4 border-t border-border">
           <Button
             variant="primary"

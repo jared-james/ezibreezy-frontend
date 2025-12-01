@@ -23,7 +23,7 @@ import {
 import { useFolderActions } from "./folder-actions";
 
 interface MediaFolderBarProps {
-  integrationId: string | null;
+  organizationId: string | null;
 }
 
 interface DroppableFolderTabProps {
@@ -104,9 +104,11 @@ function DroppableFolderTab({
   );
 }
 
-export default function MediaFolderBar({ integrationId }: MediaFolderBarProps) {
+export default function MediaFolderBar({
+  organizationId,
+}: MediaFolderBarProps) {
   const { data: folders = [], isLoading } = useFolderList(
-    integrationId,
+    organizationId,
     "root"
   );
 
@@ -114,7 +116,7 @@ export default function MediaFolderBar({ integrationId }: MediaFolderBarProps) {
   const setCurrentFolder = useMediaRoomStore((s) => s.setCurrentFolder);
 
   const { openRenameDialog, openDeleteDialog, FolderActionDialogs } =
-    useFolderActions({ integrationId });
+    useFolderActions({ organizationId });
 
   return (
     <div className="border-b border-neutral-300">

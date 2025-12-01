@@ -97,12 +97,12 @@ export interface BreadcrumbItem {
 
 export const uploadMedia = async (
   file: File,
-  integrationId: string,
+  organizationId: string,
   thumbnail?: File
 ): Promise<UploadMediaResponse> => {
   const formData = new FormData();
   formData.append("file", file);
-  formData.append("integrationId", integrationId);
+  formData.append("organizationId", organizationId);
 
   if (thumbnail) {
     formData.append("thumbnail", thumbnail);
@@ -122,10 +122,10 @@ export const uploadMedia = async (
 };
 
 export const listMedia = async (
-  integrationId: string,
+  organizationId: string,
   filters: MediaFilters = {}
 ): Promise<MediaListResponse> => {
-  const params = new URLSearchParams({ integrationId });
+  const params = new URLSearchParams({ organizationId });
 
   if (filters.folderId) params.set("folderId", filters.folderId);
   if (filters.rootOnly) params.set("rootOnly", "true");
@@ -145,17 +145,17 @@ export const listMedia = async (
 
 export const getMedia = async (
   id: string,
-  integrationId: string
+  organizationId: string
 ): Promise<MediaItemWithUsage> => {
   const response = await apiClient.get<MediaItemWithUsage>(
-    `/media/${id}?integrationId=${integrationId}`
+    `/media/${id}?organizationId=${organizationId}`
   );
   return response.data;
 };
 
 export const updateMedia = async (
   id: string,
-  integrationId: string,
+  organizationId: string,
   data: {
     filename?: string;
     altText?: string;
@@ -163,7 +163,7 @@ export const updateMedia = async (
   }
 ): Promise<MediaItem> => {
   const response = await apiClient.patch<MediaItem>(
-    `/media/${id}?integrationId=${integrationId}`,
+    `/media/${id}?organizationId=${organizationId}`,
     data
   );
   return response.data;
@@ -171,17 +171,17 @@ export const updateMedia = async (
 
 export const deleteMedia = async (
   id: string,
-  integrationId: string
+  organizationId: string
 ): Promise<void> => {
-  await apiClient.delete(`/media/${id}?integrationId=${integrationId}`);
+  await apiClient.delete(`/media/${id}?organizationId=${organizationId}`);
 };
 
 export const archiveMedia = async (
   id: string,
-  integrationId: string
+  organizationId: string
 ): Promise<MediaItem> => {
   const response = await apiClient.post<MediaItem>(
-    `/media/${id}/archive?integrationId=${integrationId}`
+    `/media/${id}/archive?organizationId=${organizationId}`
   );
   return response.data;
 };
@@ -191,55 +191,55 @@ export const archiveMedia = async (
 // ============================================================================
 
 export const bulkDeleteMedia = async (
-  integrationId: string,
+  organizationId: string,
   mediaIds: string[]
 ): Promise<{ success: boolean; deleted: number }> => {
   const response = await apiClient.post(
-    `/media/bulk-delete?integrationId=${integrationId}`,
+    `/media/bulk-delete?organizationId=${organizationId}`,
     { mediaIds }
   );
   return response.data;
 };
 
 export const bulkArchiveMedia = async (
-  integrationId: string,
+  organizationId: string,
   mediaIds: string[]
 ): Promise<{ success: boolean; archived: number }> => {
   const response = await apiClient.post(
-    `/media/bulk-archive?integrationId=${integrationId}`,
+    `/media/bulk-archive?organizationId=${organizationId}`,
     { mediaIds }
   );
   return response.data;
 };
 
 export const bulkMoveMedia = async (
-  integrationId: string,
+  organizationId: string,
   mediaIds: string[],
   folderId: string | null
 ): Promise<void> => {
-  await apiClient.post(`/media/bulk-move?integrationId=${integrationId}`, {
+  await apiClient.post(`/media/bulk-move?organizationId=${organizationId}`, {
     mediaIds,
     folderId,
   });
 };
 
 export const bulkTagMedia = async (
-  integrationId: string,
+  organizationId: string,
   mediaIds: string[],
   tagIds: string[]
 ): Promise<void> => {
-  await apiClient.post(`/media/bulk-tag?integrationId=${integrationId}`, {
+  await apiClient.post(`/media/bulk-tag?organizationId=${organizationId}`, {
     mediaIds,
     tagIds,
   });
 };
 
 export const bulkUntagMedia = async (
-  integrationId: string,
+  organizationId: string,
   mediaIds: string[],
   tagIds: string[]
 ): Promise<void> => {
-  await apiClient.post(`/media/bulk-untag?integrationId=${integrationId}`, {
+  await apiClient.post(`/media/bulk-untag?organizationId=${organizationId}`, {
     mediaIds,
     tagIds,
   });
@@ -250,10 +250,10 @@ export const bulkUntagMedia = async (
 // ============================================================================
 
 export const listFolders = async (
-  integrationId: string,
+  organizationId: string,
   parentId?: string | "root"
 ): Promise<MediaFolder[]> => {
-  const params = new URLSearchParams({ integrationId });
+  const params = new URLSearchParams({ organizationId });
   if (parentId) params.set("parentId", parentId);
 
   const response = await apiClient.get<MediaFolder[]>(
@@ -264,26 +264,26 @@ export const listFolders = async (
 
 export const getFolder = async (
   id: string,
-  integrationId: string
+  organizationId: string
 ): Promise<MediaFolderWithChildren> => {
   const response = await apiClient.get<MediaFolderWithChildren>(
-    `/media/folders/${id}?integrationId=${integrationId}`
+    `/media/folders/${id}?organizationId=${organizationId}`
   );
   return response.data;
 };
 
 export const getFolderBreadcrumb = async (
   id: string,
-  integrationId: string
+  organizationId: string
 ): Promise<BreadcrumbItem[]> => {
   const response = await apiClient.get<BreadcrumbItem[]>(
-    `/media/folders/${id}/path?integrationId=${integrationId}`
+    `/media/folders/${id}/path?organizationId=${organizationId}`
   );
   return response.data;
 };
 
 export const createFolder = async (
-  integrationId: string,
+  organizationId: string,
   name: string,
   parentId?: string
 ): Promise<MediaFolder> => {
@@ -292,7 +292,7 @@ export const createFolder = async (
     body.parentId = parentId;
   }
   const response = await apiClient.post<MediaFolder>(
-    `/media/folders?integrationId=${integrationId}`,
+    `/media/folders?organizationId=${organizationId}`,
     body
   );
   return response.data;
@@ -300,11 +300,11 @@ export const createFolder = async (
 
 export const renameFolder = async (
   id: string,
-  integrationId: string,
+  organizationId: string,
   name: string
 ): Promise<MediaFolder> => {
   const response = await apiClient.patch<MediaFolder>(
-    `/media/folders/${id}?integrationId=${integrationId}`,
+    `/media/folders/${id}?organizationId=${organizationId}`,
     { name }
   );
   return response.data;
@@ -312,20 +312,22 @@ export const renameFolder = async (
 
 export const moveFolder = async (
   id: string,
-  integrationId: string,
+  organizationId: string,
   parentId: string | null
 ): Promise<void> => {
   await apiClient.patch(
-    `/media/folders/${id}/move?integrationId=${integrationId}`,
+    `/media/folders/${id}/move?organizationId=${organizationId}`,
     { parentId }
   );
 };
 
 export const deleteFolder = async (
   id: string,
-  integrationId: string
+  organizationId: string
 ): Promise<void> => {
-  await apiClient.delete(`/media/folders/${id}?integrationId=${integrationId}`);
+  await apiClient.delete(
+    `/media/folders/${id}?organizationId=${organizationId}`
+  );
 };
 
 // ============================================================================
@@ -333,10 +335,10 @@ export const deleteFolder = async (
 // ============================================================================
 
 export const listTags = async (
-  integrationId: string,
+  organizationId: string,
   search?: string
 ): Promise<MediaTag[]> => {
-  const params = new URLSearchParams({ integrationId });
+  const params = new URLSearchParams({ organizationId });
   if (search) params.set("search", search);
 
   const response = await apiClient.get<MediaTag[]>(`/media/tags?${params}`);
@@ -344,12 +346,12 @@ export const listTags = async (
 };
 
 export const createTag = async (
-  integrationId: string,
+  organizationId: string,
   name: string,
   color?: string
 ): Promise<MediaTag> => {
   const response = await apiClient.post<MediaTag>(
-    `/media/tags?integrationId=${integrationId}`,
+    `/media/tags?organizationId=${organizationId}`,
     { name, color }
   );
   return response.data;
@@ -357,11 +359,11 @@ export const createTag = async (
 
 export const updateTag = async (
   id: string,
-  integrationId: string,
+  organizationId: string,
   data: { name?: string; color?: string }
 ): Promise<MediaTag> => {
   const response = await apiClient.patch<MediaTag>(
-    `/media/tags/${id}?integrationId=${integrationId}`,
+    `/media/tags/${id}?organizationId=${organizationId}`,
     data
   );
   return response.data;
@@ -369,29 +371,29 @@ export const updateTag = async (
 
 export const deleteTag = async (
   id: string,
-  integrationId: string
+  organizationId: string
 ): Promise<void> => {
-  await apiClient.delete(`/media/tags/${id}?integrationId=${integrationId}`);
+  await apiClient.delete(`/media/tags/${id}?organizationId=${organizationId}`);
 };
 
 export const attachTagsToMedia = async (
   mediaId: string,
-  integrationId: string,
+  organizationId: string,
   tagIds: string[]
 ): Promise<void> => {
   await apiClient.post(
-    `/media/${mediaId}/tags?integrationId=${integrationId}`,
+    `/media/${mediaId}/tags?organizationId=${organizationId}`,
     { tagIds }
   );
 };
 
 export const detachTagsFromMedia = async (
   mediaId: string,
-  integrationId: string,
+  organizationId: string,
   tagIds: string[]
 ): Promise<void> => {
   await apiClient.delete(
-    `/media/${mediaId}/tags?integrationId=${integrationId}`,
+    `/media/${mediaId}/tags?organizationId=${organizationId}`,
     { data: { tagIds } }
   );
 };
@@ -402,22 +404,22 @@ export const detachTagsFromMedia = async (
 
 export const getMediaDownloadUrl = async (
   mediaId: string,
-  integrationId: string
+  organizationId: string
 ): Promise<{ downloadUrl: string; expiresIn: number }> => {
   const response = await apiClient.get<{
     downloadUrl: string;
     expiresIn: number;
-  }>(`/media/${mediaId}/download-url?integrationId=${integrationId}`);
+  }>(`/media/${mediaId}/download-url?organizationId=${organizationId}`);
   return response.data;
 };
 
 export const getMediaViewUrl = async (
   mediaId: string,
-  integrationId: string
+  organizationId: string
 ): Promise<{ downloadUrl: string; expiresIn: number }> => {
   const response = await apiClient.get<{
     downloadUrl: string;
     expiresIn: number;
-  }>(`/media/${mediaId}/view-url?integrationId=${integrationId}`);
+  }>(`/media/${mediaId}/view-url?organizationId=${organizationId}`);
   return response.data;
 };

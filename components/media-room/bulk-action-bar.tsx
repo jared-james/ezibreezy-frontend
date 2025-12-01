@@ -33,10 +33,10 @@ import {
 } from "@/components/ui/alert-dialog";
 
 interface BulkActionBarProps {
-  integrationId: string | null;
+  organizationId: string | null;
 }
 
-export default function BulkActionBar({ integrationId }: BulkActionBarProps) {
+export default function BulkActionBar({ organizationId }: BulkActionBarProps) {
   const selectedIds = useMediaRoomStore((s) => s.selectedIds);
   const clearSelection = useMediaRoomStore((s) => s.clearSelection);
 
@@ -44,11 +44,11 @@ export default function BulkActionBar({ integrationId }: BulkActionBarProps) {
   const [showFolderDropdown, setShowFolderDropdown] = useState(false);
   const [showTagDropdown, setShowTagDropdown] = useState(false);
 
-  const bulkArchive = useBulkArchiveMedia(integrationId);
-  const bulkMove = useBulkMoveMedia(integrationId);
-  const bulkTag = useBulkTagMedia(integrationId);
-  const { data: tags = [] } = useTagList(integrationId);
-  const { data: folders = [] } = useFolderList(integrationId, "root");
+  const bulkArchive = useBulkArchiveMedia(organizationId);
+  const bulkMove = useBulkMoveMedia(organizationId);
+  const bulkTag = useBulkTagMedia(organizationId);
+  const { data: tags = [] } = useTagList(organizationId);
+  const { data: folders = [] } = useFolderList(organizationId, "root");
 
   const selectedCount = selectedIds.size;
   const selectedArray = Array.from(selectedIds);

@@ -20,6 +20,7 @@ import {
 import { createPost, type CreatePostPayload } from "@/lib/api/publishing";
 import { generateVideoThumbnail } from "@/lib/utils/video-thumbnail";
 import { getAutoSelectionForPlatform } from "@/lib/utils/media-validation";
+import { getClientDataForEditor } from "@/app/actions/data";
 
 interface UsePostEditorOptions {
   mode?: "editorial" | "clipping";
@@ -46,6 +47,14 @@ export function usePostEditor(options: UsePostEditorOptions = {}) {
     (state) => state.toggleThreadMediaSelection
   );
 
+  const { data: clientData } = useQuery({
+    queryKey: ["clientEditorData"],
+    queryFn: getClientDataForEditor,
+    staleTime: Infinity,
+  });
+
+  const organizationId = clientData?.organizationId;
+
   const { data: connections = [] } = useQuery({
     queryKey: ["connections"],
     queryFn: getConnections,
@@ -66,7 +75,7 @@ export function usePostEditor(options: UsePostEditorOptions = {}) {
   const uploadMediaMutation = useMutation({
     mutationFn: async (variables: {
       file: File;
-      integrationId: string;
+      organizationId: string;
       uid: string;
     }) => {
       let thumbnail: File | undefined;
@@ -79,7 +88,7 @@ export function usePostEditor(options: UsePostEditorOptions = {}) {
         }
       }
 
-      return uploadMedia(variables.file, variables.integrationId, thumbnail);
+      return uploadMedia(variables.file, variables.organizationId, thumbnail);
     },
     onSuccess: (data, variables) => {
       const currentItems = useEditorialStore.getState().stagedMediaItems;
@@ -206,13 +215,8 @@ export function usePostEditor(options: UsePostEditorOptions = {}) {
 
   const handleMediaChange = useCallback(
     (files: File[], previews: string[]) => {
-      const currentSelectedAccounts =
-        useEditorialStore.getState().selectedAccounts;
-      const allIds = Object.values(currentSelectedAccounts).flat();
-      const uploadIntegrationId = allIds[0];
-
-      if (files.length > 0 && !uploadIntegrationId) {
-        toast.error("Please select at least one account before uploading.");
+      if (files.length > 0 && !organizationId) {
+        toast.error("Organization context missing. Please refresh.");
         return;
       }
 
@@ -220,7 +224,7 @@ export function usePostEditor(options: UsePostEditorOptions = {}) {
         uid: crypto.randomUUID(),
         file,
         preview: previews[index],
-        mediaUrl: previews[index], // Initially same as preview (blob)
+        mediaUrl: previews[index],
         id: null,
         isUploading: true,
         type: file.type.startsWith("video/") ? "video" : "image",
@@ -229,7 +233,6 @@ export function usePostEditor(options: UsePostEditorOptions = {}) {
       const state = useEditorialStore.getState();
       const updatedItems = [...state.stagedMediaItems, ...newMediaItems];
 
-      // Auto-select for all active platforms
       const activePlatformIds = Object.keys(state.selectedAccounts);
       const newMediaSelections = { ...state.platformMediaSelections };
 
@@ -239,7 +242,6 @@ export function usePostEditor(options: UsePostEditorOptions = {}) {
           .map((uid) => state.stagedMediaItems.find((i) => i.uid === uid))
           .filter(Boolean) as MediaItem[];
 
-        // Try to add the new items to the existing selection
         const uidsToAdd = getAutoSelectionForPlatform(
           platformId,
           currentSelectionItems,
@@ -254,7 +256,6 @@ export function usePostEditor(options: UsePostEditorOptions = {}) {
         }
       });
 
-      // Update both the media items and the auto-selections in one go
       setState({
         stagedMediaItems: updatedItems,
         platformMediaSelections: newMediaSelections,
@@ -264,7 +265,7 @@ export function usePostEditor(options: UsePostEditorOptions = {}) {
         newMediaItems.forEach((item) => {
           uploadMediaMutation.mutate({
             file: item.file!,
-            integrationId: uploadIntegrationId,
+            organizationId: organizationId!,
             uid: item.uid,
           });
         });
@@ -276,7 +277,7 @@ export function usePostEditor(options: UsePostEditorOptions = {}) {
         setStagedMediaItems(nonUploadingItems);
       }
     },
-    [setStagedMediaItems, setState, uploadMediaMutation, mode]
+    [setStagedMediaItems, setState, uploadMediaMutation, mode, organizationId]
   );
 
   const handleRemoveMedia = useCallback(
@@ -296,10 +297,8 @@ export function usePostEditor(options: UsePostEditorOptions = {}) {
         );
         setStagedMediaItems(newMediaItems);
 
-        // Cleanup: Remove this UID from all platform selections AND thread messages
         const state = useEditorialStore.getState();
 
-        // 1. Clean Platform Selections
         const newSelections = { ...state.platformMediaSelections };
         Object.keys(newSelections).forEach((platformId) => {
           newSelections[platformId] = newSelections[platformId].filter(
@@ -307,7 +306,6 @@ export function usePostEditor(options: UsePostEditorOptions = {}) {
           );
         });
 
-        // 2. Clean Thread Messages
         const cleanThreadMessages = (messages: typeof threadMessages) =>
           messages.map((msg) => ({
             ...msg,
@@ -349,7 +347,6 @@ export function usePostEditor(options: UsePostEditorOptions = {}) {
         );
         setStagedMediaItems(newMediaItems);
 
-        // Same cleanup logic as handleRemoveMedia
         const state = useEditorialStore.getState();
         const newSelections = { ...state.platformMediaSelections };
         Object.keys(newSelections).forEach((platformId) => {
@@ -358,7 +355,6 @@ export function usePostEditor(options: UsePostEditorOptions = {}) {
           );
         });
 
-        // Clean Thread Messages
         const cleanThreadMessages = (messages: typeof threadMessages) =>
           messages.map((msg) => ({
             ...msg,
@@ -395,7 +391,6 @@ export function usePostEditor(options: UsePostEditorOptions = {}) {
         const state = useEditorialStore.getState();
         const updatedItems = [...currentItems, newMediaItem];
 
-        // Auto-select for all active platforms (Same logic as handleMediaChange)
         const activePlatformIds = Object.keys(state.selectedAccounts);
         const newMediaSelections = { ...state.platformMediaSelections };
 

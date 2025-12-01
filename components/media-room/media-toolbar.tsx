@@ -25,7 +25,7 @@ import {
 import { useTagList, useCreateTag } from "@/lib/hooks/use-media";
 
 interface MediaToolbarProps {
-  integrationId: string | null;
+  organizationId: string | null;
   onUploadClick?: () => void;
 }
 
@@ -41,22 +41,21 @@ const sortOptions: { label: string; value: MediaSortBy }[] = [
   { label: "Size", value: "fileSize" },
 ];
 
-// Helper to generate nice pastel colors
 const getRandomColor = () => {
   const colors = [
-    "#ef4444", // red
-    "#f97316", // orange
-    "#eab308", // yellow
-    "#22c55e", // green
-    "#06b6d4", // cyan
-    "#3b82f6", // blue
-    "#8b5cf6", // violet
-    "#d946ef", // fuchsia
+    "#ef4444",
+    "#f97316",
+    "#eab308",
+    "#22c55e",
+    "#06b6d4",
+    "#3b82f6",
+    "#8b5cf6",
+    "#d946ef",
   ];
   return colors[Math.floor(Math.random() * colors.length)];
 };
 
-export default function MediaToolbar({ integrationId }: MediaToolbarProps) {
+export default function MediaToolbar({ organizationId }: MediaToolbarProps) {
   const [showTagDropdown, setShowTagDropdown] = useState(false);
   const [newTagName, setNewTagName] = useState("");
 
@@ -74,18 +73,15 @@ export default function MediaToolbar({ integrationId }: MediaToolbarProps) {
   const toggleTagFilter = useMediaRoomStore((s) => s.toggleTagFilter);
   const clearAllFilters = useMediaRoomStore((s) => s.clearAllFilters);
 
-  const { data: tags = [] } = useTagList(integrationId);
-  const createTagMutation = useCreateTag(integrationId);
+  const { data: tags = [] } = useTagList(organizationId);
+  const createTagMutation = useCreateTag(organizationId);
 
-  // Local state for the input field to prevent API calls on every keystroke
   const [inputValue, setInputValue] = useState(searchQuery);
 
-  // Sync local input when global state changes (e.g. "Clear filters" clicked)
   useEffect(() => {
     setInputValue(searchQuery);
   }, [searchQuery]);
 
-  // Debounce logic
   useEffect(() => {
     const timer = setTimeout(() => {
       if (inputValue !== searchQuery) {
@@ -155,7 +151,6 @@ export default function MediaToolbar({ integrationId }: MediaToolbarProps) {
 
             {showTagDropdown && (
               <div className="absolute top-full left-0 mt-1 w-56 bg-white border border-neutral-300 shadow-lg z-50 rounded-sm flex flex-col">
-                {/* Create Tag Input */}
                 <form
                   onSubmit={handleCreateTag}
                   className="p-2 border-b border-neutral-200 bg-neutral-50"
@@ -184,7 +179,6 @@ export default function MediaToolbar({ integrationId }: MediaToolbarProps) {
                   </div>
                 </form>
 
-                {/* Tag List */}
                 <div className="max-h-64 overflow-y-auto p-1">
                   {tags.length === 0 ? (
                     <p className="p-3 text-xs text-neutral-500 font-serif italic text-center">

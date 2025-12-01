@@ -21,14 +21,14 @@ import type { MediaFolder } from "@/lib/api/media";
 import { useFolderActions } from "./folder-actions";
 
 interface MediaFolderSidebarProps {
-  integrationId: string | null;
+  organizationId: string | null;
 }
 
 export default function MediaFolderSidebar({
-  integrationId,
+  organizationId,
 }: MediaFolderSidebarProps) {
   const { data: folders = [], isLoading } = useFolderList(
-    integrationId,
+    organizationId,
     "root"
   );
 
@@ -40,11 +40,11 @@ export default function MediaFolderSidebar({
   const [isCreating, setIsCreating] = useState(false);
   const [newFolderName, setNewFolderName] = useState("");
 
-  const createFolder = useCreateFolder(integrationId);
+  const createFolder = useCreateFolder(organizationId);
 
   // Use shared actions for Rename and Delete
   const { openRenameDialog, openDeleteDialog, FolderActionDialogs } =
-    useFolderActions({ integrationId });
+    useFolderActions({ organizationId });
 
   const handleCreateFolder = () => {
     if (!newFolderName.trim()) return;
@@ -99,7 +99,7 @@ export default function MediaFolderSidebar({
               <FolderTreeItem
                 key={folder.id}
                 folder={folder}
-                integrationId={integrationId}
+                organizationId={organizationId}
                 depth={0}
                 currentFolderId={currentFolderId}
                 expandedFolderIds={expandedFolderIds}
@@ -166,7 +166,7 @@ export default function MediaFolderSidebar({
 
 interface FolderTreeItemProps {
   folder: MediaFolder;
-  integrationId: string | null;
+  organizationId: string | null;
   depth: number;
   currentFolderId: string | null;
   expandedFolderIds: Set<string>;
@@ -178,7 +178,7 @@ interface FolderTreeItemProps {
 
 function FolderTreeItem({
   folder,
-  integrationId,
+  organizationId,
   depth,
   currentFolderId,
   expandedFolderIds,
@@ -192,7 +192,7 @@ function FolderTreeItem({
   const [showActions, setShowActions] = useState(false);
 
   const { data: children = [] } = useFolderList(
-    isExpanded ? integrationId : null,
+    isExpanded ? organizationId : null,
     folder.id
   );
 
@@ -274,7 +274,7 @@ function FolderTreeItem({
             <FolderTreeItem
               key={child.id}
               folder={child}
-              integrationId={integrationId}
+              organizationId={organizationId}
               depth={depth + 1}
               currentFolderId={currentFolderId}
               expandedFolderIds={expandedFolderIds}

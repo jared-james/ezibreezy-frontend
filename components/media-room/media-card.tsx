@@ -10,7 +10,7 @@ import { useMediaRoomStore } from "@/lib/store/media-room-store";
 
 interface MediaCardProps {
   item: MediaItem;
-  integrationId: string | null;
+  organizationId: string | null;
   onSelect: (id: string, isShiftKey: boolean, isCtrlKey: boolean) => void;
   onOpenDetail: (id: string) => void;
   priority?: boolean;
@@ -125,9 +125,7 @@ export default function MediaCard({
         {/* Selection checkbox - always visible */}
         <button
           onClick={handleCheckboxClick}
-          className={cn(
-            "absolute top-0 right-0 p-2 z-30"
-          )}
+          className={cn("absolute top-0 right-0 p-2 z-30")}
         >
           <div
             className={cn(

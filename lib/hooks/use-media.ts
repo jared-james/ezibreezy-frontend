@@ -42,13 +42,13 @@ import { toast } from "sonner";
 import { generateVideoThumbnail } from "@/lib/utils/video-thumbnail";
 
 export function useMediaList(
-  integrationId: string | null,
+  organizationId: string | null,
   filters: MediaFilters = {}
 ) {
   return useInfiniteQuery({
-    queryKey: ["media", integrationId, filters],
+    queryKey: ["media", organizationId, filters],
     queryFn: ({ pageParam = 0 }) =>
-      listMedia(integrationId!, { ...filters, offset: pageParam as number }),
+      listMedia(organizationId!, { ...filters, offset: pageParam as number }),
     initialPageParam: 0,
     getNextPageParam: (lastPage) => {
       if (lastPage.pagination.hasMore) {
@@ -56,27 +56,27 @@ export function useMediaList(
       }
       return undefined;
     },
-    enabled: !!integrationId,
+    enabled: !!organizationId,
     placeholderData: keepPreviousData,
     staleTime: 30000,
   });
 }
 
-export function useMediaItem(id: string | null, integrationId: string | null) {
+export function useMediaItem(id: string | null, organizationId: string | null) {
   const queryClient = useQueryClient();
 
   return useQuery({
-    queryKey: ["media", id, integrationId],
-    queryFn: () => getMedia(id!, integrationId!),
-    enabled: !!id && !!integrationId,
+    queryKey: ["media", id, organizationId],
+    queryFn: () => getMedia(id!, organizationId!),
+    enabled: !!id && !!organizationId,
     staleTime: 30000,
     initialData: () => {
-      if (!id || !integrationId) return undefined;
+      if (!id || !organizationId) return undefined;
 
       const queries = queryClient.getQueriesData<{
         pages: MediaListResponse[];
       }>({
-        queryKey: ["media", integrationId],
+        queryKey: ["media", organizationId],
       });
 
       for (const [_, queryData] of queries) {
@@ -101,7 +101,7 @@ export function useMediaItem(id: string | null, integrationId: string | null) {
   });
 }
 
-export function useUploadMedia(integrationId: string | null) {
+export function useUploadMedia(organizationId: string | null) {
   const queryClient = useQueryClient();
 
   return useMutation({
@@ -116,10 +116,10 @@ export function useUploadMedia(integrationId: string | null) {
         }
       }
 
-      return uploadMedia(file, integrationId!, thumbnail);
+      return uploadMedia(file, organizationId!, thumbnail);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["media", integrationId] });
+      queryClient.invalidateQueries({ queryKey: ["media", organizationId] });
       toast.success("Media uploaded successfully");
     },
     onError: (error: Error) => {
@@ -128,7 +128,7 @@ export function useUploadMedia(integrationId: string | null) {
   });
 }
 
-export function useUpdateMedia(integrationId: string | null) {
+export function useUpdateMedia(organizationId: string | null) {
   const queryClient = useQueryClient();
 
   return useMutation({
@@ -138,7 +138,7 @@ export function useUpdateMedia(integrationId: string | null) {
     }: {
       id: string;
       data: { filename?: string; altText?: string; folderId?: string | null };
-    }) => updateMedia(id, integrationId!, data),
+    }) => updateMedia(id, organizationId!, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["media"] });
       toast.success("Media updated");
@@ -149,11 +149,11 @@ export function useUpdateMedia(integrationId: string | null) {
   });
 }
 
-export function useDeleteMedia(integrationId: string | null) {
+export function useDeleteMedia(organizationId: string | null) {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (id: string) => deleteMedia(id, integrationId!),
+    mutationFn: (id: string) => deleteMedia(id, organizationId!),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["media"] });
       toast.success("Media deleted");
@@ -164,11 +164,11 @@ export function useDeleteMedia(integrationId: string | null) {
   });
 }
 
-export function useArchiveMedia(integrationId: string | null) {
+export function useArchiveMedia(organizationId: string | null) {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (id: string) => archiveMedia(id, integrationId!),
+    mutationFn: (id: string) => archiveMedia(id, organizationId!),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["media"] });
       toast.success("Media archived successfully");
@@ -179,12 +179,12 @@ export function useArchiveMedia(integrationId: string | null) {
   });
 }
 
-export function useBulkDeleteMedia(integrationId: string | null) {
+export function useBulkDeleteMedia(organizationId: string | null) {
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: (mediaIds: string[]) =>
-      bulkDeleteMedia(integrationId!, mediaIds),
+      bulkDeleteMedia(organizationId!, mediaIds),
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["media"] });
       toast.success(`Deleted ${data.deleted} items`);
@@ -195,12 +195,12 @@ export function useBulkDeleteMedia(integrationId: string | null) {
   });
 }
 
-export function useBulkArchiveMedia(integrationId: string | null) {
+export function useBulkArchiveMedia(organizationId: string | null) {
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: (mediaIds: string[]) =>
-      bulkArchiveMedia(integrationId!, mediaIds),
+      bulkArchiveMedia(organizationId!, mediaIds),
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["media"] });
       toast.success(`Archived ${data.archived} items`);
@@ -211,7 +211,7 @@ export function useBulkArchiveMedia(integrationId: string | null) {
   });
 }
 
-export function useBulkMoveMedia(integrationId: string | null) {
+export function useBulkMoveMedia(organizationId: string | null) {
   const queryClient = useQueryClient();
 
   return useMutation({
@@ -221,7 +221,7 @@ export function useBulkMoveMedia(integrationId: string | null) {
     }: {
       mediaIds: string[];
       folderId: string | null;
-    }) => bulkMoveMedia(integrationId!, mediaIds, folderId),
+    }) => bulkMoveMedia(organizationId!, mediaIds, folderId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["media"] });
       toast.success("Media moved");
@@ -232,7 +232,7 @@ export function useBulkMoveMedia(integrationId: string | null) {
   });
 }
 
-export function useBulkTagMedia(integrationId: string | null) {
+export function useBulkTagMedia(organizationId: string | null) {
   const queryClient = useQueryClient();
 
   return useMutation({
@@ -242,7 +242,7 @@ export function useBulkTagMedia(integrationId: string | null) {
     }: {
       mediaIds: string[];
       tagIds: string[];
-    }) => bulkTagMedia(integrationId!, mediaIds, tagIds),
+    }) => bulkTagMedia(organizationId!, mediaIds, tagIds),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["media"] });
       toast.success("Tags added");
@@ -253,7 +253,7 @@ export function useBulkTagMedia(integrationId: string | null) {
   });
 }
 
-export function useBulkUntagMedia(integrationId: string | null) {
+export function useBulkUntagMedia(organizationId: string | null) {
   const queryClient = useQueryClient();
 
   return useMutation({
@@ -263,7 +263,7 @@ export function useBulkUntagMedia(integrationId: string | null) {
     }: {
       mediaIds: string[];
       tagIds: string[];
-    }) => bulkUntagMedia(integrationId!, mediaIds, tagIds),
+    }) => bulkUntagMedia(organizationId!, mediaIds, tagIds),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["media"] });
       toast.success("Tags removed");
@@ -275,7 +275,7 @@ export function useBulkUntagMedia(integrationId: string | null) {
 }
 
 export function useFolderList(
-  integrationId: string | null,
+  organizationId: string | null,
   parentId?: string | "root"
 ) {
   const validParentId =
@@ -284,40 +284,40 @@ export function useFolderList(
       : undefined;
 
   return useQuery({
-    queryKey: ["folders", integrationId, validParentId],
-    queryFn: () => listFolders(integrationId!, validParentId),
-    enabled: !!integrationId,
+    queryKey: ["folders", organizationId, validParentId],
+    queryFn: () => listFolders(organizationId!, validParentId),
+    enabled: !!organizationId,
     staleTime: 60000,
   });
 }
 
-export function useFolder(id: string | null, integrationId: string | null) {
+export function useFolder(id: string | null, organizationId: string | null) {
   return useQuery({
-    queryKey: ["folder", id, integrationId],
-    queryFn: () => getFolder(id!, integrationId!),
-    enabled: !!id && !!integrationId,
+    queryKey: ["folder", id, organizationId],
+    queryFn: () => getFolder(id!, organizationId!),
+    enabled: !!id && !!organizationId,
     staleTime: 60000,
   });
 }
 
 export function useFolderBreadcrumb(
   id: string | null,
-  integrationId: string | null
+  organizationId: string | null
 ) {
   return useQuery({
-    queryKey: ["folderBreadcrumb", id, integrationId],
-    queryFn: () => getFolderBreadcrumb(id!, integrationId!),
-    enabled: !!id && !!integrationId,
+    queryKey: ["folderBreadcrumb", id, organizationId],
+    queryFn: () => getFolderBreadcrumb(id!, organizationId!),
+    enabled: !!id && !!organizationId,
     staleTime: 60000,
   });
 }
 
-export function useCreateFolder(integrationId: string | null) {
+export function useCreateFolder(organizationId: string | null) {
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: ({ name, parentId }: { name: string; parentId?: string }) =>
-      createFolder(integrationId!, name, parentId),
+      createFolder(organizationId!, name, parentId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["folders"] });
       toast.success("Folder created");
@@ -328,12 +328,12 @@ export function useCreateFolder(integrationId: string | null) {
   });
 }
 
-export function useRenameFolder(integrationId: string | null) {
+export function useRenameFolder(organizationId: string | null) {
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: ({ id, name }: { id: string; name: string }) =>
-      renameFolder(id, integrationId!, name),
+      renameFolder(id, organizationId!, name),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["folders"] });
       toast.success("Folder renamed");
@@ -344,12 +344,12 @@ export function useRenameFolder(integrationId: string | null) {
   });
 }
 
-export function useMoveFolder(integrationId: string | null) {
+export function useMoveFolder(organizationId: string | null) {
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: ({ id, parentId }: { id: string; parentId: string | null }) =>
-      moveFolder(id, integrationId!, parentId),
+      moveFolder(id, organizationId!, parentId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["folders"] });
       toast.success("Folder moved");
@@ -360,11 +360,11 @@ export function useMoveFolder(integrationId: string | null) {
   });
 }
 
-export function useDeleteFolder(integrationId: string | null) {
+export function useDeleteFolder(organizationId: string | null) {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (id: string) => deleteFolder(id, integrationId!),
+    mutationFn: (id: string) => deleteFolder(id, organizationId!),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["folders"] });
       queryClient.invalidateQueries({ queryKey: ["media"] });
@@ -376,21 +376,21 @@ export function useDeleteFolder(integrationId: string | null) {
   });
 }
 
-export function useTagList(integrationId: string | null, search?: string) {
+export function useTagList(organizationId: string | null, search?: string) {
   return useQuery({
-    queryKey: ["tags", integrationId, search],
-    queryFn: () => listTags(integrationId!, search),
-    enabled: !!integrationId,
+    queryKey: ["tags", organizationId, search],
+    queryFn: () => listTags(organizationId!, search),
+    enabled: !!organizationId,
     staleTime: 60000,
   });
 }
 
-export function useCreateTag(integrationId: string | null) {
+export function useCreateTag(organizationId: string | null) {
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: ({ name, color }: { name: string; color?: string }) =>
-      createTag(integrationId!, name, color),
+      createTag(organizationId!, name, color),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["tags"] });
       toast.success("Tag created");
@@ -401,7 +401,7 @@ export function useCreateTag(integrationId: string | null) {
   });
 }
 
-export function useUpdateTag(integrationId: string | null) {
+export function useUpdateTag(organizationId: string | null) {
   const queryClient = useQueryClient();
 
   return useMutation({
@@ -411,7 +411,7 @@ export function useUpdateTag(integrationId: string | null) {
     }: {
       id: string;
       data: { name?: string; color?: string };
-    }) => updateTag(id, integrationId!, data),
+    }) => updateTag(id, organizationId!, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["tags"] });
       queryClient.invalidateQueries({ queryKey: ["media"] });
@@ -423,11 +423,11 @@ export function useUpdateTag(integrationId: string | null) {
   });
 }
 
-export function useDeleteTag(integrationId: string | null) {
+export function useDeleteTag(organizationId: string | null) {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (id: string) => deleteTag(id, integrationId!),
+    mutationFn: (id: string) => deleteTag(id, organizationId!),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["tags"] });
       queryClient.invalidateQueries({ queryKey: ["media"] });
@@ -439,12 +439,12 @@ export function useDeleteTag(integrationId: string | null) {
   });
 }
 
-export function useAttachTags(integrationId: string | null) {
+export function useAttachTags(organizationId: string | null) {
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: ({ mediaId, tagIds }: { mediaId: string; tagIds: string[] }) =>
-      attachTagsToMedia(mediaId, integrationId!, tagIds),
+      attachTagsToMedia(mediaId, organizationId!, tagIds),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["media"] });
     },
@@ -454,12 +454,12 @@ export function useAttachTags(integrationId: string | null) {
   });
 }
 
-export function useDetachTags(integrationId: string | null) {
+export function useDetachTags(organizationId: string | null) {
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: ({ mediaId, tagIds }: { mediaId: string; tagIds: string[] }) =>
-      detachTagsFromMedia(mediaId, integrationId!, tagIds),
+      detachTagsFromMedia(mediaId, organizationId!, tagIds),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["media"] });
     },

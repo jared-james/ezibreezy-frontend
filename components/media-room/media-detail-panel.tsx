@@ -56,16 +56,16 @@ import {
 } from "@/components/ui/dialog";
 
 interface MediaDetailPanelProps {
-  integrationId: string | null;
+  organizationId: string | null;
 }
 
 export default function MediaDetailPanel({
-  integrationId,
+  organizationId,
 }: MediaDetailPanelProps) {
   const mediaId = useMediaRoomStore((s) => s.detailPanelMediaId);
   const closeDetailPanel = useMediaRoomStore((s) => s.closeDetailPanel);
 
-  const { data: media, isLoading } = useMediaItem(mediaId, integrationId);
+  const { data: media, isLoading } = useMediaItem(mediaId, organizationId);
 
   return (
     <Dialog
@@ -87,7 +87,7 @@ export default function MediaDetailPanel({
           <MediaItemEditor
             key={media.id}
             media={media}
-            integrationId={integrationId}
+            organizationId={organizationId}
             onClose={closeDetailPanel}
           />
         ) : (
@@ -104,13 +104,13 @@ export default function MediaDetailPanel({
 
 interface MediaItemEditorProps {
   media: MediaItemWithUsage;
-  integrationId: string | null;
+  organizationId: string | null;
   onClose: () => void;
 }
 
 function MediaItemEditor({
   media,
-  integrationId,
+  organizationId,
   onClose,
 }: MediaItemEditorProps) {
   const [filename, setFilename] = useState(media.filename);
@@ -121,13 +121,13 @@ function MediaItemEditor({
   const [showFolderDropdown, setShowFolderDropdown] = useState(false);
   const [isDownloading, setIsDownloading] = useState(false);
 
-  const { data: tags = [] } = useTagList(integrationId);
-  const { data: folders = [] } = useFolderList(integrationId, "root");
+  const { data: tags = [] } = useTagList(organizationId);
+  const { data: folders = [] } = useFolderList(organizationId, "root");
 
-  const updateMedia = useUpdateMedia(integrationId);
-  const archiveMedia = useArchiveMedia(integrationId);
-  const attachTags = useAttachTags(integrationId);
-  const detachTags = useDetachTags(integrationId);
+  const updateMedia = useUpdateMedia(organizationId);
+  const archiveMedia = useArchiveMedia(organizationId);
+  const attachTags = useAttachTags(organizationId);
+  const detachTags = useDetachTags(organizationId);
 
   const hasChanges =
     filename !== media.filename || altText !== (media.altText || "");
@@ -144,13 +144,13 @@ function MediaItemEditor({
 
   const handleDownload = async (e: React.MouseEvent) => {
     e.preventDefault();
-    if (!integrationId || media.isArchived) return;
+    if (!organizationId || media.isArchived) return;
 
     setIsDownloading(true);
     try {
       const { downloadUrl } = await getMediaDownloadUrl(
         media.id,
-        integrationId
+        organizationId
       );
 
       const link = document.createElement("a");
@@ -292,17 +292,6 @@ function MediaItemEditor({
                 Archive
               </Button>
             )}
-
-            {/* Delete Button - Commented out, use Archive instead */}
-            {/* <Button
-              variant="destructive"
-              size="sm"
-              onClick={() => setShowDeleteConfirm(true)}
-              className="h-9 gap-2"
-            >
-              <Trash2 className="h-3.5 w-3.5" />
-              Delete
-            </Button> */}
           </div>
         </div>
 

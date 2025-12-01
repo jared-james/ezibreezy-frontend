@@ -85,8 +85,22 @@ function createImage(url: string): Promise<HTMLImageElement> {
     const image = new Image();
     image.addEventListener("load", () => resolve(image));
     image.addEventListener("error", (error) => reject(error));
+
+    // 1. This is crucial for Canvas
     image.crossOrigin = "anonymous";
-    image.src = url;
+
+    // Append a cache-busting timestamp
+    // This forces the browser to fetch a fresh copy with the correct CORS headers
+    // instead of using the cached version from the media grid which might lack them.
+    const isBase64 = url.startsWith("data:");
+    const isBlob = url.startsWith("blob:");
+
+    if (isBase64 || isBlob) {
+      image.src = url;
+    } else {
+      const separator = url.includes("?") ? "&" : "?";
+      image.src = `${url}${separator}t=${new Date().getTime()}`;
+    }
   });
 }
 

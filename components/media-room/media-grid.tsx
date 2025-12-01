@@ -11,10 +11,10 @@ import MediaCard from "./media-card";
 import MediaListItem from "./media-list-item";
 
 interface MediaGridProps {
-  integrationId: string | null;
+  organizationId: string | null;
 }
 
-export default function MediaGrid({ integrationId }: MediaGridProps) {
+export default function MediaGrid({ organizationId }: MediaGridProps) {
   const currentFolderId = useMediaRoomStore((s) => s.currentFolderId);
   const searchQuery = useMediaRoomStore((s) => s.searchQuery);
   const typeFilter = useMediaRoomStore((s) => s.typeFilter);
@@ -27,15 +27,13 @@ export default function MediaGrid({ integrationId }: MediaGridProps) {
   const openDetailPanel = useMediaRoomStore((s) => s.openDetailPanel);
   const viewMode = useMediaRoomStore((s) => s.viewMode);
 
-  // Intersection Observer Target for Infinite Scroll
   const observerTarget = useRef<HTMLDivElement>(null);
 
   const filters = useMemo<MediaFilters>(() => {
-    // EXPLICITLY set the limit here
     const f: MediaFilters = {
       sortBy,
       order: sortOrder,
-      limit: 50, // <--- ADDED: Forces API to respect limit
+      limit: 50,
     };
 
     if (currentFolderId) {
@@ -84,7 +82,7 @@ export default function MediaGrid({ integrationId }: MediaGridProps) {
     fetchNextPage,
     hasNextPage,
     isFetchingNextPage,
-  } = useMediaList(integrationId, filters);
+  } = useMediaList(organizationId, filters);
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -121,8 +119,10 @@ export default function MediaGrid({ integrationId }: MediaGridProps) {
     );
   }
 
-  // Flatten the pages from Infinite Query and filter out archived items
-  const mediaItems = data?.pages.flatMap((page) => page.data).filter(item => !item.isArchived) || [];
+  const mediaItems =
+    data?.pages
+      .flatMap((page) => page.data)
+      .filter((item) => !item.isArchived) || [];
 
   if (mediaItems.length === 0) {
     return (
@@ -146,10 +146,9 @@ export default function MediaGrid({ integrationId }: MediaGridProps) {
             <MediaCard
               key={item.id}
               item={item}
-              integrationId={integrationId}
+              organizationId={organizationId}
               onSelect={selectItem}
               onOpenDetail={openDetailPanel}
-              // Prioritize loading the first 12 images (approx. one full screen)
               priority={index < 12}
             />
           ))}
@@ -160,7 +159,7 @@ export default function MediaGrid({ integrationId }: MediaGridProps) {
             <MediaListItem
               key={item.id}
               item={item}
-              integrationId={integrationId}
+              organizationId={organizationId}
               onSelect={selectItem}
               onOpenDetail={openDetailPanel}
               priority={index < 12}
@@ -169,7 +168,6 @@ export default function MediaGrid({ integrationId }: MediaGridProps) {
         </div>
       )}
 
-      {/* Infinite Scroll Loader */}
       <div
         ref={observerTarget}
         className="h-24 flex items-center justify-center w-full mt-4"
