@@ -2,6 +2,7 @@
 
 "use client";
 
+import { useState } from "react";
 import {
   useEditorialDraftStore,
   MediaItem,
@@ -13,11 +14,16 @@ import {
   Grid,
   Play,
   AlertCircle,
+  Crop,
 } from "lucide-react";
 import {
   PLATFORM_RULES,
   shouldShowMediaOrdering,
 } from "@/lib/utils/media-validation";
+import { ImageCropperModal } from "../modals/image-cropper-modal";
+import { type CropData } from "@/lib/utils/crop-utils";
+import { useClientData } from "@/lib/hooks/use-client-data";
+import { useOriginalUrl } from "@/lib/hooks/use-original-url";
 
 interface PlatformMediaSelectorProps {
   platformId: string;
@@ -30,7 +36,19 @@ interface MediaThumbnailProps {
   onClick: () => void;
   showOrderingUI: boolean;
   errors?: string[];
+  onCropClick?: (e: React.MouseEvent) => void;
 }
+
+// Helper to detect if error is crop-related
+const isCropError = (errors?: string[]): boolean => {
+  if (!errors || errors.length === 0) return false;
+  return errors.some(
+    (error) =>
+      error.toLowerCase().includes("aspect ratio") ||
+      error.toLowerCase().includes("crop") ||
+      error.toLowerCase().includes("dimensions")
+  );
+};
 
 const MediaThumbnail = ({
   item,
@@ -38,10 +56,12 @@ const MediaThumbnail = ({
   onClick,
   showOrderingUI,
   errors,
+  onCropClick,
 }: MediaThumbnailProps) => {
   const isSelected = selectionIndex > -1;
   const isCover = selectionIndex === 0;
   const hasError = errors && errors.length > 0;
+  const hasCropError = isCropError(errors);
 
   const isVideo = item.type === "video";
   const videoSrc = item.mediaUrl || item.preview;
@@ -129,9 +149,21 @@ const MediaThumbnail = ({
       </button>
 
       {isSelected && hasError && (
-        <p className="text-[10px] font-medium text-error leading-tight animate-in slide-in-from-top-1 text-center">
-          {errors[0]}
-        </p>
+        <>
+          <p className="text-[10px] font-medium text-error leading-tight animate-in slide-in-from-top-1 text-center">
+            {errors[0]}
+          </p>
+          {hasCropError && onCropClick && item.type === "image" && (
+            <button
+              type="button"
+              onClick={onCropClick}
+              className="flex items-center justify-center gap-1 px-2 py-1 text-[10px] font-medium text-white bg-brand-primary hover:bg-brand-primary/90 rounded transition-colors"
+            >
+              <Crop className="w-3 h-3" />
+              Crop
+            </button>
+          )}
+        </>
       )}
     </div>
   );
@@ -141,6 +173,9 @@ export default function PlatformMediaSelector({
   platformId,
   mediaErrors = {},
 }: PlatformMediaSelectorProps) {
+  const [isCropperOpen, setIsCropperOpen] = useState(false);
+  const [cropTargetUid, setCropTargetUid] = useState<string | null>(null);
+
   const stagedMediaItems = useEditorialDraftStore(
     (state) => state.stagedMediaItems
   );
@@ -150,9 +185,29 @@ export default function PlatformMediaSelector({
   const togglePlatformMediaSelection = useEditorialDraftStore(
     (state) => state.togglePlatformMediaSelection
   );
+  const setCropForMedia = useEditorialDraftStore(
+    (state) => state.setCropForMedia
+  );
+
+  const { organizationId } = useClientData();
+  const { getOriginalUrl } = useOriginalUrl(organizationId);
 
   const selectedUids = platformMediaSelections[platformId] || [];
   const rules = PLATFORM_RULES[platformId as keyof typeof PLATFORM_RULES];
+
+  const handleCropClick = (itemUid: string) => (e: React.MouseEvent) => {
+    e.stopPropagation(); // Prevent thumbnail selection
+    setCropTargetUid(itemUid);
+    setIsCropperOpen(true);
+  };
+
+  const handleCropSave = (
+    mediaUid: string,
+    cropData: CropData,
+    previewUrl: string
+  ) => {
+    setCropForMedia(mediaUid, platformId as any, cropData, previewUrl);
+  };
 
   if (stagedMediaItems.length === 0 || !rules) {
     return null;
@@ -229,6 +284,7 @@ export default function PlatformMediaSelector({
             onClick={() => togglePlatformMediaSelection(platformId, item.uid)}
             showOrderingUI={showOrderingUI}
             errors={mediaErrors[item.uid]}
+            onCropClick={handleCropClick(item.uid)}
           />
         ))}
       </div>
@@ -237,6 +293,21 @@ export default function PlatformMediaSelector({
         <p className="text-center text-xs text-muted-foreground pt-1">
           {ruleMessage}
         </p>
+      )}
+
+      {isCropperOpen && cropTargetUid && (
+        <ImageCropperModal
+          open={isCropperOpen}
+          onClose={() => {
+            setIsCropperOpen(false);
+            setCropTargetUid(null);
+          }}
+          mediaItems={stagedMediaItems.filter((item) => item.uid === cropTargetUid)}
+          initialIndex={0}
+          platform={platformId as any}
+          onCropSave={handleCropSave}
+          getOriginalUrl={getOriginalUrl}
+        />
       )}
     </div>
   );
