@@ -15,7 +15,6 @@ import MediaDetailPanel from "./media-detail-panel";
 import BulkActionBar from "./bulk-action-bar";
 import MediaUploadZone from "./media-upload-zone";
 import { useFolderActions } from "./folder-actions";
-import { Button } from "@/components/ui/button";
 
 interface MediaRoomProps {
   preloadedOrganizationId?: string | null;
@@ -72,44 +71,41 @@ export default function MediaRoom({ preloadedOrganizationId }: MediaRoomProps) {
   }
 
   return (
-    <div className="flex flex-col h-full">
-      <div className="border-b-4 border-double border-foreground pb-6 mb-6">
+    <div className="flex flex-col h-full bg-background-editorial min-h-screen">
+      <div className="sticky top-0 z-30 bg-background-editorial/95 backdrop-blur-sm px-6 pt-6 pb-4 border-b-4 border-double border-foreground">
         <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
           <div>
-            <p className="eyebrow mb-2">Assets</p>
-            <h1 className="font-serif text-4xl font-bold uppercase tracking-tight text-foreground md:text-5xl">
+            <p className="eyebrow mb-1">Assets</p>
+            <h1 className="font-serif text-3xl font-bold uppercase tracking-tight text-foreground md:text-4xl">
               Media Room
             </h1>
           </div>
-          <div className="flex items-center gap-2">
-            <Button
-              variant="outline"
-              className="gap-2 shrink-0"
-              onClick={openCreateDialog}
-            >
+          <div className="flex items-center gap-3">
+            <button onClick={openCreateDialog} className="btn btn-outline">
               <Plus className="h-4 w-4" />
               New Folder
-            </Button>
+            </button>
 
-            <Button
-              variant="primary"
-              className="gap-2 shrink-0"
+            <button
               onClick={() => setIsUploadOpen(true)}
+              className="btn btn-primary"
             >
               <Upload className="h-4 w-4" />
               Upload Media
-            </Button>
+            </button>
           </div>
         </div>
       </div>
 
-      <MediaFolderBar organizationId={organizationId} />
+      <div className="px-6 pt-2">
+        <MediaFolderBar organizationId={organizationId} />
+      </div>
 
-      <div className="py-4">
+      <div className="px-6 py-4">
         <MediaToolbar organizationId={organizationId} />
       </div>
 
-      <div className="flex-1 overflow-y-auto pb-6">
+      <div className="flex-1 overflow-y-auto px-6 pb-24">
         <MediaGrid organizationId={organizationId} />
       </div>
 

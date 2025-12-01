@@ -14,7 +14,6 @@ import {
   Loader2,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { Button } from "@/components/ui/button";
 import { useFolderList, useCreateFolder } from "@/lib/hooks/use-media";
 import { useMediaRoomStore } from "@/lib/store/media-room-store";
 import type { MediaFolder } from "@/lib/api/media";
@@ -60,28 +59,28 @@ export default function MediaFolderSidebar({
   };
 
   return (
-    <div className="w-56 border-r-2 border-foreground bg-background flex flex-col h-full">
-      <div className="p-3 border-b border-border">
-        <p className="eyebrow mb-2">Folders</p>
-        <Button
-          variant="outline"
-          size="sm"
-          className="w-full justify-start gap-2"
+    <div className="w-64 border-r border-border bg-surface flex flex-col h-full">
+      <div className="p-4 border-b border-border">
+        <div className="flex items-center justify-between mb-4">
+          <p className="eyebrow">Folders</p>
+        </div>
+        <button
           onClick={() => setIsCreating(true)}
+          className="btn btn-outline w-full justify-start gap-2 h-9"
         >
-          <Plus className="h-3 w-3" />
+          <Plus className="h-3.5 w-3.5" />
           New Folder
-        </Button>
+        </button>
       </div>
 
-      <div className="flex-1 overflow-y-auto p-2">
+      <div className="flex-1 overflow-y-auto p-2 space-y-0.5">
         {/* Root/All Media */}
         <button
           onClick={() => setCurrentFolder(null)}
           className={cn(
-            "w-full flex items-center gap-2 px-2 py-1.5 text-left text-sm font-serif transition-colors rounded-sm",
+            "w-full flex items-center gap-2.5 px-3 py-2 text-left text-sm font-serif transition-colors rounded-sm",
             currentFolderId === null
-              ? "bg-foreground text-background font-bold"
+              ? "bg-brand-primary text-brand-primary-foreground font-medium"
               : "text-muted-foreground hover:text-foreground hover:bg-surface-hover"
           )}
         >
@@ -94,7 +93,7 @@ export default function MediaFolderSidebar({
             <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
           </div>
         ) : (
-          <div className="mt-2 space-y-0.5">
+          <div className="space-y-0.5">
             {folders.map((folder) => (
               <FolderTreeItem
                 key={folder.id}
@@ -114,13 +113,13 @@ export default function MediaFolderSidebar({
 
         {/* Create folder inline form */}
         {isCreating && (
-          <div className="mt-2 p-2 border border-border rounded-sm bg-surface">
+          <div className="mt-2 p-3 border border-border rounded-sm bg-background shadow-sm">
             <input
               type="text"
               value={newFolderName}
               onChange={(e) => setNewFolderName(e.target.value)}
               placeholder="Folder name..."
-              className="w-full px-2 py-1 text-sm font-serif border border-border rounded-sm bg-background focus:outline-none focus:border-foreground"
+              className="w-full px-2 py-1.5 text-sm font-serif border border-border rounded-sm bg-surface focus:outline-none focus:border-brand-primary focus:ring-1 focus:ring-brand-primary"
               autoFocus
               onKeyDown={(e) => {
                 if (e.key === "Enter") handleCreateFolder();
@@ -130,30 +129,27 @@ export default function MediaFolderSidebar({
                 }
               }}
             />
-            <div className="flex gap-1 mt-2">
-              <Button
-                size="sm"
-                variant="primary"
+            <div className="flex gap-2 mt-2">
+              <button
                 onClick={handleCreateFolder}
                 disabled={createFolder.isPending || !newFolderName.trim()}
-                className="flex-1"
+                className="btn btn-primary h-7 text-xs flex-1"
               >
                 {createFolder.isPending ? (
                   <Loader2 className="h-3 w-3 animate-spin" />
                 ) : (
                   "Create"
                 )}
-              </Button>
-              <Button
-                size="sm"
-                variant="ghost"
+              </button>
+              <button
                 onClick={() => {
                   setIsCreating(false);
                   setNewFolderName("");
                 }}
+                className="btn btn-outline h-7 text-xs"
               >
                 Cancel
-              </Button>
+              </button>
             </div>
           </div>
         )}
@@ -198,18 +194,27 @@ function FolderTreeItem({
 
   const hasChildren = children.length > 0;
 
+  // Unified click handler: Select AND Expand if needed
+  const handleMainClick = () => {
+    onSelect(folder.id);
+    if (!isExpanded) {
+      onToggleExpand(folder.id);
+    }
+  };
+
   return (
     <div>
       <div
         className={cn(
-          "group flex items-center gap-1 py-1 pr-1 cursor-pointer transition-colors rounded-sm",
+          "group flex items-center gap-1 py-1 pr-1 cursor-pointer transition-colors rounded-sm select-none",
           isSelected
-            ? "bg-foreground text-background"
+            ? "bg-brand-primary text-brand-primary-foreground"
             : "text-muted-foreground hover:text-foreground hover:bg-surface-hover"
         )}
         style={{ paddingLeft: `${depth * 12 + 8}px` }}
         onMouseEnter={() => setShowActions(true)}
         onMouseLeave={() => setShowActions(false)}
+        onClick={handleMainClick} // Applied to the whole row container for bigger target
       >
         <button
           onClick={(e) => {
@@ -217,35 +222,33 @@ function FolderTreeItem({
             onToggleExpand(folder.id);
           }}
           className={cn(
-            "p-0.5 hover:bg-black/10 rounded transition-transform",
-            isExpanded && "rotate-90"
+            "p-0.5 rounded transition-transform hover:bg-white/10",
+            isExpanded && "rotate-90",
+            !hasChildren && !isSelected && "invisible" // Only hide if not selected to keep alignment, but show if selected/hovered potentially? Kept invisible for cleaner tree look.
           )}
         >
           <ChevronRight className="h-3 w-3" />
         </button>
 
-        <button
-          onClick={() => onSelect(folder.id)}
-          className="flex-1 flex items-center gap-2 text-left min-w-0"
-        >
+        <div className="flex-1 flex items-center gap-2 text-left min-w-0 py-1">
           {isExpanded ? (
             <FolderOpen className="h-4 w-4 shrink-0" />
           ) : (
             <Folder className="h-4 w-4 shrink-0" />
           )}
           <span className="text-sm font-serif truncate">{folder.name}</span>
-        </button>
+        </div>
 
         {showActions && (
-          <div className="flex items-center gap-0.5">
+          <div className="flex items-center gap-0.5 mr-1">
             <button
               onClick={(e) => {
                 e.stopPropagation();
                 onRename(folder);
               }}
               className={cn(
-                "p-1 rounded hover:bg-black/10",
-                isSelected && "hover:bg-white/20"
+                "p-1 rounded opacity-70 hover:opacity-100 transition-opacity",
+                isSelected ? "hover:bg-white/20" : "hover:bg-black/5"
               )}
               title="Rename"
             >
@@ -257,8 +260,10 @@ function FolderTreeItem({
                 onDelete(folder);
               }}
               className={cn(
-                "p-1 rounded hover:bg-black/10",
-                isSelected && "hover:bg-white/20"
+                "p-1 rounded opacity-70 hover:opacity-100 transition-opacity",
+                isSelected
+                  ? "text-white hover:bg-white/20"
+                  : "text-error hover:bg-error/10"
               )}
               title="Delete"
             >
@@ -268,8 +273,8 @@ function FolderTreeItem({
         )}
       </div>
 
-      {isExpanded && hasChildren && (
-        <div>
+      {isExpanded && (
+        <div className="animate-in slide-in-from-top-1 duration-200">
           {children.map((child) => (
             <FolderTreeItem
               key={child.id}

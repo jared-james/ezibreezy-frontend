@@ -10,9 +10,7 @@ import {
   Tag,
   Loader2,
   ChevronDown,
-  Archive,
 } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { useMediaRoomStore } from "@/lib/store/media-room-store";
 import {
   useBulkArchiveMedia,
@@ -31,6 +29,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { cn } from "@/lib/utils";
 
 interface BulkActionBarProps {
   organizationId: string | null;
@@ -92,16 +91,16 @@ export default function BulkActionBar({ organizationId }: BulkActionBarProps) {
 
   return (
     <>
-      <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50">
-        <div className="flex items-center gap-4 bg-brand-primary text-brand-primary-foreground px-6 py-4 shadow-2xl border-2 border-brand-primary rounded-sm">
+      <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 animate-in slide-in-from-bottom-4 duration-300">
+        <div className="flex items-center gap-4 bg-brand-primary text-brand-primary-foreground px-4 py-3 shadow-[0_8px_30px_rgb(0,0,0,0.12)] border border-brand-primary-hover rounded-sm">
           {/* Selection count */}
-          <div className="flex items-center gap-3 pr-4 border-r-2 border-brand-primary-foreground/30">
-            <span className="font-serif text-base font-bold uppercase tracking-wide">
+          <div className="flex items-center gap-3 pr-4 border-r border-white/20">
+            <span className="font-serif text-sm font-bold uppercase tracking-wider text-white">
               {selectedCount} selected
             </span>
             <button
               onClick={clearSelection}
-              className="p-1.5 hover:bg-brand-primary-foreground/20 rounded-sm transition-colors"
+              className="p-1 hover:bg-white/10 rounded-sm transition-colors text-white/80 hover:text-white"
               aria-label="Clear selection"
             >
               <X className="h-4 w-4" />
@@ -109,29 +108,27 @@ export default function BulkActionBar({ organizationId }: BulkActionBarProps) {
           </div>
 
           {/* Actions */}
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
             {/* Move to folder */}
             <div className="relative">
-              <Button
-                variant="ghost"
-                size="sm"
+              <button
                 onClick={() => {
                   setShowFolderDropdown(!showFolderDropdown);
                   setShowTagDropdown(false);
                 }}
                 disabled={isLoading}
-                className="gap-2 text-brand-primary-foreground hover:text-brand-primary-foreground hover:bg-brand-primary-foreground/20 border border-brand-primary-foreground/30 hover:border-brand-primary-foreground/50 px-4 py-2 h-auto font-medium"
+                className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 text-xs font-bold uppercase tracking-wider border border-white/30 rounded-sm hover:bg-white/10 transition-colors text-white disabled:opacity-50"
               >
-                <FolderInput className="h-4 w-4" />
+                <FolderInput className="h-3.5 w-3.5" />
                 Move
-                <ChevronDown className="h-3.5 w-3.5" />
-              </Button>
+                <ChevronDown className="h-3 w-3 ml-0.5" />
+              </button>
               {showFolderDropdown && (
-                <div className="absolute bottom-full left-0 mb-2 w-48 bg-background text-foreground border border-border shadow-lg max-h-64 overflow-y-auto rounded-sm">
-                  <div className="p-2 space-y-1">
+                <div className="absolute bottom-full left-0 mb-2 w-56 bg-surface text-foreground border border-foreground shadow-xl max-h-64 overflow-y-auto rounded-sm p-1 animate-in fade-in zoom-in-95 duration-100">
+                  <div className="space-y-0.5">
                     <button
                       onClick={() => handleMoveToFolder(null)}
-                      className="w-full px-2 py-1.5 text-left text-sm font-serif hover:bg-surface-hover transition-colors rounded-sm"
+                      className="w-full px-3 py-2 text-left text-xs font-serif font-medium hover:bg-surface-hover transition-colors rounded-sm"
                     >
                       All Media (Root folder)
                     </button>
@@ -139,7 +136,7 @@ export default function BulkActionBar({ organizationId }: BulkActionBarProps) {
                       <button
                         key={folder.id}
                         onClick={() => handleMoveToFolder(folder.id)}
-                        className="w-full px-2 py-1.5 text-left text-sm font-serif hover:bg-surface-hover transition-colors rounded-sm"
+                        className="w-full px-3 py-2 text-left text-xs font-serif font-medium hover:bg-surface-hover transition-colors rounded-sm"
                       >
                         {folder.name}
                       </button>
@@ -151,36 +148,34 @@ export default function BulkActionBar({ organizationId }: BulkActionBarProps) {
 
             {/* Add tag */}
             <div className="relative">
-              <Button
-                variant="ghost"
-                size="sm"
+              <button
                 onClick={() => {
                   setShowTagDropdown(!showTagDropdown);
                   setShowFolderDropdown(false);
                 }}
                 disabled={isLoading}
-                className="gap-2 text-brand-primary-foreground hover:text-brand-primary-foreground hover:bg-brand-primary-foreground/20 border border-brand-primary-foreground/30 hover:border-brand-primary-foreground/50 px-4 py-2 h-auto font-medium"
+                className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 text-xs font-bold uppercase tracking-wider border border-white/30 rounded-sm hover:bg-white/10 transition-colors text-white disabled:opacity-50"
               >
-                <Tag className="h-4 w-4" />
+                <Tag className="h-3.5 w-3.5" />
                 Tag
-                <ChevronDown className="h-3.5 w-3.5" />
-              </Button>
+                <ChevronDown className="h-3 w-3 ml-0.5" />
+              </button>
               {showTagDropdown && (
-                <div className="absolute bottom-full left-0 mb-2 w-48 bg-background text-foreground border border-border shadow-lg max-h-64 overflow-y-auto rounded-sm">
+                <div className="absolute bottom-full left-0 mb-2 w-56 bg-surface text-foreground border border-foreground shadow-xl max-h-64 overflow-y-auto rounded-sm p-1 animate-in fade-in zoom-in-95 duration-100">
                   {tags.length === 0 ? (
-                    <p className="p-3 text-xs text-muted-foreground font-serif italic">
+                    <p className="p-3 text-xs text-muted-foreground font-serif italic text-center">
                       No tags available
                     </p>
                   ) : (
-                    <div className="p-2 space-y-1">
+                    <div className="space-y-0.5">
                       {tags.map((tag) => (
                         <button
                           key={tag.id}
                           onClick={() => handleAddTag(tag.id)}
-                          className="w-full flex items-center gap-2 px-2 py-1.5 text-left text-sm font-serif hover:bg-surface-hover transition-colors rounded-sm"
+                          className="w-full flex items-center gap-2 px-3 py-2 text-left text-xs font-serif font-medium hover:bg-surface-hover transition-colors rounded-sm"
                         >
                           <span
-                            className="w-3 h-3 rounded-full shrink-0"
+                            className="w-2.5 h-2.5 rounded-full shrink-0 border border-black/10"
                             style={{ backgroundColor: tag.color }}
                           />
                           <span className="truncate">{tag.name}</span>
@@ -192,21 +187,19 @@ export default function BulkActionBar({ organizationId }: BulkActionBarProps) {
               )}
             </div>
 
-            {/* Archive (labeled as Delete) */}
-            <Button
-              variant="ghost"
-              size="sm"
+            {/* Archive */}
+            <button
               onClick={() => setShowArchiveConfirm(true)}
               disabled={isLoading}
-              className="gap-2 bg-red-600 text-white hover:bg-red-700 border-0 px-4 py-2 h-auto font-medium"
+              className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 text-xs font-bold uppercase tracking-wider bg-red-600 hover:bg-red-700 text-white border border-red-800 rounded-sm transition-colors shadow-sm disabled:opacity-50"
             >
-              <Trash2 className="h-4 w-4" />
+              <Trash2 className="h-3.5 w-3.5" />
               Archive
-            </Button>
+            </button>
 
             {isLoading && (
-              <div className="pl-3 ml-3 border-l-2 border-brand-primary-foreground/30">
-                <Loader2 className="h-5 w-5 animate-spin" />
+              <div className="pl-2 ml-2 border-l border-white/20">
+                <Loader2 className="h-4 w-4 animate-spin text-white" />
               </div>
             )}
           </div>
@@ -218,12 +211,12 @@ export default function BulkActionBar({ organizationId }: BulkActionBarProps) {
         open={showArchiveConfirm}
         onOpenChange={setShowArchiveConfirm}
       >
-        <AlertDialogContent>
+        <AlertDialogContent className="border-2 border-foreground shadow-[8px_8px_0_0_rgba(0,0,0,1)] rounded-sm bg-surface p-6">
           <AlertDialogHeader>
-            <AlertDialogTitle className="font-serif">
-              Archive {selectedCount} Items
+            <AlertDialogTitle className="font-serif text-xl font-bold uppercase tracking-tight">
+              Archive {selectedCount} Items?
             </AlertDialogTitle>
-            <AlertDialogDescription className="font-serif">
+            <AlertDialogDescription className="font-serif text-sm text-muted-foreground">
               This will delete the high-quality source files to free up storage
               space, but keep thumbnails and database records for{" "}
               {selectedCount} {selectedCount === 1 ? "item" : "items"}.
@@ -233,11 +226,13 @@ export default function BulkActionBar({ organizationId }: BulkActionBarProps) {
               new posts, but they will still appear in your history.
             </AlertDialogDescription>
           </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+          <AlertDialogFooter className="mt-6">
+            <AlertDialogCancel className="btn btn-outline border-border hover:bg-surface-hover">
+              Cancel
+            </AlertDialogCancel>
             <AlertDialogAction
               onClick={handleArchive}
-              className="bg-brand-primary text-brand-primary-foreground hover:bg-brand-primary-hover"
+              className="btn btn-primary"
             >
               {bulkArchive.isPending ? (
                 <Loader2 className="h-4 w-4 animate-spin" />

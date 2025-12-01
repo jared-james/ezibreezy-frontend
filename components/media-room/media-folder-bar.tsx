@@ -46,10 +46,10 @@ function DroppableFolderTab({
   return (
     <div
       className={cn(
-        "group relative flex items-center gap-2 px-3 py-2 text-sm font-serif whitespace-nowrap transition-all border rounded-t-sm mb-2",
+        "group relative flex items-center gap-2 px-4 py-2 text-sm font-serif whitespace-nowrap transition-all border rounded-sm mb-2 select-none",
         isActive
-          ? "bg-brand-primary text-brand-primary-foreground border-brand-primary z-10"
-          : "bg-white text-neutral-500 border-neutral-300 hover:text-neutral-900 hover:border-neutral-500"
+          ? "bg-brand-primary text-brand-primary-foreground border-brand-primary shadow-sm z-10"
+          : "bg-surface text-muted-foreground border-border hover:text-foreground hover:border-foreground/30 hover:bg-surface-hover"
       )}
     >
       <button onClick={onSelect} className="flex items-center gap-2">
@@ -61,8 +61,10 @@ function DroppableFolderTab({
           <PopoverTrigger asChild>
             <button
               className={cn(
-                "p-0.5 rounded opacity-0 group-hover:opacity-100 transition-opacity",
-                isActive ? "hover:bg-white/20" : "hover:bg-neutral-100"
+                "ml-1 p-0.5 rounded-sm opacity-0 group-hover:opacity-100 transition-opacity focus:opacity-100",
+                isActive
+                  ? "hover:bg-brand-primary-hover text-brand-primary-foreground"
+                  : "hover:bg-neutral-200 text-foreground"
               )}
               onClick={(e) => e.stopPropagation()}
             >
@@ -70,8 +72,8 @@ function DroppableFolderTab({
             </button>
           </PopoverTrigger>
           <PopoverContent
-            align="end"
-            className="w-32 p-1 bg-white border border-neutral-300"
+            align="start"
+            className="w-32 p-1 bg-surface border border-foreground rounded-sm shadow-xl"
           >
             {onEdit && (
               <button
@@ -79,9 +81,9 @@ function DroppableFolderTab({
                   e.stopPropagation();
                   onEdit();
                 }}
-                className="flex w-full items-center gap-2 px-2 py-1.5 text-sm font-serif hover:bg-neutral-100 transition-colors"
+                className="flex w-full items-center gap-2 px-2 py-1.5 text-xs font-serif hover:bg-surface-hover transition-colors rounded-sm"
               >
-                <Pencil className="h-3.5 w-3.5" />
+                <Pencil className="h-3 w-3" />
                 Rename
               </button>
             )}
@@ -91,9 +93,9 @@ function DroppableFolderTab({
                   e.stopPropagation();
                   onDelete();
                 }}
-                className="flex w-full items-center gap-2 px-2 py-1.5 text-sm font-serif text-red-600 hover:bg-red-50 transition-colors"
+                className="flex w-full items-center gap-2 px-2 py-1.5 text-xs font-serif text-error hover:bg-error/10 transition-colors rounded-sm"
               >
-                <Trash2 className="h-3.5 w-3.5" />
+                <Trash2 className="h-3 w-3" />
                 Delete
               </button>
             )}
@@ -119,9 +121,9 @@ export default function MediaFolderBar({
     useFolderActions({ organizationId });
 
   return (
-    <div className="border-b border-neutral-300">
+    <div className="border-b border-border">
       <div
-        className="flex items-center gap-2 overflow-x-auto scrollbar-hide px-1"
+        className="flex items-center gap-2 overflow-x-auto scrollbar-hide px-1 pt-1"
         style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
       >
         <DroppableFolderTab
@@ -134,7 +136,7 @@ export default function MediaFolderBar({
         </DroppableFolderTab>
 
         {isLoading ? (
-          <div className="flex items-center gap-2 px-3 py-2 text-neutral-500">
+          <div className="flex items-center gap-2 px-4 py-2 text-muted-foreground">
             <Loader2 className="h-4 w-4 animate-spin" />
           </div>
         ) : (

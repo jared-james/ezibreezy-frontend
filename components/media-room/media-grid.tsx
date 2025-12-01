@@ -111,7 +111,7 @@ export default function MediaGrid({ organizationId }: MediaGridProps) {
 
   if (isError) {
     return (
-      <div className="border border-error bg-error/5 p-6 text-center">
+      <div className="border border-error bg-error/5 p-6 text-center rounded-sm">
         <p className="font-serif text-sm text-error">
           Error loading media: {error?.message}
         </p>
@@ -126,9 +126,9 @@ export default function MediaGrid({ organizationId }: MediaGridProps) {
 
   if (mediaItems.length === 0) {
     return (
-      <div className="py-16 text-center border-2 border-dashed border-border rounded-lg">
-        <ImageOff className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
-        <p className="font-serif text-lg text-muted-foreground italic">
+      <div className="py-24 text-center border-2 border-dashed border-border rounded-sm bg-surface/50">
+        <ImageOff className="w-10 h-10 mx-auto mb-4 text-muted-foreground/50" />
+        <p className="font-serif text-lg text-foreground font-medium">
           No media found
         </p>
         <p className="font-serif text-sm text-muted-foreground mt-1">
@@ -141,7 +141,7 @@ export default function MediaGrid({ organizationId }: MediaGridProps) {
   return (
     <div>
       {viewMode === "grid" ? (
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
+        <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-8 2xl:grid-cols-10 gap-2">
           {mediaItems.map((item, index) => (
             <MediaCard
               key={item.id}
@@ -149,12 +149,12 @@ export default function MediaGrid({ organizationId }: MediaGridProps) {
               organizationId={organizationId}
               onSelect={selectItem}
               onOpenDetail={openDetailPanel}
-              priority={index < 12}
+              priority={index < 18}
             />
           ))}
         </div>
       ) : (
-        <div className="space-y-2">
+        <div className="space-y-1">
           {mediaItems.map((item, index) => (
             <MediaListItem
               key={item.id}
@@ -162,7 +162,7 @@ export default function MediaGrid({ organizationId }: MediaGridProps) {
               organizationId={organizationId}
               onSelect={selectItem}
               onOpenDetail={openDetailPanel}
-              priority={index < 12}
+              priority={index < 18}
             />
           ))}
         </div>
@@ -170,7 +170,7 @@ export default function MediaGrid({ organizationId }: MediaGridProps) {
 
       <div
         ref={observerTarget}
-        className="h-24 flex items-center justify-center w-full mt-4"
+        className="h-24 flex items-center justify-center w-full mt-8"
       >
         {isFetchingNextPage && (
           <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />

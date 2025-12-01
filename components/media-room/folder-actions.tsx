@@ -29,7 +29,6 @@ import {
   DialogFooter,
   DialogClose,
 } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
 interface UseFolderActionsProps {
@@ -105,16 +104,18 @@ export function useFolderActions({ organizationId }: UseFolderActionsProps) {
     <>
       {/* Create Dialog */}
       <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
-        <DialogContent className="sm:max-w-[425px]">
+        <DialogContent className="sm:max-w-[425px] border-2 border-foreground shadow-[8px_8px_0_0_rgba(0,0,0,1)] rounded-sm bg-surface p-6">
           <DialogHeader>
-            <DialogTitle className="font-serif">New Folder</DialogTitle>
+            <DialogTitle className="font-serif text-xl font-bold uppercase tracking-tight">
+              New Folder
+            </DialogTitle>
           </DialogHeader>
-          <div className="py-2">
+          <div className="py-4">
             <Input
               value={folderName}
               onChange={(e) => setFolderName(e.target.value)}
               placeholder="Folder name"
-              className="font-serif"
+              className="font-serif text-base h-11 bg-background border-border focus:border-foreground rounded-sm"
               autoFocus
               onKeyDown={(e) => {
                 if (e.key === "Enter") handleCreate();
@@ -123,19 +124,21 @@ export function useFolderActions({ organizationId }: UseFolderActionsProps) {
           </div>
           <DialogFooter>
             <DialogClose asChild>
-              <Button variant="ghost">Cancel</Button>
+              <button className="btn btn-outline border-border hover:bg-surface-hover">
+                Cancel
+              </button>
             </DialogClose>
-            <Button
+            <button
               onClick={handleCreate}
               disabled={createMutation.isPending || !folderName.trim()}
-              variant="primary"
+              className="btn btn-primary"
             >
               {createMutation.isPending ? (
                 <Loader2 className="h-4 w-4 animate-spin" />
               ) : (
                 "Create Folder"
               )}
-            </Button>
+            </button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -145,16 +148,18 @@ export function useFolderActions({ organizationId }: UseFolderActionsProps) {
         open={!!folderToRename}
         onOpenChange={(open) => !open && setFolderToRename(null)}
       >
-        <DialogContent className="sm:max-w-[425px]">
+        <DialogContent className="sm:max-w-[425px] border-2 border-foreground shadow-[8px_8px_0_0_rgba(0,0,0,1)] rounded-sm bg-surface p-6">
           <DialogHeader>
-            <DialogTitle className="font-serif">Rename Folder</DialogTitle>
+            <DialogTitle className="font-serif text-xl font-bold uppercase tracking-tight">
+              Rename Folder
+            </DialogTitle>
           </DialogHeader>
-          <div className="py-2">
+          <div className="py-4">
             <Input
               value={folderName}
               onChange={(e) => setFolderName(e.target.value)}
               placeholder="Folder name"
-              className="font-serif"
+              className="font-serif text-base h-11 bg-background border-border focus:border-foreground rounded-sm"
               autoFocus
               onKeyDown={(e) => {
                 if (e.key === "Enter") handleRename();
@@ -163,19 +168,21 @@ export function useFolderActions({ organizationId }: UseFolderActionsProps) {
           </div>
           <DialogFooter>
             <DialogClose asChild>
-              <Button variant="ghost">Cancel</Button>
+              <button className="btn btn-outline border-border hover:bg-surface-hover">
+                Cancel
+              </button>
             </DialogClose>
-            <Button
+            <button
               onClick={handleRename}
               disabled={renameMutation.isPending || !folderName.trim()}
-              variant="primary"
+              className="btn btn-primary"
             >
               {renameMutation.isPending ? (
                 <Loader2 className="h-4 w-4 animate-spin" />
               ) : (
                 "Save Changes"
               )}
-            </Button>
+            </button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -185,21 +192,23 @@ export function useFolderActions({ organizationId }: UseFolderActionsProps) {
         open={!!folderToDelete}
         onOpenChange={(open) => !open && setFolderToDelete(null)}
       >
-        <AlertDialogContent>
+        <AlertDialogContent className="border-2 border-foreground shadow-[8px_8px_0_0_rgba(0,0,0,1)] rounded-sm bg-surface p-6">
           <AlertDialogHeader>
-            <AlertDialogTitle className="font-serif">
+            <AlertDialogTitle className="font-serif text-xl font-bold uppercase tracking-tight">
               Delete Folder
             </AlertDialogTitle>
-            <AlertDialogDescription className="font-serif">
+            <AlertDialogDescription className="font-serif text-sm text-muted-foreground">
               Are you sure you want to delete &ldquo;{folderToDelete?.name}
               &rdquo;? Media inside will be moved to the root folder.
             </AlertDialogDescription>
           </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+          <AlertDialogFooter className="mt-4">
+            <AlertDialogCancel className="btn btn-outline border-border hover:bg-surface-hover">
+              Cancel
+            </AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDelete}
-              className="bg-error text-error-foreground hover:bg-error-hover"
+              className="btn btn-primary bg-error text-white hover:bg-error-hover border-error-hover"
             >
               {deleteMutation.isPending ? (
                 <Loader2 className="h-4 w-4 animate-spin" />
