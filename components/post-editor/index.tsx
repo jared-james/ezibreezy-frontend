@@ -116,6 +116,9 @@ export default function EditorialCore({
     (state) => state.youtubeThumbnailUrl
   );
 
+  const pinterestBoardId = useEditorialStore((state) => state.pinterestBoardId);
+  const pinterestLink = useEditorialStore((state) => state.pinterestLink);
+
   const {
     stagedMediaFiles,
     stagedMediaItems: editorStagedMediaItems,
@@ -465,6 +468,31 @@ export default function EditorialCore({
 
             if (location.id) {
               payload.settings!.locationId = location.id;
+            }
+          }
+
+          if (platformId === "pinterest") {
+            if (!pinterestBoardId) {
+              showError("Please select a board for Pinterest.");
+              throw new Error("Pinterest validation failed");
+            }
+            payload.settings!.boardId = pinterestBoardId;
+
+            if (pinterestLink && pinterestLink.trim().length > 0) {
+              payload.settings!.link = pinterestLink.trim();
+            }
+
+            const pinTitle = platformTitles["pinterest"];
+            if (pinTitle && pinTitle.trim().length > 0) {
+              payload.title = pinTitle.trim();
+            }
+
+            const activeMediaUid = platformMediaUids[0];
+            const activeMedia = stagedMediaItems.find(
+              (i) => i.uid === activeMediaUid
+            );
+            if (activeMedia?.altText) {
+              payload.settings!.altText = activeMedia.altText;
             }
           }
 

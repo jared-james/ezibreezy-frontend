@@ -8,6 +8,7 @@ import {
   AtSign,
   Music2,
   Youtube,
+  Pin,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -32,6 +33,8 @@ export function PlatformIcon({ platformId, className }: PlatformIconProps) {
       ? Music2
       : platformId === "youtube"
       ? Youtube
+      : platformId === "pinterest"
+      ? Pin
       : null;
 
   if (!Icon) return null;

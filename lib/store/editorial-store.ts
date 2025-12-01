@@ -74,6 +74,8 @@ export interface EditorialState {
   youtubeTags: string;
   youtubeMadeForKids: boolean;
   youtubeThumbnailUrl: string | null;
+  pinterestBoardId: string | null;
+  pinterestLink: string;
 }
 
 export interface EditorialActions {
@@ -140,6 +142,8 @@ export const initialState: EditorialState = {
   youtubeTags: "",
   youtubeMadeForKids: false,
   youtubeThumbnailUrl: null,
+  pinterestBoardId: null,
+  pinterestLink: "",
 };
 
 export const useEditorialStore = create<EditorialState & EditorialActions>(

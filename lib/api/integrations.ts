@@ -11,7 +11,8 @@ export interface Connection {
     | "instagram"
     | "facebook"
     | "threads"
-    | "tiktok";
+    | "tiktok"
+    | "pinterest";
   platformUsername: string;
   name: string | null;
   avatarUrl: string | null;
@@ -36,6 +37,19 @@ export interface InstagramUserSearchResult {
   username: string;
   name: string;
   thumbnailUrl: string;
+}
+
+export interface PinterestBoard {
+  id: string;
+  name: string;
+  privacy: "PUBLIC" | "PROTECTED" | "SECRET";
+}
+
+export interface CreatePinterestBoardPayload {
+  integrationId: string;
+  name: string;
+  description?: string;
+  privacy?: "PUBLIC" | "SECRET" | "PROTECTED";
 }
 
 export const getConnections = async (): Promise<Connection[]> => {
@@ -77,6 +91,28 @@ export const searchInstagramUser = async (
     {
       params: { username, integrationId },
     }
+  );
+  return response.data;
+};
+
+export const getPinterestBoards = async (
+  integrationId: string
+): Promise<PinterestBoard[]> => {
+  const response = await apiClient.get<PinterestBoard[]>(
+    "/integrations/pinterest/boards",
+    {
+      params: { integrationId },
+    }
+  );
+  return response.data;
+};
+
+export const createPinterestBoard = async (
+  payload: CreatePinterestBoardPayload
+): Promise<PinterestBoard> => {
+  const response = await apiClient.post<PinterestBoard>(
+    "/integrations/pinterest/boards",
+    payload
   );
   return response.data;
 };

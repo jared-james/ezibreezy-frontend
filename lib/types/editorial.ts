@@ -17,7 +17,9 @@ export type PlatformId =
   | "youtube"
   | "instagram"
   | "facebook"
-  | "threads";
+  | "threads"
+  | "tiktok"
+  | "pinterest";
 
 export type SelectedAccounts = Record<string, string[]>;
 

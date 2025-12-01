@@ -23,6 +23,8 @@ export function useCaptionState(
   );
   const currentPostType = useEditorialStore((state) => state.postType);
   const facebookPostType = useEditorialStore((state) => state.facebookPostType);
+  const pinterestLink = useEditorialStore((state) => state.pinterestLink);
+  const pinterestBoardId = useEditorialStore((state) => state.pinterestBoardId);
   const setState = useEditorialStore((state) => state.setState);
 
   const [localMainCaption, setLocalMainCaption] = useState(mainCaption);
@@ -43,6 +45,9 @@ export function useCaptionState(
   const [showFacebookFirstComment, setShowFacebookFirstComment] = useState(
     !!facebookFirstComment && facebookFirstComment.length > 0
   );
+  const [localPinterestLink, setLocalPinterestLink] = useState(pinterestLink);
+  const [localPinterestBoardId, setLocalPinterestBoardId] =
+    useState(pinterestBoardId);
 
   // Sync global state to local state
   useEffect(() => {
@@ -85,6 +90,14 @@ export function useCaptionState(
     }
   }, [facebookFirstComment, facebookPostType]);
 
+  useEffect(() => {
+    setLocalPinterestLink(pinterestLink);
+  }, [pinterestLink]);
+
+  useEffect(() => {
+    setLocalPinterestBoardId(pinterestBoardId);
+  }, [pinterestBoardId]);
+
   // Clear captions for stories
   useEffect(() => {
     if (currentPostType === "story") {
@@ -119,6 +132,14 @@ export function useCaptionState(
     setState({ platformThreadMessages: localPlatformThreadMessages });
   }, [localPlatformThreadMessages, setState]);
 
+  useEffect(() => {
+    setState({ pinterestLink: localPinterestLink });
+  }, [localPinterestLink, setState]);
+
+  useEffect(() => {
+    setState({ pinterestBoardId: localPinterestBoardId });
+  }, [localPinterestBoardId, setState]);
+
   return {
     localMainCaption,
     setLocalMainCaption,
@@ -138,6 +159,10 @@ export function useCaptionState(
     setShowFirstComment,
     showFacebookFirstComment,
     setShowFacebookFirstComment,
+    localPinterestLink,
+    setLocalPinterestLink,
+    localPinterestBoardId,
+    setLocalPinterestBoardId,
     currentPostType,
     facebookPostType,
     setState,

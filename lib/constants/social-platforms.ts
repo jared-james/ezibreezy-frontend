@@ -21,6 +21,7 @@ export const PLATFORM_LIMITS = {
   },
   pinterest: {
     description: 500,
+    title: 100,
   },
   tiktok: {
     caption: 2200,

@@ -12,6 +12,7 @@ import {
   AtSign,
   Music2,
   LayoutGrid,
+  Pin,
 } from "lucide-react";
 import Image from "next/image";
 import { getConnections } from "@/lib/api/integrations";
@@ -22,12 +23,9 @@ import FacebookPreview from "../previews/facebook";
 import ThreadsPreview from "../previews/threads";
 import TikTokPreview from "../previews/tiktok";
 import YouTubePreview from "../previews/youtube";
+import PinterestPreview from "../previews/pinterest";
 import { cn } from "@/lib/utils";
-import {
-  LocationState,
-  useEditorialStore,
-  MediaItem,
-} from "@/lib/store/editorial-store";
+import { useEditorialStore, MediaItem } from "@/lib/store/editorial-store";
 import { UserTagDto, ProductTagDto } from "@/lib/api/publishing";
 import { useQuery } from "@tanstack/react-query";
 
@@ -39,6 +37,7 @@ const platformIcons: Record<string, React.ElementType> = {
   facebook: Facebook,
   threads: AtSign,
   tiktok: Music2,
+  pinterest: Pin,
 };
 
 const platformNames: Record<string, string> = {
@@ -49,6 +48,7 @@ const platformNames: Record<string, string> = {
   facebook: "Facebook",
   threads: "Threads",
   tiktok: "TikTok",
+  pinterest: "Pinterest",
 };
 
 interface PreviewPanelProps {
@@ -69,6 +69,7 @@ function PreviewPanel({
   const postType = useEditorialStore((state) => state.postType);
   const facebookPostType = useEditorialStore((state) => state.facebookPostType);
   const platformTitles = useEditorialStore((state) => state.platformTitles);
+  const pinterestLink = useEditorialStore((state) => state.pinterestLink);
   const setState = useEditorialStore((state) => state.setState);
   const stagedMediaItems = useEditorialStore((state) => state.stagedMediaItems);
   const platformMediaSelections = useEditorialStore(
@@ -301,6 +302,19 @@ function PreviewPanel({
             platformUsername={activeAccount.platformUsername}
             displayName={activeAccount.name}
             avatarUrl={activeAccount.avatarUrl}
+          />
+        );
+      }
+      case "pinterest": {
+        return (
+          <PinterestPreview
+            caption={currentCaption}
+            title={platformTitles["pinterest"]}
+            singleMediaItem={singleMediaItem || null}
+            platformUsername={activeAccount.platformUsername}
+            displayName={activeAccount.name}
+            avatarUrl={activeAccount.avatarUrl}
+            link={pinterestLink}
           />
         );
       }

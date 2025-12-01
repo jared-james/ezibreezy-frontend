@@ -13,6 +13,7 @@ import { ThreadSection } from "./thread-section";
 import { FirstCommentSection } from "./first-comment-section";
 import PlatformMediaSelector from "../../media/platform-media-selector";
 import { YouTubeOptions } from "../../previews/youtube/youtube-options";
+import { PinterestOptions } from "../../previews/pinterest/pinterest-options";
 import { useEditorialStore } from "@/lib/store/editorial-store";
 
 interface PlatformCaptionSectionProps {
@@ -60,6 +61,10 @@ interface PlatformCaptionSectionProps {
   setLocalFacebookFirstComment: (comment: string) => void;
   showFacebookFirstComment: boolean;
   setShowFacebookFirstComment: (show: boolean) => void;
+  localPinterestLink?: string;
+  setLocalPinterestLink?: (link: string) => void;
+  localPinterestBoardId?: string | null;
+  setLocalPinterestBoardId?: (id: string | null) => void;
   mediaErrors?: Record<string, string[]>;
 }
 
@@ -68,7 +73,7 @@ const PLATFORM_LIMITS = {
   instagram: { caption: 2200, story: 120, comment: 2196 },
   x: { free: 280, premium: 25000 },
   linkedin: { post: 3000, comment: 1248 },
-  pinterest: { description: 500 },
+  pinterest: { description: 500, title: 100 },
   tiktok: { caption: 2200 },
   threads: { post: 500, topic: 50 },
   bluesky: { post: 300 },
@@ -103,6 +108,10 @@ export function PlatformCaptionSection({
   setLocalFacebookFirstComment,
   showFacebookFirstComment,
   setShowFacebookFirstComment,
+  localPinterestLink,
+  setLocalPinterestLink,
+  localPinterestBoardId,
+  setLocalPinterestBoardId,
   mediaErrors,
 }: PlatformCaptionSectionProps) {
   const supportsThreading = platformId === "x" || platformId === "threads";
@@ -110,7 +119,10 @@ export function PlatformCaptionSection({
     platformId === "instagram" || platformId === "facebook";
   const supportsPostTypeSelection =
     platformId === "instagram" || platformId === "facebook";
-  const supportsTitle = platformId === "tiktok" || platformId === "youtube";
+  const supportsTitle =
+    platformId === "tiktok" ||
+    platformId === "youtube" ||
+    platformId === "pinterest";
 
   const isInstagramStory =
     platformId === "instagram" && currentPostType === "story";
@@ -127,7 +139,9 @@ export function PlatformCaptionSection({
   const youtubeThumbnailUrl = useEditorialStore(
     (state) => state.youtubeThumbnailUrl
   );
-  const integrationId = selectedAccounts["youtube"]?.[0];
+
+  // Get integration ID for this platform (assuming single select for settings dependent platforms)
+  const integrationId = selectedAccounts[platformId]?.[0];
 
   let characterLimit: number | undefined;
   let commentLimit: number | undefined;
@@ -260,6 +274,8 @@ export function PlatformCaptionSection({
                   ? postType === "video"
                     ? "Video: Max 2200 chars"
                     : "Photo: Max 90 chars"
+                  : platformId === "pinterest"
+                  ? "Max 100 chars"
                   : "Max 100 chars"}
               </span>
             </label>
@@ -275,9 +291,11 @@ export function PlatformCaptionSection({
               placeholder={
                 platformId === "tiktok"
                   ? "Add a title for your TikTok..."
-                  : "Add a title for your YouTube video..."
+                  : platformId === "pinterest"
+                  ? "Add a title for your Pin..."
+                  : "Add a title for your video..."
               }
-              maxLength={platformId === "youtube" ? 100 : 2200}
+              maxLength={platformId === "tiktok" ? 2200 : 100}
             />
           </div>
         )}
@@ -323,6 +341,18 @@ export function PlatformCaptionSection({
             onThumbnailChange={(v) => setState({ youtubeThumbnailUrl: v })}
           />
         )}
+
+        {platformId === "pinterest" &&
+          setLocalPinterestLink &&
+          setLocalPinterestBoardId && (
+            <PinterestOptions
+              integrationId={integrationId || null}
+              boardId={localPinterestBoardId || null}
+              onBoardChange={setLocalPinterestBoardId}
+              link={localPinterestLink || ""}
+              onLinkChange={setLocalPinterestLink}
+            />
+          )}
 
         {supportsThreading && (
           <ThreadSection

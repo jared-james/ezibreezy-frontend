@@ -15,6 +15,7 @@ import {
   Facebook,
   AtSign,
   Music2,
+  Pin,
 } from "lucide-react";
 import { createPost, type CreatePostPayload } from "@/lib/api/publishing";
 import { generateVideoThumbnail } from "@/lib/utils/video-thumbnail";
@@ -110,8 +111,6 @@ export function usePostEditor(options: UsePostEditorOptions = {}) {
     },
   });
 
-  // All media is now "main post" media in terms of the global list.
-  // Thread specific selection is handled by reference via UIDs.
   const isGlobalUploading = useMemo(
     () => stagedMediaItems.some((m) => m.isUploading),
     [stagedMediaItems]
@@ -142,6 +141,7 @@ export function usePostEditor(options: UsePostEditorOptions = {}) {
         facebook: { name: "Facebook", icon: Facebook },
         threads: { name: "Threads", icon: AtSign },
         tiktok: { name: "TikTok", icon: Music2 },
+        pinterest: { name: "Pinterest", icon: Pin },
       };
 
     return Object.keys(fullPlatformDefinitions).map((platformId) => {
@@ -169,7 +169,6 @@ export function usePostEditor(options: UsePostEditorOptions = {}) {
   const augmentThreadMessages = useCallback(
     (messages: typeof threadMessages): ThreadMessageAugmented[] => {
       return messages.map((msg) => {
-        // Find media items based on the UIDs stored in msg.mediaIds
         const threadMedia = (msg.mediaIds || [])
           .map((uid) => stagedMediaItems.find((item) => item.uid === uid))
           .filter(Boolean) as MediaItem[];
@@ -349,8 +348,6 @@ export function usePostEditor(options: UsePostEditorOptions = {}) {
           (item) => item.id !== libraryMedia.id
         );
         setStagedMediaItems(newMediaItems);
-        // Cleanup logic handled by handleRemoveMedia in effect, but simplified here for toggle behavior
-        // If we untoggle from library, we essentially remove it globally.
 
         // Same cleanup logic as handleRemoveMedia
         const state = useEditorialStore.getState();

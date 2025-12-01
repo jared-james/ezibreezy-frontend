@@ -204,6 +204,10 @@ export default function CaptionEditor({
               setShowFacebookFirstComment={
                 captionState.setShowFacebookFirstComment
               }
+              localPinterestLink={captionState.localPinterestLink}
+              setLocalPinterestLink={captionState.setLocalPinterestLink}
+              localPinterestBoardId={captionState.localPinterestBoardId}
+              setLocalPinterestBoardId={captionState.setLocalPinterestBoardId}
               mediaErrors={mediaErrors[platformId]}
             />
           );

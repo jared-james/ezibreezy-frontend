@@ -1,6 +1,5 @@
 // app/(app)/settings/integrations/constants.ts
 
-// constants.ts
 import {
   Twitter,
   Linkedin,
@@ -9,6 +8,7 @@ import {
   Facebook,
   AtSign,
   Music2,
+  Pin,
 } from "lucide-react";
 import { PlatformDefinition } from "./types";
 
@@ -57,5 +57,11 @@ export const platformDefinitions: PlatformDefinition[] = [
     name: "YouTube",
     icon: Youtube,
     description: "Connect your YouTube channel to manage video content.",
+  },
+  {
+    id: "pinterest",
+    name: "Pinterest",
+    icon: Pin,
+    description: "Connect your Pinterest account to publish Pins.",
   },
 ];

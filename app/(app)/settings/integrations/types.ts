@@ -9,7 +9,8 @@ export type PlatformDefinition = {
     | "instagram"
     | "facebook"
     | "threads"
-    | "tiktok";
+    | "tiktok"
+    | "pinterest";
   name: string;
   icon: React.ElementType;
   description: string;

@@ -49,6 +49,11 @@ export interface PostSettings {
   tags?: string[];
   madeForKids?: boolean;
   thumbnailUrl?: string;
+
+  // Pinterest Specific
+  boardId?: string;
+  link?: string;
+  altText?: string;
 }
 
 export interface CreatePostPayload {
