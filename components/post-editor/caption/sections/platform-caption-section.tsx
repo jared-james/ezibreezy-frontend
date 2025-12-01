@@ -140,6 +140,21 @@ export function PlatformCaptionSection({
     (state) => state.youtubeThumbnailUrl
   );
 
+  const pinterestCoverUrl = useEditorialStore(
+    (state) => state.pinterestCoverUrl
+  );
+  const stagedMediaItems = useEditorialStore((state) => state.stagedMediaItems);
+  const platformMediaSelections = useEditorialStore(
+    (state) => state.platformMediaSelections
+  );
+
+  // Get active media for Pinterest options
+  const activeMediaUids = platformMediaSelections[platformId] || [];
+  const activeMediaItem =
+    activeMediaUids.length > 0
+      ? stagedMediaItems.find((i) => i.uid === activeMediaUids[0])
+      : undefined;
+
   // Get integration ID for this platform (assuming single select for settings dependent platforms)
   const integrationId = selectedAccounts[platformId]?.[0];
 
@@ -351,6 +366,11 @@ export function PlatformCaptionSection({
               onBoardChange={setLocalPinterestBoardId}
               link={localPinterestLink || ""}
               onLinkChange={setLocalPinterestLink}
+              activeMediaItem={activeMediaItem}
+              coverUrl={pinterestCoverUrl}
+              onCoverChange={(url) =>
+                useEditorialStore.setState({ pinterestCoverUrl: url })
+              }
             />
           )}
 

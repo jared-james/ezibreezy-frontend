@@ -76,6 +76,7 @@ export interface EditorialState {
   youtubeThumbnailUrl: string | null;
   pinterestBoardId: string | null;
   pinterestLink: string;
+  pinterestCoverUrl: string | null;
 }
 
 export interface EditorialActions {
@@ -144,6 +145,7 @@ export const initialState: EditorialState = {
   youtubeThumbnailUrl: null,
   pinterestBoardId: null,
   pinterestLink: "",
+  pinterestCoverUrl: null,
 };
 
 export const useEditorialStore = create<EditorialState & EditorialActions>(

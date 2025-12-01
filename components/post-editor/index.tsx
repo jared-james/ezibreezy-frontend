@@ -118,6 +118,9 @@ export default function EditorialCore({
 
   const pinterestBoardId = useEditorialStore((state) => state.pinterestBoardId);
   const pinterestLink = useEditorialStore((state) => state.pinterestLink);
+  const pinterestCoverUrl = useEditorialStore(
+    (state) => state.pinterestCoverUrl
+  );
 
   const {
     stagedMediaFiles,
@@ -487,10 +490,22 @@ export default function EditorialCore({
               payload.title = pinTitle.trim();
             }
 
+            // Check if media is video, and enforce cover image
             const activeMediaUid = platformMediaUids[0];
             const activeMedia = stagedMediaItems.find(
               (i) => i.uid === activeMediaUid
             );
+
+            if (activeMedia?.type === "video") {
+              if (!pinterestCoverUrl) {
+                showError("Pinterest videos require a custom cover image.");
+                throw new Error(
+                  "Pinterest validation failed: Missing cover image"
+                );
+              }
+              payload.settings!.coverUrl = pinterestCoverUrl;
+            }
+
             if (activeMedia?.altText) {
               payload.settings!.altText = activeMedia.altText;
             }
