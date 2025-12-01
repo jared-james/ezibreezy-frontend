@@ -28,7 +28,7 @@ interface PlatformCaptionSectionProps {
   postType: "text" | "image" | "video";
   currentPostType: "post" | "story" | "reel";
   facebookPostType: "post" | "story" | "reel";
-  setState: (state: any) => void; // Generically typed as it maps to setDraftState
+  setState: (state: any) => void;
   localPlatformTitles: Record<string, string>;
   setLocalPlatformTitles: (
     update: (prev: Record<string, string>) => Record<string, string>
@@ -81,7 +81,7 @@ export function PlatformCaptionSection({
   postType,
   currentPostType,
   facebookPostType,
-  setState, // This is setDraftState from the parent
+  setState,
   localPlatformTitles,
   setLocalPlatformTitles,
   currentThreadMessages,
@@ -119,7 +119,6 @@ export function PlatformCaptionSection({
     platformId === "facebook" && facebookPostType === "story";
   const isStory = isInstagramStory || isFacebookStory;
 
-  // Access stores directly for platform-specific metadata
   const setPublishingState = usePublishingStore(
     (state) => state.setPublishingState
   );
@@ -145,14 +144,12 @@ export function PlatformCaptionSection({
     (state) => state.platformMediaSelections
   );
 
-  // Get active media for Pinterest options
   const activeMediaUids = platformMediaSelections[platformId] || [];
   const activeMediaItem =
     activeMediaUids.length > 0
       ? stagedMediaItems.find((i) => i.uid === activeMediaUids[0])
       : undefined;
 
-  // Get integration ID for this platform (assuming single select for settings dependent platforms)
   const integrationId = selectedAccounts[platformId]?.[0];
 
   let characterLimit: number | undefined;
@@ -199,10 +196,10 @@ export function PlatformCaptionSection({
   }
 
   return (
-    <div className="mt-6">
+    <div className="pl-6 border-l-2 border-border/60">
       <label
         htmlFor={`caption-${platformId}`}
-        className="eyebrow mb-2 flex items-center gap-3"
+        className="eyebrow mb-3 flex items-center gap-3"
       >
         <span className="flex items-center gap-2">
           <PlatformIcon platformId={platformId} />
@@ -272,7 +269,7 @@ export function PlatformCaptionSection({
         </span>
       </label>
 
-      <div className="space-y-4">
+      <div className="space-y-6">
         {supportsTitle && (
           <div>
             <label

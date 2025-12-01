@@ -9,7 +9,7 @@ import {
   ThreadMessage,
   ThreadMessageAugmented,
 } from "@/lib/types/editorial";
-import { useEditorialUIStore } from "@/lib/store/editorial/ui-store"; // Updated Store
+import { useEditorialUIStore } from "@/lib/store/editorial/ui-store";
 import HashtagSelectorModal from "../modals/hashtag-selector-modal";
 import { CaptionTextarea } from "./components/caption-textarea";
 import { PlatformFilterButtons } from "./components/platform-filter-buttons";
@@ -50,7 +50,6 @@ export default function CaptionEditor({
 }: CaptionEditorProps) {
   const captionState = useCaptionState(threadMessages, onLocalCaptionsChange);
 
-  // Switched to useEditorialUIStore
   const activeCaptionFilter = useEditorialUIStore(
     (state) => state.activeCaptionFilter
   );
@@ -95,7 +94,7 @@ export default function CaptionEditor({
     captionState.localMainCaption,
     captionState.handleMainCaptionChange,
     captionState.localPlatformCaptions,
-    captionState.setLocalPlatformCaptions, // Kept for modal internal logic, though modal handles specific platform updates via this
+    captionState.setLocalPlatformCaptions,
     threadMessagesHook.currentThreadMessages,
     threadMessagesHook.isEditingPlatformThread,
     activeCaptionFilter,
@@ -113,110 +112,114 @@ export default function CaptionEditor({
 
   return (
     <>
-      {mediaUploadSlot && <div className="mb-6">{mediaUploadSlot}</div>}
+      <div className="space-y-6">
+        {mediaUploadSlot && <div>{mediaUploadSlot}</div>}
 
-      <div>
-        <label
-          htmlFor="caption"
-          className="eyebrow mb-2 flex items-center justify-between"
-        >
-          Write the Main Caption
-          <button
-            type="button"
-            className="text-muted-foreground hover:text-foreground"
+        <div>
+          <label
+            htmlFor="caption"
+            className="eyebrow mb-3 flex items-center justify-between"
           >
-            <Smile className="h-4 w-4" />
-          </button>
-        </label>
+            Main Caption
+            <button
+              type="button"
+              className="text-muted-foreground hover:text-foreground"
+            >
+              <Smile className="h-4 w-4" />
+            </button>
+          </label>
 
-        <CaptionTextarea
-          id="caption"
-          value={captionState.localMainCaption}
-          onChange={(event) =>
-            captionState.handleMainCaptionChange(event.target.value)
-          }
-          placeholder={mainPlaceholder}
-          platformId="main"
-          onHashtagClick={hashtagModal.openHashtagModal}
-        />
+          <CaptionTextarea
+            id="caption"
+            value={captionState.localMainCaption}
+            onChange={(event) =>
+              captionState.handleMainCaptionChange(event.target.value)
+            }
+            placeholder={mainPlaceholder}
+            platformId="main"
+            onHashtagClick={hashtagModal.openHashtagModal}
+          />
+        </div>
       </div>
 
       {selectedPlatformIds.length > 1 && (
-        <div className="mt-8 border-t border-border pt-6 animate-in fade-in slide-in-from-top-2">
-          <div className="mb-4">
-            <div className="flex items-center gap-2 mb-1">
-              <h3 className="eyebrow mb-2 flex items-center justify-between">
-                Customize by Channel
-              </h3>
-            </div>
+        <div className="mt-12 pt-8 border-t-2 border-border/60 animate-in fade-in slide-in-from-top-2">
+          <div className="flex flex-col gap-4 mb-6">
+            <h3 className="font-serif text-lg font-bold">
+              Customize by Channel
+            </h3>
+            <PlatformFilterButtons
+              selectedPlatformIds={selectedPlatformIds}
+              platforms={platforms}
+              activeCaptionFilter={activeCaptionFilter}
+              onFilterChange={setActiveCaptionFilter}
+            />
           </div>
-
-          <PlatformFilterButtons
-            selectedPlatformIds={selectedPlatformIds}
-            platforms={platforms}
-            activeCaptionFilter={activeCaptionFilter}
-            onFilterChange={setActiveCaptionFilter}
-          />
         </div>
       )}
 
-      {Object.keys(selectedAccounts)
-        .filter(
-          (platformId) =>
-            activeCaptionFilter === "all" || activeCaptionFilter === platformId
-        )
-        .map((platformId) => {
-          const platform = platforms.find((p) => p.id === platformId);
-          if (!platform) return null;
+      <div className="space-y-12 mt-8">
+        {Object.keys(selectedAccounts)
+          .filter(
+            (platformId) =>
+              activeCaptionFilter === "all" ||
+              activeCaptionFilter === platformId
+          )
+          .map((platformId) => {
+            const platform = platforms.find((p) => p.id === platformId);
+            if (!platform) return null;
 
-          const currentCaption =
-            captionState.localPlatformCaptions[platformId] || "";
+            const currentCaption =
+              captionState.localPlatformCaptions[platformId] || "";
 
-          return (
-            <PlatformCaptionSection
-              key={platformId}
-              platformId={platformId}
-              platform={platform}
-              selectedAccounts={selectedAccounts}
-              onAccountSelect={onAccountSelect}
-              currentCaption={currentCaption}
-              onCaptionChange={(value) =>
-                captionState.handlePlatformCaptionChange(platformId, value)
-              }
-              openHashtagModal={hashtagModal.openHashtagModal}
-              postType={postType}
-              currentPostType={captionState.currentPostType}
-              facebookPostType={captionState.facebookPostType}
-              setState={captionState.setState}
-              localPlatformTitles={captionState.localPlatformTitles}
-              setLocalPlatformTitles={captionState.setLocalPlatformTitles}
-              currentThreadMessages={threadMessagesHook.currentThreadMessages}
-              updateThreadMessageContent={
-                threadMessagesHook.updateThreadMessageContent
-              }
-              removeThreadMessage={threadMessagesHook.removeThreadMessage}
-              addThreadMessage={threadMessagesHook.addThreadMessage}
-              openThreadHashtagModal={hashtagModal.openThreadHashtagModal}
-              localFirstComment={captionState.localFirstComment}
-              setLocalFirstComment={captionState.setLocalFirstComment}
-              showFirstComment={captionState.showFirstComment}
-              setShowFirstComment={captionState.setShowFirstComment}
-              localFacebookFirstComment={captionState.localFacebookFirstComment}
-              setLocalFacebookFirstComment={
-                captionState.setLocalFacebookFirstComment
-              }
-              showFacebookFirstComment={captionState.showFacebookFirstComment}
-              setShowFacebookFirstComment={
-                captionState.setShowFacebookFirstComment
-              }
-              localPinterestLink={captionState.localPinterestLink}
-              setLocalPinterestLink={captionState.setLocalPinterestLink}
-              localPinterestBoardId={captionState.localPinterestBoardId}
-              setLocalPinterestBoardId={captionState.setLocalPinterestBoardId}
-              mediaErrors={mediaErrors[platformId]}
-            />
-          );
-        })}
+            return (
+              <PlatformCaptionSection
+                key={platformId}
+                platformId={platformId}
+                platform={platform}
+                selectedAccounts={selectedAccounts}
+                onAccountSelect={onAccountSelect}
+                currentCaption={currentCaption}
+                onCaptionChange={(value) =>
+                  captionState.handlePlatformCaptionChange(platformId, value)
+                }
+                openHashtagModal={hashtagModal.openHashtagModal}
+                postType={postType}
+                currentPostType={captionState.currentPostType}
+                facebookPostType={captionState.facebookPostType}
+                setState={captionState.setState}
+                localPlatformTitles={captionState.localPlatformTitles}
+                setLocalPlatformTitles={captionState.setLocalPlatformTitles}
+                currentThreadMessages={threadMessagesHook.currentThreadMessages}
+                updateThreadMessageContent={
+                  threadMessagesHook.updateThreadMessageContent
+                }
+                removeThreadMessage={threadMessagesHook.removeThreadMessage}
+                addThreadMessage={threadMessagesHook.addThreadMessage}
+                openThreadHashtagModal={hashtagModal.openThreadHashtagModal}
+                localFirstComment={captionState.localFirstComment}
+                setLocalFirstComment={captionState.setLocalFirstComment}
+                showFirstComment={captionState.showFirstComment}
+                setShowFirstComment={captionState.setShowFirstComment}
+                localFacebookFirstComment={
+                  captionState.localFacebookFirstComment
+                }
+                setLocalFacebookFirstComment={
+                  captionState.setLocalFacebookFirstComment
+                }
+                showFacebookFirstComment={captionState.showFacebookFirstComment}
+                setShowFacebookFirstComment={
+                  captionState.setShowFacebookFirstComment
+                }
+                localPinterestLink={captionState.localPinterestLink}
+                setLocalPinterestLink={captionState.setLocalPinterestLink}
+                localPinterestBoardId={captionState.localPinterestBoardId}
+                setLocalPinterestBoardId={captionState.setLocalPinterestBoardId}
+                mediaErrors={mediaErrors[platformId]}
+              />
+            );
+          })}
+      </div>
 
       <HashtagSelectorModal
         isOpen={hashtagModal.isHashtagModalOpen}

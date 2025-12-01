@@ -46,19 +46,15 @@ export default function EditorialCore({
   >(null);
   const [confirmationCount, setConfirmationCount] = useState(0);
 
-  // Local state to track immediate typing values for Publish payload
   const [localMainCaption, setLocalMainCaption] = useState("");
   const [localPlatformCaptions, setLocalPlatformCaptions] = useState<
     Record<string, string>
   >({});
 
-  // -- Store Hooks (Atomic Selectors for Stability) --
-
   const resetUI = useEditorialUIStore((state) => state.resetUI);
   const resetDraft = useEditorialDraftStore((state) => state.resetDraft);
   const resetPublishing = usePublishingStore((state) => state.resetPublishing);
 
-  // Draft Store Selectors
   const stagedMediaItems = useEditorialDraftStore(
     (state) => state.stagedMediaItems
   );
@@ -75,15 +71,12 @@ export default function EditorialCore({
 
   const { setDraftState, setThreadMessages } = useEditorialDraftStore();
 
-  // Publishing Store Selectors
   const selectedAccounts = usePublishingStore(
     (state) => state.selectedAccounts
   );
   const setPublishingState = usePublishingStore(
     (state) => state.setPublishingState
   );
-
-  // -- Logic Hooks --
 
   const {
     stagedMediaFiles,
@@ -189,7 +182,6 @@ export default function EditorialCore({
   };
 
   const handlePublish = async () => {
-    // 1. IMPERATIVE STATE READING
     const draft = useEditorialDraftStore.getState();
     const pub = usePublishingStore.getState();
 
@@ -543,13 +535,13 @@ export default function EditorialCore({
   return (
     <>
       <div className="grid flex-1 grid-cols-1 gap-8 lg:grid-cols-12">
-        <div className="flex flex-col gap-4 lg:col-span-7">
-          <div className="flex items-center justify-between border-b-2 pb-2">
-            <h2 className="font-serif text-xl font-bold ">The Draft</h2>
-            <FileText className="h-4 w-4 text-[--muted]" />
+        <div className="flex flex-col gap-8 lg:col-span-7">
+          <div className="flex items-center justify-between border-b-2 pb-4">
+            <h2 className="font-serif text-2xl font-bold">The Draft</h2>
+            <FileText className="h-5 w-5 text-[--muted-foreground]" />
           </div>
 
-          <div className="space-y-6">
+          <div className="space-y-8">
             <ChannelSelector
               platforms={availablePlatforms}
               onTogglePlatform={togglePlatform}
