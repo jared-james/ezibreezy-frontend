@@ -120,7 +120,7 @@ export default function CaptionEditor({
           htmlFor="caption"
           className="eyebrow mb-2 flex items-center justify-between"
         >
-          Main Caption
+          Write the Main Caption
           <button
             type="button"
             className="text-muted-foreground hover:text-foreground"
