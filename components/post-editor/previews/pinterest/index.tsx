@@ -3,7 +3,7 @@
 "use client";
 
 import { memo, useState } from "react";
-import { Crop, ImageIcon, Play, Loader2 } from "lucide-react";
+import { Crop, ImageIcon, Play } from "lucide-react";
 import { ImageCropperModal } from "../../modals/image-cropper-modal";
 import { type CropData } from "@/lib/utils/crop-utils";
 import {
@@ -45,7 +45,7 @@ function PinterestPreview({
   );
 
   const { organizationId } = useClientData();
-  const { getOriginalUrl, isFetching } = useOriginalUrl(organizationId);
+  const { getOriginalUrl } = useOriginalUrl(organizationId);
 
   const croppedPreview = singleMediaItem?.croppedPreviews?.pinterest;
 
@@ -125,15 +125,10 @@ function PinterestPreview({
           {canCrop && (
             <button
               onClick={handleCropClick}
-              disabled={isFetching}
               className={cn(btnClass)}
               title="Crop Image"
             >
-              {isFetching ? (
-                <Loader2 className="h-3.5 w-3.5 animate-spin" />
-              ) : (
-                <Crop className="h-3.5 w-3.5" />
-              )}
+              <Crop className="h-3.5 w-3.5" />
               <span>Crop</span>
             </button>
           )}

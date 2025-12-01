@@ -3,7 +3,7 @@
 "use client";
 
 import { memo, useState } from "react";
-import { Crop, ImageIcon, Loader2 } from "lucide-react";
+import { Crop, ImageIcon } from "lucide-react";
 import { ImageCropperModal } from "../../modals/image-cropper-modal";
 import { type CropData } from "@/lib/utils/crop-utils";
 import {
@@ -45,7 +45,7 @@ function YouTubePreview({
   );
 
   const { organizationId } = useClientData();
-  const { getOriginalUrl, isFetching } = useOriginalUrl(organizationId);
+  const { getOriginalUrl } = useOriginalUrl(organizationId);
 
   // Determine viewing mode based on media aspect ratio or type
   // Shorts = 9:16 aspect ratio OR explicit crop
@@ -126,15 +126,10 @@ function YouTubePreview({
           {canCrop && (
             <button
               onClick={handleCropClick}
-              disabled={isFetching}
               className={cn(btnClass)}
               title="Crop Image"
             >
-              {isFetching ? (
-                <Loader2 className="h-3.5 w-3.5 animate-spin" />
-              ) : (
-                <Crop className="h-3.5 w-3.5" />
-              )}
+              <Crop className="h-3.5 w-3.5" />
               <span>Crop</span>
             </button>
           )}

@@ -3,7 +3,7 @@
 "use client";
 
 import { memo, useState } from "react";
-import { ImageIcon, Crop, FileText, Loader2 } from "lucide-react";
+import { ImageIcon, Crop, FileText } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { renderCaptionWithHashtags } from "../../render-caption";
 import { ImageCropperModal } from "../../modals/image-cropper-modal";
@@ -54,7 +54,7 @@ function LinkedInPreview({
   );
 
   const { organizationId } = useClientData();
-  const { getOriginalUrl, isFetching } = useOriginalUrl(organizationId);
+  const { getOriginalUrl } = useOriginalUrl(organizationId);
 
   const hasMultipleMedia = mediaItems.length > 1;
   const isCarousel = hasMultipleMedia;
@@ -190,15 +190,10 @@ function LinkedInPreview({
           {canCrop && (
             <button
               onClick={handleCropClick}
-              disabled={isFetching}
               className={cn(btnClass)}
               title="Crop Media"
             >
-              {isFetching ? (
-                <Loader2 className="h-3.5 w-3.5 animate-spin" />
-              ) : (
-                <Crop className="h-3.5 w-3.5" />
-              )}
+              <Crop className="h-3.5 w-3.5" />
               <span>
                 Crop
                 {isCarousel &&

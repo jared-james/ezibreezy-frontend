@@ -1,5 +1,7 @@
 // app/(marketing)/tools/instagram-carousel-splitter/components/file-upload.tsx
 
+"use client";
+
 import { Upload, ImageIcon, ScanLine } from "lucide-react";
 import { useRef } from "react";
 import { cn } from "@/lib/utils";

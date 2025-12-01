@@ -1,5 +1,7 @@
 // app/(marketing)/tools/instagram-carousel-splitter/components/image-preview.tsx
 
+"use client";
+
 import { useState, useMemo, useRef } from "react";
 import { AspectRatio } from "@/lib/tools/image-processing";
 import { cn } from "@/lib/utils";

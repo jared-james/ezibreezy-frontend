@@ -3,7 +3,7 @@
 "use client";
 
 import { memo, useState } from "react";
-import { MessageSquare, Repeat2, ImageIcon, Crop, Loader2 } from "lucide-react";
+import { MessageSquare, Repeat2, ImageIcon, Crop } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { renderCaptionWithHashtags } from "../../render-caption";
 import { ImageCropperModal } from "../../modals/image-cropper-modal";
@@ -139,7 +139,7 @@ function XPreview({
   );
 
   const { organizationId } = useClientData();
-  const { getOriginalUrl, isFetching } = useOriginalUrl(organizationId);
+  const { getOriginalUrl } = useOriginalUrl(organizationId);
 
   const croppedPreview = singleMediaItem?.croppedPreviews?.x;
 
@@ -238,15 +238,10 @@ function XPreview({
           {canCrop && (
             <button
               onClick={handleCropClick}
-              disabled={isFetching}
               className={cn(btnClass)}
               title="Crop Media"
             >
-              {isFetching ? (
-                <Loader2 className="h-3.5 w-3.5 animate-spin" />
-              ) : (
-                <Crop className="h-3.5 w-3.5" />
-              )}
+              <Crop className="h-3.5 w-3.5" />
               <span>Crop</span>
             </button>
           )}

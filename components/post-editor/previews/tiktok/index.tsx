@@ -8,7 +8,6 @@ import {
   Crop,
   ChevronLeft,
   ChevronRight,
-  Loader2,
 } from "lucide-react";
 import { ImageCropperModal } from "../../modals/image-cropper-modal";
 import { TikTokVideoOptions } from "./tiktok-video-options";
@@ -62,7 +61,7 @@ function TikTokPreview({
   );
 
   const { organizationId } = useClientData();
-  const { getOriginalUrl, isFetching } = useOriginalUrl(organizationId);
+  const { getOriginalUrl } = useOriginalUrl(organizationId);
 
   const isCarousel = mediaItems && mediaItems.length > 1;
 
@@ -218,15 +217,10 @@ function TikTokPreview({
           {canCrop && (
             <button
               onClick={handleCropClick}
-              disabled={isFetching}
               className={cn(btnClass)}
               title="Crop Media"
             >
-              {isFetching ? (
-                <Loader2 className="h-3.5 w-3.5 animate-spin" />
-              ) : (
-                <Crop className="h-3.5 w-3.5" />
-              )}
+              <Crop className="h-3.5 w-3.5" />
               <span>
                 Crop
                 {isCarousel && ` (${carouselIndex + 1}/${mediaItems?.length})`}

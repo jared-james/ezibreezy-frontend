@@ -2,7 +2,7 @@
 
 "use client";
 
-import { useState } from "react";
+import React, { useState } from "react";
 import { Loader2, Trash2, Scissors } from "lucide-react";
 import { processAndDownload, AspectRatio } from "@/lib/tools/image-processing";
 import { toast } from "sonner";

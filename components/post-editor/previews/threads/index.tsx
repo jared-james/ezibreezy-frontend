@@ -3,7 +3,7 @@
 "use client";
 
 import { memo, useState } from "react";
-import { Crop, ImageIcon, Loader2 } from "lucide-react";
+import { Crop, ImageIcon } from "lucide-react";
 import { renderCaptionWithHashtags } from "../../render-caption";
 import { ImageCropperModal } from "../../modals/image-cropper-modal";
 import { type CropData } from "@/lib/utils/crop-utils";
@@ -73,7 +73,7 @@ function ThreadsPreview({
   );
 
   const { organizationId } = useClientData();
-  const { getOriginalUrl, isFetching } = useOriginalUrl(organizationId);
+  const { getOriginalUrl } = useOriginalUrl(organizationId);
 
   const canCrop = mediaItems.some((item) => item.id && item.type === "image");
 
@@ -133,15 +133,10 @@ function ThreadsPreview({
           {canCrop && (
             <button
               onClick={handleCropClick}
-              disabled={isFetching}
               className={cn(btnClass)}
               title="Crop Media"
             >
-              {isFetching ? (
-                <Loader2 className="h-3.5 w-3.5 animate-spin" />
-              ) : (
-                <Crop className="h-3.5 w-3.5" />
-              )}
+              <Crop className="h-3.5 w-3.5" />
               <span>Crop</span>
             </button>
           )}
