@@ -152,19 +152,17 @@ function PreviewPanel() {
   if (activePlatforms.length === 0) {
     return (
       <div className="flex flex-col">
-        <div className="flex items-center justify-between border-b-2 border-[--foreground] pb-2">
-          <h3 className="font-serif text-xl font-bold text-[--foreground]">
-            Post Preview
-          </h3>
-          <LayoutGrid className="w-4 h-4 text-[--muted]" />
+        <div className="flex items-center justify-between border-b-2 pb-4">
+          <h3 className="font-serif text-2xl font-bold">Post Preview</h3>
+          <LayoutGrid className="w-5 h-5 text-[--muted-foreground]" />
         </div>
-        <div className="flex flex-col items-center justify-center min-h-[400px] border border-[--border] bg-[--surface] text-center p-8 mt-4">
+        <div className="flex flex-col items-center justify-center min-h-[400px] border border-[--border] bg-[--surface] text-center p-8 mt-6 rounded-lg">
           <Image
             src="/select_a_channel.webp"
             alt="Select a channel"
             width={160}
             height={160}
-            className="mb-3"
+            className="mb-4 opacity-50"
           />
           <h3 className="font-serif text-lg font-bold">Select a Channel</h3>
           <p className="font-serif text-sm text-[--muted-foreground] max-w-xs mt-2">
@@ -179,7 +177,7 @@ function PreviewPanel() {
   const renderPreview = () => {
     if (!activeAccount) {
       return (
-        <div className="text-center p-8 text-[--muted-foreground]">
+        <div className="flex h-full items-center justify-center p-8 text-[--muted-foreground] italic font-serif">
           No account selected for preview.
         </div>
       );
@@ -343,15 +341,13 @@ function PreviewPanel() {
 
   return (
     <div className="flex flex-col">
-      <div className="flex items-center justify-between border-b-2 border-[--foreground] pb-2">
-        <h3 className="font-serif text-xl font-bold text-[--foreground]">
-          Post Preview
-        </h3>
-        <LayoutGrid className="w-4 h-4 text-[--muted]" />
+      <div className="flex items-center justify-between border-b-2 pb-4">
+        <h3 className="font-serif text-2xl font-bold">Post Preview</h3>
+        <LayoutGrid className="w-5 h-5 text-[--muted-foreground]" />
       </div>
 
-      <div className="bg-[--surface] border border-[--border] mt-4">
-        <div className="flex items-center gap-2 px-5 py-3 border-b border-[--border] bg-[--background]">
+      <div className="bg-[--surface] border border-[--border] mt-6 rounded-lg overflow-hidden shadow-sm">
+        <div className="flex items-center gap-2 px-5 py-3 border-b border-[--border] bg-[--background]/50">
           {PlatformIcon && (
             <PlatformIcon className="w-5 h-5 text-brand-primary" />
           )}

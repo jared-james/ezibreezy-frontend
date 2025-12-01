@@ -14,20 +14,18 @@ export default function DistributionPanel() {
 
   return (
     <div className="flex flex-col">
-      <div className="flex items-center justify-between border-b-2 border-[--foreground] pb-2">
-        <h3 className="font-serif text-xl font-bold text-[--foreground]">
-          Distribution
-        </h3>
-        <Send className="h-4 w-4 text-[--muted]" />
+      <div className="flex items-center justify-between border-b-2 pb-4">
+        <h3 className="font-serif text-2xl font-bold">Distribution</h3>
+        <Send className="w-5 h-5 text-[--muted-foreground]" />
       </div>
 
-      <div className="mt-4 border border-border p-5">
+      <div className="mt-6 border border-[--border] bg-[--surface] p-6 rounded-lg shadow-sm">
         <div className="relative">
-          <label htmlFor="labels" className="eyebrow">
+          <label htmlFor="labels" className="eyebrow mb-3 block">
             Labels
           </label>
-          <div className="relative mt-2">
-            <Tag className="absolute left-3 top-1/2 h-3 w-3 -translate-y-1/2 text-muted-foreground" />
+          <div className="relative">
+            <Tag className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <Input
               id="labels"
               value={labels}
@@ -35,7 +33,7 @@ export default function DistributionPanel() {
                 setPublishingState({ labels: event.target.value })
               }
               placeholder="Promotion, News, Evergreen..."
-              className="h-9 pl-8"
+              className="h-10 pl-9"
             />
           </div>
         </div>

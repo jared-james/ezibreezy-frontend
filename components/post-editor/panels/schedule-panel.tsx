@@ -88,22 +88,20 @@ export default function ScheduleCard({
 
   return (
     <div className="flex flex-col">
-      <div className="flex items-center justify-between border-b-2 border-[--foreground] pb-2">
-        <h3 className="font-serif text-xl font-bold text-[--foreground]">
-          Schedule
-        </h3>
-        <CalendarIcon className="h-4 w-4 text-[--muted]" />
+      <div className="flex items-center justify-between border-b-2 pb-4">
+        <h3 className="font-serif text-2xl font-bold">Schedule</h3>
+        <CalendarIcon className="w-5 h-5 text-[--muted-foreground]" />
       </div>
 
-      <div className="mt-4 space-y-6">
+      <div className="mt-6 space-y-6">
         <div className="flex gap-2">
           <button
             type="button"
             onClick={() => onSchedulingChange(true)}
             className={cn(
-              "flex flex-1 cursor-pointer items-center justify-center px-4 py-3 text-sm font-serif",
+              "flex flex-1 cursor-pointer items-center justify-center px-4 py-3 text-sm font-serif rounded-md transition-all",
               isScheduling
-                ? "border-2 border-brand-primary bg-[--surface] font-bold text-brand-primary"
+                ? "border-2 border-brand-primary bg-[--surface] font-bold text-brand-primary shadow-sm"
                 : "border border-[--border] bg-transparent text-[--muted-foreground] hover:bg-[--surface-hover]"
             )}
           >
@@ -114,9 +112,9 @@ export default function ScheduleCard({
             type="button"
             onClick={() => onSchedulingChange(false)}
             className={cn(
-              "flex flex-1 cursor-pointer items-center justify-center px-4 py-3 text-sm font-serif",
+              "flex flex-1 cursor-pointer items-center justify-center px-4 py-3 text-sm font-serif rounded-md transition-all",
               !isScheduling
-                ? "border-2 border-brand-primary bg-[--surface] font-bold text-brand-primary"
+                ? "border-2 border-brand-primary bg-[--surface] font-bold text-brand-primary shadow-sm"
                 : "border border-[--border] bg-transparent text-[--muted-foreground] hover:bg-[--surface-hover]"
             )}
           >
@@ -126,7 +124,7 @@ export default function ScheduleCard({
         </div>
 
         {isScheduling && (
-          <div className="animate-in fade-in-50 slide-in-from-top-2 border border-[--border] bg-[--surface] p-4">
+          <div className="animate-in fade-in-50 slide-in-from-top-2 border border-[--border] bg-[--surface] p-6 rounded-lg shadow-sm">
             <div className="flex flex-col gap-6">
               <div className="border-b border-dashed border-[--border] pb-6">
                 <Calendar
@@ -144,13 +142,13 @@ export default function ScheduleCard({
                 />
               </div>
 
-              <div className="space-y-2">
-                <label className="flex items-center gap-2 font-serif text-xs font-bold uppercase tracking-wider text-[--muted-foreground]">
+              <div className="space-y-3">
+                <label className="eyebrow flex items-center gap-2">
                   <Clock className="h-3 w-3" />
                   Publish Time
                 </label>
                 <Select value={scheduleTime} onValueChange={onTimeChange}>
-                  <SelectTrigger className="w-full border-[--border] bg-[--background] font-serif">
+                  <SelectTrigger className="w-full border-[--border] bg-[--background] font-serif h-10">
                     <SelectValue>{selectedTimeAmPm}</SelectValue>
                   </SelectTrigger>
                   <SelectContent className="max-h-[200px] font-serif">
@@ -164,7 +162,7 @@ export default function ScheduleCard({
               </div>
 
               {scheduleDate && scheduleTime && (
-                <div className="bg-[--surface-hover] p-3 text-center font-serif text-sm italic text-[--foreground]">
+                <div className="bg-[--surface-hover] p-3 rounded-md text-center font-serif text-sm italic text-[--foreground] border border-[--border]">
                   Posting on{" "}
                   <span className="font-bold not-italic">
                     {format(new Date(scheduleDate), "EEEE, MMMM do")}
@@ -189,16 +187,16 @@ export default function ScheduleCard({
             hasMediaConflicts ||
             (isScheduling && (!scheduleDate || !scheduleTime))
           }
-          className="w-full gap-2"
+          className="w-full gap-2 h-12 text-base shadow-md hover:shadow-lg transition-all"
         >
           {isPublishing ? (
             <>
-              <Loader2 className="h-4 w-4 animate-spin" />
+              <Loader2 className="h-5 w-5 animate-spin" />
               Processing...
             </>
           ) : (
             <>
-              <CheckSquare className="h-4 w-4" />
+              <CheckSquare className="h-5 w-5" />
               {isScheduling ? "Confirm Schedule" : "Publish Immediately"}
             </>
           )}
