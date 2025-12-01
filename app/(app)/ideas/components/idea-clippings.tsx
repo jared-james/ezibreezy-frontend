@@ -15,7 +15,7 @@ import {
 import type { ScheduledPostResponse } from "@/lib/api/publishing";
 import { format } from "date-fns";
 import { toast } from "sonner";
-import EditorialModal from "@/app/(app)/calendar/components/editorial-modal";
+import EditorialModal from "@/components/calendar/modals/editorial-modal";
 import { useEditorialDraftStore } from "@/lib/store/editorial/draft-store";
 import { usePublishingStore } from "@/lib/store/editorial/publishing-store";
 import { useEditorialUIStore } from "@/lib/store/editorial/ui-store";

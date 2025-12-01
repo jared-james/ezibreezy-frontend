@@ -1,4 +1,4 @@
-// app/(app)/calendar/components/week-view.tsx
+// components/calendar/views/week-view.tsx
 
 "use client";
 
@@ -20,7 +20,6 @@ import {
   Linkedin,
   Clock,
   Plus,
-  Loader2,
 } from "lucide-react";
 import type { ScheduledPost } from "../types";
 import { cn } from "@/lib/utils";
@@ -73,7 +72,7 @@ export default function WeekView({
       {/* Days Grid */}
       <div className="flex flex-1 overflow-x-auto overflow-y-auto">
         <div className="flex min-w-[800px] w-full">
-          {weekDays.map((day, index) => {
+          {weekDays.map((day) => {
             const isCurrentDay = isToday(day);
             const postsForDay = posts.filter((post) =>
               isSameDay(new Date(post.scheduledAt), day)

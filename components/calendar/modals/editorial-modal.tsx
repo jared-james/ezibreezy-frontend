@@ -1,4 +1,4 @@
-// app/(app)/calendar/components/editorial-modal.tsx
+// components/calendar/modals/editorial-modal.tsx
 
 "use client";
 

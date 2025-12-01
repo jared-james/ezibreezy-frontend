@@ -1,4 +1,4 @@
-// app/(app)/calendar/components/list-view.tsx
+// components/calendar/views/list-view.tsx
 
 "use client";
 
@@ -8,13 +8,11 @@ import {
   Instagram,
   Linkedin,
   Clock,
-  X,
   Loader2,
   Trash2,
 } from "lucide-react";
 import { format, isToday, isTomorrow } from "date-fns";
 import type { ScheduledPost } from "../types";
-import { Button } from "@/components/ui/button";
 import { deletePost } from "@/lib/api/publishing";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -47,12 +45,12 @@ export default function ListView({ posts, onEditPost }: ListViewProps) {
     onMutate: (postId) => {
       setDeletingId(postId);
     },
-    onSuccess: (_, postId) => {
+    onSuccess: () => {
       toast.success("Post successfully cancelled.");
-      queryClient.invalidateQueries({ queryKey: ["contentLibrary"] }); // Matches query key in page.tsx
+      queryClient.invalidateQueries({ queryKey: ["contentLibrary"] });
       setDeletingId(null);
     },
-    onError: (error: any, postId) => {
+    onError: (error: Error & { response?: { data?: { message?: string } } }) => {
       toast.error(
         `Failed to cancel post: ${
           error?.response?.data?.message || "Please try again."
@@ -81,7 +79,7 @@ export default function ListView({ posts, onEditPost }: ListViewProps) {
           No Upcoming Posts
         </h3>
         <p className="font-serif text-sm text-muted-foreground mt-1 max-w-xs">
-          Your schedule is clear. Click "Create Post" to start planning your
+          Your schedule is clear. Click &quot;Create Post&quot; to start planning your
           content.
         </p>
       </div>

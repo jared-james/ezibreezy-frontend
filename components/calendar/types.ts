@@ -1,4 +1,4 @@
-// app/(app)/calendar/types.ts
+// components/calendar/types.ts
 
 import type { CalendarMediaItem } from "@/lib/api/publishing";
 
@@ -12,3 +12,5 @@ export type ScheduledPost = {
   platformUsername: string; // The username for the connected account
   media: CalendarMediaItem[]; // Array of media objects
 };
+
+export type CalendarView = "Month" | "Week" | "List";

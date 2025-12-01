@@ -1,4 +1,4 @@
-// app/(app)/calendar/components/month-view.tsx
+// components/calendar/views/month-view.tsx
 
 "use client";
 
@@ -220,7 +220,7 @@ function DroppableDay({
         </button>
       </div>
 
-      {/* 
+      {/*
         Container for posts with Overflow Scroll.
         pointer-events-auto ensures dragging and clicking works.
         h-full ensures it takes remaining height.
@@ -245,7 +245,6 @@ export default function MonthView({
   onEditPost,
   onNewPost,
   onDropPost,
-  onOpenDayView,
   lockedPostId,
 }: MonthViewProps) {
   const [activeDragPost, setActiveDragPost] = useState<ScheduledPost | null>(
