@@ -5,7 +5,7 @@
 import * as React from "react";
 import { CalendarIcon, CheckSquare, Loader2, Clock, Check } from "lucide-react";
 import { format, isToday, isBefore, parse } from "date-fns";
-import { useEditorialStore } from "@/lib/store/editorial-store";
+import { usePublishingStore } from "@/lib/store/editorial/publishing-store";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import {
@@ -35,15 +35,19 @@ export default function ScheduleCard({
   isUploading,
   hasMediaConflicts = false,
 }: ScheduleCardProps) {
-  const isScheduling = useEditorialStore((state) => state.isScheduling);
-  const scheduleDate = useEditorialStore((state) => state.scheduleDate);
-  const scheduleTime = useEditorialStore((state) => state.scheduleTime);
-  const setState = useEditorialStore((state) => state.setState);
+  const isScheduling = usePublishingStore((state) => state.isScheduling);
+  const scheduleDate = usePublishingStore((state) => state.scheduleDate);
+  const scheduleTime = usePublishingStore((state) => state.scheduleTime);
+  const setPublishingState = usePublishingStore(
+    (state) => state.setPublishingState
+  );
 
   const onSchedulingChange = (value: boolean) =>
-    setState({ isScheduling: value });
-  const onDateChange = (date: string) => setState({ scheduleDate: date });
-  const onTimeChange = (time: string) => setState({ scheduleTime: time });
+    setPublishingState({ isScheduling: value });
+  const onDateChange = (date: string) =>
+    setPublishingState({ scheduleDate: date });
+  const onTimeChange = (time: string) =>
+    setPublishingState({ scheduleTime: time });
 
   React.useEffect(() => {
     onSchedulingChange(true);

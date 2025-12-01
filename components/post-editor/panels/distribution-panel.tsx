@@ -1,29 +1,16 @@
+// components/post-editor/panels/distribution-panel.tsx
+
 "use client";
 
-import { useState, useEffect } from "react";
 import { Send, Tag } from "lucide-react";
-import { useEditorialStore } from "@/lib/store/editorial-store";
+import { usePublishingStore } from "@/lib/store/editorial/publishing-store";
 import { Input } from "@/components/ui/input";
 
-interface DistributionPanelProps {
-  onLabelsChange?: (labels: string) => void;
-}
-
-export default function DistributionPanel({
-  onLabelsChange,
-}: DistributionPanelProps) {
-  const labels = useEditorialStore((state) => state.labels);
-  const [localLabels, setLocalLabels] = useState(labels);
-
-  useEffect(() => {
-    setLocalLabels(labels);
-  }, [labels]);
-
-  useEffect(() => {
-    if (onLabelsChange) {
-      onLabelsChange(localLabels);
-    }
-  }, [localLabels, onLabelsChange]);
+export default function DistributionPanel() {
+  const labels = usePublishingStore((state) => state.labels);
+  const setPublishingState = usePublishingStore(
+    (state) => state.setPublishingState
+  );
 
   return (
     <div className="flex flex-col">
@@ -43,8 +30,10 @@ export default function DistributionPanel({
             <Tag className="absolute left-3 top-1/2 h-3 w-3 -translate-y-1/2 text-muted-foreground" />
             <Input
               id="labels"
-              value={localLabels}
-              onChange={(event) => setLocalLabels(event.target.value)}
+              value={labels}
+              onChange={(event) =>
+                setPublishingState({ labels: event.target.value })
+              }
               placeholder="Promotion, News, Evergreen..."
               className="h-9 pl-8"
             />

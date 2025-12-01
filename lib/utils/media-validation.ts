@@ -1,6 +1,6 @@
 // lib/utils/media-validation.ts
 
-import { MediaItem } from "@/lib/store/editorial-store";
+import { MediaItem } from "@/lib/store/editorial/draft-store";
 
 export interface MediaConflict {
   platform: string;

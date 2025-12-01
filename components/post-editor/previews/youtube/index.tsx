@@ -6,7 +6,10 @@ import { memo, useState } from "react";
 import { Crop, ImageIcon } from "lucide-react";
 import { ImageCropperModal } from "../../modals/image-cropper-modal";
 import { type CropData } from "@/lib/utils/crop-utils";
-import { useEditorialStore, MediaItem } from "@/lib/store/editorial-store";
+import {
+  useEditorialDraftStore,
+  MediaItem,
+} from "@/lib/store/editorial/draft-store";
 import { useClientData } from "@/lib/hooks/use-client-data";
 import { useOriginalUrl } from "@/lib/hooks/use-original-url";
 import { cn } from "@/lib/utils";
@@ -36,7 +39,11 @@ function YouTubePreview({
   const primaryName = displayName || accountName || "Account";
 
   const [isCropperOpen, setIsCropperOpen] = useState(false);
-  const setCropForMedia = useEditorialStore((state) => state.setCropForMedia);
+
+  // Migrated to Draft Store
+  const setCropForMedia = useEditorialDraftStore(
+    (state) => state.setCropForMedia
+  );
 
   // Data Hooks
   const { organizationId } = useClientData();

@@ -9,7 +9,7 @@ import {
   ThreadMessage,
   ThreadMessageAugmented,
 } from "@/lib/types/editorial";
-import { useEditorialStore } from "@/lib/store/editorial-store";
+import { useEditorialUIStore } from "@/lib/store/editorial/ui-store"; // Updated Store
 import HashtagSelectorModal from "../modals/hashtag-selector-modal";
 import { CaptionTextarea } from "./components/caption-textarea";
 import { PlatformFilterButtons } from "./components/platform-filter-buttons";
@@ -50,12 +50,15 @@ export default function CaptionEditor({
 }: CaptionEditorProps) {
   const captionState = useCaptionState(threadMessages, onLocalCaptionsChange);
 
-  const activeCaptionFilter = useEditorialStore(
+  // Switched to useEditorialUIStore
+  const activeCaptionFilter = useEditorialUIStore(
     (state) => state.activeCaptionFilter
   );
+  const setUIState = useEditorialUIStore((state) => state.setUIState);
+
   const setActiveCaptionFilter = useCallback(
-    (filter: string) => captionState.setState({ activeCaptionFilter: filter }),
-    [captionState]
+    (filter: string) => setUIState({ activeCaptionFilter: filter }),
+    [setUIState]
   );
 
   const selectedPlatformIds = useMemo(

@@ -3,7 +3,8 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { useEditorialStore } from "@/lib/store/editorial-store";
+import { useEditorialDraftStore } from "@/lib/store/editorial/draft-store";
+import { usePublishingStore } from "@/lib/store/editorial/publishing-store";
 import { ThreadMessage } from "@/lib/types/editorial";
 
 export function useCaptionState(
@@ -13,26 +14,67 @@ export function useCaptionState(
     platformCaptions: Record<string, string>
   ) => void
 ) {
-  const mainCaption = useEditorialStore((state) => state.mainCaption);
-  const platformCaptions = useEditorialStore((state) => state.platformCaptions);
-  const platformTitles = useEditorialStore((state) => state.platformTitles);
-  const platformThreadMessages = useEditorialStore(
+  // -- Atomic Selectors (Prevents infinite loops) --
+
+  // Draft Store
+  const mainCaption = useEditorialDraftStore((state) => state.mainCaption);
+  const platformCaptions = useEditorialDraftStore(
+    (state) => state.platformCaptions
+  );
+  const platformTitles = useEditorialDraftStore(
+    (state) => state.platformTitles
+  );
+  const platformThreadMessages = useEditorialDraftStore(
     (state) => state.platformThreadMessages
   );
-  const firstComment = useEditorialStore((state) => state.firstComment);
-  const facebookFirstComment = useEditorialStore(
+  const firstComment = useEditorialDraftStore((state) => state.firstComment);
+  const facebookFirstComment = useEditorialDraftStore(
     (state) => state.facebookFirstComment
   );
-  const currentPostType = useEditorialStore((state) => state.postType);
-  const facebookPostType = useEditorialStore((state) => state.facebookPostType);
-  const pinterestLink = useEditorialStore((state) => state.pinterestLink);
-  const pinterestBoardId = useEditorialStore((state) => state.pinterestBoardId);
-  const setState = useEditorialStore((state) => state.setState);
+  const postType = useEditorialDraftStore((state) => state.postType);
+  const facebookPostType = useEditorialDraftStore(
+    (state) => state.facebookPostType
+  );
+
+  const setDraftState = useEditorialDraftStore((state) => state.setDraftState);
+
+  // Publishing Store
+  const pinterestLink = usePublishingStore((state) => state.pinterestLink);
+  const pinterestBoardId = usePublishingStore(
+    (state) => state.pinterestBoardId
+  );
+
+  const setPublishingState = usePublishingStore(
+    (state) => state.setPublishingState
+  );
+
+  // -- Local State --
 
   const [localMainCaption, setLocalMainCaption] = useState(mainCaption);
   const [localPlatformCaptions, setLocalPlatformCaptions] =
     useState(platformCaptions);
+  const [localPlatformTitles, setLocalPlatformTitles] =
+    useState(platformTitles);
+  const [localThreadMessages, setLocalThreadMessages] =
+    useState(threadMessages);
+  const [localPlatformThreadMessages, setLocalPlatformThreadMessages] =
+    useState(platformThreadMessages);
+  const [localFirstComment, setLocalFirstComment] = useState(firstComment);
+  const [localFacebookFirstComment, setLocalFacebookFirstComment] =
+    useState(facebookFirstComment);
+  const [localPinterestLink, setLocalPinterestLink] = useState(pinterestLink);
+  const [localPinterestBoardId, setLocalPinterestBoardId] =
+    useState(pinterestBoardId);
 
+  const [showFirstComment, setShowFirstComment] = useState(
+    !!firstComment && firstComment.length > 0
+  );
+  const [showFacebookFirstComment, setShowFacebookFirstComment] = useState(
+    !!facebookFirstComment && facebookFirstComment.length > 0
+  );
+
+  // "Dirty" tracking to know if a platform caption has been manually edited
+  // and should be detached from the main caption updates.
   const [dirtyPlatforms, setDirtyPlatforms] = useState<Record<string, boolean>>(
     () => {
       const dirty: Record<string, boolean> = {};
@@ -45,24 +87,7 @@ export function useCaptionState(
     }
   );
 
-  const [localPlatformTitles, setLocalPlatformTitles] =
-    useState(platformTitles);
-  const [localThreadMessages, setLocalThreadMessages] =
-    useState(threadMessages);
-  const [localPlatformThreadMessages, setLocalPlatformThreadMessages] =
-    useState<Record<string, ThreadMessage[]>>(platformThreadMessages);
-  const [localFirstComment, setLocalFirstComment] = useState(firstComment);
-  const [localFacebookFirstComment, setLocalFacebookFirstComment] =
-    useState(facebookFirstComment);
-  const [showFirstComment, setShowFirstComment] = useState(
-    !!firstComment && firstComment.length > 0
-  );
-  const [showFacebookFirstComment, setShowFacebookFirstComment] = useState(
-    !!facebookFirstComment && facebookFirstComment.length > 0
-  );
-  const [localPinterestLink, setLocalPinterestLink] = useState(pinterestLink);
-  const [localPinterestBoardId, setLocalPinterestBoardId] =
-    useState(pinterestBoardId);
+  // -- Sync Global -> Local --
 
   useEffect(() => {
     setLocalMainCaption(mainCaption);
@@ -96,23 +121,11 @@ export function useCaptionState(
 
   useEffect(() => {
     setLocalFirstComment(firstComment);
-    if (currentPostType === "story") {
-      setShowFirstComment(false);
-    } else {
-      setShowFirstComment(!!firstComment && firstComment.length > 0);
-    }
-  }, [firstComment, currentPostType]);
+  }, [firstComment]);
 
   useEffect(() => {
     setLocalFacebookFirstComment(facebookFirstComment);
-    if (facebookPostType === "story") {
-      setShowFacebookFirstComment(false);
-    } else {
-      setShowFacebookFirstComment(
-        !!facebookFirstComment && facebookFirstComment.length > 0
-      );
-    }
-  }, [facebookFirstComment, facebookPostType]);
+  }, [facebookFirstComment]);
 
   useEffect(() => {
     setLocalPinterestLink(pinterestLink);
@@ -122,45 +135,63 @@ export function useCaptionState(
     setLocalPinterestBoardId(pinterestBoardId);
   }, [pinterestBoardId]);
 
+  // -- Sync Local -> Global (Debounced) --
   useEffect(() => {
-    if (currentPostType === "story") {
+    const handler = setTimeout(() => {
+      setDraftState({
+        mainCaption: localMainCaption,
+        platformCaptions: localPlatformCaptions,
+        platformTitles: localPlatformTitles,
+        platformThreadMessages: localPlatformThreadMessages,
+        firstComment: localFirstComment,
+        facebookFirstComment: localFacebookFirstComment,
+      });
+
+      setPublishingState({
+        pinterestLink: localPinterestLink,
+        pinterestBoardId: localPinterestBoardId,
+      });
+
+      onLocalCaptionsChange?.(localMainCaption, localPlatformCaptions);
+    }, 500);
+
+    return () => clearTimeout(handler);
+  }, [
+    localMainCaption,
+    localPlatformCaptions,
+    localPlatformTitles,
+    localPlatformThreadMessages,
+    localFirstComment,
+    localFacebookFirstComment,
+    localPinterestLink,
+    localPinterestBoardId,
+    setDraftState,
+    setPublishingState,
+    onLocalCaptionsChange,
+  ]);
+
+  // -- Visibility Logic --
+  useEffect(() => {
+    if (postType === "story") {
+      setShowFirstComment(false);
       setLocalPlatformCaptions((prev) => ({ ...prev, instagram: "" }));
+    } else {
+      setShowFirstComment(!!localFirstComment && localFirstComment.length > 0);
     }
-  }, [currentPostType]);
+  }, [postType, localFirstComment]);
 
   useEffect(() => {
     if (facebookPostType === "story") {
+      setShowFacebookFirstComment(false);
       setLocalPlatformCaptions((prev) => ({ ...prev, facebook: "" }));
+    } else {
+      setShowFacebookFirstComment(
+        !!localFacebookFirstComment && localFacebookFirstComment.length > 0
+      );
     }
-  }, [facebookPostType]);
+  }, [facebookPostType, localFacebookFirstComment]);
 
-  useEffect(() => {
-    onLocalCaptionsChange?.(localMainCaption, localPlatformCaptions);
-  }, [localMainCaption, localPlatformCaptions, onLocalCaptionsChange]);
-
-  useEffect(() => {
-    setState({ firstComment: localFirstComment });
-  }, [localFirstComment, setState]);
-
-  useEffect(() => {
-    setState({ facebookFirstComment: localFacebookFirstComment });
-  }, [localFacebookFirstComment, setState]);
-
-  useEffect(() => {
-    setState({ platformTitles: localPlatformTitles });
-  }, [localPlatformTitles, setState]);
-
-  useEffect(() => {
-    setState({ platformThreadMessages: localPlatformThreadMessages });
-  }, [localPlatformThreadMessages, setState]);
-
-  useEffect(() => {
-    setState({ pinterestLink: localPinterestLink });
-  }, [localPinterestLink, setState]);
-
-  useEffect(() => {
-    setState({ pinterestBoardId: localPinterestBoardId });
-  }, [localPinterestBoardId, setState]);
+  // -- Handlers --
 
   const handleMainCaptionChange = useCallback(
     (newCaption: string) => {
@@ -168,16 +199,11 @@ export function useCaptionState(
 
       setLocalPlatformCaptions((prev) => {
         const next = { ...prev };
-        const currentPlatforms = Object.keys(
-          useEditorialStore.getState().selectedAccounts
-        );
-
-        currentPlatforms.forEach((platformId) => {
+        Object.keys(prev).forEach((platformId) => {
           if (!dirtyPlatforms[platformId]) {
             next[platformId] = newCaption;
           }
         });
-
         return next;
       });
     },
@@ -201,7 +227,7 @@ export function useCaptionState(
 
   return {
     localMainCaption,
-    setLocalMainCaption,
+    setLocalMainCaption: handleMainCaptionChange,
     localPlatformCaptions,
     setLocalPlatformCaptions,
     handleMainCaptionChange,
@@ -224,8 +250,8 @@ export function useCaptionState(
     setLocalPinterestLink,
     localPinterestBoardId,
     setLocalPinterestBoardId,
-    currentPostType,
-    facebookPostType,
-    setState,
+    currentPostType: postType,
+    facebookPostType: facebookPostType,
+    setState: setDraftState,
   };
 }

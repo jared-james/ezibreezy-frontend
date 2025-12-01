@@ -3,7 +3,7 @@
 "use client";
 
 import { cn } from "@/lib/utils";
-import { MediaItem } from "@/lib/store/editorial-store";
+import { MediaItem } from "@/lib/store/editorial/draft-store";
 import { Play } from "lucide-react";
 
 interface FacebookMediaGridProps {

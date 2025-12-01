@@ -3,27 +3,27 @@
 "use client";
 
 import { useEffect } from "react";
-import { useEditorialStore } from "@/lib/store/editorial-store";
+import { useEditorialDraftStore } from "@/lib/store/editorial/draft-store";
+import { usePublishingStore } from "@/lib/store/editorial/publishing-store";
+import { useEditorialUIStore } from "@/lib/store/editorial/ui-store";
 import EditorialCore from "@/components/post-editor";
 
 export default function EditorialPage() {
-  const draft = useEditorialStore((state) => state.draft);
-  const initializeFromDraft = useEditorialStore(
-    (state) => state.initializeFromDraft
-  );
-  const setState = useEditorialStore((state) => state.setState);
-  const reset = useEditorialStore((state) => state.reset);
+  const resetDraft = useEditorialDraftStore((state) => state.resetDraft);
+  const resetPublishing = usePublishingStore((state) => state.resetPublishing);
+  const resetUI = useEditorialUIStore((state) => state.resetUI);
 
   useEffect(() => {
-    if (draft) {
-      initializeFromDraft(draft);
-      setState({ draft: null });
-    }
+    // Note: Previous "draft" initialization logic is removed as the passing mechanism
+    // needs to be updated to write directly to these stores from the source (Ideas page)
+    // or via URL parameters.
 
     return () => {
-      reset();
+      resetDraft();
+      resetPublishing();
+      resetUI();
     };
-  }, [draft, initializeFromDraft, setState, reset]);
+  }, [resetDraft, resetPublishing, resetUI]);
 
   return (
     <div className="mx-auto flex w-full max-w-7xl flex-col">

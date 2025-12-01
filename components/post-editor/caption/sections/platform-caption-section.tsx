@@ -14,7 +14,8 @@ import { FirstCommentSection } from "./first-comment-section";
 import PlatformMediaSelector from "../../media/platform-media-selector";
 import { YouTubeOptions } from "../../previews/youtube/youtube-options";
 import { PinterestOptions } from "../../previews/pinterest/pinterest-options";
-import { useEditorialStore } from "@/lib/store/editorial-store";
+import { useEditorialDraftStore } from "@/lib/store/editorial/draft-store";
+import { usePublishingStore } from "@/lib/store/editorial/publishing-store";
 
 interface PlatformCaptionSectionProps {
   platformId: string;
@@ -27,17 +28,7 @@ interface PlatformCaptionSectionProps {
   postType: "text" | "image" | "video";
   currentPostType: "post" | "story" | "reel";
   facebookPostType: "post" | "story" | "reel";
-  setState: (
-    state: Partial<{
-      postType: "post" | "story" | "reel";
-      facebookPostType: "post" | "story" | "reel";
-      youtubePrivacy: "public" | "private" | "unlisted";
-      youtubeCategory: string;
-      youtubeTags: string;
-      youtubeMadeForKids: boolean;
-      youtubeThumbnailUrl: string | null;
-    }>
-  ) => void;
+  setState: (state: any) => void; // Generically typed as it maps to setDraftState
   localPlatformTitles: Record<string, string>;
   setLocalPlatformTitles: (
     update: (prev: Record<string, string>) => Record<string, string>
@@ -90,7 +81,7 @@ export function PlatformCaptionSection({
   postType,
   currentPostType,
   facebookPostType,
-  setState,
+  setState, // This is setDraftState from the parent
   localPlatformTitles,
   setLocalPlatformTitles,
   currentThreadMessages,
@@ -128,21 +119,29 @@ export function PlatformCaptionSection({
     platformId === "facebook" && facebookPostType === "story";
   const isStory = isInstagramStory || isFacebookStory;
 
-  const youtubePrivacy = useEditorialStore((state) => state.youtubePrivacy);
-  const youtubeCategory = useEditorialStore((state) => state.youtubeCategory);
-  const youtubeTags = useEditorialStore((state) => state.youtubeTags);
-  const youtubeMadeForKids = useEditorialStore(
+  // Access stores directly for platform-specific metadata
+  const setPublishingState = usePublishingStore(
+    (state) => state.setPublishingState
+  );
+
+  const youtubePrivacy = usePublishingStore((state) => state.youtubePrivacy);
+  const youtubeCategory = usePublishingStore((state) => state.youtubeCategory);
+  const youtubeTags = usePublishingStore((state) => state.youtubeTags);
+  const youtubeMadeForKids = usePublishingStore(
     (state) => state.youtubeMadeForKids
   );
-  const youtubeThumbnailUrl = useEditorialStore(
+  const youtubeThumbnailUrl = usePublishingStore(
     (state) => state.youtubeThumbnailUrl
   );
 
-  const pinterestCoverUrl = useEditorialStore(
+  const pinterestCoverUrl = usePublishingStore(
     (state) => state.pinterestCoverUrl
   );
-  const stagedMediaItems = useEditorialStore((state) => state.stagedMediaItems);
-  const platformMediaSelections = useEditorialStore(
+
+  const stagedMediaItems = useEditorialDraftStore(
+    (state) => state.stagedMediaItems
+  );
+  const platformMediaSelections = useEditorialDraftStore(
     (state) => state.platformMediaSelections
   );
 
@@ -338,15 +337,19 @@ export function PlatformCaptionSection({
           <YouTubeOptions
             integrationId={integrationId}
             privacy={youtubePrivacy}
-            onPrivacyChange={(v) => setState({ youtubePrivacy: v })}
+            onPrivacyChange={(v) => setPublishingState({ youtubePrivacy: v })}
             category={youtubeCategory}
-            onCategoryChange={(v) => setState({ youtubeCategory: v })}
+            onCategoryChange={(v) => setPublishingState({ youtubeCategory: v })}
             tags={youtubeTags}
-            onTagsChange={(v) => setState({ youtubeTags: v })}
+            onTagsChange={(v) => setPublishingState({ youtubeTags: v })}
             madeForKids={youtubeMadeForKids}
-            onMadeForKidsChange={(v) => setState({ youtubeMadeForKids: v })}
+            onMadeForKidsChange={(v) =>
+              setPublishingState({ youtubeMadeForKids: v })
+            }
             thumbnailUrl={youtubeThumbnailUrl}
-            onThumbnailChange={(v) => setState({ youtubeThumbnailUrl: v })}
+            onThumbnailChange={(v) =>
+              setPublishingState({ youtubeThumbnailUrl: v })
+            }
           />
         )}
 
@@ -362,7 +365,7 @@ export function PlatformCaptionSection({
               activeMediaItem={activeMediaItem}
               coverUrl={pinterestCoverUrl}
               onCoverChange={(url) =>
-                useEditorialStore.setState({ pinterestCoverUrl: url })
+                setPublishingState({ pinterestCoverUrl: url })
               }
             />
           )}

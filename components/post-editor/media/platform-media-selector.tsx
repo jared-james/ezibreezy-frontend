@@ -2,7 +2,10 @@
 
 "use client";
 
-import { useEditorialStore, MediaItem } from "@/lib/store/editorial-store";
+import {
+  useEditorialDraftStore,
+  MediaItem,
+} from "@/lib/store/editorial/draft-store";
 import { cn } from "@/lib/utils";
 import {
   Film,
@@ -138,11 +141,13 @@ export default function PlatformMediaSelector({
   platformId,
   mediaErrors = {},
 }: PlatformMediaSelectorProps) {
-  const stagedMediaItems = useEditorialStore((state) => state.stagedMediaItems);
-  const platformMediaSelections = useEditorialStore(
+  const stagedMediaItems = useEditorialDraftStore(
+    (state) => state.stagedMediaItems
+  );
+  const platformMediaSelections = useEditorialDraftStore(
     (state) => state.platformMediaSelections
   );
-  const togglePlatformMediaSelection = useEditorialStore(
+  const togglePlatformMediaSelection = useEditorialDraftStore(
     (state) => state.togglePlatformMediaSelection
   );
 

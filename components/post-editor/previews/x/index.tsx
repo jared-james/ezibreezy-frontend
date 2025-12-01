@@ -8,7 +8,7 @@ import { cn } from "@/lib/utils";
 import { renderCaptionWithHashtags } from "../../render-caption";
 import { ImageCropperModal } from "../../modals/image-cropper-modal";
 import { type CropData } from "@/lib/utils/crop-utils";
-import { useEditorialStore, MediaItem } from "@/lib/store/editorial-store";
+import { MediaItem, useEditorialDraftStore } from "@/lib/store/editorial/draft-store";
 import { useClientData } from "@/lib/hooks/use-client-data";
 import { useOriginalUrl } from "@/lib/hooks/use-original-url";
 
@@ -131,7 +131,7 @@ function XPreview({
   const primaryName = displayName || accountName || "Account";
   const handle = accountName ? `@${accountName}` : "";
   const [isCropperOpen, setIsCropperOpen] = useState(false);
-  const setCropForMedia = useEditorialStore((state) => state.setCropForMedia);
+  const setCropForMedia = useEditorialDraftStore((state) => state.setCropForMedia);
 
   // Data Hooks
   const { organizationId } = useClientData();

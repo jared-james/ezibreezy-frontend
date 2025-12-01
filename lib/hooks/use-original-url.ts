@@ -5,7 +5,7 @@
 import { useCallback } from "react";
 import { toast } from "sonner";
 import { getMediaViewUrl } from "@/lib/api/media";
-import type { MediaItem } from "@/lib/store/editorial-store";
+import type { MediaItem } from "@/lib/store/editorial/draft-store";
 
 export function useOriginalUrl(organizationId: string | null) {
   const getOriginalUrl = useCallback(

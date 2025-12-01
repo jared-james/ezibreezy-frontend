@@ -11,7 +11,7 @@ import MediaRoomModal from "../modals/media-room-modal";
 import MediaSourceModal from "../modals/media-source-modal";
 import type { MediaItem as LibraryMediaItem } from "@/lib/api/media";
 import { Button } from "@/components/ui/button";
-import { MediaItem } from "@/lib/store/editorial-store";
+import { MediaItem } from "@/lib/store/editorial/draft-store";
 
 interface MediaUploadProps {
   items?: MediaItem[];

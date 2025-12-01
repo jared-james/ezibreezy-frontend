@@ -1,4 +1,4 @@
-// components/post-editor/confirmation-modal.tsx
+// components/post-editor/modals/confirmation-modal.tsx
 
 "use client";
 

@@ -1,12 +1,8 @@
 // components/post-editor/caption/hooks/use-thread-messages.ts
 
 import { useCallback, useMemo } from "react";
-import { useEditorialStore } from "@/lib/store/editorial-store";
-import {
-  ThreadMessage,
-  ThreadMessageAugmented,
-  DraftMediaItem,
-} from "@/lib/types/editorial";
+import { useEditorialDraftStore } from "@/lib/store/editorial/draft-store";
+import { ThreadMessage, ThreadMessageAugmented } from "@/lib/types/editorial";
 
 export function useThreadMessages(
   localThreadMessages: ThreadMessage[],
@@ -18,7 +14,10 @@ export function useThreadMessages(
   ) => void,
   onThreadMessagesChange?: (messages: ThreadMessage[]) => void
 ) {
-  const stagedMediaItems = useEditorialStore((state) => state.stagedMediaItems);
+  // Migrated to Draft Store - Atomic Selector
+  const stagedMediaItems = useEditorialDraftStore(
+    (state) => state.stagedMediaItems
+  );
 
   const augmentThreadMessages = useCallback(
     (messages: ThreadMessage[]): ThreadMessageAugmented[] => {
@@ -26,7 +25,7 @@ export function useThreadMessages(
         // Find media based on UIDs stored in the message
         const threadMedia = (msg.mediaIds || [])
           .map((uid) => stagedMediaItems.find((item) => item.uid === uid))
-          .filter(Boolean) as any[]; // Cast as any to match DraftMediaItem | MediaItem overlap if needed, usually MediaItem
+          .filter(Boolean) as any[];
 
         const hasVideo = threadMedia.some((m) => m.type === "video");
 

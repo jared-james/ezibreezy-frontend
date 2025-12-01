@@ -14,7 +14,7 @@ import {
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { PinterestBoardSelector } from "./pinterest-board-selector";
-import { MediaItem } from "@/lib/store/editorial-store";
+import { MediaItem } from "@/lib/store/editorial/draft-store";
 import { toast } from "sonner";
 import { uploadMedia } from "@/lib/api/media";
 import { useClientData } from "@/lib/hooks/use-client-data";

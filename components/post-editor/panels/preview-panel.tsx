@@ -24,8 +24,12 @@ import ThreadsPreview from "../previews/threads";
 import TikTokPreview from "../previews/tiktok";
 import YouTubePreview from "../previews/youtube";
 import PinterestPreview from "../previews/pinterest";
-import { cn } from "@/lib/utils";
-import { useEditorialStore, MediaItem } from "@/lib/store/editorial-store";
+import {
+  useEditorialDraftStore,
+  MediaItem,
+} from "@/lib/store/editorial/draft-store";
+import { usePublishingStore } from "@/lib/store/editorial/publishing-store";
+import { useEditorialUIStore } from "@/lib/store/editorial/ui-store";
 import { UserTagDto, ProductTagDto } from "@/lib/api/publishing";
 import { useQuery } from "@tanstack/react-query";
 
@@ -51,39 +55,50 @@ const platformNames: Record<string, string> = {
   pinterest: "Pinterest",
 };
 
-interface PreviewPanelProps {
-  selectedAccounts: Record<string, string[]>;
-  mainCaption: string;
-  platformCaptions: Record<string, string>;
-  collaborators: string;
-}
-
-function PreviewPanel({
-  selectedAccounts,
-  mainCaption,
-  platformCaptions,
-  collaborators,
-}: PreviewPanelProps) {
-  const userTags = useEditorialStore((state) => state.userTags);
-  const productTags = useEditorialStore((state) => state.productTags);
-  const postType = useEditorialStore((state) => state.postType);
-  const facebookPostType = useEditorialStore((state) => state.facebookPostType);
-  const platformTitles = useEditorialStore((state) => state.platformTitles);
-  const pinterestLink = useEditorialStore((state) => state.pinterestLink);
-  const setState = useEditorialStore((state) => state.setState);
-  const stagedMediaItems = useEditorialStore((state) => state.stagedMediaItems);
-  const platformMediaSelections = useEditorialStore(
+function PreviewPanel() {
+  const mainCaption = useEditorialDraftStore((state) => state.mainCaption);
+  const platformCaptions = useEditorialDraftStore(
+    (state) => state.platformCaptions
+  );
+  const userTags = useEditorialDraftStore((state) => state.userTags);
+  const productTags = useEditorialDraftStore((state) => state.productTags);
+  const postType = useEditorialDraftStore((state) => state.postType);
+  const facebookPostType = useEditorialDraftStore(
+    (state) => state.facebookPostType
+  );
+  const platformTitles = useEditorialDraftStore(
+    (state) => state.platformTitles
+  );
+  const stagedMediaItems = useEditorialDraftStore(
+    (state) => state.stagedMediaItems
+  );
+  const platformMediaSelections = useEditorialDraftStore(
     (state) => state.platformMediaSelections
   );
-
-  const instagramCoverUrl = useEditorialStore(
+  const instagramCoverUrl = useEditorialDraftStore(
     (state) => state.instagramCoverUrl
   );
-  const instagramThumbOffset = useEditorialStore(
+  const instagramThumbOffset = useEditorialDraftStore(
     (state) => state.instagramThumbOffset
   );
-  const instagramShareToFeed = useEditorialStore(
+  const instagramShareToFeed = useEditorialDraftStore(
     (state) => state.instagramShareToFeed
+  );
+
+  const setDraftState = useEditorialDraftStore((state) => state.setDraftState);
+
+  const selectedAccounts = usePublishingStore(
+    (state) => state.selectedAccounts
+  );
+  const pinterestLink = usePublishingStore((state) => state.pinterestLink);
+  const collaborators = usePublishingStore((state) => state.collaborators);
+
+  const setPublishingState = usePublishingStore(
+    (state) => state.setPublishingState
+  );
+
+  const activeCaptionFilter = useEditorialUIStore(
+    (state) => state.activeCaptionFilter
   );
 
   const { data: connections = [] } = useQuery({
@@ -94,10 +109,6 @@ function PreviewPanel({
   const activePlatforms = useMemo(
     () => Object.keys(selectedAccounts),
     [selectedAccounts]
-  );
-
-  const activeCaptionFilter = useEditorialStore(
-    (state) => state.activeCaptionFilter
   );
 
   const validActiveTab = useMemo(() => {
@@ -131,11 +142,11 @@ function PreviewPanel({
   );
 
   const handleUserTagsChange = (tags: Record<string, UserTagDto[]>) => {
-    setState({ userTags: tags });
+    setDraftState({ userTags: tags });
   };
 
   const handleProductTagsChange = (tags: Record<string, ProductTagDto[]>) => {
-    setState({ productTags: tags });
+    setDraftState({ productTags: tags });
   };
 
   if (activePlatforms.length === 0) {
@@ -223,14 +234,14 @@ function PreviewPanel({
             onProductTagsChange={handleProductTagsChange}
             aspectRatio={instagramAspectRatio}
             coverUrl={instagramCoverUrl}
-            onCoverChange={(url) => setState({ instagramCoverUrl: url })}
+            onCoverChange={(url) => setDraftState({ instagramCoverUrl: url })}
             thumbOffset={instagramThumbOffset}
             onThumbOffsetChange={(offset) =>
-              setState({ instagramThumbOffset: offset })
+              setDraftState({ instagramThumbOffset: offset })
             }
             shareToFeed={instagramShareToFeed}
             onShareToFeedChange={(val) =>
-              setState({ instagramShareToFeed: val })
+              setDraftState({ instagramShareToFeed: val })
             }
           />
         );

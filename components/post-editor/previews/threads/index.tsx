@@ -7,7 +7,8 @@ import { Crop, Link as LinkIcon, ImageIcon } from "lucide-react";
 import { renderCaptionWithHashtags } from "../../render-caption";
 import { ImageCropperModal } from "../../modals/image-cropper-modal";
 import { type CropData } from "@/lib/utils/crop-utils";
-import { useEditorialStore, MediaItem } from "@/lib/store/editorial-store";
+import { MediaItem, useEditorialDraftStore } from "@/lib/store/editorial/draft-store";
+import { usePublishingStore } from "@/lib/store/editorial/publishing-store";
 import { useClientData } from "@/lib/hooks/use-client-data";
 import { useOriginalUrl } from "@/lib/hooks/use-original-url";
 import LocationSearchInput from "../../location-search-input";
@@ -66,16 +67,15 @@ function ThreadsPreview({
   const primaryName = displayName || accountName || "Account";
   const [isCropperOpen, setIsCropperOpen] = useState(false);
 
-  const setCropForMedia = useEditorialStore((state) => state.setCropForMedia);
-  const setState = useEditorialStore((state) => state.setState);
-
-  const integrationId =
-    useEditorialStore.getState().selectedAccounts["threads"]?.[0];
-  const threadsTopicTag = useEditorialStore((state) => state.threadsTopicTag);
-  const threadsLinkAttachment = useEditorialStore(
+  const setCropForMedia = useEditorialDraftStore((state) => state.setCropForMedia);
+  const setPublishingState = usePublishingStore((state) => state.setPublishingState);
+  const selectedAccounts = usePublishingStore((state) => state.selectedAccounts);
+  const integrationId = selectedAccounts["threads"]?.[0];
+  const threadsTopicTag = usePublishingStore((state) => state.threadsTopicTag);
+  const threadsLinkAttachment = usePublishingStore(
     (state) => state.threadsLinkAttachment
   );
-  const location = useEditorialStore((state) => state.location);
+  const location = usePublishingStore((state) => state.location);
 
   // Data Hooks
   const { organizationId } = useClientData();
@@ -99,7 +99,7 @@ function ThreadsPreview({
     let value = e.target.value;
     if (value.startsWith("#")) value = value.slice(1);
     value = value.replace(/[.&]/g, "");
-    if (value.length <= 50) setState({ threadsTopicTag: value });
+    if (value.length <= 50) setPublishingState({ threadsTopicTag: value });
   };
 
   return (
@@ -190,7 +190,7 @@ function ThreadsPreview({
                 type="url"
                 value={threadsLinkAttachment}
                 onChange={(e) =>
-                  setState({ threadsLinkAttachment: e.target.value })
+                  setPublishingState({ threadsLinkAttachment: e.target.value })
                 }
                 placeholder="https://example.com"
                 className="h-9"
@@ -202,7 +202,7 @@ function ThreadsPreview({
             <LocationSearchInput
               initialLocation={location}
               onLocationSelect={(newLocation) =>
-                setState({ location: newLocation || { id: null, name: "" } })
+                setPublishingState({ location: newLocation || { id: null, name: "" } })
               }
               integrationId={integrationId || null}
               isEnabled={true}

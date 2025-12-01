@@ -1,7 +1,7 @@
 // components/post-editor/hooks/use-post-validator.ts
 
 import { useState, useCallback, useEffect } from "react";
-import { MediaItem } from "@/lib/store/editorial-store";
+import { MediaItem } from "@/lib/store/editorial/draft-store";
 import {
   POST_EDITOR_VALIDATION_RULES,
   ValidationRule,

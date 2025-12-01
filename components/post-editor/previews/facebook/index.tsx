@@ -3,12 +3,15 @@
 "use client";
 
 import { memo, useState, useMemo } from "react";
-import { Crop, Link2, ImageIcon } from "lucide-react"; // Added ImageIcon for consistency
+import { Crop, Link2, ImageIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { renderCaptionWithHashtags } from "../../render-caption";
 import { ImageCropperModal } from "../../modals/image-cropper-modal";
 import { type CropData } from "@/lib/utils/crop-utils";
-import { useEditorialStore, MediaItem } from "@/lib/store/editorial-store";
+import {
+  useEditorialDraftStore,
+  MediaItem,
+} from "@/lib/store/editorial/draft-store";
 import { useClientData } from "@/lib/hooks/use-client-data";
 import { useOriginalUrl } from "@/lib/hooks/use-original-url";
 
@@ -81,7 +84,10 @@ function FacebookPreview({
   const [isCropperOpen, setIsCropperOpen] = useState(false);
   const [currentCarouselIndex, setCurrentCarouselIndex] = useState(0);
 
-  const setCropForMedia = useEditorialStore((state) => state.setCropForMedia);
+  // Replaced useEditorialStore with useEditorialDraftStore
+  const setCropForMedia = useEditorialDraftStore(
+    (state) => state.setCropForMedia
+  );
 
   // Data Hooks
   const { organizationId } = useClientData();

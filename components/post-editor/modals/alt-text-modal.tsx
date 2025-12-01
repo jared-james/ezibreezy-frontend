@@ -5,10 +5,13 @@
 import { useState, useEffect, useMemo, useCallback } from "react";
 import { X, Save, Info, AlertCircle, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { MediaItem, useEditorialStore } from "@/lib/store/editorial-store";
+import {
+  MediaItem,
+  useEditorialDraftStore,
+} from "@/lib/store/editorial/draft-store";
 import { useUpdateMedia } from "@/lib/hooks/use-media";
 import { toast } from "sonner";
-import { useClientData } from "@/lib/hooks/use-client-data"; // <--- 1. Import this
+import { useClientData } from "@/lib/hooks/use-client-data";
 
 interface AltTextModalProps {
   open: boolean;
@@ -103,12 +106,14 @@ function AltTextModalContent({
 }: AltTextModalContentProps) {
   const CHARACTER_LIMIT = 125;
 
-  const setStagedMediaItems = useEditorialStore(
+  // Use Atomic Selectors for stability
+  const stagedMediaItems = useEditorialDraftStore(
+    (state) => state.stagedMediaItems
+  );
+  const setStagedMediaItems = useEditorialDraftStore(
     (state) => state.setStagedMediaItems
   );
-  const stagedMediaItems = useEditorialStore((state) => state.stagedMediaItems);
 
-  // 2. Use Organization ID instead of deriving Integration ID
   const { organizationId } = useClientData();
 
   const [currentMediaIndex, setCurrentMediaIndex] = useState(initialMediaIndex);
@@ -134,7 +139,6 @@ function AltTextModalContent({
     setLocalAltTexts(initialTexts);
   }, [initialTexts]);
 
-  // 3. Pass organizationId here
   const updateMediaMutation = useUpdateMedia(organizationId);
 
   const currentMedia = mediaItems[currentMediaIndex];
@@ -180,6 +184,7 @@ function AltTextModalContent({
         data: { altText: currentAltText },
       });
 
+      // Update the main store
       const updatedItems = stagedMediaItems.map((item) =>
         item.id === currentId ? { ...item, altText: currentAltText } : item
       );
@@ -245,7 +250,7 @@ function AltTextModalContent({
           "
           onClick={(e) => e.stopPropagation()}
         >
-          {/* 1. Header Section (Masthead Style) */}
+          {/* 1. Header Section */}
           <div className="shrink-0 px-6 py-4 bg-surface border-b-[3px] border-double border-black flex items-center justify-between">
             <div className="flex flex-col">
               <span className="font-serif text-[10px] uppercase tracking-[0.2em] text-foreground/70 mb-1">
@@ -267,7 +272,7 @@ function AltTextModalContent({
             </button>
           </div>
 
-          {/* 2. Top Bar: Thumbnails (Film Strip Style) */}
+          {/* 2. Top Bar: Thumbnails */}
           <div className="shrink-0 bg-[#f4f4f0] border-b-2 border-dotted border-black/40 p-4">
             <div
               className={cn(
@@ -291,9 +296,8 @@ function AltTextModalContent({
             </div>
           </div>
 
-          {/* 3. Middle: Preview Area (Gallery Style) */}
+          {/* 3. Middle: Preview Area */}
           <div className="flex-1 min-h-0 bg-[#fdfbf7] relative p-8 flex items-center justify-center overflow-hidden">
-            {/* Background Texture/Lines */}
             <div
               className="absolute inset-0 opacity-5 pointer-events-none"
               style={{
@@ -304,7 +308,6 @@ function AltTextModalContent({
 
             {currentMedia?.preview ? (
               <div className="relative group max-h-full max-w-full z-10">
-                {/* Photo Frame Effect */}
                 <div className="relative border-4 border-white shadow-[0_4px_6px_-1px_rgba(0,0,0,0.1),0_2px_4px_-1px_rgba(0,0,0,0.06)] bg-white p-2 transform rotate-1 transition-transform duration-500 group-hover:rotate-0">
                   <img
                     src={currentMedia.preview}
@@ -312,7 +315,6 @@ function AltTextModalContent({
                     className="max-h-[50vh] object-contain border border-black/10"
                   />
                 </div>
-                {/* Tape Effect */}
                 <div className="absolute -top-3 left-1/2 -translate-x-1/2 w-24 h-6 bg-[#e2e2d0]/80 rotate-[-2deg] opacity-80 backdrop-blur-[1px] shadow-sm z-20" />
               </div>
             ) : (
@@ -322,9 +324,8 @@ function AltTextModalContent({
             )}
           </div>
 
-          {/* 4. Bottom: Alt Text Input (Typewriter Style) */}
+          {/* 4. Bottom: Alt Text Input */}
           <div className="shrink-0 bg-surface border-t-[3px] border-black p-0 flex flex-col">
-            {/* Toolbar / Label Bar */}
             <div className="flex items-center justify-between px-6 py-2 bg-[#f4f4f0] border-b border-black">
               <label className="font-serif text-sm font-bold uppercase tracking-wider flex items-center gap-2">
                 <span className="w-2 h-2 bg-black rounded-full" />
@@ -344,7 +345,6 @@ function AltTextModalContent({
             </div>
 
             <div className="flex h-full min-h-[160px]">
-              {/* Text Area */}
               <div className="flex-1 relative">
                 <textarea
                   value={currentAltText}
@@ -361,7 +361,6 @@ function AltTextModalContent({
                 />
               </div>
 
-              {/* Right Side Controls */}
               <div className="w-[200px] border-l border-black p-4 flex flex-col justify-between bg-[#fdfbf7]">
                 <div className="flex items-start gap-2">
                   <Info className="w-4 h-4 mt-0.5 text-black/60 shrink-0" />
@@ -407,7 +406,6 @@ function AltTextModalContent({
         </div>
       </div>
 
-      {/* Discard Changes Dialog */}
       {showDiscardDialog && (
         <DiscardDialog
           onDiscard={handleDiscard}
@@ -450,7 +448,6 @@ function ThumbnailItem({
           className="w-full h-full object-cover"
         />
 
-        {/* Status Badge - Minimalist Corner Cut */}
         <div className="absolute top-0 right-0 p-0.5 bg-white border-b border-l border-black/20 z-10">
           {hasAltText ? (
             <div className="w-2 h-2 bg-green-600 rounded-full" />

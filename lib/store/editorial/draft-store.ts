@@ -1,18 +1,12 @@
-// lib/store/editorial-store.ts
+// lib/store/editorial/draft-store.ts
 
 "use client";
 
 import { create } from "zustand";
-import type { SelectedAccounts, ThreadMessage } from "@/lib/types/editorial";
-import { type EditorialDraft } from "@/lib/types/editorial";
-import {
-  FullPostDetails,
-  UserTagDto,
-  ProductTagDto,
-} from "@/lib/api/publishing";
-import type { PlatformCrops, SocialPlatform } from "@/lib/utils/crop-utils";
+import { PlatformPostType, ThreadMessage } from "@/lib/types/editorial";
+import { UserTagDto, ProductTagDto, FullPostDetails } from "@/lib/api/publishing";
+import { PlatformCrops, SocialPlatform } from "@/lib/utils/crop-utils";
 import { PLATFORM_RULES } from "@/lib/utils/media-validation";
-import { InstagramUserSearchResult } from "@/lib/api/integrations";
 
 export interface MediaItem {
   uid: string;
@@ -28,70 +22,30 @@ export interface MediaItem {
   altText?: string | null;
 }
 
-export interface LocationState {
-  id: string | null;
-  name: string;
-}
-
-export type PlatformPostType = "post" | "reel" | "story";
-
-export interface EditorialState {
-  isScheduling: boolean;
-  scheduleDate: string;
-  scheduleTime: string;
-  selectedAccounts: SelectedAccounts;
+export interface DraftState {
   mainCaption: string;
   platformCaptions: Record<string, string>;
   platformTitles: Record<string, string>;
   stagedMediaItems: MediaItem[];
   platformMediaSelections: Record<string, string[]>;
-  labels: string;
   threadMessages: ThreadMessage[];
   platformThreadMessages: Record<string, ThreadMessage[]>;
-  collaborators: string;
-  instagramCollaborators: InstagramUserSearchResult[];
-  location: LocationState;
   firstComment: string;
   facebookFirstComment: string;
-  isInitialized: boolean;
-  draft: EditorialDraft | null;
-  recycleInterval: number | null;
-  aiGenerated: boolean;
-  sourceDraftId: string | null;
   postType: PlatformPostType;
   facebookPostType: PlatformPostType;
   userTags: Record<string, UserTagDto[]>;
   productTags: Record<string, ProductTagDto[]>;
-  activeCaptionFilter: string;
   instagramCoverUrl: string | null;
   instagramThumbOffset: number | null;
   instagramShareToFeed: boolean;
   tiktokVideoCoverTimestamp: number | null;
-  threadsTopicTag: string;
-  threadsLinkAttachment: string;
-  youtubePrivacy: "public" | "private" | "unlisted";
-  youtubeCategory: string;
-  youtubeTags: string;
-  youtubeMadeForKids: boolean;
-  youtubeThumbnailUrl: string | null;
-  pinterestBoardId: string | null;
-  pinterestLink: string;
-  pinterestCoverUrl: string | null;
 }
 
-export interface EditorialActions {
-  setState: (updates: Partial<EditorialState>) => void;
+export interface DraftActions {
+  setDraftState: (updates: Partial<DraftState>) => void;
+  setStagedMediaItems: (items: MediaItem[]) => void;
   setThreadMessages: (messages: ThreadMessage[]) => void;
-  initializeFromDraft: (draft: EditorialDraft) => void;
-  initializeFromFullPost: (fullPost: FullPostDetails) => void;
-  reset: () => void;
-  setDraft: (draft: EditorialDraft) => void;
-  setCropForMedia: (
-    mediaUid: string,
-    platform: SocialPlatform,
-    cropData: PlatformCrops[SocialPlatform],
-    croppedPreviewUrl: string
-  ) => void;
   setPlatformMediaSelection: (platformId: string, mediaUids: string[]) => void;
   togglePlatformMediaSelection: (platformId: string, mediaUid: string) => void;
   toggleThreadMediaSelection: (
@@ -99,60 +53,41 @@ export interface EditorialActions {
     threadIndex: number,
     mediaUid: string
   ) => void;
-  setStagedMediaItems: (items: MediaItem[]) => void;
+  setCropForMedia: (
+    mediaUid: string,
+    platform: SocialPlatform,
+    cropData: PlatformCrops[SocialPlatform],
+    croppedPreviewUrl: string
+  ) => void;
+  initializeFromFullPost: (fullPost: FullPostDetails) => void;
+  resetDraft: () => void;
 }
 
-const getTodayString = () => new Date().toISOString().split("T")[0];
-
-export const initialState: EditorialState = {
-  isScheduling: false,
-  scheduleDate: getTodayString(),
-  scheduleTime: "12:00",
-  selectedAccounts: {},
+const initialDraftState: DraftState = {
   mainCaption: "",
   platformCaptions: {},
   platformTitles: {},
   stagedMediaItems: [],
   platformMediaSelections: {},
-  labels: "",
   threadMessages: [],
   platformThreadMessages: {},
-  collaborators: "",
-  instagramCollaborators: [],
-  location: { id: null, name: "" },
   firstComment: "",
   facebookFirstComment: "",
-  isInitialized: false,
-  draft: null,
-  recycleInterval: null,
-  aiGenerated: false,
-  sourceDraftId: null,
   postType: "post",
   facebookPostType: "post",
   userTags: {},
   productTags: {},
-  activeCaptionFilter: "all",
   instagramCoverUrl: null,
   instagramThumbOffset: null,
   instagramShareToFeed: true,
   tiktokVideoCoverTimestamp: null,
-  threadsTopicTag: "",
-  threadsLinkAttachment: "",
-  youtubePrivacy: "public",
-  youtubeCategory: "22",
-  youtubeTags: "",
-  youtubeMadeForKids: false,
-  youtubeThumbnailUrl: null,
-  pinterestBoardId: null,
-  pinterestLink: "",
-  pinterestCoverUrl: null,
 };
 
-export const useEditorialStore = create<EditorialState & EditorialActions>(
+export const useEditorialDraftStore = create<DraftState & DraftActions>(
   (set, get) => ({
-    ...initialState,
+    ...initialDraftState,
 
-    setState: (updates) => {
+    setDraftState: (updates) => {
       set((state) => ({ ...state, ...updates }));
     },
 
@@ -161,6 +96,15 @@ export const useEditorialStore = create<EditorialState & EditorialActions>(
     },
 
     setThreadMessages: (messages) => set({ threadMessages: messages }),
+
+    setPlatformMediaSelection: (platformId, mediaUids) => {
+      set((state) => ({
+        platformMediaSelections: {
+          ...state.platformMediaSelections,
+          [platformId]: mediaUids,
+        },
+      }));
+    },
 
     togglePlatformMediaSelection: (platformId, mediaUid) => {
       const state = get();
@@ -243,7 +187,6 @@ export const useEditorialStore = create<EditorialState & EditorialActions>(
       if (!rules) return;
 
       const currentMessages = state.platformThreadMessages[platformId] || [];
-
       if (!currentMessages[threadIndex]) return;
 
       const message = currentMessages[threadIndex];
@@ -321,95 +264,6 @@ export const useEditorialStore = create<EditorialState & EditorialActions>(
       });
     },
 
-    setPlatformMediaSelection: (platformId, mediaUids) => {
-      set((state) => ({
-        platformMediaSelections: {
-          ...state.platformMediaSelections,
-          [platformId]: mediaUids,
-        },
-      }));
-    },
-
-    initializeFromDraft: (draft) => {
-      if (get().isInitialized) return;
-      set({
-        mainCaption: draft.mainCaption,
-        platformCaptions: draft.platformCaptions,
-        selectedAccounts: draft.selectedAccounts,
-        isInitialized: true,
-      });
-    },
-
-    initializeFromFullPost: (fullPost) => {
-      const newMediaItems: MediaItem[] = [];
-      const mediaMap = fullPost.allMedia || {};
-      const idToUidMap = new Map<string, string>();
-
-      const allMediaIds = Array.from(
-        new Set([
-          ...fullPost.mediaIds,
-          ...fullPost.threadMessages.flatMap((m) => m.mediaIds),
-        ])
-      );
-
-      allMediaIds.forEach((mediaId) => {
-        const mediaRecord = mediaMap[mediaId];
-        if (mediaRecord) {
-          const uid = crypto.randomUUID();
-          idToUidMap.set(mediaId, uid);
-
-          newMediaItems.push({
-            uid,
-            id: mediaId,
-            file: null,
-            preview: mediaRecord.url,
-            mediaUrl: mediaRecord.url,
-            isUploading: false,
-            type: mediaRecord.type.startsWith("video") ? "video" : "image",
-          });
-        }
-      });
-
-      const selectedAccounts: SelectedAccounts = {
-        [fullPost.integration.platform]: [fullPost.integrationId],
-      };
-
-      const platformMediaSelection = {
-        [fullPost.integration.platform]: fullPost.mediaIds
-          .map((id) => idToUidMap.get(id))
-          .filter(Boolean) as string[],
-      };
-
-      const threadMessages = fullPost.threadMessages.map((msg) => ({
-        content: msg.content,
-        mediaIds: msg.mediaIds
-          .map((id) => idToUidMap.get(id))
-          .filter(Boolean) as string[],
-      }));
-
-      const platformThreadMessages = {
-        [fullPost.integration.platform]: threadMessages,
-      };
-
-      set({
-        stagedMediaItems: newMediaItems,
-        platformMediaSelections: platformMediaSelection,
-        mainCaption: fullPost.settings?.canonicalContent || fullPost.content,
-        selectedAccounts,
-        threadMessages,
-        platformThreadMessages,
-        isInitialized: true,
-      });
-    },
-
-    reset: () => {
-      set({ ...initialState, draft: null, isInitialized: false });
-    },
-
-    setDraft: (draft: EditorialDraft) => {
-      set({ draft });
-    },
-
     setCropForMedia: (mediaUid, platform, cropData, croppedPreviewUrl) => {
       set((state) => ({
         stagedMediaItems: state.stagedMediaItems.map((item) => {
@@ -426,6 +280,71 @@ export const useEditorialStore = create<EditorialState & EditorialActions>(
           return item;
         }),
       }));
+    },
+
+    initializeFromFullPost: (fullPost) => {
+      const newMediaItems: MediaItem[] = [];
+      const mediaMap = fullPost.allMedia || {};
+      const idToUidMap = new Map<string, string>();
+
+      // Collect all unique media IDs from main post and threads
+      const allMediaIds = Array.from(
+        new Set([
+          ...fullPost.mediaIds,
+          ...fullPost.threadMessages.flatMap((m) => m.mediaIds),
+        ])
+      );
+
+      // Convert server media to client MediaItems with UIDs
+      allMediaIds.forEach((mediaId) => {
+        const mediaRecord = mediaMap[mediaId];
+        if (mediaRecord) {
+          const uid = crypto.randomUUID();
+          idToUidMap.set(mediaId, uid);
+
+          newMediaItems.push({
+            uid,
+            id: mediaId,
+            file: null,
+            preview: mediaRecord.url,
+            mediaUrl: mediaRecord.url,
+            originalUrlForCropping: mediaRecord.url,
+            isUploading: false,
+            type: mediaRecord.type.startsWith("video") ? "video" : "image",
+          });
+        }
+      });
+
+      // Map media IDs to UIDs for platform selections
+      const platformMediaSelection = {
+        [fullPost.integration.platform]: fullPost.mediaIds
+          .map((id) => idToUidMap.get(id))
+          .filter(Boolean) as string[],
+      };
+
+      // Convert thread messages with UID mapping
+      const threadMessages = fullPost.threadMessages.map((msg) => ({
+        content: msg.content,
+        mediaIds: msg.mediaIds
+          .map((id) => idToUidMap.get(id))
+          .filter(Boolean) as string[],
+      }));
+
+      const platformThreadMessages = {
+        [fullPost.integration.platform]: threadMessages,
+      };
+
+      set({
+        stagedMediaItems: newMediaItems,
+        platformMediaSelections: platformMediaSelection,
+        mainCaption: fullPost.settings?.canonicalContent || fullPost.content,
+        threadMessages,
+        platformThreadMessages,
+      });
+    },
+
+    resetDraft: () => {
+      set(initialDraftState);
     },
   })
 );

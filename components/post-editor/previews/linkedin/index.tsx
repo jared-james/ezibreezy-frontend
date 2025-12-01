@@ -9,7 +9,7 @@ import { renderCaptionWithHashtags } from "../../render-caption";
 import { ImageCropperModal } from "../../modals/image-cropper-modal";
 import { AltTextModal } from "../../modals/alt-text-modal";
 import { type CropData } from "@/lib/utils/crop-utils";
-import { useEditorialStore, MediaItem } from "@/lib/store/editorial-store";
+import { MediaItem, useEditorialDraftStore } from "@/lib/store/editorial/draft-store";
 import { useClientData } from "@/lib/hooks/use-client-data";
 import { useOriginalUrl } from "@/lib/hooks/use-original-url";
 
@@ -46,7 +46,7 @@ function LinkedInPreview({
   const [altTextInitialIndex, setAltTextInitialIndex] = useState(0);
   const [currentCarouselIndex, setCurrentCarouselIndex] = useState(0);
 
-  const setCropForMedia = useEditorialStore((state) => state.setCropForMedia);
+  const setCropForMedia = useEditorialDraftStore((state) => state.setCropForMedia);
 
   // Data Hooks
   const { organizationId } = useClientData();

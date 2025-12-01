@@ -16,7 +16,9 @@ import type { ScheduledPostResponse } from "@/lib/api/publishing";
 import { format } from "date-fns";
 import { toast } from "sonner";
 import EditorialModal from "@/app/(app)/calendar/components/editorial-modal";
-import { useEditorialStore } from "@/lib/store/editorial-store";
+import { useEditorialDraftStore } from "@/lib/store/editorial/draft-store";
+import { usePublishingStore } from "@/lib/store/editorial/publishing-store";
+import { useEditorialUIStore } from "@/lib/store/editorial/ui-store";
 import { Button } from "@/components/ui/button";
 
 const ideaLifecycleFilters = [
@@ -31,9 +33,9 @@ export default function IdeaClippings() {
   const [activeFilterTab, setActiveFilterTab] = useState("Saved");
   const [postIdToDevelop, setPostIdToDevelop] = useState<string | null>(null);
   const [isEditorialModalOpen, setIsEditorialModalOpen] = useState(false);
-  const initializeFromFullPost = useEditorialStore(
-    (state) => state.initializeFromFullPost
-  );
+  const initDraft = useEditorialDraftStore((state) => state.initializeFromFullPost);
+  const initPublishing = usePublishingStore((state) => state.initializeFromFullPost);
+  const initUI = useEditorialUIStore((state) => state.initializeFromFullPost);
 
   const {
     data: allContent = [],
@@ -70,7 +72,9 @@ export default function IdeaClippings() {
   });
 
   if (fullPostData && !isFetchingFullPost && postIdToDevelop) {
-    initializeFromFullPost(fullPostData);
+    initDraft(fullPostData);
+    initPublishing(fullPostData);
+    initUI();
     setIsEditorialModalOpen(true);
     setPostIdToDevelop(null);
   }

@@ -3,7 +3,11 @@
 import { useMemo, useCallback } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { useEditorialStore, MediaItem } from "@/lib/store/editorial-store";
+import {
+  useEditorialDraftStore,
+  MediaItem,
+} from "@/lib/store/editorial/draft-store";
+import { usePublishingStore } from "@/lib/store/editorial/publishing-store";
 import { uploadMedia } from "@/lib/api/media";
 import { getConnections, type Connection } from "@/lib/api/integrations";
 import type { Platform, ThreadMessageAugmented } from "@/lib/types/editorial";
@@ -30,21 +34,33 @@ export function usePostEditor(options: UsePostEditorOptions = {}) {
   const { mode = "editorial" } = options;
   const queryClient = useQueryClient();
 
-  const setState = useEditorialStore((state) => state.setState);
-  const setThreadMessages = useEditorialStore(
+  // Draft Store (Content)
+  const setDraftState = useEditorialDraftStore((state) => state.setDraftState);
+  const setThreadMessages = useEditorialDraftStore(
     (state) => state.setThreadMessages
   );
-  const stagedMediaItems = useEditorialStore((state) => state.stagedMediaItems);
-  const setStagedMediaItems = useEditorialStore(
+  const stagedMediaItems = useEditorialDraftStore(
+    (state) => state.stagedMediaItems
+  );
+  const setStagedMediaItems = useEditorialDraftStore(
     (state) => state.setStagedMediaItems
   );
-  const selectedAccounts = useEditorialStore((state) => state.selectedAccounts);
-  const threadMessages = useEditorialStore((state) => state.threadMessages);
-  const platformThreadMessages = useEditorialStore(
+  const threadMessages = useEditorialDraftStore(
+    (state) => state.threadMessages
+  );
+  const platformThreadMessages = useEditorialDraftStore(
     (state) => state.platformThreadMessages
   );
-  const toggleThreadMediaSelection = useEditorialStore(
+  const toggleThreadMediaSelection = useEditorialDraftStore(
     (state) => state.toggleThreadMediaSelection
+  );
+  const platformMediaSelections = useEditorialDraftStore(
+    (state) => state.platformMediaSelections
+  );
+
+  // Publishing Store (Logistics)
+  const selectedAccounts = usePublishingStore(
+    (state) => state.selectedAccounts
   );
 
   const { data: clientData } = useQuery({
@@ -91,7 +107,7 @@ export function usePostEditor(options: UsePostEditorOptions = {}) {
       return uploadMedia(variables.file, variables.organizationId, thumbnail);
     },
     onSuccess: (data, variables) => {
-      const currentItems = useEditorialStore.getState().stagedMediaItems;
+      const currentItems = useEditorialDraftStore.getState().stagedMediaItems;
       const updatedItems = currentItems.map((item) =>
         item.uid === variables.uid
           ? {
@@ -113,7 +129,7 @@ export function usePostEditor(options: UsePostEditorOptions = {}) {
           error?.message || "Unknown error"
         }`
       );
-      const currentItems = useEditorialStore.getState().stagedMediaItems;
+      const currentItems = useEditorialDraftStore.getState().stagedMediaItems;
       setStagedMediaItems(
         currentItems.filter((item) => item.uid !== variables.uid)
       );
@@ -230,16 +246,21 @@ export function usePostEditor(options: UsePostEditorOptions = {}) {
         type: file.type.startsWith("video/") ? "video" : "image",
       }));
 
-      const state = useEditorialStore.getState();
-      const updatedItems = [...state.stagedMediaItems, ...newMediaItems];
+      // Read directly from stores to ensure freshness
+      const currentItems = useEditorialDraftStore.getState().stagedMediaItems;
+      const currentSelectedAccounts =
+        usePublishingStore.getState().selectedAccounts;
+      const currentMediaSelections =
+        useEditorialDraftStore.getState().platformMediaSelections;
 
-      const activePlatformIds = Object.keys(state.selectedAccounts);
-      const newMediaSelections = { ...state.platformMediaSelections };
+      const updatedItems = [...currentItems, ...newMediaItems];
+      const activePlatformIds = Object.keys(currentSelectedAccounts);
+      const newMediaSelections = { ...currentMediaSelections };
 
       activePlatformIds.forEach((platformId) => {
         const currentSelectionUids = newMediaSelections[platformId] || [];
         const currentSelectionItems = currentSelectionUids
-          .map((uid) => state.stagedMediaItems.find((i) => i.uid === uid))
+          .map((uid) => currentItems.find((i) => i.uid === uid))
           .filter(Boolean) as MediaItem[];
 
         const uidsToAdd = getAutoSelectionForPlatform(
@@ -256,7 +277,7 @@ export function usePostEditor(options: UsePostEditorOptions = {}) {
         }
       });
 
-      setState({
+      setDraftState({
         stagedMediaItems: updatedItems,
         platformMediaSelections: newMediaSelections,
       });
@@ -277,12 +298,18 @@ export function usePostEditor(options: UsePostEditorOptions = {}) {
         setStagedMediaItems(nonUploadingItems);
       }
     },
-    [setStagedMediaItems, setState, uploadMediaMutation, mode, organizationId]
+    [
+      setDraftState,
+      setStagedMediaItems,
+      uploadMediaMutation,
+      mode,
+      organizationId,
+    ]
   );
 
   const handleRemoveMedia = useCallback(
     (fileToRemove: File | null, indexToRemove?: number) => {
-      const currentItems = useEditorialStore.getState().stagedMediaItems;
+      const currentItems = useEditorialDraftStore.getState().stagedMediaItems;
       let itemToRemove: MediaItem | undefined;
 
       if (typeof indexToRemove === "number") {
@@ -295,9 +322,9 @@ export function usePostEditor(options: UsePostEditorOptions = {}) {
         const newMediaItems = currentItems.filter(
           (item) => item.uid !== itemToRemove!.uid
         );
-        setStagedMediaItems(newMediaItems);
 
-        const state = useEditorialStore.getState();
+        // Read current state
+        const state = useEditorialDraftStore.getState();
 
         const newSelections = { ...state.platformMediaSelections };
         Object.keys(newSelections).forEach((platformId) => {
@@ -323,31 +350,34 @@ export function usePostEditor(options: UsePostEditorOptions = {}) {
           );
         });
 
-        setState({
+        setDraftState({
+          stagedMediaItems: newMediaItems,
           platformMediaSelections: newSelections,
           threadMessages: newThreadMessages,
           platformThreadMessages: newPlatformThreadMessages,
         });
       }
     },
-    [setStagedMediaItems, setState]
+    [setDraftState, threadMessages]
   );
 
   const handleLibraryMediaSelect = useCallback(
     (libraryMedia: any) => {
-      const currentItems = useEditorialStore.getState().stagedMediaItems;
+      const currentItems = useEditorialDraftStore.getState().stagedMediaItems;
+      const currentSelectedAccounts =
+        usePublishingStore.getState().selectedAccounts;
 
       const existingItem = currentItems.find(
         (item) => item.id === libraryMedia.id
       );
 
       if (existingItem) {
+        // Toggle off / Remove
         const newMediaItems = currentItems.filter(
           (item) => item.id !== libraryMedia.id
         );
-        setStagedMediaItems(newMediaItems);
 
-        const state = useEditorialStore.getState();
+        const state = useEditorialDraftStore.getState();
         const newSelections = { ...state.platformMediaSelections };
         Object.keys(newSelections).forEach((platformId) => {
           newSelections[platformId] = newSelections[platformId].filter(
@@ -371,12 +401,14 @@ export function usePostEditor(options: UsePostEditorOptions = {}) {
           );
         });
 
-        setState({
+        setDraftState({
+          stagedMediaItems: newMediaItems,
           platformMediaSelections: newSelections,
           threadMessages: newThreadMessages,
           platformThreadMessages: newPlatformThreadMessages,
         });
       } else {
+        // Add
         const newMediaItem: MediaItem = {
           uid: crypto.randomUUID(),
           file: null,
@@ -388,16 +420,16 @@ export function usePostEditor(options: UsePostEditorOptions = {}) {
           altText: libraryMedia.altText || null,
         };
 
-        const state = useEditorialStore.getState();
         const updatedItems = [...currentItems, newMediaItem];
+        const state = useEditorialDraftStore.getState();
 
-        const activePlatformIds = Object.keys(state.selectedAccounts);
+        const activePlatformIds = Object.keys(currentSelectedAccounts);
         const newMediaSelections = { ...state.platformMediaSelections };
 
         activePlatformIds.forEach((platformId) => {
           const currentSelectionUids = newMediaSelections[platformId] || [];
           const currentSelectionItems = currentSelectionUids
-            .map((uid) => state.stagedMediaItems.find((i) => i.uid === uid))
+            .map((uid) => updatedItems.find((i) => i.uid === uid))
             .filter(Boolean) as MediaItem[];
 
           const uidsToAdd = getAutoSelectionForPlatform(
@@ -414,13 +446,13 @@ export function usePostEditor(options: UsePostEditorOptions = {}) {
           }
         });
 
-        setState({
+        setDraftState({
           stagedMediaItems: updatedItems,
           platformMediaSelections: newMediaSelections,
         });
       }
     },
-    [setStagedMediaItems, setState]
+    [setDraftState, threadMessages]
   );
 
   const selectedLibraryMediaIds = useMemo(() => {
@@ -443,7 +475,7 @@ export function usePostEditor(options: UsePostEditorOptions = {}) {
     activePlatforms,
     threadMessages: threadMessagesWithPreviews,
     getThreadMessagesForPlatform,
-    updateState: setState,
+    updateState: setDraftState,
     handleMediaChange,
     handleRemoveMedia,
     handleLibraryMediaSelect,

@@ -1,26 +1,34 @@
 // components/post-editor/panels/channel-selector.tsx
 
-// components/post-editor/channel-selector.tsx
-
 "use client";
 
+import { useMemo } from "react";
 import { PlusCircle } from "lucide-react";
 import { ChannelCircleButton } from "@/components/ui/channel-circle-button";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
 import type { Platform } from "@/lib/types/editorial";
+import { usePublishingStore } from "@/lib/store/editorial/publishing-store";
 
 interface ChannelSelectorProps {
   platforms: Platform[];
-  activePlatforms: Set<string>;
   onTogglePlatform: (platformId: string) => void;
 }
 
 export default function ChannelSelector({
   platforms,
-  activePlatforms,
   onTogglePlatform,
 }: ChannelSelectorProps) {
+  // Subscribe to Publishing Store for active accounts
+  const selectedAccounts = usePublishingStore(
+    (state) => state.selectedAccounts
+  );
+
+  const activePlatforms = useMemo(
+    () => new Set(Object.keys(selectedAccounts)),
+    [selectedAccounts]
+  );
+
   return (
     <div>
       <div className="mb-3 flex items-center justify-between">

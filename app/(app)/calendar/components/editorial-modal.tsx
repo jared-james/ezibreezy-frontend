@@ -3,7 +3,9 @@
 "use client";
 
 import { X, Loader2 } from "lucide-react";
-import { useEditorialStore } from "@/lib/store/editorial-store";
+import { useEditorialDraftStore } from "@/lib/store/editorial/draft-store";
+import { usePublishingStore } from "@/lib/store/editorial/publishing-store";
+import { useEditorialUIStore } from "@/lib/store/editorial/ui-store";
 import EditorialCore from "@/components/post-editor";
 
 interface EditorialModalProps {
@@ -19,10 +21,14 @@ export default function EditorialModal({
   title = "Create New Post",
   isLoading = false,
 }: EditorialModalProps) {
-  const reset = useEditorialStore((state) => state.reset);
+  const resetDraft = useEditorialDraftStore((state) => state.resetDraft);
+  const resetPublishing = usePublishingStore((state) => state.resetPublishing);
+  const resetUI = useEditorialUIStore((state) => state.resetUI);
 
   const handleClose = () => {
-    reset();
+    resetDraft();
+    resetPublishing();
+    resetUI();
     onClose();
   };
 

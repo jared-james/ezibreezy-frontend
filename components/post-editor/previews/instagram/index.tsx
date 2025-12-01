@@ -14,7 +14,8 @@ import {
   STORY_ASPECT_RATIO,
   calculateCenteredCrop,
 } from "@/lib/utils/crop-utils";
-import { useEditorialStore, MediaItem } from "@/lib/store/editorial-store";
+import { MediaItem, useEditorialDraftStore } from "@/lib/store/editorial/draft-store";
+import { usePublishingStore } from "@/lib/store/editorial/publishing-store";
 import LocationSearchInput from "../../location-search-input";
 import CollaboratorSearchInput from "../../collaborator-search-input";
 import { useClientData } from "@/lib/hooks/use-client-data";
@@ -78,13 +79,13 @@ function InstagramPreview({
   const primaryName = displayName || accountName || "Account";
 
   // Stores
-  const setCropForMedia = useEditorialStore((state) => state.setCropForMedia);
-  const setState = useEditorialStore((state) => state.setState);
-  const location = useEditorialStore((state) => state.location);
-  const instagramCollaborators = useEditorialStore(
+  const setCropForMedia = useEditorialDraftStore((state) => state.setCropForMedia);
+  const setPublishingState = usePublishingStore((state) => state.setPublishingState);
+  const location = usePublishingStore((state) => state.location);
+  const instagramCollaborators = usePublishingStore(
     (state) => state.instagramCollaborators
   );
-  const selectedAccounts = useEditorialStore((state) => state.selectedAccounts);
+  const selectedAccounts = usePublishingStore((state) => state.selectedAccounts);
 
   // Data Hooks
   const { organizationId } = useClientData();
@@ -404,7 +405,7 @@ function InstagramPreview({
               <CollaboratorSearchInput
                 selectedCollaborators={instagramCollaborators}
                 onCollaboratorsChange={(collaborators) =>
-                  setState({ instagramCollaborators: collaborators })
+                  setPublishingState({ instagramCollaborators: collaborators })
                 }
                 integrationId={integrationId || null}
               />
@@ -413,7 +414,7 @@ function InstagramPreview({
               <LocationSearchInput
                 initialLocation={location}
                 onLocationSelect={(newLocation) =>
-                  setState({ location: newLocation || { id: null, name: "" } })
+                  setPublishingState({ location: newLocation || { id: null, name: "" } })
                 }
                 integrationId={integrationId || null}
                 isEnabled={true}

@@ -10,7 +10,10 @@ import { TikTokSidebar } from "./tiktok-sidebar";
 import { TikTokFooter } from "./tiktok-footer";
 import { TikTokCarousel } from "./tiktok-carousel";
 import { type CropData } from "@/lib/utils/crop-utils";
-import { useEditorialStore, MediaItem } from "@/lib/store/editorial-store";
+import {
+  useEditorialDraftStore,
+  MediaItem,
+} from "@/lib/store/editorial/draft-store";
 import { useClientData } from "@/lib/hooks/use-client-data";
 import { useOriginalUrl } from "@/lib/hooks/use-original-url";
 import { cn } from "@/lib/utils";
@@ -44,9 +47,12 @@ function TikTokPreview({
   const [carouselIndex, setCarouselIndex] = useState(0);
   const carouselRef = useRef<HTMLDivElement>(null);
 
-  const setCropForMedia = useEditorialStore((state) => state.setCropForMedia);
-  const setState = useEditorialStore((state) => state.setState);
-  const tiktokVideoCoverTimestamp = useEditorialStore(
+  // Migrated to Draft Store
+  const setCropForMedia = useEditorialDraftStore(
+    (state) => state.setCropForMedia
+  );
+  const setDraftState = useEditorialDraftStore((state) => state.setDraftState);
+  const tiktokVideoCoverTimestamp = useEditorialDraftStore(
     (state) => state.tiktokVideoCoverTimestamp
   );
 
@@ -233,7 +239,7 @@ function TikTokPreview({
           displayMediaSrc={displayMediaSrc}
           videoCoverTimestamp={tiktokVideoCoverTimestamp}
           onVideoCoverTimestampChange={(timestamp) =>
-            setState({ tiktokVideoCoverTimestamp: timestamp })
+            setDraftState({ tiktokVideoCoverTimestamp: timestamp })
           }
           videoDuration={videoDuration || 0}
         />

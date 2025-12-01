@@ -28,7 +28,10 @@ import {
   getDefaultAspectRatio,
   type CropData,
 } from "@/lib/utils/crop-utils";
-import { MediaItem } from "@/lib/store/editorial-store";
+import {
+  MediaItem,
+  useEditorialDraftStore,
+} from "@/lib/store/editorial/draft-store";
 
 interface ImageCropperModalProps {
   open: boolean;
@@ -65,13 +68,9 @@ function centerAspectCrop(
   );
 }
 
-// Helper to bypass browser cache for CORS images by adding a timestamp
 const addCacheBuster = (url: string) => {
   if (!url || url.startsWith("blob:") || url.startsWith("data:")) return url;
-
-  // FIX: Do not modify signed URLs (AWS/R2), or the signature will break.
   if (url.includes("X-Amz-Signature")) return url;
-
   const separator = url.includes("?") ? "&" : "?";
   return `${url}${separator}t=${new Date().getTime()}`;
 };
@@ -179,12 +178,11 @@ function ImageCropperModalContent({
     initialCrop ?? null
   );
 
-  // Initial state: use local file if present, otherwise cache-busted preview
   const [currentImageSrc, setCurrentImageSrc] = useState<string>(() => {
     if (currentItem?.file) return URL.createObjectURL(currentItem.file);
     if (currentItem?.originalUrlForCropping)
       return currentItem.originalUrlForCropping;
-    return ""; // Remote file? Wait for fetching.
+    return "";
   });
 
   const [isLoadingImage, setIsLoadingImage] = useState(false);
@@ -210,24 +208,20 @@ function ImageCropperModalContent({
 
       setCrop(undefined);
 
-      // 1. Local File Strategy (Safe, Fast, No CORS)
       if (currentItem.file) {
         localObjectUrl = URL.createObjectURL(currentItem.file);
         if (!isCancelled) setCurrentImageSrc(localObjectUrl);
         return;
       }
 
-      // 2. Explicit High-Res URL Strategy
       if (currentItem.originalUrlForCropping) {
         if (!isCancelled)
           setCurrentImageSrc(currentItem.originalUrlForCropping);
         return;
       }
 
-      // 3. Remote Fetch Strategy
       if (getOriginalUrl) {
         setIsLoadingImage(true);
-        // Clear previous to show loader
         if (!isCancelled) setCurrentImageSrc("");
 
         try {
@@ -247,7 +241,6 @@ function ImageCropperModalContent({
           if (!isCancelled) setIsLoadingImage(false);
         }
       } else {
-        // Fallback
         if (!isCancelled)
           setCurrentImageSrc(addCacheBuster(currentItem.preview));
       }
@@ -259,7 +252,6 @@ function ImageCropperModalContent({
       isCancelled = true;
       if (localObjectUrl) URL.revokeObjectURL(localObjectUrl);
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentIndex, currentItem?.uid]);
 
   const onImageLoad = useCallback(

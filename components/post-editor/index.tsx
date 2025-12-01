@@ -18,7 +18,10 @@ import ConfirmationModal from "./modals/confirmation-modal";
 import ValidationErrorModal from "./modals/validation-error-modal";
 
 import { usePostEditor } from "@/lib/hooks/use-post-editor";
-import { useEditorialStore } from "@/lib/store/editorial-store";
+import { useEditorialDraftStore } from "@/lib/store/editorial/draft-store";
+import { usePublishingStore } from "@/lib/store/editorial/publishing-store";
+import { useEditorialUIStore } from "@/lib/store/editorial/ui-store";
+
 import type { CreatePostPayload, PostSettings } from "@/lib/api/publishing";
 import { PlatformCrops } from "@/lib/utils/crop-utils";
 import { usePostStatusPolling } from "./hooks/use-post-status-polling";
@@ -36,9 +39,6 @@ interface EditorialCoreProps {
 export default function EditorialCore({
   onPostSuccess,
   mode = "editorial",
-  onSaveClipping,
-  isSavingClipping = false,
-  onOpenInEditorial,
 }: EditorialCoreProps) {
   const [user, setUser] = useState<any>(null);
   const [confirmationStatus, setConfirmationStatus] = useState<
@@ -46,96 +46,56 @@ export default function EditorialCore({
   >(null);
   const [confirmationCount, setConfirmationCount] = useState(0);
 
+  // Local state to track immediate typing values for Publish payload
   const [localMainCaption, setLocalMainCaption] = useState("");
   const [localPlatformCaptions, setLocalPlatformCaptions] = useState<
     Record<string, string>
   >({});
-  const [localLabels, setLocalLabels] = useState("");
-  const [localCollaborators, setLocalCollaborators] = useState("");
 
-  const resetEditor = useEditorialStore((state) => state.reset);
-  const setState = useEditorialStore((state) => state.setState);
+  // -- Store Hooks (Atomic Selectors for Stability) --
 
-  const isScheduling = useEditorialStore((state) => state.isScheduling);
-  const scheduleDate = useEditorialStore((state) => state.scheduleDate);
-  const scheduleTime = useEditorialStore((state) => state.scheduleTime);
-  const selectedAccounts = useEditorialStore((state) => state.selectedAccounts);
-  const stagedMediaItems = useEditorialStore((state) => state.stagedMediaItems);
-  const platformMediaSelections = useEditorialStore(
+  const resetUI = useEditorialUIStore((state) => state.resetUI);
+  const resetDraft = useEditorialDraftStore((state) => state.resetDraft);
+  const resetPublishing = usePublishingStore((state) => state.resetPublishing);
+
+  // Draft Store Selectors
+  const stagedMediaItems = useEditorialDraftStore(
+    (state) => state.stagedMediaItems
+  );
+  const platformMediaSelections = useEditorialDraftStore(
     (state) => state.platformMediaSelections
   );
-  const storeThreadMessages = useEditorialStore(
+  const threadMessages = useEditorialDraftStore(
     (state) => state.threadMessages
   );
-  const storePlatformThreadMessages = useEditorialStore(
-    (state) => state.platformThreadMessages
-  );
-  const recycleInterval = useEditorialStore((state) => state.recycleInterval);
-  const aiGenerated = useEditorialStore((state) => state.aiGenerated);
-  const sourceDraftId = useEditorialStore((state) => state.sourceDraftId);
-
-  const firstComment = useEditorialStore((state) => state.firstComment);
-  const postTypeFromStore = useEditorialStore((state) => state.postType);
-  const userTags = useEditorialStore((state) => state.userTags);
-  const instagramCollaborators = useEditorialStore(
-    (state) => state.instagramCollaborators
+  const postType = useEditorialDraftStore((state) => state.postType);
+  const facebookPostType = useEditorialDraftStore(
+    (state) => state.facebookPostType
   );
 
-  const facebookPostType = useEditorialStore((state) => state.facebookPostType);
-  const facebookFirstComment = useEditorialStore(
-    (state) => state.facebookFirstComment
-  );
-  const platformTitles = useEditorialStore((state) => state.platformTitles);
+  const { setDraftState, setThreadMessages } = useEditorialDraftStore();
 
-  const instagramCoverUrl = useEditorialStore(
-    (state) => state.instagramCoverUrl
+  // Publishing Store Selectors
+  const selectedAccounts = usePublishingStore(
+    (state) => state.selectedAccounts
   );
-  const instagramThumbOffset = useEditorialStore(
-    (state) => state.instagramThumbOffset
-  );
-  const instagramShareToFeed = useEditorialStore(
-    (state) => state.instagramShareToFeed
+  const setPublishingState = usePublishingStore(
+    (state) => state.setPublishingState
   );
 
-  const tiktokVideoCoverTimestamp = useEditorialStore(
-    (state) => state.tiktokVideoCoverTimestamp
-  );
-
-  const threadsTopicTag = useEditorialStore((state) => state.threadsTopicTag);
-  const threadsLinkAttachment = useEditorialStore(
-    (state) => state.threadsLinkAttachment
-  );
-
-  const youtubePrivacy = useEditorialStore((state) => state.youtubePrivacy);
-  const youtubeCategory = useEditorialStore((state) => state.youtubeCategory);
-  const youtubeTags = useEditorialStore((state) => state.youtubeTags);
-  const youtubeMadeForKids = useEditorialStore(
-    (state) => state.youtubeMadeForKids
-  );
-  const youtubeThumbnailUrl = useEditorialStore(
-    (state) => state.youtubeThumbnailUrl
-  );
-
-  const pinterestBoardId = useEditorialStore((state) => state.pinterestBoardId);
-  const pinterestLink = useEditorialStore((state) => state.pinterestLink);
-  const pinterestCoverUrl = useEditorialStore(
-    (state) => state.pinterestCoverUrl
-  );
+  // -- Logic Hooks --
 
   const {
     stagedMediaFiles,
     stagedMediaItems: editorStagedMediaItems,
     stagedMediaPreviews,
-    postType,
     isGlobalUploading,
     availablePlatforms,
     activePlatforms,
-    threadMessages,
     handleMediaChange,
     handleRemoveMedia,
     handleLibraryMediaSelect,
     selectedLibraryMediaIds,
-    setThreadMessages,
     postMutation,
   } = usePostEditor({ mode });
 
@@ -147,7 +107,7 @@ export default function EditorialCore({
       platformMediaSelections,
       stagedMediaItems,
       facebookPostType,
-      postType: postTypeFromStore,
+      postType,
     });
 
   useEffect(() => {
@@ -161,10 +121,16 @@ export default function EditorialCore({
     fetchUser();
   }, []);
 
+  const resetAll = () => {
+    resetDraft();
+    resetPublishing();
+    resetUI();
+  };
+
   const handleCloseConfirmation = () => {
     setConfirmationStatus(null);
     setConfirmationCount(0);
-    resetEditor();
+    resetAll();
     if (onPostSuccess) {
       onPostSuccess();
     }
@@ -197,8 +163,8 @@ export default function EditorialCore({
       }
     }
 
-    setState({
-      selectedAccounts: newSelected,
+    setPublishingState({ selectedAccounts: newSelected });
+    setDraftState({
       platformCaptions: newCaptions,
       platformMediaSelections: newMediaSelections,
     });
@@ -218,20 +184,20 @@ export default function EditorialCore({
       newSelected[platformId] = newSelection;
     }
 
-    setState({ selectedAccounts: newSelected });
+    setPublishingState({ selectedAccounts: newSelected });
   };
 
   const handlePublish = async () => {
-    setState({
-      mainCaption: localMainCaption,
-      platformCaptions: localPlatformCaptions,
-      labels: localLabels,
-      collaborators: localCollaborators,
-    });
+    // 1. IMPERATIVE STATE READING
+    const draft = useEditorialDraftStore.getState();
+    const pub = usePublishingStore.getState();
+
+    const finalMainCaption = localMainCaption;
+    const finalPlatformCaptions = localPlatformCaptions;
 
     if (!user) return showError("You must be logged in to post.");
 
-    const integrationsToPost = Object.values(selectedAccounts).flat();
+    const integrationsToPost = Object.values(pub.selectedAccounts).flat();
     if (integrationsToPost.length === 0) {
       return showError("Please select at least one account.");
     }
@@ -242,20 +208,21 @@ export default function EditorialCore({
 
     const isValid = await validatePost();
     if (!isValid) {
-      console.log("[Publish-Flow] Validation failed. Stopping publish.");
       return;
     }
 
     for (const [platformId, selection] of Object.entries(
-      platformMediaSelections
+      draft.platformMediaSelections
     )) {
       if (
-        !selectedAccounts[platformId] ||
-        selectedAccounts[platformId].length === 0
+        !pub.selectedAccounts[platformId] ||
+        pub.selectedAccounts[platformId].length === 0
       )
         continue;
       for (const uid of selection) {
-        const mediaItem = stagedMediaItems.find((item) => item.uid === uid);
+        const mediaItem = draft.stagedMediaItems.find(
+          (item) => item.uid === uid
+        );
         if (mediaItem && !mediaItem.id) {
           return showError(
             `Media for ${platformId} is still processing. Please wait.`
@@ -265,35 +232,36 @@ export default function EditorialCore({
     }
 
     let scheduledAt: string | undefined;
-    if (isScheduling) {
-      if (!scheduleDate || !scheduleTime) {
+    if (pub.isScheduling) {
+      if (!pub.scheduleDate || !pub.scheduleTime) {
         return showError("Please select a valid date and time.");
       }
-      const dateTime = new Date(`${scheduleDate}T${scheduleTime}`);
+      const dateTime = new Date(`${pub.scheduleDate}T${pub.scheduleTime}`);
       if (isNaN(dateTime.getTime())) {
         return showError("Invalid schedule date or time.");
       }
       scheduledAt = dateTime.toISOString();
     }
 
-    const location = useEditorialStore.getState().location;
-    const productTags = useEditorialStore.getState().productTags;
     const baseSettings: PostSettings = {
-      labels: localLabels,
-      collaborators: localCollaborators,
-      location: location.name,
-      locationId: location.id || undefined,
-      canonicalContent: localMainCaption,
-      postType: postTypeFromStore,
-      userTags,
-      productTags,
+      labels: pub.labels,
+      collaborators: pub.collaborators,
+      location: pub.location.name,
+      locationId: pub.location.id || undefined,
+      canonicalContent: finalMainCaption,
+      postType: draft.postType,
+      userTags: draft.userTags,
+      productTags: draft.productTags,
     };
 
-    const processThreadMessages = (messages: typeof storeThreadMessages) =>
+    const processThreadMessages = (messages: typeof draft.threadMessages) =>
       messages
         .map((msg) => {
           const backendMediaIds = (msg.mediaIds || [])
-            .map((uid) => stagedMediaItems.find((item) => item.uid === uid)?.id)
+            .map(
+              (uid) =>
+                draft.stagedMediaItems.find((item) => item.uid === uid)?.id
+            )
             .filter(Boolean) as string[];
 
           return {
@@ -306,31 +274,37 @@ export default function EditorialCore({
             msg.content.length > 0 || (msg.mediaIds && msg.mediaIds.length > 0)
         );
 
-    const finalThreadMessagesForPublish =
-      processThreadMessages(storeThreadMessages);
+    const finalThreadMessagesForPublish = processThreadMessages(
+      draft.threadMessages
+    );
 
     const mediaCrops: Record<string, PlatformCrops> = {};
-    stagedMediaItems.forEach((item) => {
+    draft.stagedMediaItems.forEach((item) => {
       if (item.id && item.crops) {
         mediaCrops[item.id] = item.crops;
       }
     });
 
-    const postPromises = Object.entries(selectedAccounts).flatMap(
+    const postPromises = Object.entries(pub.selectedAccounts).flatMap(
       ([platformId, integrationIds]) =>
         integrationIds.map((integrationId) => {
-          const platformMediaUids = platformMediaSelections[platformId] || [];
+          const platformMediaUids =
+            draft.platformMediaSelections[platformId] || [];
           const platformMediaIds = platformMediaUids
-            .map((uid) => stagedMediaItems.find((item) => item.uid === uid)?.id)
+            .map(
+              (uid) =>
+                draft.stagedMediaItems.find((item) => item.uid === uid)?.id
+            )
             .filter(Boolean) as string[];
 
           let platformThreadMessages: {
             content: string;
             mediaIds: string[] | undefined;
           }[] = [];
+
           if (platformId === "x" || platformId === "threads") {
             const platformSpecificThreads =
-              storePlatformThreadMessages[platformId];
+              draft.platformThreadMessages[platformId];
             if (platformSpecificThreads && platformSpecificThreads.length > 0) {
               platformThreadMessages = processThreadMessages(
                 platformSpecificThreads
@@ -345,16 +319,16 @@ export default function EditorialCore({
             throw new Error("Instagram post validation failed");
           }
 
-          const platformSpecificContent = localPlatformCaptions[platformId];
+          const platformSpecificContent = finalPlatformCaptions[platformId];
 
           let contentToSend = "";
 
           const effectivePostType =
-            platformId === "facebook" ? facebookPostType : postTypeFromStore;
+            platformId === "facebook" ? draft.facebookPostType : draft.postType;
 
           const isStory =
-            (platformId === "instagram" && postTypeFromStore === "story") ||
-            (platformId === "facebook" && facebookPostType === "story");
+            (platformId === "instagram" && draft.postType === "story") ||
+            (platformId === "facebook" && draft.facebookPostType === "story");
 
           if (isStory) {
             contentToSend = platformSpecificContent || "";
@@ -363,7 +337,7 @@ export default function EditorialCore({
               platformSpecificContent &&
               platformSpecificContent.trim().length > 0
                 ? platformSpecificContent
-                : localMainCaption;
+                : finalMainCaption;
           }
 
           const payload: CreatePostPayload = {
@@ -381,73 +355,74 @@ export default function EditorialCore({
               platformThreadMessages.length > 0
                 ? platformThreadMessages
                 : undefined,
-            recycleInterval: recycleInterval || undefined,
-            aiGenerated: aiGenerated || undefined,
-            sourceDraftId: sourceDraftId || undefined,
+            recycleInterval: pub.recycleInterval || undefined,
+            aiGenerated: pub.aiGenerated || undefined,
+            sourceDraftId: pub.sourceDraftId || undefined,
             postType: effectivePostType,
-            userTags,
+            userTags: draft.userTags,
             mediaCrops,
           };
 
           if (platformId === "instagram") {
-            if (firstComment && firstComment.trim().length > 0) {
-              payload.settings!.firstComment = firstComment.trim();
+            if (draft.firstComment && draft.firstComment.trim().length > 0) {
+              payload.settings!.firstComment = draft.firstComment.trim();
             }
-            if (instagramCoverUrl) {
-              payload.settings!.coverUrl = instagramCoverUrl;
+            if (draft.instagramCoverUrl) {
+              payload.settings!.coverUrl = draft.instagramCoverUrl;
             }
-            if (instagramThumbOffset !== null) {
-              payload.settings!.thumbOffset = instagramThumbOffset;
+            if (draft.instagramThumbOffset !== null) {
+              payload.settings!.thumbOffset = draft.instagramThumbOffset;
             }
-            payload.settings!.shareToFeed = instagramShareToFeed;
+            payload.settings!.shareToFeed = draft.instagramShareToFeed;
 
-            if (instagramCollaborators.length > 0) {
-              payload.settings!.collaborators = instagramCollaborators.map(
+            if (pub.instagramCollaborators.length > 0) {
+              payload.settings!.collaborators = pub.instagramCollaborators.map(
                 (c) => c.username
               );
             }
           }
 
           if (platformId === "facebook") {
-            payload.settings!.facebookPostType = facebookPostType;
+            payload.settings!.facebookPostType = draft.facebookPostType;
             if (
-              facebookFirstComment &&
-              facebookFirstComment.trim().length > 0
+              draft.facebookFirstComment &&
+              draft.facebookFirstComment.trim().length > 0
             ) {
               payload.settings!.facebookFirstComment =
-                facebookFirstComment.trim();
+                draft.facebookFirstComment.trim();
             }
           }
 
           if (platformId === "tiktok") {
-            const tiktokTitle = platformTitles["tiktok"];
+            const tiktokTitle = draft.platformTitles["tiktok"];
             if (tiktokTitle && tiktokTitle.trim().length > 0) {
               payload.title = tiktokTitle.trim();
             }
 
             if (
-              postType === "video" &&
-              tiktokVideoCoverTimestamp !== null &&
-              tiktokVideoCoverTimestamp !== undefined
+              draft.postType === "video" &&
+              draft.tiktokVideoCoverTimestamp !== null &&
+              draft.tiktokVideoCoverTimestamp !== undefined
             ) {
               payload.settings!.video_cover_timestamp_ms =
-                tiktokVideoCoverTimestamp;
+                draft.tiktokVideoCoverTimestamp;
             }
           }
 
           if (platformId === "youtube") {
-            const youtubeTitle = platformTitles["youtube"];
+            const youtubeTitle = draft.platformTitles["youtube"];
             if (youtubeTitle && youtubeTitle.trim().length > 0) {
               payload.title = youtubeTitle.trim();
             }
 
-            payload.settings!.privacyStatus = youtubePrivacy;
-            payload.settings!.categoryId = youtubeCategory;
-            payload.settings!.madeForKids = youtubeMadeForKids;
-            payload.settings!.thumbnailUrl = youtubeThumbnailUrl || undefined;
+            payload.settings!.privacyStatus = pub.youtubePrivacy;
+            payload.settings!.categoryId = pub.youtubeCategory;
+            payload.settings!.madeForKids = pub.youtubeMadeForKids;
+            payload.settings!.thumbnailUrl =
+              pub.youtubeThumbnailUrl || undefined;
 
-            if (youtubeTags.trim()) {
-              payload.settings!.tags = youtubeTags
+            if (pub.youtubeTags.trim()) {
+              payload.settings!.tags = pub.youtubeTags
                 .split(",")
                 .map((t) => t.trim())
                 .filter(Boolean);
@@ -457,53 +432,53 @@ export default function EditorialCore({
           if (platformId === "threads") {
             delete payload.settings!.location;
 
-            if (threadsTopicTag && threadsTopicTag.trim().length > 0) {
-              payload.settings!.topicTag = threadsTopicTag.trim();
+            if (pub.threadsTopicTag && pub.threadsTopicTag.trim().length > 0) {
+              payload.settings!.topicTag = pub.threadsTopicTag.trim();
             }
 
             if (
               platformMediaIds.length === 0 &&
-              threadsLinkAttachment &&
-              threadsLinkAttachment.trim().length > 0
+              pub.threadsLinkAttachment &&
+              pub.threadsLinkAttachment.trim().length > 0
             ) {
-              payload.settings!.linkAttachment = threadsLinkAttachment.trim();
+              payload.settings!.linkAttachment =
+                pub.threadsLinkAttachment.trim();
             }
 
-            if (location.id) {
-              payload.settings!.locationId = location.id;
+            if (pub.location.id) {
+              payload.settings!.locationId = pub.location.id;
             }
           }
 
           if (platformId === "pinterest") {
-            if (!pinterestBoardId) {
+            if (!pub.pinterestBoardId) {
               showError("Please select a board for Pinterest.");
               throw new Error("Pinterest validation failed");
             }
-            payload.settings!.boardId = pinterestBoardId;
+            payload.settings!.boardId = pub.pinterestBoardId;
 
-            if (pinterestLink && pinterestLink.trim().length > 0) {
-              payload.settings!.link = pinterestLink.trim();
+            if (pub.pinterestLink && pub.pinterestLink.trim().length > 0) {
+              payload.settings!.link = pub.pinterestLink.trim();
             }
 
-            const pinTitle = platformTitles["pinterest"];
+            const pinTitle = draft.platformTitles["pinterest"];
             if (pinTitle && pinTitle.trim().length > 0) {
               payload.title = pinTitle.trim();
             }
 
-            // Check if media is video, and enforce cover image
             const activeMediaUid = platformMediaUids[0];
-            const activeMedia = stagedMediaItems.find(
+            const activeMedia = draft.stagedMediaItems.find(
               (i) => i.uid === activeMediaUid
             );
 
             if (activeMedia?.type === "video") {
-              if (!pinterestCoverUrl) {
+              if (!pub.pinterestCoverUrl) {
                 showError("Pinterest videos require a custom cover image.");
                 throw new Error(
                   "Pinterest validation failed: Missing cover image"
                 );
               }
-              payload.settings!.coverUrl = pinterestCoverUrl;
+              payload.settings!.coverUrl = pub.pinterestCoverUrl;
             }
 
             if (activeMedia?.altText) {
@@ -523,7 +498,7 @@ export default function EditorialCore({
       const results = await Promise.all(postPromises);
       const createdPostIds = results.map((r) => r.id);
 
-      if (isScheduling) {
+      if (pub.isScheduling) {
         setConfirmationStatus("scheduled");
         setConfirmationCount(postPromises.length);
         postMutation.reset();
@@ -571,7 +546,6 @@ export default function EditorialCore({
           <div className="space-y-6">
             <ChannelSelector
               platforms={availablePlatforms}
-              activePlatforms={activePlatforms}
               onTogglePlatform={togglePlatform}
             />
 
@@ -609,12 +583,7 @@ export default function EditorialCore({
         </div>
 
         <div className="space-y-6 lg:col-span-5">
-          <PreviewPanel
-            selectedAccounts={selectedAccounts}
-            mainCaption={localMainCaption}
-            platformCaptions={localPlatformCaptions}
-            collaborators={localCollaborators}
-          />
+          <PreviewPanel />
           <DistributionPanel />
           {mode === "editorial" && (
             <SchedulePanel

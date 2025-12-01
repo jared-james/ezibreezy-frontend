@@ -2,7 +2,10 @@
 
 "use client";
 
-import { useEditorialStore, MediaItem } from "@/lib/store/editorial-store";
+import {
+  useEditorialDraftStore,
+  MediaItem,
+} from "@/lib/store/editorial/draft-store";
 import { cn } from "@/lib/utils";
 import { Film, Image as ImageIcon, Grid, Play } from "lucide-react";
 import {
@@ -32,7 +35,6 @@ const MediaThumbnail = ({
   const isSelected = selectionIndex > -1;
 
   const isVideo = item.type === "video";
-  // Use the actual media URL for the video player, fall back to preview (blob) for new uploads
   const videoSrc = item.mediaUrl || item.preview;
 
   return (
@@ -103,8 +105,11 @@ export default function ThreadMediaSelector({
   threadIndex,
   selectedMediaIds = [],
 }: ThreadMediaSelectorProps) {
-  const stagedMediaItems = useEditorialStore((state) => state.stagedMediaItems);
-  const toggleThreadMediaSelection = useEditorialStore(
+  // Migrated to Atomic Selectors from Draft Store
+  const stagedMediaItems = useEditorialDraftStore(
+    (state) => state.stagedMediaItems
+  );
+  const toggleThreadMediaSelection = useEditorialDraftStore(
     (state) => state.toggleThreadMediaSelection
   );
 

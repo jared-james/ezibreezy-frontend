@@ -4,7 +4,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import { cn } from "@/lib/utils";
-import { MediaItem } from "@/lib/store/editorial-store";
+import { MediaItem } from "@/lib/store/editorial/draft-store";
 
 interface InstagramStoryCarouselProps {
   mediaItems: MediaItem[];

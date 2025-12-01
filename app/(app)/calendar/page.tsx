@@ -17,7 +17,6 @@ import MonthView from "./components/month-view";
 import WeekView from "./components/week-view";
 import ListView from "./components/list-view";
 import EditorialModal from "./components/editorial-modal";
-import { useEditorialStore } from "@/lib/store/editorial-store";
 import { ScheduledPost } from "./types";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
@@ -27,7 +26,7 @@ import {
   reschedulePostOnly,
   RescheduleOnlyPayload,
 } from "@/lib/api/publishing";
-import { useClientData } from "@/lib/hooks/use-client-data"; // Updated import
+import { useClientData } from "@/lib/hooks/use-client-data";
 import { toast } from "sonner";
 import {
   AlertDialog,
@@ -39,6 +38,14 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+
+// New Store Imports
+import {
+  useEditorialDraftStore,
+  MediaItem,
+} from "@/lib/store/editorial/draft-store";
+import { usePublishingStore } from "@/lib/store/editorial/publishing-store";
+import { useEditorialUIStore } from "@/lib/store/editorial/ui-store";
 
 type CalendarView = "Month" | "Week" | "List";
 
@@ -55,10 +62,19 @@ export default function CalendarPage() {
 
   const queryClient = useQueryClient();
 
-  const initializeFromFullPost = useEditorialStore(
-    (state) => state.initializeFromFullPost
+  // Store Actions
+  const setDraftState = useEditorialDraftStore((state) => state.setDraftState);
+  const setStagedMediaItems = useEditorialDraftStore(
+    (state) => state.setStagedMediaItems
   );
-  const resetStore = useEditorialStore((state) => state.reset);
+  const resetDraft = useEditorialDraftStore((state) => state.resetDraft);
+
+  const setPublishingState = usePublishingStore(
+    (state) => state.setPublishingState
+  );
+  const resetPublishing = usePublishingStore((state) => state.resetPublishing);
+
+  const resetUI = useEditorialUIStore((state) => state.resetUI);
 
   const [postIdToEdit, setPostIdToEdit] = useState<string | null>(null);
 
@@ -99,9 +115,73 @@ export default function CalendarPage() {
     staleTime: 0,
   });
 
+  // Initialization Logic for Edit Mode
   useEffect(() => {
     if (fullPostData && !isFetchingFullPost && postIdToEdit) {
-      initializeFromFullPost(fullPostData);
+      // 1. Map Media
+      const newMediaItems: MediaItem[] = [];
+      const mediaMap = fullPostData.allMedia || {};
+      const idToUidMap = new Map<string, string>();
+
+      const allMediaIds = Array.from(
+        new Set([
+          ...fullPostData.mediaIds,
+          ...(fullPostData.threadMessages || []).flatMap((m) => m.mediaIds),
+        ])
+      );
+
+      allMediaIds.forEach((mediaId) => {
+        const mediaRecord = mediaMap[mediaId];
+        if (mediaRecord) {
+          const uid = crypto.randomUUID();
+          idToUidMap.set(mediaId, uid);
+
+          newMediaItems.push({
+            uid,
+            id: mediaId,
+            file: null,
+            preview: mediaRecord.url,
+            mediaUrl: mediaRecord.url,
+            isUploading: false,
+            type: mediaRecord.type.startsWith("video") ? "video" : "image",
+          });
+        }
+      });
+
+      // 2. Draft State
+      setStagedMediaItems(newMediaItems);
+
+      const threadMessages = (fullPostData.threadMessages || []).map((msg) => ({
+        content: msg.content,
+        mediaIds: msg.mediaIds
+          .map((id) => idToUidMap.get(id))
+          .filter(Boolean) as string[],
+      }));
+
+      const platform = fullPostData.integration.platform;
+
+      setDraftState({
+        mainCaption:
+          fullPostData.settings?.canonicalContent || fullPostData.content,
+        platformMediaSelections: {
+          [platform]: fullPostData.mediaIds
+            .map((id) => idToUidMap.get(id))
+            .filter(Boolean) as string[],
+        },
+        platformThreadMessages: {
+          [platform]: threadMessages,
+        },
+        threadMessages: threadMessages, // Fallback for single platform editing
+      });
+
+      // 3. Publishing State
+      setPublishingState({
+        selectedAccounts: {
+          [platform]: [fullPostData.integrationId],
+        },
+        // We could populate scheduling info here if we wanted to show it in the editor
+      });
+
       setPostIdToEdit(null);
     }
 
@@ -113,10 +193,12 @@ export default function CalendarPage() {
   }, [
     fullPostData,
     isFetchingFullPost,
-    initializeFromFullPost,
     isErrorFullPost,
     errorFullPost,
     postIdToEdit,
+    setDraftState,
+    setStagedMediaItems,
+    setPublishingState,
   ]);
 
   const rescheduleMutation = useMutation({
@@ -177,12 +259,20 @@ export default function CalendarPage() {
     if (post.status === "sent") {
       toast.info("Sent posts cannot be edited. A copy will be created.");
     }
+    // Clear stores before loading new data
+    resetDraft();
+    resetPublishing();
+    resetUI();
+
     setIsEditorialModalOpen(true);
     setPostIdToEdit(post.id);
   };
 
   const handleNewPost = (date: Date) => {
-    resetStore();
+    resetDraft();
+    resetPublishing();
+    resetUI();
+    // Optionally pre-fill schedule date in publishing store here if needed
     setIsEditorialModalOpen(true);
   };
 
@@ -300,8 +390,6 @@ export default function CalendarPage() {
     </Button>
   );
 
-  // Note: userId check is used as a proxy for client data loading if needed,
-  // but we primarily rely on isLoadingList for UI blocking.
   if (isLoadingList) {
     return (
       <div className="flex h-full w-full items-center justify-center p-8">
