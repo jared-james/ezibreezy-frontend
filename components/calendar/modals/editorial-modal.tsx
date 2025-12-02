@@ -43,6 +43,8 @@ export default function EditorialModal({
     resetDraft();
     resetPublishing();
     resetUI();
+    setIsDeleting(false);
+    setShowDeleteModal(false);
     onClose();
   };
 
