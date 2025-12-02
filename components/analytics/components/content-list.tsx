@@ -1,3 +1,5 @@
+// components/analytics/components/content-list.tsx
+
 "use client";
 
 import { useState } from "react";

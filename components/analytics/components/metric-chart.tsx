@@ -1,3 +1,5 @@
+// components/analytics/components/metric-chart.tsx
+
 "use client";
 
 import {

@@ -87,36 +87,38 @@ export default function AnalyticsContainer() {
   const sortedMetrics = sortMetricsByOrder(metrics);
 
   return (
-    <div className="flex h-full w-full flex-col p-4 2xl:p-6 space-y-6 overflow-y-auto bg-[#fdfbf7]">
-      <AnalyticsHeader onRefresh={refetch} />
+    <div className="flex h-full w-full flex-col p-4 2xl:p-6 overflow-y-auto bg-[#fdfbf7]">
+      <div className="mx-auto w-full max-w-7xl space-y-6">
+        <AnalyticsHeader onRefresh={refetch} />
 
-      <AnalyticsFilters
-        integrations={filters.integrations}
-        selectedIntegrationId={filters.selectedIntegrationId}
-        onIntegrationChange={filters.setSelectedIntegrationId}
-        selectedDays={filters.selectedDays}
-        onDaysChange={filters.setSelectedDays}
-      />
+        <AnalyticsFilters
+          integrations={filters.integrations}
+          selectedIntegrationId={filters.selectedIntegrationId}
+          onIntegrationChange={filters.setSelectedIntegrationId}
+          selectedDays={filters.selectedDays}
+          onDaysChange={filters.setSelectedDays}
+        />
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 2xl:gap-6">
-        {sortedMetrics.map((metric) => (
-          <MetricCard key={metric.key} metric={metric} />
-        ))}
-      </div>
-
-      <div className="grid grid-cols-1 gap-6">
-        {sortedMetrics.map((metric) => (
-          <MetricChart key={metric.key} metric={metric} />
-        ))}
-      </div>
-
-      <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 pb-8">
-        <div className="xl:col-span-1">
-          <TopPerformingContent posts={topPosts} isLoading={isLoadingPosts} />
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 2xl:gap-6">
+          {sortedMetrics.map((metric) => (
+            <MetricCard key={metric.key} metric={metric} />
+          ))}
         </div>
 
-        <div className="xl:col-span-2">
-          <ContentList posts={posts} isLoading={isLoadingPosts} />
+        <div className="grid grid-cols-1 gap-6">
+          {sortedMetrics.map((metric) => (
+            <MetricChart key={metric.key} metric={metric} />
+          ))}
+        </div>
+
+        <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 pb-8">
+          <div className="xl:col-span-1">
+            <TopPerformingContent posts={topPosts} isLoading={isLoadingPosts} />
+          </div>
+
+          <div className="xl:col-span-2">
+            <ContentList posts={posts} isLoading={isLoadingPosts} />
+          </div>
         </div>
       </div>
     </div>

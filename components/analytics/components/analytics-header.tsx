@@ -1,3 +1,5 @@
+// components/analytics/components/analytics-header.tsx
+
 "use client";
 
 import { RefreshCw, BarChart2 } from "lucide-react";

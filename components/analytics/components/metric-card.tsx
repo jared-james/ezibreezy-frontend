@@ -1,3 +1,5 @@
+// components/analytics/components/metric-card.tsx
+
 "use client";
 
 import { TrendingUp, TrendingDown, Minus } from "lucide-react";

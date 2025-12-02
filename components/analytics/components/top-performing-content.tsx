@@ -1,3 +1,5 @@
+// components/analytics/components/top-performing-content.tsx
+
 "use client";
 
 import PostCard from "./post-card";

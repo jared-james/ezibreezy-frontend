@@ -1,3 +1,5 @@
+// components/analytics/hooks/use-post-analytics.ts
+
 "use client";
 
 import { useQuery } from "@tanstack/react-query";

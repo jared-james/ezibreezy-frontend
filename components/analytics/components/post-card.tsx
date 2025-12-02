@@ -1,3 +1,5 @@
+// components/analytics/components/post-card.tsx
+
 "use client";
 
 import {

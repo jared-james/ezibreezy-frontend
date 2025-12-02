@@ -1,3 +1,5 @@
+// components/analytics/components/analytics-error.tsx
+
 "use client";
 
 import { AlertCircle, RefreshCw } from "lucide-react";

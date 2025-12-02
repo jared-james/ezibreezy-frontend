@@ -1,3 +1,5 @@
+// components/analytics/components/analytics-skeleton.tsx
+
 import { Skeleton } from "@/components/ui/skeleton";
 
 export default function AnalyticsSkeleton() {
