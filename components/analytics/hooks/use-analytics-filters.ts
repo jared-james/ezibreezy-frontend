@@ -12,6 +12,7 @@ import type {
   AnalyticsPlatform,
   Account,
   AnalyticsFilters,
+  AccountStatus,
 } from "@/lib/types/analytics";
 
 const STORAGE_KEY = "ezibreezy_analytics_filters";
@@ -30,6 +31,30 @@ interface UseAnalyticsFiltersReturn {
   isLoadingIntegrations: boolean;
 }
 
+// Helper to map backend JSON status to frontend string enum
+function mapBackendStatus(connection: any): AccountStatus {
+  // Assuming the backend 'analyticsStatus' JSONB column comes through on the connection object
+  const statusObj = connection.analyticsStatus as
+    | Record<string, any>
+    | undefined;
+
+  if (!statusObj) return "active"; // Default to active if no status exists yet
+
+  if (statusObj.status === "error") return "error";
+  if (connection.requiresReauth) return "reauth_required";
+
+  return "active";
+}
+
+function getErrorMessage(connection: any): string | undefined {
+  const statusObj = connection.analyticsStatus as
+    | Record<string, any>
+    | undefined;
+  if (connection.requiresReauth)
+    return "Authentication expired. Please reconnect.";
+  return statusObj?.message;
+}
+
 function migrateOldFormat(
   stored: unknown,
   allConnections: Connection[]
@@ -38,12 +63,10 @@ function migrateOldFormat(
 
   const storedObj = stored as Record<string, unknown>;
 
-  // Check if it's already v2 format
   if (storedObj.version === 2 && storedObj.selectedAccounts) {
     return stored as AnalyticsFilters;
   }
 
-  // Check if it's v1 format
   if (storedObj.integrationId && !storedObj.selectedAccounts) {
     const connection = allConnections.find(
       (c) => c.id === storedObj.integrationId
@@ -75,14 +98,11 @@ export function useAnalyticsFilters(): UseAnalyticsFiltersReturn {
 
   // Build platforms from integrations
   const platforms = useMemo((): AnalyticsPlatform[] => {
-    const connectionsByPlatform = integrations.reduce(
-      (acc, conn) => {
-        acc[conn.platform] = acc[conn.platform] || [];
-        acc[conn.platform].push(conn);
-        return acc;
-      },
-      {} as Record<string, Connection[]>
-    );
+    const connectionsByPlatform = integrations.reduce((acc, conn) => {
+      acc[conn.platform] = acc[conn.platform] || [];
+      acc[conn.platform].push(conn);
+      return acc;
+    }, {} as Record<string, Connection[]>);
 
     return [
       {
@@ -94,6 +114,8 @@ export function useAnalyticsFilters(): UseAnalyticsFiltersReturn {
             id: conn.id,
             name: conn.name || `@${conn.platformUsername}`,
             img: conn.avatarUrl || "/placeholder-pfp.png",
+            status: mapBackendStatus(conn),
+            errorMessage: getErrorMessage(conn),
           })
         ),
       },
@@ -106,13 +128,14 @@ export function useAnalyticsFilters(): UseAnalyticsFiltersReturn {
             id: conn.id,
             name: conn.name || `@${conn.platformUsername}`,
             img: conn.avatarUrl || "/placeholder-pfp.png",
+            status: mapBackendStatus(conn),
+            errorMessage: getErrorMessage(conn),
           })
         ),
       },
     ];
   }, [integrations]);
 
-  // Initialize state with migration
   const [selectedAccounts, setSelectedAccountsState] = useState<
     Record<string, string[]>
   >(() => {
@@ -187,7 +210,10 @@ export function useAnalyticsFilters(): UseAnalyticsFiltersReturn {
       };
       localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
     } catch (error) {
-      console.error("[Analytics Filters] Failed to save to localStorage:", error);
+      console.error(
+        "[Analytics Filters] Failed to save to localStorage:",
+        error
+      );
     }
   };
 
@@ -199,10 +225,8 @@ export function useAnalyticsFilters(): UseAnalyticsFiltersReturn {
     let newActiveId = activeAccountId;
 
     if (selectedAccounts[platformId]) {
-      // Turning OFF - clear all (only one channel can be active)
       newActiveId = null;
     } else {
-      // Turning ON - clear all other channels, add this one
       newSelected[platformId] = [platform.accounts[0].id];
       newActiveId = platform.accounts[0].id;
     }
@@ -221,7 +245,6 @@ export function useAnalyticsFilters(): UseAnalyticsFiltersReturn {
     const isSelected = currentSelection.includes(accountId);
 
     if (isSelected) {
-      // Already selected → make it active (switch data view)
       setActiveAccountIdState(accountId);
       persistToLocalStorage({
         selectedAccounts,
@@ -229,7 +252,6 @@ export function useAnalyticsFilters(): UseAnalyticsFiltersReturn {
         days: selectedDays,
       });
     } else {
-      // Not selected → select it AND make it active
       const newSelection = [...currentSelection, accountId];
       const newSelected = { ...selectedAccounts, [platformId]: newSelection };
 

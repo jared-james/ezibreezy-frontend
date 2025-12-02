@@ -19,28 +19,25 @@ export function AccountAvatar({
   isLastSelected,
   onClick,
 }: AccountAvatarProps) {
+  const isSyncing = account.status === "syncing";
+
   return (
     <button
       type="button"
       onClick={onClick}
       disabled={isLastSelected}
       className={cn(
-        "relative transition-all overflow-hidden rounded-full",
+        "relative transition-all overflow-visible rounded-full group",
         isLastSelected && "cursor-not-allowed opacity-75"
       )}
-      title={
-        isLastSelected
-          ? `${account.name} (Cannot deselect the last account)`
-          : isActive
-          ? `${account.name} (Currently viewing)`
-          : account.name
-      }
+      title={account.name}
     >
       <div
         className={cn(
-          "h-10 w-10 rounded-full border-2 transition-all overflow-hidden",
-          isSelected && "border-primary",
-          !isSelected && "border-border hover:border-primary/50"
+          "h-10 w-10 rounded-full border-2 transition-all overflow-hidden bg-background",
+          isSelected
+            ? "border-primary"
+            : "border-border hover:border-primary/50"
         )}
       >
         <img
@@ -51,9 +48,13 @@ export function AccountAvatar({
       </div>
 
       {isActive && (
-        <div className="absolute -bottom-0.5 -right-0.5 bg-primary text-primary-foreground rounded-full p-0.5 border-2 border-background shadow-sm">
+        <div className="absolute -bottom-0.5 -right-0.5 bg-primary text-primary-foreground rounded-full p-0.5 border-2 border-background shadow-sm z-10">
           <Check className="h-3 w-3" strokeWidth={3} />
         </div>
+      )}
+
+      {isSyncing && (
+        <div className="absolute inset-0 rounded-full border-2 border-primary border-t-transparent animate-spin" />
       )}
     </button>
   );

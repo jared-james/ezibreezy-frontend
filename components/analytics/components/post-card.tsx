@@ -60,16 +60,19 @@ export default function PostCard({
 }: PostCardProps) {
   const isVertical = layout === "vertical";
 
-  // We treat 0 impressions as "pending data"
-  const hasData = post.metrics.impressions > 0;
+  // Updated: Read from top-level property
+  const hasData = post.impressions > 0;
 
   // Check if this is a YouTube video with extended metrics
-  const isYouTube = post.metrics.watchTimeMinutes !== undefined || post.metrics.avgViewDuration !== undefined;
-  const hasYouTubeMetrics = isYouTube && (
-    post.metrics.avgViewDuration !== undefined ||
-    post.metrics.avgViewPercentage !== undefined ||
-    post.metrics.subscribersGained !== undefined
-  );
+  const extendedMetrics = post.metrics || {};
+  const isYouTube =
+    extendedMetrics.watchTimeMinutes !== undefined ||
+    extendedMetrics.avgViewDuration !== undefined;
+  const hasYouTubeMetrics =
+    isYouTube &&
+    (extendedMetrics.avgViewDuration !== undefined ||
+      extendedMetrics.avgViewPercentage !== undefined ||
+      extendedMetrics.subscribersGained !== undefined);
 
   return (
     <div
@@ -135,12 +138,12 @@ export default function PostCard({
             <span
               className={cn(
                 "font-mono text-xs font-bold",
-                hasData && post.metrics.engagementRate >= 5
+                hasData && post.engagementRate >= 5
                   ? "text-brand-primary"
                   : "text-foreground"
               )}
             >
-              {hasData ? `${post.metrics.engagementRate.toFixed(1)}%` : "—"}
+              {hasData ? `${post.engagementRate.toFixed(1)}%` : "—"}
             </span>
           </div>
 
@@ -150,7 +153,7 @@ export default function PostCard({
               <Heart className="h-3 w-3" />
             </div>
             <span className="font-mono text-xs font-medium text-foreground">
-              {formatNumber(post.metrics.likes)}
+              {formatNumber(post.likes)}
             </span>
           </div>
 
@@ -160,7 +163,7 @@ export default function PostCard({
               <MessageCircle className="h-3 w-3" />
             </div>
             <span className="font-mono text-xs font-medium text-foreground">
-              {formatNumber(post.metrics.comments)}
+              {formatNumber(post.comments)}
             </span>
           </div>
 
@@ -170,19 +173,25 @@ export default function PostCard({
               <Share2 className="h-3 w-3" />
             </div>
             <span className="font-mono text-xs font-medium text-foreground">
-              {formatNumber(post.metrics.shares)}
+              {formatNumber(post.shares)}
             </span>
           </div>
 
           {/* 5. Saves (or Subscriber Net for YouTube) */}
           <div className="flex flex-col items-center justify-center">
             <div className="flex items-center gap-1 text-[9px] text-muted-foreground uppercase tracking-wider mb-1">
-              {isYouTube ? <Users className="h-3 w-3" /> : <Bookmark className="h-3 w-3" />}
+              {isYouTube ? (
+                <Users className="h-3 w-3" />
+              ) : (
+                <Bookmark className="h-3 w-3" />
+              )}
             </div>
             <span className="font-mono text-xs font-medium text-foreground">
-              {isYouTube && post.metrics.subscribersNet !== undefined
-                ? `${post.metrics.subscribersNet > 0 ? "+" : ""}${post.metrics.subscribersNet}`
-                : formatNumber(post.metrics.saves)}
+              {isYouTube && extendedMetrics.subscribersNet !== undefined
+                ? `${extendedMetrics.subscribersNet > 0 ? "+" : ""}${
+                    extendedMetrics.subscribersNet
+                  }`
+                : formatNumber(post.saves)}
             </span>
           </div>
 
@@ -192,7 +201,7 @@ export default function PostCard({
               <Eye className="h-3 w-3" />
             </div>
             <span className="font-mono text-xs font-medium text-foreground">
-              {formatNumber(post.metrics.impressions)}
+              {formatNumber(post.impressions)}
             </span>
           </div>
         </div>
@@ -201,43 +210,46 @@ export default function PostCard({
         {hasYouTubeMetrics && (
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 mt-3 pt-3 border-t border-dashed border-brand-primary/20 bg-brand-primary/5 -mx-4 -mb-4 px-4 pb-4">
             {/* Avg View Duration */}
-            {post.metrics.avgViewDuration !== undefined && post.metrics.avgViewDuration > 0 && (
-              <div className="flex flex-col items-center justify-center py-2">
-                <div className="flex items-center gap-1 text-[9px] text-muted-foreground uppercase tracking-wider mb-1">
-                  <Clock className="h-3 w-3" />
-                  <span>Duration</span>
+            {extendedMetrics.avgViewDuration !== undefined &&
+              extendedMetrics.avgViewDuration > 0 && (
+                <div className="flex flex-col items-center justify-center py-2">
+                  <div className="flex items-center gap-1 text-[9px] text-muted-foreground uppercase tracking-wider mb-1">
+                    <Clock className="h-3 w-3" />
+                    <span>Duration</span>
+                  </div>
+                  <span className="font-mono text-xs font-medium text-foreground">
+                    {formatDuration(extendedMetrics.avgViewDuration)}
+                  </span>
                 </div>
-                <span className="font-mono text-xs font-medium text-foreground">
-                  {formatDuration(post.metrics.avgViewDuration)}
-                </span>
-              </div>
-            )}
+              )}
 
             {/* Avg View Percentage */}
-            {post.metrics.avgViewPercentage !== undefined && post.metrics.avgViewPercentage > 0 && (
-              <div className="flex flex-col items-center justify-center py-2">
-                <div className="flex items-center gap-1 text-[9px] text-muted-foreground uppercase tracking-wider mb-1">
-                  <TrendingUp className="h-3 w-3" />
-                  <span>Retention</span>
+            {extendedMetrics.avgViewPercentage !== undefined &&
+              extendedMetrics.avgViewPercentage > 0 && (
+                <div className="flex flex-col items-center justify-center py-2">
+                  <div className="flex items-center gap-1 text-[9px] text-muted-foreground uppercase tracking-wider mb-1">
+                    <TrendingUp className="h-3 w-3" />
+                    <span>Retention</span>
+                  </div>
+                  <span className="font-mono text-xs font-bold text-brand-primary">
+                    {extendedMetrics.avgViewPercentage.toFixed(1)}%
+                  </span>
                 </div>
-                <span className="font-mono text-xs font-bold text-brand-primary">
-                  {post.metrics.avgViewPercentage.toFixed(1)}%
-                </span>
-              </div>
-            )}
+              )}
 
             {/* Watch Time */}
-            {post.metrics.watchTimeMinutes !== undefined && post.metrics.watchTimeMinutes > 0 && (
-              <div className="flex flex-col items-center justify-center py-2">
-                <div className="flex items-center gap-1 text-[9px] text-muted-foreground uppercase tracking-wider mb-1">
-                  <Clock className="h-3 w-3" />
-                  <span>Watch Time</span>
+            {extendedMetrics.watchTimeMinutes !== undefined &&
+              extendedMetrics.watchTimeMinutes > 0 && (
+                <div className="flex flex-col items-center justify-center py-2">
+                  <div className="flex items-center gap-1 text-[9px] text-muted-foreground uppercase tracking-wider mb-1">
+                    <Clock className="h-3 w-3" />
+                    <span>Watch Time</span>
+                  </div>
+                  <span className="font-mono text-xs font-medium text-foreground">
+                    {formatNumber(extendedMetrics.watchTimeMinutes)} min
+                  </span>
                 </div>
-                <span className="font-mono text-xs font-medium text-foreground">
-                  {formatNumber(post.metrics.watchTimeMinutes)} min
-                </span>
-              </div>
-            )}
+              )}
           </div>
         )}
       </div>

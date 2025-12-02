@@ -4,7 +4,13 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { getAnalytics } from "@/lib/api/analytics";
-import type { AnalyticsMetric, TimeRange } from "@/lib/types/analytics";
+import type {
+  AnalyticsMetric,
+  TimeRange,
+  AnalyticsResponse,
+  AnalyticsWarning,
+  DataQualityMetadata,
+} from "@/lib/types/analytics";
 
 interface UseAnalyticsDataProps {
   integrationId: string | null;
@@ -13,6 +19,8 @@ interface UseAnalyticsDataProps {
 
 interface UseAnalyticsDataReturn {
   metrics: AnalyticsMetric[];
+  warnings?: AnalyticsWarning[];
+  dataQuality?: DataQualityMetadata;
   isLoading: boolean;
   isError: boolean;
   error: unknown;
@@ -23,13 +31,9 @@ export function useAnalyticsData({
   integrationId,
   days,
 }: UseAnalyticsDataProps): UseAnalyticsDataReturn {
-  const {
-    data: metrics = [],
-    isLoading,
-    isError,
-    error,
-    refetch,
-  } = useQuery<AnalyticsMetric[]>({
+  const { data, isLoading, isError, error, refetch } = useQuery<
+    AnalyticsResponse<AnalyticsMetric[]>
+  >({
     queryKey: ["analytics", integrationId, days],
     queryFn: () => getAnalytics(integrationId!, days),
     enabled: !!integrationId,
@@ -38,7 +42,9 @@ export function useAnalyticsData({
   });
 
   return {
-    metrics,
+    metrics: data?.data || [],
+    warnings: data?.warnings,
+    dataQuality: data?.dataQuality,
     isLoading,
     isError,
     error,

@@ -1,3 +1,5 @@
+// components/analytics/components/content-list.tsx
+
 "use client";
 
 import { useState } from "react";
@@ -36,10 +38,19 @@ export default function ContentList({
 
   const filteredPosts = posts.filter((post) => {
     if (filter === "all") return true;
+
+    // Updated: Match new type definition ('carousel', 'text')
     if (filter === "posts")
-      return post.type === "image" || post.type === "carousel_album";
+      return (
+        post.type === "image" ||
+        post.type === "carousel" ||
+        post.type === "text"
+      );
+
     if (filter === "videos") return post.type === "video";
+
     if (filter === "stories") return post.type === "story";
+
     return true;
   });
 

@@ -1,5 +1,3 @@
-// components/analytics/components/metric-chart.tsx
-
 "use client";
 
 import {
@@ -11,10 +9,13 @@ import {
   CartesianGrid,
   Tooltip,
 } from "recharts";
-import type { AnalyticsMetric } from "@/lib/types/analytics";
+import { Lock, AlertTriangle } from "lucide-react";
+import type { AnalyticsMetric, AccountStatus } from "@/lib/types/analytics";
 
 interface MetricChartProps {
   metric: AnalyticsMetric;
+  accountStatus?: AccountStatus;
+  errorMessage?: string;
 }
 
 interface CustomTooltipProps {
@@ -58,11 +59,57 @@ function formatXAxisDate(dateString: string): string {
   return date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
 }
 
-export default function MetricChart({ metric }: MetricChartProps) {
+export default function MetricChart({
+  metric,
+  accountStatus,
+  errorMessage,
+}: MetricChartProps) {
+  const isRestricted =
+    accountStatus === "error" ||
+    (errorMessage && errorMessage.includes("followers"));
+
+  if (isRestricted) {
+    return (
+      <div className="flex flex-col gap-6 p-4 relative overflow-hidden">
+        <div className="flex items-end justify-between opacity-50 blur-[2px] select-none pointer-events-none">
+          <div>
+            <span className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground block mb-1">
+              Figure 1.0 // Trend Analysis
+            </span>
+            <h3 className="font-serif text-2xl font-bold text-foreground leading-none">
+              {metric.label}
+            </h3>
+          </div>
+          <span className="text-[10px] font-mono font-bold text-foreground border-b border-foreground/20 pb-0.5 uppercase tracking-wider">
+            30 Day Scope
+          </span>
+        </div>
+
+        <div className="w-full h-[300px] bg-muted/20 relative rounded-sm border-2 border-dashed border-foreground/10">
+          <div className="absolute inset-0 flex flex-col items-center justify-center p-6 text-center z-10 bg-surface/80 backdrop-blur-sm">
+            <div className="h-12 w-12 rounded-full bg-background border-2 border-foreground flex items-center justify-center mb-4 shadow-[4px_4px_0_0_rgba(0,0,0,0.1)]">
+              <Lock className="h-5 w-5 text-muted-foreground" />
+            </div>
+            <h3 className="font-serif text-lg font-bold text-foreground mb-2">
+              Data Restricted
+            </h3>
+            <p className="text-sm text-muted-foreground max-w-sm leading-relaxed">
+              {errorMessage ||
+                "This metric is currently unavailable for this account due to platform requirements."}
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   if (!metric.history || metric.history.length === 0) {
     return (
-      <div className="flex flex-col gap-4 p-6 min-h-[300px] justify-center items-center text-center bg-surface-hover/30 rounded-sm">
-        <div className="space-y-2">
+      <div className="flex flex-col gap-4 p-6 min-h-[300px] justify-center items-center text-center bg-surface-hover/30 rounded-sm border border-dashed border-foreground/10">
+        <div className="h-10 w-10 rounded-full bg-muted flex items-center justify-center mb-2">
+          <AlertTriangle className="h-5 w-5 text-muted-foreground/50" />
+        </div>
+        <div className="space-y-1">
           <h3 className="font-mono text-xs uppercase tracking-widest text-muted-foreground">
             No Data Available
           </h3>
@@ -76,7 +123,6 @@ export default function MetricChart({ metric }: MetricChartProps) {
 
   return (
     <div className="flex flex-col gap-6 p-4">
-      {/* Chart Header */}
       <div className="flex items-end justify-between">
         <div>
           <span className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground block mb-1">
@@ -91,7 +137,6 @@ export default function MetricChart({ metric }: MetricChartProps) {
         </span>
       </div>
 
-      {/* The Chart */}
       <div className="w-full h-[300px]">
         <ResponsiveContainer width="100%" height="100%">
           <AreaChart
@@ -132,7 +177,7 @@ export default function MetricChart({ metric }: MetricChartProps) {
               tick={{
                 fill: "var(--muted-foreground)",
                 fontSize: 10,
-                fontFamily: "var(--font-mono)", // Monospace ticks
+                fontFamily: "var(--font-mono)",
               }}
               stroke="var(--foreground)"
               strokeOpacity={0.2}
@@ -146,7 +191,7 @@ export default function MetricChart({ metric }: MetricChartProps) {
               tick={{
                 fill: "var(--muted-foreground)",
                 fontSize: 10,
-                fontFamily: "var(--font-mono)", // Monospace ticks
+                fontFamily: "var(--font-mono)",
               }}
               stroke="transparent"
               tickLine={false}
