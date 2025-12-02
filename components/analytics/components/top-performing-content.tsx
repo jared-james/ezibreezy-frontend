@@ -5,7 +5,7 @@
 import PostCard from "./post-card";
 import type { PostAnalytics } from "@/lib/types/analytics";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Trophy } from "lucide-react";
+import { Trophy, Star } from "lucide-react";
 
 interface TopPerformingContentProps {
   posts: PostAnalytics[];
@@ -18,15 +18,15 @@ export default function TopPerformingContent({
 }: TopPerformingContentProps) {
   if (isLoading) {
     return (
-      <div className="card flex flex-col gap-4 border border-border bg-surface shadow-sm h-full">
-        <div className="border-b border-border/40 pb-3">
-          <Skeleton className="h-4 w-40 rounded-sm" />
-          <Skeleton className="h-3 w-24 mt-2 rounded-sm" />
+      <div className="flex flex-col gap-4 p-6 h-full">
+        <div className="border-b border-dashed border-foreground/20 pb-4">
+          <Skeleton className="h-6 w-48 mb-2" />
+          <Skeleton className="h-3 w-32" />
         </div>
-        <div className="space-y-4">
+        <div className="space-y-6">
           {[1, 2, 3].map((i) => (
-            <div key={i} className="flex gap-4">
-              <Skeleton className="h-20 w-20 shrink-0 rounded-sm" />
+            <div key={i} className="flex flex-col gap-4">
+              <Skeleton className="w-full aspect-square shrink-0" />
               <div className="flex-1 space-y-2 py-1">
                 <Skeleton className="h-3 w-full" />
                 <Skeleton className="h-3 w-2/3" />
@@ -41,37 +41,48 @@ export default function TopPerformingContent({
 
   if (posts.length === 0) {
     return (
-      <div className="card flex flex-col gap-4 border border-border bg-surface shadow-sm h-full">
-        <div className="border-b border-border/40 pb-3">
-          <h3 className="eyebrow text-xs font-bold text-foreground flex items-center gap-2">
-            <Trophy className="h-3.5 w-3.5" />
-            Top Content
+      <div className="flex flex-col gap-4 p-6 h-full">
+        <div className="border-b border-dashed border-foreground/20 pb-4">
+          <h3 className="font-serif text-xl font-bold text-foreground flex items-center gap-2">
+            <Trophy className="h-5 w-5 text-brand-primary" />
+            The Headliners
           </h3>
         </div>
-        <div className="flex flex-col items-center justify-center h-48 text-muted-foreground">
-          <p className="font-serif italic text-sm">No posts available yet.</p>
+        <div className="flex flex-col items-center justify-center flex-1 min-h-[200px] text-muted-foreground text-center">
+          <p className="font-serif italic text-lg">No outliers detected.</p>
+          <p className="font-mono text-xs uppercase tracking-widest mt-1">
+            Wait for audience reception
+          </p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="card flex flex-col gap-4 border border-border bg-surface shadow-sm h-full">
-      <div className="border-b border-border/40 pb-3">
-        <div className="flex items-center justify-between">
-          <h3 className="eyebrow text-xs font-bold text-foreground flex items-center gap-2">
-            <Trophy className="h-3.5 w-3.5 text-brand-primary" />
-            Top Performing Content
+    <div className="flex flex-col gap-6 p-6 h-full">
+      <div className="border-b border-dashed border-foreground/20 pb-4">
+        <div className="flex items-center justify-between mb-1">
+          <h3 className="font-serif text-2xl font-black text-foreground uppercase tracking-tight flex items-center gap-2">
+            <Star className="h-5 w-5 text-brand-primary fill-brand-primary" />
+            Top Stories
           </h3>
+          <span className="font-mono text-[10px] font-bold uppercase tracking-widest bg-foreground text-background px-2 py-1">
+            Vol. High
+          </span>
         </div>
-        <p className="text-[10px] text-muted-foreground mt-1 font-serif italic">
-          Ranked by engagement rate
+        <p className="font-serif text-sm text-muted-foreground italic">
+          Highest engagement velocity this period.
         </p>
       </div>
 
-      <div className="space-y-4">
+      <div className="space-y-6">
         {posts.map((post, index) => (
-          <PostCard key={post.id} post={post} rank={index + 1} />
+          <PostCard
+            key={post.id}
+            post={post}
+            rank={index + 1}
+            layout="vertical"
+          />
         ))}
       </div>
     </div>

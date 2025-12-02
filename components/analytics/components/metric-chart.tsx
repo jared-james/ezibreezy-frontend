@@ -39,13 +39,16 @@ function CustomTooltip({ active, payload }: CustomTooltipProps) {
   });
 
   return (
-    <div className="bg-surface border border-black/10 shadow-[4px_4px_0_0_rgba(0,0,0,0.05)] p-3 rounded-sm min-w-[120px]">
-      <p className="font-serif text-xs text-muted-foreground mb-1 uppercase tracking-wider border-b border-border/50 pb-1">
+    <div className="bg-surface border-2 border-foreground p-3 shadow-[4px_4px_0_0_rgba(0,0,0,1)] min-w-[140px]">
+      <p className="font-mono text-[10px] text-muted-foreground mb-2 uppercase tracking-widest border-b border-dashed border-foreground/20 pb-1">
         {date}
       </p>
-      <p className="font-serif text-lg font-bold text-foreground">
-        {data.value?.toLocaleString()}
-      </p>
+      <div className="flex items-center gap-2">
+        <div className="h-2 w-2 bg-brand-primary" />
+        <p className="font-mono text-lg font-bold text-foreground tabular-nums">
+          {data.value?.toLocaleString()}
+        </p>
+      </div>
     </div>
   );
 }
@@ -58,15 +61,13 @@ function formatXAxisDate(dateString: string): string {
 export default function MetricChart({ metric }: MetricChartProps) {
   if (!metric.history || metric.history.length === 0) {
     return (
-      <div className="card flex flex-col gap-4 border border-border bg-surface shadow-sm">
-        <div className="border-b border-border/40 pb-3">
-          <h3 className="eyebrow text-[10px] text-muted-foreground">
-            {metric.label} Trend
+      <div className="flex flex-col gap-4 p-6 min-h-[300px] justify-center items-center text-center bg-surface-hover/30 rounded-sm">
+        <div className="space-y-2">
+          <h3 className="font-mono text-xs uppercase tracking-widest text-muted-foreground">
+            No Data Available
           </h3>
-        </div>
-        <div className="flex items-center justify-center h-[300px]">
           <p className="font-serif italic text-muted-foreground/60 text-sm">
-            No historical data available
+            Insufficient historical records for {metric.label}
           </p>
         </div>
       </div>
@@ -74,16 +75,23 @@ export default function MetricChart({ metric }: MetricChartProps) {
   }
 
   return (
-    <div className="card flex flex-col gap-4 border border-border bg-surface shadow-sm p-6">
-      <div className="flex items-center justify-between border-b border-border/40 pb-4 mb-2">
-        <h3 className="eyebrow text-xs font-bold text-foreground">
-          {metric.label} Trend
-        </h3>
-        <span className="text-[10px] font-mono text-muted-foreground uppercase bg-muted/30 px-2 py-0.5 rounded-sm">
-          Last {metric.history.length} Days
+    <div className="flex flex-col gap-6 p-4">
+      {/* Chart Header */}
+      <div className="flex items-end justify-between">
+        <div>
+          <span className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground block mb-1">
+            Figure 1.0 // Trend Analysis
+          </span>
+          <h3 className="font-serif text-2xl font-bold text-foreground leading-none">
+            {metric.label}
+          </h3>
+        </div>
+        <span className="text-[10px] font-mono font-bold text-foreground border-b border-foreground/20 pb-0.5 uppercase tracking-wider">
+          {metric.history.length} Day Scope
         </span>
       </div>
 
+      {/* The Chart */}
       <div className="w-full h-[300px]">
         <ResponsiveContainer width="100%" height="100%">
           <AreaChart
@@ -112,10 +120,10 @@ export default function MetricChart({ metric }: MetricChartProps) {
             </defs>
 
             <CartesianGrid
-              strokeDasharray="3 3"
-              stroke="var(--border)"
+              strokeDasharray="2 2"
+              stroke="var(--foreground)"
               vertical={false}
-              opacity={0.6}
+              opacity={0.1}
             />
 
             <XAxis
@@ -124,22 +132,23 @@ export default function MetricChart({ metric }: MetricChartProps) {
               tick={{
                 fill: "var(--muted-foreground)",
                 fontSize: 10,
-                fontFamily: "var(--font-serif)",
+                fontFamily: "var(--font-mono)", // Monospace ticks
               }}
-              stroke="var(--border)"
+              stroke="var(--foreground)"
+              strokeOpacity={0.2}
               tickLine={false}
-              axisLine={false}
-              dy={10}
-              minTickGap={30}
+              axisLine={{ stroke: "var(--foreground)", strokeOpacity: 0.2 }}
+              dy={15}
+              minTickGap={40}
             />
 
             <YAxis
               tick={{
                 fill: "var(--muted-foreground)",
                 fontSize: 10,
-                fontFamily: "var(--font-serif)",
+                fontFamily: "var(--font-mono)", // Monospace ticks
               }}
-              stroke="var(--border)"
+              stroke="transparent"
               tickLine={false}
               axisLine={false}
               tickFormatter={(value) => value.toLocaleString()}
@@ -149,9 +158,10 @@ export default function MetricChart({ metric }: MetricChartProps) {
             <Tooltip
               content={<CustomTooltip />}
               cursor={{
-                stroke: "var(--border)",
+                stroke: "var(--foreground)",
                 strokeWidth: 1,
                 strokeDasharray: "4 4",
+                opacity: 0.5,
               }}
             />
 
@@ -162,6 +172,12 @@ export default function MetricChart({ metric }: MetricChartProps) {
               strokeWidth={2}
               fill={`url(#gradient-${metric.key})`}
               animationDuration={1500}
+              activeDot={{
+                r: 4,
+                fill: "var(--surface)",
+                stroke: "var(--brand-primary)",
+                strokeWidth: 2,
+              }}
             />
           </AreaChart>
         </ResponsiveContainer>
