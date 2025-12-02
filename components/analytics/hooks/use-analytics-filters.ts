@@ -1,5 +1,3 @@
-// components/analytics/hooks/use-analytics-filters.ts
-
 "use client";
 
 import { useState } from "react";
@@ -57,12 +55,13 @@ export function useAnalyticsFilters(): UseAnalyticsFiltersReturn {
     });
 
   const integrations = allConnections.filter(
-    (conn) => conn.platform === "instagram"
+    (conn) => conn.platform === "instagram" || conn.platform === "youtube"
   );
 
   const effectiveIntegrationId = (() => {
     if (selectedIntegrationId) {
-      return selectedIntegrationId;
+      const exists = integrations.find((i) => i.id === selectedIntegrationId);
+      if (exists) return selectedIntegrationId;
     }
     if (!isLoadingIntegrations && integrations.length > 0) {
       return integrations[0].id;

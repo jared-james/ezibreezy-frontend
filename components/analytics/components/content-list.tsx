@@ -1,5 +1,3 @@
-// components/analytics/components/content-list.tsx
-
 "use client";
 
 import { useState } from "react";
@@ -25,7 +23,7 @@ interface ContentListProps {
   isLoadingMore?: boolean;
 }
 
-type FilterType = "all" | "posts" | "reels" | "stories";
+type FilterType = "all" | "posts" | "videos" | "stories";
 
 export default function ContentList({
   posts,
@@ -40,7 +38,7 @@ export default function ContentList({
     if (filter === "all") return true;
     if (filter === "posts")
       return post.type === "image" || post.type === "carousel_album";
-    if (filter === "reels") return post.type === "video";
+    if (filter === "videos") return post.type === "video";
     if (filter === "stories") return post.type === "story";
     return true;
   });
@@ -97,9 +95,9 @@ export default function ContentList({
             icon={<LayoutGrid className="h-4 w-4" />}
           />
           <FilterButton
-            active={filter === "reels"}
-            onClick={() => setFilter("reels")}
-            label="Reels"
+            active={filter === "videos"}
+            onClick={() => setFilter("videos")}
+            label="Videos"
             icon={<Clapperboard className="h-4 w-4" />}
           />
           <FilterButton

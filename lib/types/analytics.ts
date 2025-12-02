@@ -43,6 +43,13 @@ export interface PostMetrics {
   impressions: number;
   reach: number;
   engagementRate: number; // Calculated as: ((Likes + Comments + Saves) / Reach) * 100
+  // YouTube-specific metrics (optional, only present for YouTube videos)
+  watchTimeMinutes?: number;
+  avgViewDuration?: number; // in seconds
+  avgViewPercentage?: number; // percentage (0-100)
+  subscribersGained?: number;
+  subscribersLost?: number;
+  subscribersNet?: number;
 }
 
 /**

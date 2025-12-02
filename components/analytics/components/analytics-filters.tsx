@@ -1,8 +1,6 @@
-// components/analytics/components/analytics-filters.tsx
-
 "use client";
 
-import { Instagram, CalendarClock } from "lucide-react";
+import { Instagram, CalendarClock, Youtube } from "lucide-react";
 import {
   Select,
   SelectContent,
@@ -37,9 +35,24 @@ export default function AnalyticsFilters({
   const triggerClasses =
     "h-9 w-full sm:w-[240px] rounded-sm border-border bg-surface text-xs font-bold uppercase tracking-wider text-muted-foreground hover:text-foreground hover:bg-surface-hover hover:border-border-hover focus:ring-brand-primary transition-colors";
 
+  const selectedIntegration = integrations.find(
+    (i) => i.id === selectedIntegrationId
+  );
+
+  const getPlatformIcon = (platform?: string) => {
+    switch (platform) {
+      case "instagram":
+        return <Instagram className="h-3.5 w-3.5 shrink-0" />;
+      case "youtube":
+        return <Youtube className="h-3.5 w-3.5 shrink-0" />;
+      default:
+        return <Instagram className="h-3.5 w-3.5 shrink-0" />;
+    }
+  };
+
   return (
     <div className="flex flex-col sm:flex-row gap-6 border-b border-border pb-6 mb-6">
-      {/* Instagram Account Selector */}
+      {/* Account Selector */}
       {integrations.length > 0 && (
         <div className="flex flex-col gap-2">
           <label className="eyebrow text-[10px]">Source Account</label>
@@ -49,18 +62,27 @@ export default function AnalyticsFilters({
           >
             <SelectTrigger
               className={triggerClasses}
-              aria-label="Select Instagram account"
+              aria-label="Select account"
             >
               <div className="flex items-center gap-2 truncate">
-                <Instagram className="h-3.5 w-3.5 shrink-0" />
+                {selectedIntegration ? (
+                  getPlatformIcon(selectedIntegration.platform)
+                ) : (
+                  <Instagram className="h-3.5 w-3.5 shrink-0" />
+                )}
                 <SelectValue placeholder="Select account" />
               </div>
             </SelectTrigger>
             <SelectContent>
               {integrations.map((integration) => (
                 <SelectItem key={integration.id} value={integration.id}>
-                  @{integration.platformUsername}
-                  {integration.name && ` (${integration.name})`}
+                  <div className="flex items-center gap-2">
+                    {getPlatformIcon(integration.platform)}
+                    <span>
+                      @{integration.platformUsername}
+                      {integration.name && ` (${integration.name})`}
+                    </span>
+                  </div>
                 </SelectItem>
               ))}
             </SelectContent>

@@ -8,8 +8,11 @@ import {
   MessageCircle,
   Eye,
   BarChart3,
-  Share2, // Added for Shares
-  Bookmark, // Added for Saves
+  Share2,
+  Bookmark,
+  Clock,
+  TrendingUp,
+  Users,
 } from "lucide-react";
 import type { PostAnalytics } from "@/lib/types/analytics";
 import { cn } from "@/lib/utils";
@@ -44,6 +47,12 @@ function truncateCaption(caption: string, maxLength: number = 100): string {
   return caption.substring(0, maxLength) + "...";
 }
 
+function formatDuration(seconds: number): string {
+  const mins = Math.floor(seconds / 60);
+  const secs = seconds % 60;
+  return `${mins}:${secs.toString().padStart(2, "0")}`;
+}
+
 export default function PostCard({
   post,
   rank,
@@ -53,6 +62,14 @@ export default function PostCard({
 
   // We treat 0 impressions as "pending data"
   const hasData = post.metrics.impressions > 0;
+
+  // Check if this is a YouTube video with extended metrics
+  const isYouTube = post.metrics.watchTimeMinutes !== undefined || post.metrics.avgViewDuration !== undefined;
+  const hasYouTubeMetrics = isYouTube && (
+    post.metrics.avgViewDuration !== undefined ||
+    post.metrics.avgViewPercentage !== undefined ||
+    post.metrics.subscribersGained !== undefined
+  );
 
   return (
     <div
@@ -108,7 +125,7 @@ export default function PostCard({
           </p>
         </div>
 
-        {/* Updated Grid: Now 6 columns to fit all metrics */}
+        {/* Standard Metrics Grid */}
         <div className="grid grid-cols-3 sm:grid-cols-6 gap-2 mt-4 pt-3 border-t border-dashed border-foreground/10">
           {/* 1. Engagement Rate */}
           <div className="flex flex-col items-center justify-center">
@@ -147,7 +164,7 @@ export default function PostCard({
             </span>
           </div>
 
-          {/* 4. Shares (New) */}
+          {/* 4. Shares */}
           <div className="flex flex-col items-center justify-center">
             <div className="flex items-center gap-1 text-[9px] text-muted-foreground uppercase tracking-wider mb-1">
               <Share2 className="h-3 w-3" />
@@ -157,17 +174,19 @@ export default function PostCard({
             </span>
           </div>
 
-          {/* 5. Saves (New) */}
+          {/* 5. Saves (or Subscriber Net for YouTube) */}
           <div className="flex flex-col items-center justify-center">
             <div className="flex items-center gap-1 text-[9px] text-muted-foreground uppercase tracking-wider mb-1">
-              <Bookmark className="h-3 w-3" />
+              {isYouTube ? <Users className="h-3 w-3" /> : <Bookmark className="h-3 w-3" />}
             </div>
             <span className="font-mono text-xs font-medium text-foreground">
-              {formatNumber(post.metrics.saves)}
+              {isYouTube && post.metrics.subscribersNet !== undefined
+                ? `${post.metrics.subscribersNet > 0 ? "+" : ""}${post.metrics.subscribersNet}`
+                : formatNumber(post.metrics.saves)}
             </span>
           </div>
 
-          {/* 6. Impressions */}
+          {/* 6. Impressions/Views */}
           <div className="flex flex-col items-center justify-center">
             <div className="flex items-center gap-1 text-[9px] text-muted-foreground uppercase tracking-wider mb-1">
               <Eye className="h-3 w-3" />
@@ -177,6 +196,50 @@ export default function PostCard({
             </span>
           </div>
         </div>
+
+        {/* YouTube-Specific Extended Metrics */}
+        {hasYouTubeMetrics && (
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 mt-3 pt-3 border-t border-dashed border-brand-primary/20 bg-brand-primary/5 -mx-4 -mb-4 px-4 pb-4">
+            {/* Avg View Duration */}
+            {post.metrics.avgViewDuration !== undefined && post.metrics.avgViewDuration > 0 && (
+              <div className="flex flex-col items-center justify-center py-2">
+                <div className="flex items-center gap-1 text-[9px] text-muted-foreground uppercase tracking-wider mb-1">
+                  <Clock className="h-3 w-3" />
+                  <span>Duration</span>
+                </div>
+                <span className="font-mono text-xs font-medium text-foreground">
+                  {formatDuration(post.metrics.avgViewDuration)}
+                </span>
+              </div>
+            )}
+
+            {/* Avg View Percentage */}
+            {post.metrics.avgViewPercentage !== undefined && post.metrics.avgViewPercentage > 0 && (
+              <div className="flex flex-col items-center justify-center py-2">
+                <div className="flex items-center gap-1 text-[9px] text-muted-foreground uppercase tracking-wider mb-1">
+                  <TrendingUp className="h-3 w-3" />
+                  <span>Retention</span>
+                </div>
+                <span className="font-mono text-xs font-bold text-brand-primary">
+                  {post.metrics.avgViewPercentage.toFixed(1)}%
+                </span>
+              </div>
+            )}
+
+            {/* Watch Time */}
+            {post.metrics.watchTimeMinutes !== undefined && post.metrics.watchTimeMinutes > 0 && (
+              <div className="flex flex-col items-center justify-center py-2">
+                <div className="flex items-center gap-1 text-[9px] text-muted-foreground uppercase tracking-wider mb-1">
+                  <Clock className="h-3 w-3" />
+                  <span>Watch Time</span>
+                </div>
+                <span className="font-mono text-xs font-medium text-foreground">
+                  {formatNumber(post.metrics.watchTimeMinutes)} min
+                </span>
+              </div>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );

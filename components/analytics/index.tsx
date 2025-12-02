@@ -1,5 +1,3 @@
-// components/analytics/index.tsx
-
 "use client";
 
 import { useState, useEffect } from "react";
@@ -19,12 +17,20 @@ import type { AnalyticsMetric } from "@/lib/types/analytics";
 import { BarChart3 } from "lucide-react";
 
 const METRIC_ORDER = [
+  "views",
+  "subscribers_net",
   "follower_count",
+  "watch_time_min",
+  "avg_view_duration",
+  "avg_view_percentage",
+  "likes",
+  "comments",
+  "shares",
   "impressions",
   "reach",
-  "profile_views",
-  "accounts_engaged",
   "total_interactions",
+  "accounts_engaged",
+  "profile_views",
 ];
 
 function sortMetricsByOrder(metrics: AnalyticsMetric[]) {
@@ -46,7 +52,6 @@ export default function AnalyticsContainer() {
     days: filters.selectedDays,
   });
 
-  console.log("metrics", metrics);
   const {
     topPosts,
     posts,
@@ -97,8 +102,8 @@ export default function AnalyticsContainer() {
               Establish Uplink
             </h2>
             <p className="font-serif text-sm text-muted-foreground leading-relaxed">
-              Wire service disconnected. Connect your Instagram account in
-              Settings to receive data transmission.
+              Wire service disconnected. Connect your Instagram or YouTube
+              account in Settings to receive data transmission.
             </p>
           </div>
         </div>
