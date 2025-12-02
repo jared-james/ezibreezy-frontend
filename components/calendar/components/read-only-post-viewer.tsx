@@ -9,7 +9,8 @@ import {
   CheckCircle2,
   ChevronLeft,
   ChevronRight,
-  Maximize2,
+  Trash2,
+  X,
 } from "lucide-react";
 import type { ScheduledPost } from "../types";
 import PlatformIcon from "./platform-icon";
@@ -19,12 +20,14 @@ interface ReadOnlyPostViewerProps {
   post: ScheduledPost;
   onReuse: () => void;
   onClose: () => void;
+  onDelete?: () => void;
 }
 
 export default function ReadOnlyPostViewer({
   post,
   onReuse,
   onClose,
+  onDelete,
 }: ReadOnlyPostViewerProps) {
   const [currentSlide, setCurrentSlide] = useState(0);
 
@@ -41,97 +44,109 @@ export default function ReadOnlyPostViewer({
   };
 
   return (
-    <div className="flex h-full flex-col bg-background">
-      {/* Header / Info Bar */}
-      <div className="flex items-center justify-between border-b border-border bg-surface-hover/30 px-6 py-4">
-        <div className="flex items-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-brand-primary/10">
-            <CheckCircle2 className="h-5 w-5 text-brand-primary" />
+    <div className="flex h-full flex-col bg-surface">
+      <div className="flex items-center justify-between border-b border-border p-6 bg-surface">
+        <div className="flex items-center gap-4">
+          <div className="flex h-12 w-12 items-center justify-center rounded-full bg-success/10 text-success border border-success/20">
+            <CheckCircle2 className="h-6 w-6" />
           </div>
           <div>
-            <div className="flex items-center gap-2">
-              <h3 className="font-serif text-sm font-bold text-foreground">
-                Published Post
-              </h3>
-              <span className="rounded-full bg-brand-primary/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-brand-primary">
+            <div className="flex items-center gap-3">
+              <h2 className="headline text-2xl">Published</h2>
+              <span className="inline-flex items-center rounded-full border border-success/30 bg-success/10 px-2 py-0.5 text-xs font-bold uppercase tracking-wider text-success">
                 Sent
               </span>
             </div>
-            <p className="text-xs text-muted-foreground">
-              Posted to <span className="capitalize">{post.platform}</span> on{" "}
-              {format(new Date(post.scheduledAt), "MMM d, yyyy 'at' h:mm a")}
+            <p className="font-serif text-sm text-muted-foreground mt-1">
+              Posted on{" "}
+              {format(new Date(post.scheduledAt), "MMMM d, yyyy 'at' h:mm a")}
             </p>
           </div>
         </div>
+
+        <div className="flex items-center gap-2">
+          {onDelete && (
+            <button
+              onClick={onDelete}
+              className="btn btn-outline h-9 px-3 text-xs gap-2 text-muted-foreground hover:text-error hover:bg-error/5 hover:border-error/20"
+              title="Delete from History"
+            >
+              <Trash2 className="h-4 w-4" />
+              <span className="hidden sm:inline">Delete</span>
+            </button>
+          )}
+          <div className="h-6 w-px bg-border mx-1" />
+          <button
+            onClick={onClose}
+            className="btn btn-icon hover:bg-surface-hover"
+            aria-label="Close"
+          >
+            <X className="h-5 w-5" />
+          </button>
+        </div>
       </div>
 
-      {/* Main Content Area - Content Left, Media Right */}
-      <div className="flex flex-1 flex-col-reverse gap-8 overflow-y-auto p-6 md:flex-row">
-        {/* LEFT COLUMN: Content & Metadata */}
+      <div className="flex flex-1 flex-col-reverse gap-8 overflow-y-auto p-6 md:flex-row bg-[#fdfbf7]">
         <div className="flex flex-1 flex-col gap-6">
-          <div className="rounded-lg border border-border bg-white p-6 shadow-sm">
-            <div className="mb-4 flex items-center gap-2 border-b border-border pb-4">
-              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-muted/50">
+          <div className="card bg-white shadow-sm border-border">
+            <div className="mb-4 flex items-center gap-3 border-b border-border pb-4">
+              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-muted border border-border">
                 <PlatformIcon
                   platform={post.platform}
-                  size={16}
+                  size={20}
                   className="text-foreground"
                 />
               </div>
               <div>
-                <p className="text-sm font-bold text-foreground">
+                <p className="font-bold text-sm text-foreground">
                   @{post.platformUsername}
                 </p>
-                <p className="text-[10px] text-muted-foreground uppercase tracking-wider">
+                <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-bold">
                   {post.platform}
                 </p>
               </div>
             </div>
             <div className="prose prose-sm max-w-none">
-              <p className="whitespace-pre-wrap text-sm leading-relaxed text-foreground/90">
+              <p className="whitespace-pre-wrap text-sm leading-relaxed text-foreground/90 font-serif">
                 {post.content}
               </p>
             </div>
           </div>
 
-          {/* Analytics Placeholder */}
-          <div className="flex flex-col gap-4 rounded-lg border border-border bg-surface p-6">
-            <div className="flex items-center justify-between">
-              <h4 className="font-serif text-sm font-bold text-foreground">
+          <div className="card bg-white shadow-sm border-border p-6">
+            <div className="flex items-center justify-between mb-6">
+              <h4 className="font-serif text-lg font-bold text-foreground">
                 Performance
               </h4>
-              <span className="text-[10px] text-muted-foreground">
-                Last updated just now
+              <span className="text-[10px] text-muted-foreground uppercase tracking-wider bg-muted px-2 py-1 rounded-sm">
+                Live Data
               </span>
             </div>
 
             <div className="grid grid-cols-3 gap-4">
-              {/* Mock Analytics Cards */}
               {["Impressions", "Likes", "Comments"].map((metric) => (
                 <div
                   key={metric}
-                  className="rounded-md border border-border bg-background p-3 text-center"
+                  className="rounded-lg border border-border bg-surface p-4 text-center"
                 >
-                  <p className="text-[10px] uppercase tracking-wider text-muted-foreground">
+                  <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-bold mb-2">
                     {metric}
                   </p>
-                  <p className="font-serif text-xl font-bold text-foreground">
+                  <p className="font-serif text-2xl font-bold text-foreground">
                     -
                   </p>
                 </div>
               ))}
             </div>
-            <p className="text-center text-xs text-muted-foreground/70 mt-2">
-              Analytics data not yet available for this period.
+            <p className="text-center text-xs text-muted-foreground/70 mt-6 font-serif italic">
+              Analytics data connection pending.
             </p>
           </div>
         </div>
 
-        {/* RIGHT COLUMN: Media Carousel */}
         <div className="flex-1 md:max-w-[45%]">
           {hasMedia ? (
-            <div className="group relative aspect-[4/5] w-full overflow-hidden rounded-xl border border-border bg-black shadow-md">
-              {/* Main Media Display */}
+            <div className="group relative aspect-[4/5] w-full overflow-hidden rounded-xl border border-border bg-black shadow-lg">
               <div className="relative h-full w-full">
                 {mediaItems.map((item, index) => {
                   const isVideo = item.type.startsWith("video");
@@ -166,7 +181,6 @@ export default function ReadOnlyPostViewer({
                 })}
               </div>
 
-              {/* Navigation Arrows */}
               {isMultiple && (
                 <>
                   <button
@@ -184,7 +198,6 @@ export default function ReadOnlyPostViewer({
                 </>
               )}
 
-              {/* Dots Indicator */}
               {isMultiple && (
                 <div className="absolute bottom-4 left-1/2 z-20 flex -translate-x-1/2 gap-1.5">
                   {mediaItems.map((_, idx) => (
@@ -202,16 +215,14 @@ export default function ReadOnlyPostViewer({
                 </div>
               )}
 
-              {/* Media Counter Badge */}
               {isMultiple && (
-                <div className="absolute top-4 right-4 z-20 rounded-full bg-black/60 px-2.5 py-1 text-[10px] font-medium text-white backdrop-blur-sm">
+                <div className="absolute top-4 right-4 z-20 rounded-full bg-black/60 px-2.5 py-1 text-[10px] font-medium text-white backdrop-blur-sm border border-white/10">
                   {currentSlide + 1} / {mediaItems.length}
                 </div>
               )}
             </div>
           ) : (
-            /* Empty State for Text-only Posts */
-            <div className="flex aspect-[4/5] w-full flex-col items-center justify-center rounded-xl border border-border border-dashed bg-surface p-8 text-center">
+            <div className="flex aspect-[4/5] w-full flex-col items-center justify-center rounded-xl border-2 border-dashed border-border bg-white/50 p-8 text-center">
               <div className="rounded-full bg-muted p-4 mb-4">
                 <PlatformIcon
                   platform={post.platform}
@@ -219,29 +230,19 @@ export default function ReadOnlyPostViewer({
                   className="text-muted-foreground/50"
                 />
               </div>
-              <p className="font-medium text-muted-foreground">
+              <p className="font-serif font-bold text-muted-foreground">
                 Text-only post
-              </p>
-              <p className="text-xs text-muted-foreground/70 mt-1">
-                No media attachments found for this post.
               </p>
             </div>
           )}
         </div>
       </div>
 
-      {/* Footer Actions */}
       <div className="flex items-center justify-end gap-3 border-t border-border bg-surface px-6 py-4">
-        <button
-          onClick={onClose}
-          className="rounded-md border border-border px-4 py-2 text-sm font-medium text-muted-foreground hover:bg-surface-hover hover:text-foreground transition-colors"
-        >
+        <button onClick={onClose} className="btn btn-outline">
           Close
         </button>
-        <button
-          onClick={onReuse}
-          className="btn btn-primary flex items-center gap-2 shadow-sm hover:shadow-md transition-all active:scale-95"
-        >
+        <button onClick={onReuse} className="btn btn-primary gap-2">
           <Copy className="h-4 w-4" />
           <span>Reuse as New Draft</span>
         </button>
