@@ -9,16 +9,20 @@ import {
   getPostDetails,
   FullPostDetails,
 } from "@/lib/api/publishing";
-import type { ScheduledPost, CalendarFilters } from "../types";
+import type { ScheduledPost, CalendarFilters, CalendarView } from "../types";
 
 interface UseCalendarDataProps {
   postIdToEdit: string | null;
   filters?: CalendarFilters;
+  activeView?: CalendarView;
+  currentDate?: Date;
 }
 
 export function useCalendarData({
   postIdToEdit,
   filters,
+  activeView,
+  currentDate,
 }: UseCalendarDataProps) {
   const {
     data: allContent = [],
@@ -33,35 +37,54 @@ export function useCalendarData({
   });
 
   const filteredPosts = useMemo(() => {
-    if (!filters) return allContent;
+    let posts = allContent;
 
-    return allContent.filter((post) => {
-      // 1. Status Filter
-      if (filters.status !== "all" && post.status !== filters.status) {
-        return false;
-      }
+    // Apply filter-based filtering
+    if (filters) {
+      posts = posts.filter((post) => {
+        // 1. Status Filter
+        if (filters.status !== "all" && post.status !== filters.status) {
+          return false;
+        }
 
-      if (
-        filters.status === "all" &&
-        (post.status === "cancelled" || post.status === "failed")
-      ) {
-        return false;
-      }
+        if (
+          filters.status === "all" &&
+          (post.status === "cancelled" || post.status === "failed")
+        ) {
+          return false;
+        }
 
-      // 2. Channel Filter
-      if (filters.channel !== "all" && post.platform !== filters.channel) {
-        return false;
-      }
+        // 2. Channel Filter
+        if (filters.channel !== "all" && post.platform !== filters.channel) {
+          return false;
+        }
 
-      // 3. Label Filter
-      if (filters.label !== "all") {
-        const hasLabel = post.labels?.includes(filters.label);
-        if (!hasLabel) return false;
-      }
+        // 3. Label Filter
+        if (filters.label !== "all") {
+          const hasLabel = post.labels?.includes(filters.label);
+          if (!hasLabel) return false;
+        }
 
-      return true;
-    });
-  }, [allContent, filters]);
+        return true;
+      });
+    }
+
+    // Apply date filtering for List view
+    if (activeView === "List" && currentDate) {
+      const targetMonth = currentDate.getMonth();
+      const targetYear = currentDate.getFullYear();
+
+      posts = posts.filter((post) => {
+        const postDate = new Date(post.scheduledAt);
+        return (
+          postDate.getMonth() === targetMonth &&
+          postDate.getFullYear() === targetYear
+        );
+      });
+    }
+
+    return posts;
+  }, [allContent, filters, activeView, currentDate]);
 
   // Background Fetch logic
   // We fetch details if a post is selected, regardless of status.

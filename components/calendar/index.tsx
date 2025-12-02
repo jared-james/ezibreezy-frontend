@@ -44,6 +44,8 @@ export default function CalendarContainer() {
   } = useCalendarData({
     postIdToEdit: calendarState.selectedPost?.id || null,
     filters: calendarState.filters,
+    activeView: calendarState.activeView,
+    currentDate: calendarState.currentDate,
   });
 
   const navigation = useCalendarNavigation({

@@ -20,7 +20,7 @@ export function useCalendarNavigation({
   const navigateDate = useCallback(
     (direction: "prev" | "next") => {
       const amount = direction === "next" ? 1 : -1;
-      if (activeView === "Month") {
+      if (activeView === "Month" || activeView === "List") {
         setCurrentDate((current) => {
           const newDate = new Date(current);
           newDate.setMonth(current.getMonth() + amount);
@@ -34,7 +34,7 @@ export function useCalendarNavigation({
   );
 
   const getHeaderText = useCallback(() => {
-    if (activeView === "Month") {
+    if (activeView === "Month" || activeView === "List") {
       return format(currentDate, "MMMM yyyy");
     }
     return `Week of ${format(currentDate, "MMM d")}`;
