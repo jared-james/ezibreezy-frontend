@@ -1,3 +1,5 @@
+// components/analytics/index.tsx
+
 "use client";
 
 import { useState, useEffect } from "react";
@@ -11,7 +13,6 @@ import MetricCard from "./components/metric-card";
 import MetricChart from "./components/metric-chart";
 import AnalyticsSkeleton from "./components/analytics-skeleton";
 import AnalyticsError from "./components/analytics-error";
-import AnalyticsWarnings from "./components/analytics-warnings";
 import TopPerformingContent from "./components/top-performing-content";
 import ContentList from "./components/content-list";
 import type { AnalyticsMetric } from "@/lib/types/analytics";
@@ -28,8 +29,21 @@ const METRIC_ORDER = [
   "watch_time_minutes",
   "avg_view_duration",
   "profile_views",
+  "profile_links_taps",
+  "accounts_engaged",
   "website_clicks",
 ];
+
+// Metrics to exclude for specific platforms
+const PLATFORM_EXCLUDED_METRICS: Record<string, string[]> = {
+  instagram: ["impressions"], // Instagram deprecated impressions
+  youtube: [], // YouTube shows all metrics
+};
+
+function shouldShowMetric(metricKey: string, platform: string): boolean {
+  const excludedMetrics = PLATFORM_EXCLUDED_METRICS[platform] || [];
+  return !excludedMetrics.includes(metricKey);
+}
 
 function sortMetricsByOrder(metrics: AnalyticsMetric[]) {
   return [...metrics].sort((a, b) => {
@@ -54,15 +68,7 @@ const LOCKED_METRIC_PLACEHOLDER: AnalyticsMetric = {
 
 export default function AnalyticsContainer() {
   const filters = useAnalyticsFilters();
-  const {
-    metrics,
-    warnings,
-    dataQuality,
-    isLoading,
-    isError,
-    error,
-    refetch,
-  } = useAnalyticsData({
+  const { metrics, isLoading, isError, error, refetch } = useAnalyticsData({
     integrationId: filters.activeAccountId,
     days: filters.selectedDays,
   });
@@ -70,7 +76,6 @@ export default function AnalyticsContainer() {
   const {
     topPosts,
     posts,
-    warnings: postWarnings,
     isLoading: isLoadingPosts,
     fetchNextPage,
     hasNextPage,
@@ -84,7 +89,17 @@ export default function AnalyticsContainer() {
     null
   );
 
-  const sortedMetrics = sortMetricsByOrder(metrics);
+  // Get platform for current account
+  const activePlatformType = filters.platforms.find((p) =>
+    p.accounts.some((a) => a.id === filters.activeAccountId)
+  )?.id || "";
+
+  // Filter metrics based on platform
+  const filteredMetrics = metrics.filter((metric) =>
+    shouldShowMetric(metric.key, activePlatformType)
+  );
+
+  const sortedMetrics = sortMetricsByOrder(filteredMetrics);
 
   useEffect(() => {
     if (sortedMetrics.length > 0) {
@@ -174,13 +189,6 @@ export default function AnalyticsContainer() {
           onDaysChange={filters.setSelectedDays}
         />
 
-        {warnings && warnings.length > 0 && (
-          <AnalyticsWarnings
-            warnings={warnings}
-            dataQualityStatus={dataQuality?.status}
-          />
-        )}
-
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 2xl:gap-6">
           {sortedMetrics.map((metric) => (
             <MetricCard
@@ -218,10 +226,7 @@ export default function AnalyticsContainer() {
             <TopPerformingContent posts={topPosts} isLoading={isLoadingPosts} />
           </div>
 
-          <div className="xl:col-span-2 space-y-4">
-            {postWarnings && postWarnings.length > 0 && (
-              <AnalyticsWarnings warnings={postWarnings} />
-            )}
+          <div className="xl:col-span-2">
             <ContentList
               posts={posts}
               isLoading={isLoadingPosts}

@@ -62,15 +62,22 @@ export interface AnalyticsFilters {
 }
 
 /**
- * Platform-specific additional metrics (e.g. YouTube Watch Time)
+ * Platform-specific additional metrics (e.g. YouTube Watch Time, Instagram Profile Views)
  */
 export interface PlatformSpecificMetrics {
+  // YouTube metrics
   watchTimeMinutes?: number;
   avgViewDuration?: number; // in seconds
   avgViewPercentage?: number; // percentage (0-100)
   subscribersGained?: number;
   subscribersLost?: number;
   subscribersNet?: number;
+
+  // Instagram metrics
+  profile_views?: number;
+  profile_links_taps?: number;
+  accounts_engaged?: number;
+
   [key: string]: any;
 }
 

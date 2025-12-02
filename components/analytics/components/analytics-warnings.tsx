@@ -1,3 +1,5 @@
+// components/analytics/components/analytics-warnings.tsx
+
 "use client";
 
 import { AlertCircle, AlertTriangle, Info, X } from "lucide-react";
