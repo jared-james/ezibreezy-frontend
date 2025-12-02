@@ -1,3 +1,5 @@
+// components/analytics/index.tsx
+
 "use client";
 
 import { useState, useEffect } from "react";
@@ -19,13 +21,8 @@ import { BarChart3 } from "lucide-react";
 const METRIC_ORDER = [
   "views",
   "subscribers_net",
-  "follower_count",
   "watch_time_min",
-  "avg_view_duration",
-  "avg_view_percentage",
-  "likes",
-  "comments",
-  "shares",
+  "follower_count",
   "impressions",
   "reach",
   "total_interactions",
@@ -48,7 +45,7 @@ function sortMetricsByOrder(metrics: AnalyticsMetric[]) {
 export default function AnalyticsContainer() {
   const filters = useAnalyticsFilters();
   const { metrics, isLoading, isError, error, refetch } = useAnalyticsData({
-    integrationId: filters.selectedIntegrationId,
+    integrationId: filters.activeAccountId,
     days: filters.selectedDays,
   });
 
@@ -60,7 +57,7 @@ export default function AnalyticsContainer() {
     hasNextPage,
     isFetchingNextPage,
   } = usePostAnalytics({
-    integrationId: filters.selectedIntegrationId,
+    integrationId: filters.activeAccountId,
     limit: 12,
   });
 
@@ -85,12 +82,15 @@ export default function AnalyticsContainer() {
       <AnalyticsError
         error={error}
         onRetry={refetch}
-        integrationId={filters.selectedIntegrationId}
+        integrationId={filters.activeAccountId}
       />
     );
   }
 
-  if (!filters.isLoadingIntegrations && filters.integrations.length === 0) {
+  if (
+    !filters.isLoadingIntegrations &&
+    filters.platforms.every((p) => p.accounts.length === 0)
+  ) {
     return (
       <div className="flex h-full w-full flex-col items-center justify-center p-8 text-center bg-[#f4f4f0]">
         <div className="max-w-md space-y-6 p-8 border-[3px] border-black shadow-[8px_8px_0_0_rgba(0,0,0,1)] bg-white">
@@ -120,9 +120,11 @@ export default function AnalyticsContainer() {
         <AnalyticsHeader />
 
         <AnalyticsFilters
-          integrations={filters.integrations}
-          selectedIntegrationId={filters.selectedIntegrationId}
-          onIntegrationChange={filters.setSelectedIntegrationId}
+          platforms={filters.platforms}
+          selectedAccounts={filters.selectedAccounts}
+          activeAccountId={filters.activeAccountId}
+          onTogglePlatform={filters.togglePlatform}
+          onSelectAccount={filters.selectAccount}
           selectedDays={filters.selectedDays}
           onDaysChange={filters.setSelectedDays}
         />

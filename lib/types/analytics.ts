@@ -25,9 +25,39 @@ export interface AnalyticsMetric {
 export type TimeRange = 7 | 14 | 30 | 60 | 90;
 
 /**
- * Filter state for analytics dashboard
+ * Account for analytics selection
+ */
+export interface Account {
+  id: string;
+  name: string;
+  img: string;
+}
+
+/**
+ * Analytics platform with accounts for selection
+ */
+export interface AnalyticsPlatform {
+  id: string;
+  name: string;
+  icon: React.ComponentType<{ className?: string }>;
+  accounts: Account[];
+}
+
+/**
+ * Filter state for analytics dashboard (v2 with multi-select)
  */
 export interface AnalyticsFilters {
+  selectedAccounts: Record<string, string[]>;
+  activeAccountId: string | null;
+  days: TimeRange;
+  version: 2;
+}
+
+/**
+ * Legacy filter state (v1, deprecated)
+ * @deprecated Use AnalyticsFilters (v2)
+ */
+export interface LegacyAnalyticsFilters {
   integrationId: string;
   days: TimeRange;
 }

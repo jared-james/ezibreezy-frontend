@@ -1,40 +1,164 @@
+// components/analytics/hooks/use-analytics-filters.ts
+
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { getConnections } from "@/lib/api/integrations";
+import { Instagram, Youtube } from "lucide-react";
 import type { Connection } from "@/lib/api/integrations";
-import type { TimeRange } from "@/lib/types/analytics";
+import type {
+  TimeRange,
+  AnalyticsPlatform,
+  Account,
+  AnalyticsFilters,
+} from "@/lib/types/analytics";
 
 const STORAGE_KEY = "ezibreezy_analytics_filters";
 const DEFAULT_DAYS: TimeRange = 7;
 
 interface UseAnalyticsFiltersReturn {
   integrations: Connection[];
-  selectedIntegrationId: string | null;
-  setSelectedIntegrationId: (id: string) => void;
+  platforms: AnalyticsPlatform[];
+  selectedAccounts: Record<string, string[]>;
+  activeAccountId: string | null;
   selectedDays: TimeRange;
+  togglePlatform: (platformId: string) => void;
+  selectAccount: (platformId: string, accountId: string) => void;
+  setActiveAccount: (accountId: string) => void;
   setSelectedDays: (days: TimeRange) => void;
   isLoadingIntegrations: boolean;
 }
 
+function migrateOldFormat(
+  stored: unknown,
+  allConnections: Connection[]
+): AnalyticsFilters | null {
+  if (!stored || typeof stored !== "object") return null;
+
+  const storedObj = stored as Record<string, unknown>;
+
+  // Check if it's already v2 format
+  if (storedObj.version === 2 && storedObj.selectedAccounts) {
+    return stored as AnalyticsFilters;
+  }
+
+  // Check if it's v1 format
+  if (storedObj.integrationId && !storedObj.selectedAccounts) {
+    const connection = allConnections.find(
+      (c) => c.id === storedObj.integrationId
+    );
+    if (connection) {
+      return {
+        selectedAccounts: {},
+        activeAccountId: null,
+        days: (storedObj.days as TimeRange) || DEFAULT_DAYS,
+        version: 2,
+      };
+    }
+  }
+
+  return null;
+}
+
 export function useAnalyticsFilters(): UseAnalyticsFiltersReturn {
-  const [selectedIntegrationId, setSelectedIntegrationIdState] = useState<
-    string | null
+  const { data: allConnections = [], isLoading: isLoadingIntegrations } =
+    useQuery<Connection[]>({
+      queryKey: ["connections"],
+      queryFn: getConnections,
+      staleTime: 10 * 60 * 1000,
+    });
+
+  const integrations = allConnections.filter(
+    (conn) => conn.platform === "instagram" || conn.platform === "youtube"
+  );
+
+  // Build platforms from integrations
+  const platforms = useMemo((): AnalyticsPlatform[] => {
+    const connectionsByPlatform = integrations.reduce(
+      (acc, conn) => {
+        acc[conn.platform] = acc[conn.platform] || [];
+        acc[conn.platform].push(conn);
+        return acc;
+      },
+      {} as Record<string, Connection[]>
+    );
+
+    return [
+      {
+        id: "instagram",
+        name: "Instagram",
+        icon: Instagram,
+        accounts: (connectionsByPlatform["instagram"] || []).map(
+          (conn): Account => ({
+            id: conn.id,
+            name: conn.name || `@${conn.platformUsername}`,
+            img: conn.avatarUrl || "/placeholder-pfp.png",
+          })
+        ),
+      },
+      {
+        id: "youtube",
+        name: "YouTube",
+        icon: Youtube,
+        accounts: (connectionsByPlatform["youtube"] || []).map(
+          (conn): Account => ({
+            id: conn.id,
+            name: conn.name || `@${conn.platformUsername}`,
+            img: conn.avatarUrl || "/placeholder-pfp.png",
+          })
+        ),
+      },
+    ];
+  }, [integrations]);
+
+  // Initialize state with migration
+  const [selectedAccounts, setSelectedAccountsState] = useState<
+    Record<string, string[]>
   >(() => {
+    if (typeof window === "undefined") return {};
+
     try {
       const stored = localStorage.getItem(STORAGE_KEY);
       if (stored) {
         const parsed = JSON.parse(stored);
-        return parsed.integrationId || null;
+        const migrated = migrateOldFormat(parsed, allConnections);
+        if (migrated) {
+          return migrated.selectedAccounts;
+        }
       }
     } catch (error) {
       console.error("[Analytics Filters] Failed to parse localStorage:", error);
     }
-    return null;
+    return {};
   });
 
+  const [activeAccountId, setActiveAccountIdState] = useState<string | null>(
+    () => {
+      if (typeof window === "undefined") return null;
+
+      try {
+        const stored = localStorage.getItem(STORAGE_KEY);
+        if (stored) {
+          const parsed = JSON.parse(stored);
+          const migrated = migrateOldFormat(parsed, allConnections);
+          if (migrated) {
+            return migrated.activeAccountId;
+          }
+        }
+      } catch (error) {
+        console.error(
+          "[Analytics Filters] Failed to parse localStorage:",
+          error
+        );
+      }
+      return null;
+    }
+  );
+
   const [selectedDays, setSelectedDaysState] = useState<TimeRange>(() => {
+    if (typeof window === "undefined") return DEFAULT_DAYS;
+
     try {
       const stored = localStorage.getItem(STORAGE_KEY);
       if (stored) {
@@ -47,49 +171,105 @@ export function useAnalyticsFilters(): UseAnalyticsFiltersReturn {
     return DEFAULT_DAYS;
   });
 
-  const { data: allConnections = [], isLoading: isLoadingIntegrations } =
-    useQuery<Connection[]>({
-      queryKey: ["connections"],
-      queryFn: getConnections,
-      staleTime: 10 * 60 * 1000,
+  const persistToLocalStorage = (state: {
+    selectedAccounts: Record<string, string[]>;
+    activeAccountId: string | null;
+    days: TimeRange;
+  }) => {
+    if (typeof window === "undefined") return;
+
+    try {
+      const data: AnalyticsFilters = {
+        selectedAccounts: state.selectedAccounts,
+        activeAccountId: state.activeAccountId,
+        days: state.days,
+        version: 2,
+      };
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    } catch (error) {
+      console.error("[Analytics Filters] Failed to save to localStorage:", error);
+    }
+  };
+
+  const togglePlatform = (platformId: string) => {
+    const platform = platforms.find((p) => p.id === platformId);
+    if (!platform || platform.accounts.length === 0) return;
+
+    const newSelected: Record<string, string[]> = {};
+    let newActiveId = activeAccountId;
+
+    if (selectedAccounts[platformId]) {
+      // Turning OFF - clear all (only one channel can be active)
+      newActiveId = null;
+    } else {
+      // Turning ON - clear all other channels, add this one
+      newSelected[platformId] = [platform.accounts[0].id];
+      newActiveId = platform.accounts[0].id;
+    }
+
+    setSelectedAccountsState(newSelected);
+    setActiveAccountIdState(newActiveId);
+    persistToLocalStorage({
+      selectedAccounts: newSelected,
+      activeAccountId: newActiveId,
+      days: selectedDays,
     });
+  };
 
-  const integrations = allConnections.filter(
-    (conn) => conn.platform === "instagram" || conn.platform === "youtube"
-  );
+  const selectAccount = (platformId: string, accountId: string) => {
+    const currentSelection = selectedAccounts[platformId] || [];
+    const isSelected = currentSelection.includes(accountId);
 
-  const effectiveIntegrationId = (() => {
-    if (selectedIntegrationId) {
-      const exists = integrations.find((i) => i.id === selectedIntegrationId);
-      if (exists) return selectedIntegrationId;
+    if (isSelected) {
+      // Already selected → make it active (switch data view)
+      setActiveAccountIdState(accountId);
+      persistToLocalStorage({
+        selectedAccounts,
+        activeAccountId: accountId,
+        days: selectedDays,
+      });
+    } else {
+      // Not selected → select it AND make it active
+      const newSelection = [...currentSelection, accountId];
+      const newSelected = { ...selectedAccounts, [platformId]: newSelection };
+
+      setSelectedAccountsState(newSelected);
+      setActiveAccountIdState(accountId);
+      persistToLocalStorage({
+        selectedAccounts: newSelected,
+        activeAccountId: accountId,
+        days: selectedDays,
+      });
     }
-    if (!isLoadingIntegrations && integrations.length > 0) {
-      return integrations[0].id;
-    }
-    return null;
-  })();
+  };
 
-  const setSelectedIntegrationId = (id: string) => {
-    setSelectedIntegrationIdState(id);
-    localStorage.setItem(
-      STORAGE_KEY,
-      JSON.stringify({ integrationId: id, days: selectedDays })
-    );
+  const setActiveAccount = (accountId: string) => {
+    setActiveAccountIdState(accountId);
+    persistToLocalStorage({
+      selectedAccounts,
+      activeAccountId: accountId,
+      days: selectedDays,
+    });
   };
 
   const setSelectedDays = (days: TimeRange) => {
     setSelectedDaysState(days);
-    localStorage.setItem(
-      STORAGE_KEY,
-      JSON.stringify({ integrationId: effectiveIntegrationId, days })
-    );
+    persistToLocalStorage({
+      selectedAccounts,
+      activeAccountId,
+      days,
+    });
   };
 
   return {
     integrations,
-    selectedIntegrationId: effectiveIntegrationId,
-    setSelectedIntegrationId,
+    platforms,
+    selectedAccounts,
+    activeAccountId,
     selectedDays,
+    togglePlatform,
+    selectAccount,
+    setActiveAccount,
     setSelectedDays,
     isLoadingIntegrations,
   };
