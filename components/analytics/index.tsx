@@ -46,10 +46,14 @@ export default function AnalyticsContainer() {
     days: filters.selectedDays,
   });
 
+  console.log("metrics", metrics);
   const {
     topPosts,
     posts,
     isLoading: isLoadingPosts,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
   } = usePostAnalytics({
     integrationId: filters.selectedIntegrationId,
     limit: 12,
@@ -61,7 +65,6 @@ export default function AnalyticsContainer() {
 
   const sortedMetrics = sortMetricsByOrder(metrics);
 
-  // Set default selection to the first metric once data loads
   useEffect(() => {
     if (sortedMetrics.length > 0 && !selectedMetricKey) {
       setSelectedMetricKey(sortedMetrics[0].key);
@@ -109,7 +112,7 @@ export default function AnalyticsContainer() {
   return (
     <div className="flex h-full w-full flex-col overflow-y-auto">
       <div className="mx-auto w-full max-w-7xl space-y-8 p-6 lg:p-10">
-        <AnalyticsHeader onRefresh={refetch} />
+        <AnalyticsHeader />
 
         <AnalyticsFilters
           integrations={filters.integrations}
@@ -119,7 +122,6 @@ export default function AnalyticsContainer() {
           onDaysChange={filters.setSelectedDays}
         />
 
-        {/* Interactive Metric Cards Row */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 2xl:gap-6">
           {sortedMetrics.map((metric) => (
             <MetricCard
@@ -131,28 +133,31 @@ export default function AnalyticsContainer() {
           ))}
         </div>
 
-        {/* Single Chart Stage - The "Main Event" */}
         {activeMetric && (
           <>
             <div className="bg-surface transition-all duration-300">
               <MetricChart metric={activeMetric} />
             </div>
 
-            {/* Aesthetic Line Below Graph */}
             <div className="py-6">
               <div className="w-full border-t border-dashed border-foreground/30" />
             </div>
           </>
         )}
 
-        {/* Posts Sections */}
         <div className="grid grid-cols-1 xl:grid-cols-3 gap-8 pb-12">
           <div className="xl:col-span-1">
             <TopPerformingContent posts={topPosts} isLoading={isLoadingPosts} />
           </div>
 
           <div className="xl:col-span-2">
-            <ContentList posts={posts} isLoading={isLoadingPosts} />
+            <ContentList
+              posts={posts}
+              isLoading={isLoadingPosts}
+              hasMore={hasNextPage}
+              onLoadMore={() => fetchNextPage()}
+              isLoadingMore={isFetchingNextPage}
+            />
           </div>
         </div>
       </div>

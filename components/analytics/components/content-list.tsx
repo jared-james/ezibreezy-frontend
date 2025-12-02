@@ -6,16 +6,44 @@ import { useState } from "react";
 import PostCard from "./post-card";
 import type { PostAnalytics } from "@/lib/types/analytics";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ScrollText, ChevronDown, ChevronUp } from "lucide-react";
+import {
+  ScrollText,
+  ChevronDown,
+  LayoutGrid,
+  Clapperboard,
+  History,
+  Layers,
+  Loader2,
+} from "lucide-react";
+import { cn } from "@/lib/utils";
 
 interface ContentListProps {
   posts: PostAnalytics[];
   isLoading?: boolean;
+  hasMore?: boolean;
+  onLoadMore?: () => void;
+  isLoadingMore?: boolean;
 }
 
-export default function ContentList({ posts, isLoading }: ContentListProps) {
-  const [showAll, setShowAll] = useState(false);
-  const displayedPosts = showAll ? posts : posts.slice(0, 5);
+type FilterType = "all" | "posts" | "reels" | "stories";
+
+export default function ContentList({
+  posts,
+  isLoading,
+  hasMore,
+  onLoadMore,
+  isLoadingMore,
+}: ContentListProps) {
+  const [filter, setFilter] = useState<FilterType>("all");
+
+  const filteredPosts = posts.filter((post) => {
+    if (filter === "all") return true;
+    if (filter === "posts")
+      return post.type === "image" || post.type === "carousel_album";
+    if (filter === "reels") return post.type === "video";
+    if (filter === "stories") return post.type === "story";
+    return true;
+  });
 
   if (isLoading) {
     return (
@@ -31,10 +59,6 @@ export default function ContentList({ posts, isLoading }: ContentListProps) {
               <div className="flex-1 space-y-2 py-1">
                 <Skeleton className="h-3 w-full" />
                 <Skeleton className="h-3 w-3/4" />
-                <div className="flex gap-4 mt-2">
-                  <Skeleton className="h-3 w-12" />
-                  <Skeleton className="h-3 w-12" />
-                </div>
               </div>
             </div>
           ))}
@@ -43,62 +67,80 @@ export default function ContentList({ posts, isLoading }: ContentListProps) {
     );
   }
 
-  if (posts.length === 0) {
-    return (
-      <div className="flex flex-col gap-4 p-6 h-full">
-        <div className="border-b border-dashed border-foreground/20 pb-4">
-          <h3 className="font-serif text-xl font-bold text-foreground flex items-center gap-2">
-            <ScrollText className="h-5 w-5" />
-            Recent Dispatches
-          </h3>
-        </div>
-        <div className="flex flex-col items-center justify-center flex-1 min-h-[200px] text-muted-foreground text-center">
-          <p className="font-serif italic text-lg">The wire is silent.</p>
-          <p className="font-mono text-xs uppercase tracking-widest mt-1">
-            No recent transmissions found
-          </p>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="flex flex-col gap-6 p-6 h-full">
       <div className="border-b border-dashed border-foreground/20 pb-4">
-        <div className="flex items-center justify-between mb-1">
-          <h3 className="font-serif text-2xl font-black text-foreground uppercase tracking-tight flex items-center gap-2">
-            <ScrollText className="h-5 w-5 text-foreground" />
-            The Wire
-          </h3>
-          <span className="font-mono text-[10px] font-bold uppercase tracking-widest bg-foreground/5 border border-foreground/10 px-2 py-1">
-            Chronological
-          </span>
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
+          <div>
+            <h3 className="font-serif text-2xl font-black text-foreground uppercase tracking-tight flex items-center gap-2">
+              <ScrollText className="h-5 w-5 text-foreground" />
+              The Wire
+            </h3>
+            <p className="font-serif text-sm text-muted-foreground italic mt-1">
+              Transmission log.
+            </p>
+          </div>
         </div>
-        <p className="font-serif text-sm text-muted-foreground italic">
-          Complete log of published material.
-        </p>
+
+        <div className="flex flex-wrap gap-3">
+          <FilterButton
+            active={filter === "all"}
+            onClick={() => setFilter("all")}
+            label="All"
+            count={posts.length}
+            icon={<Layers className="h-4 w-4" />}
+          />
+          <FilterButton
+            active={filter === "posts"}
+            onClick={() => setFilter("posts")}
+            label="Posts"
+            icon={<LayoutGrid className="h-4 w-4" />}
+          />
+          <FilterButton
+            active={filter === "reels"}
+            onClick={() => setFilter("reels")}
+            label="Reels"
+            icon={<Clapperboard className="h-4 w-4" />}
+          />
+          <FilterButton
+            active={filter === "stories"}
+            onClick={() => setFilter("stories")}
+            label="Stories"
+            icon={<History className="h-4 w-4" />}
+          />
+        </div>
       </div>
 
-      <div className="space-y-4">
-        {displayedPosts.map((post) => (
-          <PostCard key={post.id} post={post} />
-        ))}
-      </div>
+      {filteredPosts.length === 0 ? (
+        <div className="flex flex-col items-center justify-center flex-1 min-h-[200px] text-muted-foreground text-center bg-surface/50 border border-dotted border-foreground/10 rounded-sm">
+          <p className="font-serif italic text-lg">Signal lost.</p>
+          <p className="font-mono text-xs uppercase tracking-widest mt-1">
+            No {filter !== "all" ? filter : ""} content found
+          </p>
+        </div>
+      ) : (
+        <div className="space-y-4">
+          {filteredPosts.map((post) => (
+            <PostCard key={post.id} post={post} />
+          ))}
+        </div>
+      )}
 
-      {posts.length > 5 && (
+      {hasMore && filter === "all" && (
         <div className="mt-4 pt-4 border-t border-dotted border-foreground/20 flex justify-center">
           <button
-            onClick={() => setShowAll(!showAll)}
-            className="btn btn-outline h-10 px-6 text-xs font-bold uppercase tracking-widest gap-2 hover:bg-muted border-foreground/20 hover:border-foreground transition-all w-full sm:w-auto"
+            onClick={onLoadMore}
+            disabled={isLoadingMore}
+            className="btn btn-outline h-10 px-6 text-xs font-bold uppercase tracking-widest gap-2 hover:bg-muted border-foreground/20 hover:border-foreground transition-all w-full sm:w-auto disabled:opacity-50"
           >
-            {showAll ? (
+            {isLoadingMore ? (
               <>
-                <span>Collapse Feed</span>
-                <ChevronUp className="h-3 w-3" />
+                <Loader2 className="h-3 w-3 animate-spin" />
+                <span>Loading...</span>
               </>
             ) : (
               <>
-                <span>Load Full Archive ({posts.length})</span>
+                <span>Load More Archive</span>
                 <ChevronDown className="h-3 w-3" />
               </>
             )}
@@ -106,5 +148,37 @@ export default function ContentList({ posts, isLoading }: ContentListProps) {
         </div>
       )}
     </div>
+  );
+}
+
+function FilterButton({
+  active,
+  onClick,
+  label,
+  icon,
+  count,
+}: {
+  active: boolean;
+  onClick: () => void;
+  label: string;
+  icon?: React.ReactNode;
+  count?: number;
+}) {
+  return (
+    <button
+      onClick={onClick}
+      className={cn(
+        "flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-md transition-colors outline-none",
+        active
+          ? "border-2 border-brand-primary text-brand-primary bg-background shadow-sm"
+          : "border-2 border-border text-foreground hover:border-brand-primary/50 bg-background"
+      )}
+    >
+      {icon}
+      <span>{label}</span>
+      {count !== undefined && (
+        <span className="opacity-60 text-xs">({count})</span>
+      )}
+    </button>
   );
 }

@@ -2,7 +2,7 @@
 
 "use client";
 
-import { useQuery } from "@tanstack/react-query";
+import { useInfiniteQuery } from "@tanstack/react-query";
 import { getPostAnalytics } from "@/lib/api/analytics";
 import type { PostAnalytics } from "@/lib/types/analytics";
 
@@ -11,32 +11,32 @@ interface UsePostAnalyticsProps {
   limit?: number;
 }
 
-interface UsePostAnalyticsReturn {
-  posts: PostAnalytics[];
-  topPosts: PostAnalytics[];
-  isLoading: boolean;
-  isError: boolean;
-  error: unknown;
-  refetch: () => void;
-}
-
 export function usePostAnalytics({
   integrationId,
-  limit = 10,
-}: UsePostAnalyticsProps): UsePostAnalyticsReturn {
+  limit = 12,
+}: UsePostAnalyticsProps) {
   const {
-    data: posts = [],
+    data,
     isLoading,
     isError,
     error,
-    refetch,
-  } = useQuery<PostAnalytics[]>({
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+  } = useInfiniteQuery({
     queryKey: ["post-analytics", integrationId, limit],
-    queryFn: () => getPostAnalytics(integrationId!, limit),
+    queryFn: ({ pageParam = 0 }) =>
+      getPostAnalytics(integrationId!, limit, pageParam as number),
+    initialPageParam: 0,
+    getNextPageParam: (lastPage, allPages) => {
+      if (lastPage.length < limit) return undefined;
+      return allPages.flat().length;
+    },
     enabled: !!integrationId,
     staleTime: 5 * 60 * 1000,
-    retry: 1,
   });
+
+  const posts = data?.pages.flat() || [];
 
   const topPosts = [...posts]
     .sort((a, b) => b.metrics.engagementRate - a.metrics.engagementRate)
@@ -48,6 +48,8 @@ export function usePostAnalytics({
     isLoading,
     isError,
     error,
-    refetch,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
   };
 }

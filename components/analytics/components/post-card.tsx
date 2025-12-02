@@ -8,6 +8,8 @@ import {
   MessageCircle,
   Eye,
   BarChart3,
+  Share2, // Added for Shares
+  Bookmark, // Added for Saves
 } from "lucide-react";
 import type { PostAnalytics } from "@/lib/types/analytics";
 import { cn } from "@/lib/utils";
@@ -49,16 +51,19 @@ export default function PostCard({
 }: PostCardProps) {
   const isVertical = layout === "vertical";
 
+  // We treat 0 impressions as "pending data"
+  const hasData = post.metrics.impressions > 0;
+
   return (
     <div
       className={cn(
-        "group relative flex flex-col gap-4 p-4 border border-foreground/20 bg-background transition-colors duration-200 hover:border-foreground",
+        "group relative flex flex-col gap-4 p-4 border border-foreground/20 bg-background transition-all duration-200 hover:border-brand-primary hover:shadow-sm",
         !isVertical && "sm:flex-row"
       )}
     >
       <div
         className={cn(
-          "relative shrink-0 aspect-square bg-muted border border-foreground/10 group-hover:border-foreground transition-colors overflow-hidden",
+          "relative shrink-0 aspect-square bg-muted border border-foreground/10 group-hover:border-brand-primary/50 transition-colors overflow-hidden",
           isVertical ? "w-full" : "w-full sm:w-28"
         )}
       >
@@ -71,7 +76,7 @@ export default function PostCard({
         />
 
         {rank && (
-          <div className="absolute top-0 left-0 bg-foreground text-background font-mono text-xs font-bold px-2 py-1 shadow-sm z-10 border-b border-r border-white/20">
+          <div className="absolute top-0 left-0 bg-brand-primary text-foreground font-mono text-xs font-bold px-2 py-1 shadow-sm z-10 border-b border-r border-black/10">
             #{rank}
           </div>
         )}
@@ -91,18 +96,21 @@ export default function PostCard({
               href={post.permalink}
               target="_blank"
               rel="noopener noreferrer"
-              className="opacity-0 group-hover:opacity-100 transition-opacity"
+              className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-brand-primary hover:text-brand-primary/80 hover:underline decoration-brand-primary/50 underline-offset-4 transition-all"
             >
-              <ExternalLink className="h-3 w-3 text-muted-foreground hover:text-foreground" />
+              <span>View Post</span>
+              <ExternalLink className="h-3 w-3" />
             </a>
           </div>
 
-          <p className="font-serif text-sm text-foreground leading-relaxed line-clamp-2 border-l-2 border-brand-primary pl-3">
+          <p className="font-serif text-sm text-foreground leading-relaxed line-clamp-2 border-l-2 border-brand-primary/30 group-hover:border-brand-primary pl-3 transition-colors">
             {truncateCaption(post.caption)}
           </p>
         </div>
 
-        <div className="grid grid-cols-4 gap-4 mt-4">
+        {/* Updated Grid: Now 6 columns to fit all metrics */}
+        <div className="grid grid-cols-3 sm:grid-cols-6 gap-2 mt-4 pt-3 border-t border-dashed border-foreground/10">
+          {/* 1. Engagement Rate */}
           <div className="flex flex-col items-center justify-center">
             <div className="flex items-center gap-1 text-[9px] text-muted-foreground uppercase tracking-wider mb-1">
               <BarChart3 className="h-3 w-3" />
@@ -110,15 +118,16 @@ export default function PostCard({
             <span
               className={cn(
                 "font-mono text-xs font-bold",
-                post.metrics.engagementRate >= 5
+                hasData && post.metrics.engagementRate >= 5
                   ? "text-brand-primary"
                   : "text-foreground"
               )}
             >
-              {post.metrics.engagementRate.toFixed(1)}%
+              {hasData ? `${post.metrics.engagementRate.toFixed(1)}%` : "—"}
             </span>
           </div>
 
+          {/* 2. Likes */}
           <div className="flex flex-col items-center justify-center">
             <div className="flex items-center gap-1 text-[9px] text-muted-foreground uppercase tracking-wider mb-1">
               <Heart className="h-3 w-3" />
@@ -128,6 +137,7 @@ export default function PostCard({
             </span>
           </div>
 
+          {/* 3. Comments */}
           <div className="flex flex-col items-center justify-center">
             <div className="flex items-center gap-1 text-[9px] text-muted-foreground uppercase tracking-wider mb-1">
               <MessageCircle className="h-3 w-3" />
@@ -137,6 +147,27 @@ export default function PostCard({
             </span>
           </div>
 
+          {/* 4. Shares (New) */}
+          <div className="flex flex-col items-center justify-center">
+            <div className="flex items-center gap-1 text-[9px] text-muted-foreground uppercase tracking-wider mb-1">
+              <Share2 className="h-3 w-3" />
+            </div>
+            <span className="font-mono text-xs font-medium text-foreground">
+              {formatNumber(post.metrics.shares)}
+            </span>
+          </div>
+
+          {/* 5. Saves (New) */}
+          <div className="flex flex-col items-center justify-center">
+            <div className="flex items-center gap-1 text-[9px] text-muted-foreground uppercase tracking-wider mb-1">
+              <Bookmark className="h-3 w-3" />
+            </div>
+            <span className="font-mono text-xs font-medium text-foreground">
+              {formatNumber(post.metrics.saves)}
+            </span>
+          </div>
+
+          {/* 6. Impressions */}
           <div className="flex flex-col items-center justify-center">
             <div className="flex items-center gap-1 text-[9px] text-muted-foreground uppercase tracking-wider mb-1">
               <Eye className="h-3 w-3" />
