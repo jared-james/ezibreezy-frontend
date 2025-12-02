@@ -1,3 +1,5 @@
+// components/calendar/components/platform-icon.tsx
+
 "use client";
 
 import {

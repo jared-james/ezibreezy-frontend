@@ -94,7 +94,15 @@ function DraggablePost({
         onEditPost(post);
       }}
       className={cn(
-        "group/item relative flex w-full items-center gap-3 rounded-md border border-border bg-white p-2 text-left text-xs shadow-sm transition-all hover:border-brand-primary hover:shadow-md active:scale-[0.98]",
+        // LAYOUT STRATEGY:
+        // < 2xl: Stacked (flex-col). Visuals on top row (left aligned), Text on bottom row.
+        // >= 2xl: Inline (flex-row). Visuals left, Text right.
+        "group/item relative flex w-full flex-col items-start rounded-md border border-border bg-white text-left shadow-sm transition-all hover:border-brand-primary hover:shadow-md active:scale-[0.98]",
+        "2xl:flex-row 2xl:items-center",
+
+        // Spacing
+        "p-1.5 gap-2 2xl:p-2 2xl:gap-3",
+
         disabled ? "cursor-default opacity-70" : "cursor-pointer",
         isSent &&
           "opacity-75 bg-muted/30 border-muted-foreground/20 hover:border-muted-foreground/40",
@@ -102,46 +110,62 @@ function DraggablePost({
       )}
       disabled={disabled}
     >
-      <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-muted/50">
-        {disabled ? (
-          <Loader2 className="h-4 w-4 animate-spin text-brand-primary" />
-        ) : (
-          <PlatformIcon
-            platform={post.platform}
+      {/* 
+        VISUALS CONTAINER 
+        < 2xl: justify-start gap-2 (Icon and Image sit next to each other on left)
+        >= 2xl: w-auto gap-3 (Standard horizontal spacing)
+      */}
+      <div className="flex w-full items-center justify-start gap-2 2xl:w-auto 2xl:gap-3">
+        {/* Icon */}
+        <div className="flex shrink-0 items-center justify-center rounded-full bg-muted/50 h-5 w-5 2xl:h-8 2xl:w-8">
+          {disabled ? (
+            <Loader2 className="h-3 w-3 2xl:h-4 2xl:w-4 animate-spin text-brand-primary" />
+          ) : (
+            <PlatformIcon
+              platform={post.platform}
+              className={cn(
+                isSent ? "text-muted-foreground/70" : "text-muted-foreground",
+                "w-3 h-3 2xl:w-4 2xl:h-4"
+              )}
+              size={16}
+            />
+          )}
+        </div>
+
+        {/* Thumbnail */}
+        {mediaUrl && (
+          <div
             className={cn(
-              isSent ? "text-muted-foreground/70" : "text-muted-foreground"
+              "relative shrink-0 overflow-hidden rounded-sm bg-muted border border-border/50",
+              "h-5 w-5 2xl:h-8 2xl:w-8 2xl:rounded-md",
+              isSent && "opacity-80 grayscale-[0.2]"
             )}
-            size={16}
-          />
+          >
+            <img
+              src={mediaUrl}
+              alt=""
+              className="h-full w-full object-cover"
+              loading="lazy"
+            />
+          </div>
         )}
       </div>
 
-      {mediaUrl && (
-        <div
-          className={cn(
-            "relative shrink-0 overflow-hidden rounded-md bg-muted h-8 w-8 border border-border/50",
-            isSent && "opacity-80 grayscale-[0.2]"
-          )}
-        >
-          <img
-            src={mediaUrl}
-            alt=""
-            className="h-full w-full object-cover"
-            loading="lazy"
-          />
-        </div>
-      )}
-
-      <div className="flex min-w-0 flex-1 flex-col gap-0.5 justify-center">
+      {/* 
+        TEXT CONTAINER
+        < 2xl: Stacked below visuals
+        >= 2xl: To the right of visuals (flex-1)
+      */}
+      <div className="flex w-full min-w-0 flex-col gap-0.5 2xl:flex-1">
         <span
           className={cn(
-            "truncate font-medium text-foreground leading-tight",
+            "w-full truncate font-medium text-foreground leading-tight text-[10px] 2xl:text-xs",
             isSent && "text-muted-foreground"
           )}
         >
           {post.content || "Untitled Post"}
         </span>
-        <span className="font-serif text-[10px] font-bold text-muted-foreground shrink-0">
+        <span className="font-serif text-[9px] 2xl:text-[10px] font-bold text-muted-foreground shrink-0 leading-none">
           {format(new Date(post.scheduledAt), "h:mm a")}
         </span>
       </div>
@@ -156,24 +180,25 @@ function PostCardForOverlay({ post }: { post: ScheduledPost }) {
   return (
     <div
       className={cn(
-        "flex w-[220px] items-center gap-3 rounded-md border border-brand-primary bg-white p-2 text-left text-xs shadow-xl cursor-grabbing rotate-2"
+        "flex w-[180px] flex-col items-start gap-2 rounded-md border border-brand-primary bg-white p-2 text-left text-xs shadow-xl cursor-grabbing rotate-2"
       )}
     >
-      <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-brand-primary/10">
-        <PlatformIcon
-          platform={post.platform}
-          className="text-brand-primary"
-          size={16}
-        />
+      <div className="flex w-full items-center justify-start gap-2">
+        <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-brand-primary/10">
+          <PlatformIcon
+            platform={post.platform}
+            className="text-brand-primary"
+            size={14}
+          />
+        </div>
+        {mediaUrl && (
+          <div className="relative shrink-0 overflow-hidden rounded-md bg-muted h-6 w-6 border border-border/50">
+            <img src={mediaUrl} alt="" className="h-full w-full object-cover" />
+          </div>
+        )}
       </div>
 
-      {mediaUrl && (
-        <div className="relative shrink-0 overflow-hidden rounded-md bg-muted h-8 w-8 border border-border/50">
-          <img src={mediaUrl} alt="" className="h-full w-full object-cover" />
-        </div>
-      )}
-
-      <div className="flex min-w-0 flex-1 flex-col gap-0.5 justify-center">
+      <div className="flex w-full flex-col gap-0.5">
         <span className="truncate font-medium text-foreground">
           {post.content || "Untitled Post"}
         </span>
@@ -337,48 +362,56 @@ export default function MonthView({
       onDragStart={handleDragStart}
       onDragEnd={handleDragEnd}
     >
-      <div className="bg-border overflow-hidden">
-        <div className="grid grid-cols-7 gap-px bg-border border-b border-border">
-          {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((day) => (
-            <div key={day} className="bg-surface-hover p-3 text-center">
-              <span className="eyebrow text-[10px] font-bold tracking-widest text-muted-foreground">
-                {day}
-              </span>
+      <div className="h-full overflow-hidden bg-border rounded-lg border border-border flex flex-col">
+        {/* Scroll Container for Mobile/Laptop */}
+        <div className="flex-1 overflow-x-auto overflow-y-auto">
+          {/* Min-Width Enforcer - Keeps columns usable on smaller screens */}
+          <div className="min-w-[800px] md:min-w-[1000px] h-full flex flex-col">
+            {/* Header Row */}
+            <div className="grid grid-cols-7 gap-px bg-border border-b border-border shrink-0">
+              {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((day) => (
+                <div key={day} className="bg-surface-hover p-3 text-center">
+                  <span className="eyebrow text-[10px] font-bold tracking-widest text-muted-foreground">
+                    {day}
+                  </span>
+                </div>
+              ))}
             </div>
-          ))}
-        </div>
 
-        <div className="grid grid-cols-7 gap-px bg-border">
-          {monthData.map((day) => {
-            const isCurrentMonth = isSameMonth(day, currentDate);
-            const postsForDay = posts
-              .filter((post) => isSameDay(new Date(post.scheduledAt), day))
-              .sort(
-                (a, b) =>
-                  new Date(a.scheduledAt).getTime() -
-                  new Date(b.scheduledAt).getTime()
-              );
+            {/* Calendar Body */}
+            <div className="grid grid-cols-7 gap-px bg-border flex-1">
+              {monthData.map((day) => {
+                const isCurrentMonth = isSameMonth(day, currentDate);
+                const postsForDay = posts
+                  .filter((post) => isSameDay(new Date(post.scheduledAt), day))
+                  .sort(
+                    (a, b) =>
+                      new Date(a.scheduledAt).getTime() -
+                      new Date(b.scheduledAt).getTime()
+                  );
 
-            return (
-              <DroppableDay
-                key={day.toString()}
-                day={day}
-                isCurrentMonth={isCurrentMonth}
-                onNewPost={onNewPost}
-                postCount={postsForDay.length}
-              >
-                {postsForDay.map((post) => (
-                  <DraggablePost
-                    key={post.id}
-                    post={post}
-                    onEditPost={onEditPost}
-                    hidden={justDroppedId === post.id}
-                    disabled={lockedPostId === post.id}
-                  />
-                ))}
-              </DroppableDay>
-            );
-          })}
+                return (
+                  <DroppableDay
+                    key={day.toString()}
+                    day={day}
+                    isCurrentMonth={isCurrentMonth}
+                    onNewPost={onNewPost}
+                    postCount={postsForDay.length}
+                  >
+                    {postsForDay.map((post) => (
+                      <DraggablePost
+                        key={post.id}
+                        post={post}
+                        onEditPost={onEditPost}
+                        hidden={justDroppedId === post.id}
+                        disabled={lockedPostId === post.id}
+                      />
+                    ))}
+                  </DroppableDay>
+                );
+              })}
+            </div>
+          </div>
         </div>
       </div>
 

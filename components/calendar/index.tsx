@@ -125,7 +125,8 @@ export default function CalendarContainer() {
 
   return (
     <>
-      <div className="flex h-full w-full flex-col p-6">
+      {/* Reduced padding (p-4) until 1536px (2xl), then p-6 */}
+      <div className="flex h-full w-full flex-col p-4 2xl:p-6">
         {/* Calendar Header with Filters */}
         <CalendarHeader
           activeView={calendarState.activeView}

@@ -1,3 +1,5 @@
+// components/calendar/views/week-view.tsx
+
 "use client";
 
 import { useMemo } from "react";
@@ -39,10 +41,10 @@ export default function WeekView({
   }, [currentDate]);
 
   return (
-    <div className="flex h-full min-h-[600px] overflow-hidden bg-surface">
-      {/* Time Sidebar */}
-      <div className="w-16 flex-none border-r border-border bg-background overflow-y-auto scrollbar-hide">
-        <div className="sticky top-0 z-20 h-12 border-b border-border bg-background" />{" "}
+    <div className="flex h-full min-h-[600px] overflow-hidden bg-surface rounded-lg border border-border">
+      {/* Time Sidebar - Fixed */}
+      <div className="w-16 flex-none border-r border-border bg-background overflow-y-auto scrollbar-hide z-20 shadow-[4px_0_24px_-12px_rgba(0,0,0,0.1)]">
+        <div className="sticky top-0 z-20 h-12 border-b border-border bg-background" />
         {HOURS.map((hour) => (
           <div
             key={hour}
@@ -55,9 +57,9 @@ export default function WeekView({
         ))}
       </div>
 
-      {/* Days Grid */}
+      {/* Days Grid - Scrollable */}
       <div className="flex flex-1 overflow-x-auto overflow-y-auto">
-        <div className="flex min-w-[800px] w-full">
+        <div className="flex min-w-[800px] md:min-w-[1000px] w-full">
           {weekDays.map((day) => {
             const isCurrentDay = isToday(day);
             const postsForDay = posts.filter((post) =>
@@ -68,7 +70,7 @@ export default function WeekView({
               <div
                 key={day.toString()}
                 className={cn(
-                  "flex-1 min-w-[160px] border-r border-border last:border-r-0 flex flex-col",
+                  "flex-1 min-w-[120px] md:min-w-[140px] border-r border-border last:border-r-0 flex flex-col",
                   isCurrentDay ? "bg-surface" : "bg-background"
                 )}
               >
@@ -140,18 +142,21 @@ export default function WeekView({
                                 onEditPost(post);
                               }}
                               className={cn(
-                                "relative z-10 flex w-full items-center gap-3 rounded-md border border-border bg-white p-2 text-left text-xs shadow-sm transition-all hover:border-brand-primary hover:shadow-md active:scale-[0.98]",
+                                "relative z-10 flex w-full items-center rounded-md border border-border bg-white text-left shadow-sm transition-all hover:border-brand-primary hover:shadow-md active:scale-[0.98]",
+                                // Responsive padding and gap (2xl breakpoint)
+                                "p-1.5 gap-2 2xl:p-2 2xl:gap-3",
                                 isSent &&
                                   "opacity-75 bg-muted/30 border-muted-foreground/20 hover:border-muted-foreground/40"
                               )}
                             >
-                              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-muted/50">
+                              <div className="flex shrink-0 items-center justify-center rounded-full bg-muted/50 h-6 w-6 2xl:h-8 2xl:w-8">
                                 <PlatformIcon
                                   platform={post.platform}
                                   className={cn(
                                     isSent
                                       ? "text-muted-foreground/70"
-                                      : "text-muted-foreground"
+                                      : "text-muted-foreground",
+                                    "w-3 h-3 2xl:w-4 2xl:h-4"
                                   )}
                                   size={16}
                                 />
@@ -160,7 +165,8 @@ export default function WeekView({
                               {mediaUrl && (
                                 <div
                                   className={cn(
-                                    "relative shrink-0 overflow-hidden rounded-md bg-muted h-8 w-8 border border-border/50",
+                                    "relative shrink-0 overflow-hidden rounded-md bg-muted border border-border/50",
+                                    "h-6 w-6 2xl:h-8 2xl:w-8",
                                     isSent && "opacity-80 grayscale-[0.2]"
                                   )}
                                 >
@@ -173,16 +179,16 @@ export default function WeekView({
                                 </div>
                               )}
 
-                              <div className="flex min-w-0 flex-1 flex-col gap-0.5 justify-center">
+                              <div className="flex min-w-0 flex-1 flex-row items-center justify-between gap-2 2xl:flex-col 2xl:justify-center 2xl:gap-0.5 2xl:items-start">
                                 <span
                                   className={cn(
-                                    "truncate font-medium text-foreground leading-tight",
+                                    "truncate font-medium text-foreground leading-tight text-xs",
                                     isSent && "text-muted-foreground"
                                   )}
                                 >
                                   {post.content || "Untitled"}
                                 </span>
-                                <span className="font-serif text-[10px] font-bold text-muted-foreground shrink-0">
+                                <span className="font-serif text-[9px] 2xl:text-[10px] font-bold text-muted-foreground shrink-0 leading-none">
                                   {format(new Date(post.scheduledAt), "h:mm a")}
                                 </span>
                               </div>

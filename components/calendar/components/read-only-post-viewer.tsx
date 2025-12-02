@@ -1,3 +1,5 @@
+// components/calendar/components/read-only-post-viewer.tsx
+
 "use client";
 
 import { useState } from "react";

@@ -1,3 +1,5 @@
+// components/calendar/components/calendar-post-card.tsx
+
 "use client";
 
 import { format } from "date-fns";
