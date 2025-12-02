@@ -2,12 +2,12 @@
 
 import posthog from "posthog-js";
 
-if (typeof window !== "undefined") {
+// ⛔ No PostHog on localhost / dev
+if (typeof window !== "undefined" && process.env.NODE_ENV === "production") {
   posthog.init(process.env.NEXT_PUBLIC_POSTHOG_KEY!, {
     api_host: process.env.NEXT_PUBLIC_POSTHOG_HOST,
     ui_host: "https://us.posthog.com",
     defaults: "2025-05-24",
     capture_exceptions: true,
-    debug: process.env.NODE_ENV === "development",
   });
 }
