@@ -126,7 +126,7 @@ export function useFolderActions() {
                 className="font-serif text-base h-11 bg-background border-border focus:border-foreground rounded-sm"
                 autoFocus
                 onKeyDown={(e) => {
-                  if (e.key === "Enter") handleCreate(folderName);
+                  if (e.key === "Enter") handleCreate();
                 }}
               />
             </div>
@@ -137,7 +137,7 @@ export function useFolderActions() {
               </button>
             </DialogClose>
             <button
-              onClick={() => handleCreate(folderName)}
+              onClick={handleCreate}
               disabled={createMutation.isPending || !folderName.trim()}
               className="btn btn-primary"
             >
@@ -177,7 +177,7 @@ export function useFolderActions() {
               className="font-serif text-base h-11 bg-background border-border focus:border-foreground rounded-sm"
               autoFocus
               onKeyDown={(e) => {
-                if (e.key === "Enter" && folderToRename) handleRename(folderToRename.id, folderName);
+                if (e.key === "Enter" && folderToRename) handleRename();
               }}
             />
           </div>
@@ -188,7 +188,7 @@ export function useFolderActions() {
               </button>
             </DialogClose>
             <button
-              onClick={() => folderToRename && handleRename(folderToRename.id, folderName)}
+              onClick={handleRename}
               disabled={renameMutation.isPending || !folderName.trim()}
               className="btn btn-primary"
             >
@@ -222,7 +222,7 @@ export function useFolderActions() {
               Cancel
             </AlertDialogCancel>
             <AlertDialogAction
-              onClick={() => folderToDelete && handleDelete(folderToDelete.id)}
+              onClick={handleDelete}
               className="btn btn-primary bg-error text-white hover:bg-error-hover border-error-hover"
             >
               {deleteMutation.isPending ? (

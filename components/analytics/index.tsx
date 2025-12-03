@@ -89,10 +89,13 @@ export default function AnalyticsContainer() {
     null
   );
 
+  const [granularity, setGranularity] = useState<"daily" | "weekly">("daily");
+
   // Get platform for current account
-  const activePlatformType = filters.platforms.find((p) =>
-    p.accounts.some((a) => a.id === filters.activeAccountId)
-  )?.id || "";
+  const activePlatformType =
+    filters.platforms.find((p) =>
+      p.accounts.some((a) => a.id === filters.activeAccountId)
+    )?.id || "";
 
   // Filter metrics based on platform
   const filteredMetrics = metrics.filter((metric) =>
@@ -184,7 +187,7 @@ export default function AnalyticsContainer() {
           selectedAccounts={filters.selectedAccounts}
           activeAccountId={filters.activeAccountId}
           onTogglePlatform={filters.togglePlatform}
-          onSelectAccount={filters.selectAccount}
+          onAccountClick={filters.setSingleAccount}
           selectedDays={filters.selectedDays}
           onDaysChange={filters.setSelectedDays}
         />
@@ -210,8 +213,8 @@ export default function AnalyticsContainer() {
             <div className="bg-surface transition-all duration-300">
               <MetricChart
                 metric={activeMetric}
-                accountStatus={activeAccount?.status}
-                errorMessage={activeAccount?.errorMessage}
+                granularity={granularity}
+                onGranularityChange={setGranularity}
               />
             </div>
 

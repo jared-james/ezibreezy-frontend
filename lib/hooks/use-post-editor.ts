@@ -104,7 +104,7 @@ export function usePostEditor(options: UsePostEditorOptions = {}) {
         }
       }
 
-      return uploadMedia(variables.file, variables.organizationId, thumbnail);
+      return uploadMedia(variables.file, thumbnail);
     },
     onSuccess: (data, variables) => {
       const currentItems = useEditorialDraftStore.getState().stagedMediaItems;

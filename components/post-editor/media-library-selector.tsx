@@ -32,10 +32,7 @@ export default function MediaLibrarySelector({
     [searchQuery]
   );
 
-  const { data, isLoading, isError, error } = useMediaList(
-    integrationId,
-    filters
-  );
+  const { data, isLoading, isError, error } = useMediaList(filters);
 
   const mediaItems = data?.pages.flatMap((page) => page.data) || [];
 

@@ -2,7 +2,7 @@
 
 "use client";
 
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Check } from "lucide-react";
 import {
   Dialog,
@@ -16,7 +16,8 @@ import { useMediaList } from "@/lib/hooks/use-media";
 import MediaFolderBar from "@/components/media-room/media-folder-bar";
 import MediaToolbar from "@/components/media-room/media-toolbar";
 import MediaGrid from "@/components/media-room/media-grid";
-import type { MediaItem, MediaFilters } from "@/lib/api/media";
+import { useFolderActions } from "@/components/media-room/folder-actions";
+import type { MediaItem, MediaFilters, MediaFolder } from "@/lib/api/media";
 
 interface MediaRoomModalProps {
   isOpen: boolean;
@@ -42,6 +43,11 @@ export default function MediaRoomModal({
   const showUnusedOnly = useMediaRoomStore((s) => s.showUnusedOnly);
   const sortBy = useMediaRoomStore((s) => s.sortBy);
   const sortOrder = useMediaRoomStore((s) => s.sortOrder);
+
+  const [folderToRename, setFolderToRename] = useState<MediaFolder | null>(null);
+  const [folderToDelete, setFolderToDelete] = useState<MediaFolder | null>(null);
+
+  const { FolderActionDialogs } = useFolderActions();
 
   const filters = useMemo<MediaFilters>(() => {
     const f: MediaFilters = {
@@ -139,7 +145,10 @@ export default function MediaRoomModal({
         </DialogHeader>
 
         <div className="flex-1 overflow-hidden flex flex-col mt-4">
-          <MediaFolderBar />
+          <MediaFolderBar
+            onRenameFolder={setFolderToRename}
+            onDeleteFolder={setFolderToDelete}
+          />
 
           <div className="py-4">
             <MediaToolbar />
@@ -149,6 +158,15 @@ export default function MediaRoomModal({
             <MediaGrid />
           </div>
         </div>
+
+        <FolderActionDialogs
+          isCreateOpen={false}
+          onCloseCreate={() => {}}
+          folderToRename={folderToRename}
+          onCloseRename={() => setFolderToRename(null)}
+          folderToDelete={folderToDelete}
+          onCloseDelete={() => setFolderToDelete(null)}
+        />
 
         <div className="flex items-center justify-between border-t pt-4 mt-4">
           <Button variant="outline" onClick={handleCancel}>

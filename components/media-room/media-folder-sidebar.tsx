@@ -26,10 +26,7 @@ interface MediaFolderSidebarProps {
 export default function MediaFolderSidebar({
   organizationId,
 }: MediaFolderSidebarProps) {
-  const { data: folders = [], isLoading } = useFolderList(
-    organizationId,
-    "root"
-  );
+  const { data: folders = [], isLoading } = useFolderList("root");
 
   const currentFolderId = useMediaRoomStore((s) => s.currentFolderId);
   const setCurrentFolder = useMediaRoomStore((s) => s.setCurrentFolder);
@@ -38,12 +35,13 @@ export default function MediaFolderSidebar({
 
   const [isCreating, setIsCreating] = useState(false);
   const [newFolderName, setNewFolderName] = useState("");
+  const [folderToRename, setFolderToRename] = useState<MediaFolder | null>(null);
+  const [folderToDelete, setFolderToDelete] = useState<MediaFolder | null>(null);
 
-  const createFolder = useCreateFolder(organizationId);
+  const createFolder = useCreateFolder();
 
   // Use shared actions for Rename and Delete
-  const { openRenameDialog, openDeleteDialog, FolderActionDialogs } =
-    useFolderActions({ organizationId });
+  const { FolderActionDialogs } = useFolderActions();
 
   const handleCreateFolder = () => {
     if (!newFolderName.trim()) return;
@@ -104,8 +102,8 @@ export default function MediaFolderSidebar({
                 expandedFolderIds={expandedFolderIds}
                 onSelect={setCurrentFolder}
                 onToggleExpand={toggleFolderExpanded}
-                onRename={openRenameDialog}
-                onDelete={openDeleteDialog}
+                onRename={setFolderToRename}
+                onDelete={setFolderToDelete}
               />
             ))}
           </div>
@@ -155,7 +153,14 @@ export default function MediaFolderSidebar({
         )}
       </div>
 
-      <FolderActionDialogs />
+      <FolderActionDialogs
+        isCreateOpen={false}
+        onCloseCreate={() => {}}
+        folderToRename={folderToRename}
+        onCloseRename={() => setFolderToRename(null)}
+        folderToDelete={folderToDelete}
+        onCloseDelete={() => setFolderToDelete(null)}
+      />
     </div>
   );
 }
@@ -187,10 +192,7 @@ function FolderTreeItem({
   const isSelected = currentFolderId === folder.id;
   const [showActions, setShowActions] = useState(false);
 
-  const { data: children = [] } = useFolderList(
-    isExpanded ? organizationId : null,
-    folder.id
-  );
+  const { data: children = [] } = useFolderList(isExpanded ? folder.id : undefined);
 
   const hasChildren = children.length > 0;
 
