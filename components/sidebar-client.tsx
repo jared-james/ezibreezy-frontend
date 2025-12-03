@@ -1,9 +1,10 @@
 // components/sidebar-client.tsx
+
 "use client";
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   LayoutDashboard,
   Pencil,
@@ -20,6 +21,8 @@ import {
 } from "lucide-react";
 import { Button } from "./ui/button";
 import { logout } from "@/app/actions/auth";
+import { useWorkspaceStore, OrganizationNode } from "@/lib/store/workspace-store";
+import { WorkspaceSwitcher } from "@/components/layout/workspace-switcher";
 import { cn } from "@/lib/utils";
 
 const coreNavigation = [
@@ -36,9 +39,11 @@ const assetNavigation = [
   { name: "Labels", href: "/assets/labels", icon: Tag },
 ];
 
+// Props are now optional as we fetch data internally
 interface SidebarClientProps {
-  displayName: string;
-  organizationName: string;
+  organizationName?: string;
+  displayName?: string;
+  initialStructure: OrganizationNode[];
 }
 
 function NavItem({
@@ -59,7 +64,7 @@ function NavItem({
   return (
     <Link
       href={item.href}
-      prefetch={false} // <--- FIX: Disables automatic prefetching
+      prefetch={false}
       className={cn(
         "flex items-center gap-3 px-3 py-2 font-serif text-sm transition-colors",
         isActive
@@ -75,42 +80,42 @@ function NavItem({
 }
 
 export default function SidebarClient({
-  organizationName,
+  displayName,
+  initialStructure,
 }: SidebarClientProps) {
   const pathname = usePathname();
   const router = useRouter();
-
   const [isConfirmingLogout, setIsConfirmingLogout] = useState(false);
 
-  const displayOrgName = organizationName
-    ? `${organizationName.charAt(0).toUpperCase()} Org`
-    : "Org";
+  // Store hooks
+  const { setStructure, currentOrganization } = useWorkspaceStore();
+
+  // Initialize store with server-fetched data immediately
+  useEffect(() => {
+    console.log("🟢 [Sidebar] Received initialStructure:", {
+      length: initialStructure?.length || 0,
+      structure: initialStructure,
+    });
+
+    if (initialStructure && initialStructure.length > 0) {
+      console.log("🟢 [Sidebar] Setting structure in store");
+      setStructure(initialStructure);
+    } else {
+      console.warn("⚠️ [Sidebar] initialStructure is empty or undefined");
+    }
+    // If initialStructure is empty, we could fetch client-side as fallback,
+    // but this shouldn't happen since the layout fetches it server-side
+  }, [initialStructure, setStructure]);
 
   const executeLogout = async () => {
     await logout();
     router.refresh();
   };
 
-  const startLogoutConfirmation = () => {
-    setIsConfirmingLogout(true);
-  };
-
-  const cancelLogoutConfirmation = () => {
-    setIsConfirmingLogout(false);
-  };
-
   return (
-    <aside className=" justify-centerw-64 bg-[--background] border-r-2 border-[--foreground] flex flex-col">
-      <div className="h-16 flex items-center px-6 border-b-2 border-[--foreground] shrink-0">
-        <Link
-          href="/dashboard"
-          prefetch={false} // <--- FIX: Disables automatic prefetching
-          className="font-serif font-normal text-sm uppercase tracking-[0.15em] text-[--foreground] truncate"
-          title={organizationName}
-        >
-          {displayOrgName}
-        </Link>
-      </div>
+    <aside className="w-64 bg-[--background] border-r-2 border-[--foreground] flex flex-col">
+      {/* 1. Replaced Static Header with Switcher */}
+      <WorkspaceSwitcher />
 
       <div className="p-4 border-b-2 border-[--foreground] shrink-0">
         <Button
@@ -154,13 +159,13 @@ export default function SidebarClient({
           {isConfirmingLogout ? (
             <>
               <p className="font-serif text-xs text-center text-[--muted-foreground] px-3 pb-1">
-                Are you sure you want to log out?
+                Are you sure?
               </p>
               <div className="flex gap-2">
                 <Button
                   variant="outline"
                   className="flex-1 gap-1 font-serif uppercase tracking-[0.12em] py-2 text-xs"
-                  onClick={cancelLogoutConfirmation}
+                  onClick={() => setIsConfirmingLogout(false)}
                 >
                   Cancel
                 </Button>
@@ -169,19 +174,23 @@ export default function SidebarClient({
                   onClick={executeLogout}
                 >
                   <LogOut className="w-3 h-3" />
-                  Confirm
+                  Exit
                 </Button>
               </div>
             </>
           ) : (
             <>
               <NavItem
-                item={{ name: "Settings", href: "/settings", icon: Settings }}
+                item={{
+                  name: "Settings",
+                  href: "/settings/workspace",
+                  icon: Settings,
+                }}
                 pathname={pathname}
                 className="rounded-sm"
               />
               <button
-                onClick={startLogoutConfirmation}
+                onClick={() => setIsConfirmingLogout(true)}
                 className="flex w-full items-center gap-3 px-3 py-2 font-serif text-sm transition-colors text-[--foreground] hover:bg-surface-hover rounded-sm"
               >
                 <LogOut className="w-4 h-4" />
@@ -191,11 +200,19 @@ export default function SidebarClient({
           )}
         </div>
 
-        <div className="flex items-center gap-3 px-3 pt-3">
+        {/* User Info Footer */}
+        <div className="flex items-center gap-3 px-3 pt-3 opacity-60 hover:opacity-100 transition-opacity">
           <Users className="w-4 h-4 text-[--muted-foreground]" />
-          <p className="font-serif text-xs font-medium text-[--muted-foreground] truncate">
-            {displayOrgName}
-          </p>
+          <div className="flex flex-col overflow-hidden">
+            <p className="font-serif text-xs font-medium text-[--foreground] truncate">
+              {displayName || "Editor"}
+            </p>
+            {currentOrganization && (
+              <p className="font-mono text-[9px] uppercase tracking-wide text-[--muted-foreground] truncate">
+                {currentOrganization.name}
+              </p>
+            )}
+          </div>
         </div>
       </div>
 

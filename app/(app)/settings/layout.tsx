@@ -2,12 +2,13 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { User, PenTool, Link2 } from "lucide-react";
+import { User, PenTool, Link2, Briefcase } from "lucide-react";
 
 const settingsNav = [
   { name: "Profile", href: "/settings/profile", icon: User },
   { name: "Writing Style", href: "/settings/writing-style", icon: PenTool },
   { name: "Manage Channels", href: "/settings/integrations", icon: Link2 },
+  { name: "Workspaces", href: "/settings/workspace", icon: Briefcase },
 ];
 
 export default function SettingsLayout({

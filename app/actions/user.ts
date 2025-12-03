@@ -34,6 +34,7 @@ export async function updateDisplayName(newDisplayName: string) {
       return { success: false, error: updateError.message };
     }
 
+    // Resync with backend to update the user record there as well
     const syncResult = await syncUser();
 
     if (!syncResult.success) {
@@ -51,9 +52,16 @@ export async function updateDisplayName(newDisplayName: string) {
   }
 }
 
-export async function syncUser() {
+/**
+ * Synchronizes the current Supabase user with the Backend database.
+ *
+ * @param options - Optional parameters for the sync process
+ * @param options.inviteToken - If provided, the backend will attempt to accept this invite for the user
+ */
+export async function syncUser(options?: { inviteToken?: string }) {
   const supabase = await createClient();
 
+  // 1. Get User Details
   const {
     data: { user },
     error: userError,
@@ -72,6 +80,7 @@ export async function syncUser() {
     return { success: false, error: "User email is missing." };
   }
 
+  // 2. Get Session for Authorization Header
   const {
     data: { session },
   } = await supabase.auth.getSession();
@@ -82,21 +91,30 @@ export async function syncUser() {
   }
 
   try {
+    // 3. Call Backend Sync
     const response = await fetch(`${BACKEND_URL}/users/sync`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${session.access_token}`,
       },
-      body: JSON.stringify({ id, email, displayName }),
+      // Pass the invite token if it exists, so the backend can link the user to the workspace
+      body: JSON.stringify({
+        id,
+        email,
+        displayName,
+        inviteToken: options?.inviteToken,
+      }),
     });
 
     if (!response.ok) {
-      const errorData = await response.json();
+      const errorData = await response.json().catch(() => ({}));
       console.error("Failed to sync user with backend:", errorData.message);
       return {
         success: false,
-        error: `Backend sync failed: ${errorData.message}`,
+        error: `Backend sync failed: ${
+          errorData.message || response.statusText
+        }`,
       };
     }
 
