@@ -14,6 +14,7 @@ import {
 import { ChannelCircleButton } from "@/components/ui/channel-circle-button";
 import { AccountAvatar } from "./account-avatar";
 import type { AnalyticsPlatform, TimeRange } from "@/lib/types/analytics";
+import { cn } from "@/lib/utils";
 
 interface AnalyticsFiltersProps {
   platforms: AnalyticsPlatform[];
@@ -45,9 +46,7 @@ export default function AnalyticsFilters({
   onDaysChange,
   showAccountSelector = true,
 }: AnalyticsFiltersProps) {
-  const triggerClasses =
-    "h-9 w-full sm:w-[240px] rounded-sm border-border bg-surface text-xs font-bold uppercase tracking-wider text-muted-foreground hover:text-foreground hover:bg-surface-hover hover:border-border-hover focus:ring-brand-primary transition-colors";
-
+  // Helper for Headquarters (Multi-select platforms)
   const getChannelState = (
     platform: AnalyticsPlatform
   ): "active" | "inactive" | "disabled" => {
@@ -57,28 +56,38 @@ export default function AnalyticsFilters({
       : "inactive";
   };
 
-  const getActiveAccountName = () => {
-    if (selectionMode === "multi" || !activeAccountId) return null;
-    for (const platform of platforms) {
-      const account = platform.accounts.find((a) => a.id === activeAccountId);
-      if (account) return account.name;
-    }
-    return null;
-  };
-
-  const hasSelectedAccounts = Object.values(selectedAccounts).some(
-    (arr) => arr.length > 0
-  );
+  const triggerClasses =
+    "h-9 w-full sm:w-[200px] rounded-sm border-border bg-surface text-xs font-bold uppercase tracking-wider text-muted-foreground hover:text-foreground hover:bg-surface-hover hover:border-border-hover focus:ring-brand-primary transition-colors";
 
   return (
-    <div className="flex flex-col gap-6 border-b border-border pb-6 mb-6">
-      {showAccountSelector && (
-        <>
-          {selectionMode === "multi" && (
-            <div className="flex flex-col gap-3">
-              <label className="eyebrow text-[10px]">Select Channels</label>
-              <div className="flex flex-wrap items-center gap-3">
-                {platforms.map((platform) => (
+    <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-6 border-b border-border pb-6 mb-6">
+      {/* LEFT: Account/Platform Selector */}
+      <div className="flex-1">
+        {showAccountSelector && (
+          <div className="flex flex-col gap-2">
+            <div className="flex items-center justify-between sm:justify-start gap-4">
+              <label className="eyebrow text-[10px]">
+                {selectionMode === "multi"
+                  ? "Select Channels"
+                  : "Select Account"}
+              </label>
+
+              {/* Connect Link (Only show if no accounts or multi mode) */}
+              {selectionMode === "multi" && (
+                <Link
+                  href="/settings/integrations"
+                  className="flex items-center gap-1.5 font-serif text-[10px] text-brand-primary hover:underline"
+                >
+                  <PlusCircle className="h-3 w-3" />
+                  Connect
+                </Link>
+              )}
+            </div>
+
+            <div className="flex flex-wrap items-center gap-3">
+              {/* MODE: Multi-Select (Headquarters) - Uses ChannelCircleButton */}
+              {selectionMode === "multi" &&
+                platforms.map((platform) => (
                   <ChannelCircleButton
                     key={platform.id}
                     state={getChannelState(platform)}
@@ -93,78 +102,46 @@ export default function AnalyticsFilters({
                     <platform.icon className="h-5 w-5" />
                   </ChannelCircleButton>
                 ))}
-                <Link
-                  href="/settings/integrations"
-                  className="flex items-center gap-2 text-xs text-muted-foreground hover:text-foreground transition-colors"
-                >
-                  <PlusCircle className="h-4 w-4" />
-                  <span>Connect Channels</span>
-                </Link>
-              </div>
-            </div>
-          )}
 
-          {(hasSelectedAccounts || selectionMode === "single") && (
-            <div className="flex flex-col gap-3">
-              <label className="eyebrow text-[10px]">Select Accounts</label>
-              <div className="flex flex-wrap gap-4">
-                {platforms.map((platform) => {
-                  const accountIds = selectedAccounts[platform.id] || [];
-                  if (platform.accounts.length === 0) return null;
+              {/* MODE: Single-Select (Instagram/YouTube) - Uses AccountAvatar */}
+              {selectionMode === "single" && (
+                <>
+                  {platforms.flatMap((platform) =>
+                    platform.accounts.map((account) => {
+                      const isSelected = activeAccountId === account.id;
 
-                  return (
-                    <div
-                      key={platform.id}
-                      className="flex items-center gap-2 p-2 rounded-lg bg-surface border border-border"
-                    >
-                      <platform.icon className="h-4 w-4 text-muted-foreground shrink-0" />
-                      <div className="flex gap-2">
-                        {platform.accounts.map((account) => {
-                          const isSelected = accountIds.includes(account.id);
-                          const showCheckmark =
-                            selectionMode === "single" && isSelected;
+                      return (
+                        // Using the AccountAvatar but ensuring it sits in the flex row
+                        <div key={account.id} className="relative group">
+                          <AccountAvatar
+                            account={account}
+                            isSelected={isSelected}
+                            isActive={isSelected}
+                            isLastSelected={false} // Allow clicking even if selected to refresh
+                            onClick={() =>
+                              onAccountClick(platform.id, account.id)
+                            }
+                          />
+                        </div>
+                      );
+                    })
+                  )}
 
-                          return (
-                            <AccountAvatar
-                              key={account.id}
-                              account={account}
-                              isSelected={isSelected}
-                              isActive={showCheckmark}
-                              isLastSelected={
-                                selectionMode === "single" &&
-                                isSelected &&
-                                accountIds.length === 1
-                              }
-                              onClick={() =>
-                                onAccountClick(platform.id, account.id)
-                              }
-                            />
-                          );
-                        })}
-                      </div>
+                  {platforms.every((p) => p.accounts.length === 0) && (
+                    <div className="text-xs text-muted-foreground font-serif italic py-2">
+                      No accounts connected.
                     </div>
-                  );
-                })}
-              </div>
-
-              {selectionMode === "single" && activeAccountId && (
-                <div className="text-xs text-muted-foreground font-serif italic">
-                  Viewing data for: {getActiveAccountName()}
-                </div>
+                  )}
+                </>
               )}
             </div>
-          )}
+          </div>
+        )}
+      </div>
 
-          {selectionMode === "multi" && !hasSelectedAccounts && (
-            <div className="text-sm text-muted-foreground text-center py-4 border border-dashed border-border rounded-lg">
-              Select a channel or account above to view analytics
-            </div>
-          )}
-        </>
-      )}
-
-      <div className="flex flex-col gap-2">
-        <label className="eyebrow text-[10px]">Date Range</label>
+      {/* RIGHT: Date Range Selector */}
+      <div className="flex flex-col gap-2 w-full sm:w-auto">
+        <label className="eyebrow text-[10px] sm:text-right">Timeframe</label>
         <Select
           value={selectedDays.toString()}
           onValueChange={(value) => onDaysChange(parseInt(value) as TimeRange)}
@@ -178,7 +155,7 @@ export default function AnalyticsFilters({
               <SelectValue />
             </div>
           </SelectTrigger>
-          <SelectContent>
+          <SelectContent align="end">
             {TIME_RANGE_OPTIONS.map((option) => (
               <SelectItem key={option.value} value={option.value.toString()}>
                 {option.label}
