@@ -68,7 +68,7 @@ export default function TopPerformingContent({
             <Star className="h-5 w-5 text-brand-primary fill-brand-primary" />
             {label}
           </h3>
-          <span className="font-mono text-[10px] font-bold uppercase tracking-widest bg-foreground text-background px-2 py-1 rounded-sm shadow-sm">
+          <span className="font-mono text-[10px] font-bold uppercase tracking-widest border border-dashed border-brand-primary text-brand-primary bg-brand-primary/5 px-2 py-1 rounded-sm">
             Vol. High
           </span>
         </div>

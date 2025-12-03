@@ -32,9 +32,14 @@ interface AggregatedData {
   accountsEngaged: AggregatedMetricResult;
   websiteClicks: AggregatedMetricResult;
 
-  // Content type breakdown
+  // Instagram Breakdown
   feedViews: AggregatedMetricResult;
   reelsViews: AggregatedMetricResult;
+
+  // YouTube Specifics -- ADDED THESE
+  watchTimeMinutes: AggregatedMetricResult;
+  subscribersGained: AggregatedMetricResult;
+  avgViewDuration: AggregatedMetricResult;
 
   isLoading: boolean;
   errors: Error[];
@@ -58,28 +63,6 @@ export function useAggregatedAnalytics({
     staleTime: 5 * 60 * 1000,
   });
 
-  // --- DEBUGGING START ---
-  useEffect(() => {
-    if (response) {
-      console.group("📊 [Frontend] Aggregated Analytics Data");
-      console.log(
-        "Accounts:",
-        accounts.map((a) => a.name)
-      );
-      console.log("Raw Response Data:", response.data);
-
-      const viewsMetric = response.data?.find(
-        (m) => m.key === "impressions" || m.key === "views"
-      );
-      console.log("Target 'Views/Impressions' Metric:", viewsMetric);
-      console.groupEnd();
-    }
-    if (error) {
-      console.error("❌ [Frontend] Aggregated Analytics Error:", error);
-    }
-  }, [response, error, accounts]);
-  // --- DEBUGGING END ---
-
   const metrics = response?.data || [];
 
   // Helper to safely find a metric or return a zero-state placeholder
@@ -99,15 +82,12 @@ export function useAggregatedAnalytics({
     };
   };
 
-  // --- Derived Metrics ---
-
   // 1. Engagement Rate Calculation
-  // Rate = (Total Engagement / Total Reach) * 100
   const engagementMetric = getMetric("engagement_count", "Engagement").metric;
   const reachMetric = getMetric("reach", "Reach").metric;
 
   const engagementValue = engagementMetric.currentValue;
-  const reachValue = reachMetric.currentValue || 1; // Prevent division by zero
+  const reachValue = reachMetric.currentValue || 1;
 
   const calculatedRate = (engagementValue / reachValue) * 100;
 
@@ -127,7 +107,7 @@ export function useAggregatedAnalytics({
 
     // Overview
     totalAudience: getMetric("total_audience", "Total Audience"),
-    totalExposure: getMetric("impressions", "Total Views"), // "Impressions" acts as Views now
+    totalExposure: getMetric("impressions", "Total Views"),
     totalEngagement: { isLoading, metric: engagementMetric },
     globalEngagementRate,
 
@@ -143,5 +123,10 @@ export function useAggregatedAnalytics({
     // Content Type Breakdown (Instagram)
     feedViews: getMetric("feed_views", "Feed Views"),
     reelsViews: getMetric("reels_views", "Reels Views"),
+
+    // YouTube Specifics -- MAPPED HERE
+    watchTimeMinutes: getMetric("watch_time_minutes", "Watch Time"),
+    subscribersGained: getMetric("subscribers_gained", "Subs Gained"),
+    avgViewDuration: getMetric("avg_view_duration", "Avg Duration"),
   };
 }

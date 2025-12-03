@@ -2,6 +2,7 @@
 
 "use client";
 
+import { useEffect } from "react";
 import { useInfiniteQuery } from "@tanstack/react-query";
 import { getPostAnalytics } from "@/lib/api/analytics";
 import type {
@@ -39,6 +40,43 @@ export function usePostAnalytics({
     enabled: !!integrationId,
     staleTime: 5 * 60 * 1000,
   });
+
+  // --- DEBUGGING START ---
+  useEffect(() => {
+    if (data) {
+      console.group("🎬 [YouTube] Post Analytics");
+      const flatPosts = data.pages.flatMap((page) => page.data);
+      console.log("Integration ID:", integrationId);
+      console.log(`Total Posts Fetched: ${flatPosts.length}`);
+      console.log("Raw Response Pages:", data.pages);
+
+      if (flatPosts.length > 0) {
+        const sample = flatPosts[0];
+        console.log("Sample Post Structure:", sample);
+        console.log("Sample Post Metrics:", sample.metrics);
+        console.log("Sample Post - Views (impressions):", sample.impressions);
+        console.log("Sample Post - Reach:", sample.reach);
+        console.log("Sample Post - Likes:", sample.likes);
+        console.log("Sample Post - Comments:", sample.comments);
+        console.log("Sample Post - Shares:", sample.shares);
+        console.log("Sample Post - Engagement Rate:", sample.engagementRate);
+      } else {
+        console.log("No posts returned from backend.");
+      }
+
+      // Log warnings from all pages
+      const allWarnings = data.pages.flatMap((p) => p.warnings || []);
+      if (allWarnings.length > 0) {
+        console.log("Warnings:", allWarnings);
+      }
+
+      console.groupEnd();
+    }
+    if (error) {
+      console.error("❌ [YouTube] Post Analytics Error:", error);
+    }
+  }, [data, error, integrationId]);
+  // --- DEBUGGING END ---
 
   const posts = data?.pages.flatMap((p) => p.data) || [];
 

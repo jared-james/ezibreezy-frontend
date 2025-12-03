@@ -12,7 +12,6 @@ import {
   LayoutGrid,
   Clapperboard,
   History,
-  Layers,
   Loader2,
   Filter,
 } from "lucide-react";
@@ -184,16 +183,18 @@ function FilterButton({
     <button
       onClick={onClick}
       className={cn(
-        "flex items-center gap-2 px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider rounded-sm transition-all outline-none",
+        "flex items-center gap-2 px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider rounded-sm transition-all outline-none border",
         active
-          ? "bg-foreground text-background shadow-md transform scale-105"
-          : "bg-background border border-border text-muted-foreground hover:text-foreground hover:border-foreground/50"
+          ? "border-dashed border-brand-primary text-brand-primary bg-brand-primary/5 shadow-sm"
+          : "border-transparent text-muted-foreground hover:text-foreground hover:bg-muted/50"
       )}
     >
       {icon}
       <span>{label}</span>
       {count !== undefined && (
-        <span className="opacity-60 ml-0.5">({count})</span>
+        <span className={cn("ml-0.5", active ? "opacity-100" : "opacity-60")}>
+          ({count})
+        </span>
       )}
     </button>
   );

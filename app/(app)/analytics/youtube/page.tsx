@@ -1,9 +1,13 @@
+// app/(app)/analytics/youtube/page.tsx
+
 "use client";
 
 import { useState, useEffect } from "react";
 import { useAnalyticsFilters } from "@/components/analytics/hooks/use-analytics-filters";
 import { useAggregatedAnalytics } from "@/components/analytics/hooks/use-aggregated-analytics";
 import { useUnifiedPostAnalytics } from "@/components/analytics/hooks/use-unified-post-analytics";
+import { useAnalyticsData } from "@/components/analytics/hooks/use-analytics-data";
+import { usePostAnalytics } from "@/components/analytics/hooks/use-post-analytics";
 
 import AnalyticsHeader from "@/components/analytics/components/analytics-header";
 import AnalyticsTabs from "@/components/analytics/components/analytics-tabs";
@@ -37,6 +41,23 @@ export default function YoutubeAnalyticsPage() {
     }
   }, [youtubeAccounts, targetAccount, filters]);
 
+  // --- FORCE DATA FETCHING ---
+
+  // 1. Fetch Account Data (Subscribers, Views over time)
+  useAnalyticsData({
+    integrationId: activeId,
+    days: filters.selectedDays,
+  });
+
+  // 2. Fetch Video Data (Specific video metrics)
+  // This triggers /analytics/posts -> which hits the YouTube API -> which prints your logs
+  usePostAnalytics({
+    integrationId: activeId,
+    limit: 10,
+  });
+
+  // ---------------------------
+
   const targetAccountsArray = targetAccount
     ? [targetAccount]
     : youtubeAccounts.length > 0
@@ -48,6 +69,10 @@ export default function YoutubeAnalyticsPage() {
     totalExposure,
     totalEngagement,
     globalEngagementRate,
+    // New YouTube Metrics
+    watchTimeMinutes,
+    subscribersGained,
+    avgViewDuration,
     isLoading,
   } = useAggregatedAnalytics({
     accounts: targetAccountsArray,
@@ -163,42 +188,48 @@ export default function YoutubeAnalyticsPage() {
             Platform Specifics // YouTube
           </h4>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            {/* Watch Time */}
             <div className="p-4 border border-dashed border-border bg-surface/30 rounded-sm flex items-center gap-4">
               <div className="p-2 bg-red-50 text-red-600 rounded-full">
                 <Clock className="h-4 w-4" />
               </div>
               <div>
                 <div className="text-sm font-bold text-foreground">
-                  Watch Time
+                  {watchTimeMinutes?.metric?.currentValue?.toLocaleString() ??
+                    "0"}{" "}
+                  Min
                 </div>
-                <div className="text-xs text-muted-foreground">
-                  Minutes Watched
-                </div>
+                <div className="text-xs text-muted-foreground">Watch Time</div>
               </div>
             </div>
+
+            {/* Avg Duration */}
             <div className="p-4 border border-dashed border-border bg-surface/30 rounded-sm flex items-center gap-4">
               <div className="p-2 bg-orange-50 text-orange-600 rounded-full">
                 <PlayCircle className="h-4 w-4" />
               </div>
               <div>
                 <div className="text-sm font-bold text-foreground">
-                  Avg Duration
+                  {avgViewDuration?.metric?.currentValue?.toFixed(0) ?? "0"}s
                 </div>
                 <div className="text-xs text-muted-foreground">
-                  Retention Performance
+                  Avg Duration
                 </div>
               </div>
             </div>
+
+            {/* Subscriber Net */}
             <div className="p-4 border border-dashed border-border bg-surface/30 rounded-sm flex items-center gap-4">
               <div className="p-2 bg-green-50 text-green-600 rounded-full">
                 <Users className="h-4 w-4" />
               </div>
               <div>
                 <div className="text-sm font-bold text-foreground">
-                  Subscriber Net
+                  {subscribersGained?.metric?.currentValue > 0 ? "+" : ""}
+                  {subscribersGained?.metric?.currentValue ?? 0}
                 </div>
                 <div className="text-xs text-muted-foreground">
-                  Gained vs Lost
+                  Subscribers Gained
                 </div>
               </div>
             </div>
