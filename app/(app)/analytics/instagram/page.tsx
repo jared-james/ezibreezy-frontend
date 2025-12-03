@@ -1,3 +1,5 @@
+// app/(app)/analytics/instagram/page.tsx
+
 "use client";
 
 import { useState, useEffect } from "react";
@@ -13,7 +15,7 @@ import MetricChart from "@/components/analytics/components/metric-chart";
 import TopPerformingContent from "@/components/analytics/components/top-performing-content";
 import ContentList from "@/components/analytics/components/content-list";
 import AnalyticsSkeleton from "@/components/analytics/components/analytics-skeleton";
-import { Instagram, MousePointer2, Users2, Eye } from "lucide-react";
+import { Instagram } from "lucide-react";
 
 export default function InstagramAnalyticsPage() {
   const filters = useAnalyticsFilters();
@@ -50,6 +52,8 @@ export default function InstagramAnalyticsPage() {
     profileViews,
     accountsEngaged,
     websiteClicks,
+    feedViews,
+    reelsViews,
     isLoading,
   } = useAggregatedAnalytics({
     accounts: targetAccountsArray,
@@ -72,9 +76,13 @@ export default function InstagramAnalyticsPage() {
   const metricsMap = {
     total_audience: totalAudience.metric,
     reach: totalReach.metric,
-    profile_views: profileViews.metric, // Swapped Impressions for Profile Views
-    impressions: totalImpressions.metric,
+    profile_views: profileViews.metric,
+    impressions: totalImpressions.metric, // Mapped to Views from backend
     total_engagement: totalEngagement.metric,
+    accounts_engaged: accountsEngaged.metric,
+    website_clicks: websiteClicks.metric,
+    feed_views: feedViews.metric,
+    reels_views: reelsViews.metric,
   };
 
   const activeMetric =
@@ -127,8 +135,8 @@ export default function InstagramAnalyticsPage() {
           onDaysChange={filters.setSelectedDays}
         />
 
-        {/* Top Grid: Promoted Profile Views to the 3rd slot */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 2xl:gap-6">
+        {/* Clickable Metrics with Daily History */}
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
           <MetricCard
             metric={{ ...totalAudience.metric, label: "Followers" }}
             isSelected={selectedMetricKey === "total_audience"}
@@ -141,7 +149,6 @@ export default function InstagramAnalyticsPage() {
             onClick={() => setSelectedMetricKey("reach")}
             loading={totalReach.isLoading}
           />
-          {/* Swapped Impressions for Profile Views here */}
           <MetricCard
             metric={profileViews.metric}
             isSelected={selectedMetricKey === "profile_views"}
@@ -154,6 +161,18 @@ export default function InstagramAnalyticsPage() {
             onClick={() => setSelectedMetricKey("total_engagement")}
             loading={totalEngagement.isLoading}
           />
+          <MetricCard
+            metric={accountsEngaged.metric}
+            isSelected={selectedMetricKey === "accounts_engaged"}
+            onClick={() => setSelectedMetricKey("accounts_engaged")}
+            loading={accountsEngaged.isLoading}
+          />
+          <MetricCard
+            metric={websiteClicks.metric}
+            isSelected={selectedMetricKey === "website_clicks"}
+            onClick={() => setSelectedMetricKey("website_clicks")}
+            loading={websiteClicks.isLoading}
+          />
         </div>
 
         <div className="bg-surface transition-all duration-300">
@@ -164,49 +183,37 @@ export default function InstagramAnalyticsPage() {
           />
         </div>
 
+        {/* Post-Level Aggregates (No Daily History) */}
         <div className="py-2">
           <h4 className="font-mono text-xs uppercase tracking-widest text-muted-foreground mb-4">
-            Platform Specifics // Instagram
+            Content Performance // Post Aggregates
           </h4>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <div className="p-4 border border-dashed border-border bg-surface/30 rounded-sm flex items-center gap-4">
-              <div className="p-2 bg-pink-50 text-pink-600 rounded-full">
-                <Users2 className="h-4 w-4" />
+            <div className="p-6 border-2 border-dashed border-border bg-surface/50 rounded-sm">
+              <div className="text-2xl font-bold text-foreground mb-1">
+                {totalImpressions.metric.currentValue.toLocaleString()}
               </div>
-              <div>
-                <div className="text-sm font-bold text-foreground">
-                  {accountsEngaged.metric.currentValue.toLocaleString()}
-                </div>
-                <div className="text-xs text-muted-foreground">
-                  Accounts Engaged
-                </div>
+              <div className="text-sm text-muted-foreground">Total Views</div>
+              <div className="text-xs text-muted-foreground/60 mt-2">
+                Aggregated from all posts
               </div>
             </div>
-            {/* Moved Impressions (Views) down to here */}
-            <div className="p-4 border border-dashed border-border bg-surface/30 rounded-sm flex items-center gap-4">
-              <div className="p-2 bg-purple-50 text-purple-600 rounded-full">
-                <Eye className="h-4 w-4" />
+            <div className="p-6 border-2 border-dashed border-border bg-surface/50 rounded-sm">
+              <div className="text-2xl font-bold text-foreground mb-1">
+                {feedViews.metric.currentValue.toLocaleString()}
               </div>
-              <div>
-                <div className="text-sm font-bold text-foreground">
-                  {totalImpressions.metric.currentValue.toLocaleString()}
-                </div>
-                <div className="text-xs text-muted-foreground">
-                  Total Impressions
-                </div>
+              <div className="text-sm text-muted-foreground">Feed Views</div>
+              <div className="text-xs text-muted-foreground/60 mt-2">
+                Images & carousels
               </div>
             </div>
-            <div className="p-4 border border-dashed border-border bg-surface/30 rounded-sm flex items-center gap-4">
-              <div className="p-2 bg-blue-50 text-blue-600 rounded-full">
-                <MousePointer2 className="h-4 w-4" />
+            <div className="p-6 border-2 border-dashed border-border bg-surface/50 rounded-sm">
+              <div className="text-2xl font-bold text-foreground mb-1">
+                {reelsViews.metric.currentValue.toLocaleString()}
               </div>
-              <div>
-                <div className="text-sm font-bold text-foreground">
-                  {websiteClicks.metric.currentValue.toLocaleString()}
-                </div>
-                <div className="text-xs text-muted-foreground">
-                  Website Clicks
-                </div>
+              <div className="text-sm text-muted-foreground">Reels Views</div>
+              <div className="text-xs text-muted-foreground/60 mt-2">
+                Short-form video
               </div>
             </div>
           </div>
