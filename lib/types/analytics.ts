@@ -1,5 +1,17 @@
 // lib/types/analytics.ts
 
+import type { ComponentType } from "react";
+
+/**
+ * Supported platforms for analytics
+ */
+export type PlatformType =
+  | "instagram"
+  | "youtube"
+  | "tiktok"
+  | "linkedin"
+  | "facebook";
+
 /**
  * Represents a single data point in the time series
  */
@@ -10,14 +22,14 @@ export interface DailyMetric {
 
 /**
  * Complete analytics metric with current value, trend, and history
- * Used for Account Analytics charts.
+ * Used for both individual account charts and aggregated overview charts.
  */
 export interface AnalyticsMetric {
-  label: string; // Human-readable label (e.g., "Followers")
-  key: string; // API key (e.g., "followers")
-  currentValue: number; // Most recent metric value
+  label: string;
+  key: string;
+  currentValue: number;
   percentageChange?: number; // % change vs previous period
-  history: DailyMetric[]; // Daily historical data for charting
+  history: DailyMetric[];
 }
 
 /**
@@ -36,18 +48,19 @@ export type AccountStatus = "active" | "error" | "reauth_required" | "syncing";
 export interface Account {
   id: string;
   name: string;
+  username?: string; // Optional handle (e.g. @username)
   img: string;
-  status?: AccountStatus; // Added: Health state of the connection
-  errorMessage?: string; // Added: Reason for error (e.g., "100 followers required")
+  status?: AccountStatus;
+  errorMessage?: string;
 }
 
 /**
- * Analytics platform with accounts for selection
+ * Analytics platform wrapper
  */
 export interface AnalyticsPlatform {
-  id: string;
+  id: PlatformType;
   name: string;
-  icon: React.ComponentType<{ className?: string }>;
+  icon: ComponentType<{ className?: string }>;
   accounts: Account[];
 }
 
@@ -62,10 +75,11 @@ export interface AnalyticsFilters {
 }
 
 /**
- * Platform-specific additional metrics (e.g. YouTube Watch Time, Instagram Profile Views)
+ * Platform-specific additional metrics
+ * Used for the deep-dive pages.
  */
 export interface PlatformSpecificMetrics {
-  // YouTube metrics
+  // YouTube specific
   watchTimeMinutes?: number;
   avgViewDuration?: number; // in seconds
   avgViewPercentage?: number; // percentage (0-100)
@@ -73,13 +87,19 @@ export interface PlatformSpecificMetrics {
   subscribersLost?: number;
   subscribersNet?: number;
 
-  // Instagram metrics
+  // Instagram specific
   profile_views?: number;
   profile_links_taps?: number;
   accounts_engaged?: number;
+  website_clicks?: number;
 
   [key: string]: any;
 }
+
+/**
+ * Content types for filtering "The Wire"
+ */
+export type ContentType = "image" | "video" | "carousel" | "story" | "text";
 
 /**
  * Individual post analytics with flattened performance metrics.
@@ -87,22 +107,27 @@ export interface PlatformSpecificMetrics {
 export interface PostAnalytics {
   id: string;
   platformId: string;
-  type: "image" | "video" | "carousel" | "story" | "text";
+  integrationId: string; // ID of the account connection
+  platform: PlatformType; // 'instagram' | 'youtube' etc.
+
+  type: ContentType;
   thumbnailUrl: string;
   permalink: string;
   caption: string;
   postedAt: string; // ISO Date String
 
-  // Standard First-Class Metrics
-  impressions: number;
+  // Core Standardized Metrics
+  impressions: number; // or Views
   reach: number;
   likes: number;
   comments: number;
   shares: number;
   saves: number;
+
+  // Calculated standardized rate
   engagementRate: number;
 
-  // Platform-specific extras
+  // Raw extended metrics for specific platforms
   metrics?: PlatformSpecificMetrics;
 }
 
@@ -118,46 +143,24 @@ export type AnalyticsErrorType =
   | "PARTIAL_DATA"
   | "UNKNOWN";
 
-/**
- * Warning severity levels
- */
 export type WarningSeverity = "info" | "warning" | "error";
 
-/**
- * Analytics warning structure
- */
 export interface AnalyticsWarning {
   code: AnalyticsErrorType;
   message: string;
   severity: WarningSeverity;
-  metadata?: {
-    metricName?: string;
-    requirement?: string;
-    retryAfter?: string;
-    missingMetrics?: string[];
-    postId?: string;
-    reason?: string;
-    [key: string]: any;
-  };
+  metadata?: Record<string, any>;
 }
 
-/**
- * Data quality status
- */
-export type DataQualityStatus = "complete" | "partial" | "stale" | "cached_error";
-
-/**
- * Data quality metadata
- */
 export interface DataQualityMetadata {
-  status: DataQualityStatus;
+  status: "complete" | "partial" | "stale" | "cached_error";
   lastSuccessfulFetch?: string;
   cacheAge?: number;
   missingMetrics?: string[];
 }
 
 /**
- * Analytics response wrapper with warnings and data quality info
+ * Generic API Response wrapper
  */
 export interface AnalyticsResponse<T> {
   data: T;

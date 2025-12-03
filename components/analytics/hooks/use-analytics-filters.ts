@@ -25,20 +25,18 @@ interface UseAnalyticsFiltersReturn {
   activeAccountId: string | null;
   selectedDays: TimeRange;
   togglePlatform: (platformId: string) => void;
-  selectAccount: (platformId: string, accountId: string) => void;
-  setActiveAccount: (accountId: string) => void;
+  setSingleAccount: (platformId: string, accountId: string) => void;
+  toggleAccount: (platformId: string, accountId: string) => void;
   setSelectedDays: (days: TimeRange) => void;
   isLoadingIntegrations: boolean;
 }
 
-// Helper to map backend JSON status to frontend string enum
 function mapBackendStatus(connection: any): AccountStatus {
-  // Assuming the backend 'analyticsStatus' JSONB column comes through on the connection object
   const statusObj = connection.analyticsStatus as
     | Record<string, any>
     | undefined;
 
-  if (!statusObj) return "active"; // Default to active if no status exists yet
+  if (!statusObj) return "active";
 
   if (statusObj.status === "error") return "error";
   if (connection.requiresReauth) return "reauth_required";
@@ -96,7 +94,6 @@ export function useAnalyticsFilters(): UseAnalyticsFiltersReturn {
     (conn) => conn.platform === "instagram" || conn.platform === "youtube"
   );
 
-  // Build platforms from integrations
   const platforms = useMemo((): AnalyticsPlatform[] => {
     const connectionsByPlatform = integrations.reduce((acc, conn) => {
       acc[conn.platform] = acc[conn.platform] || [];
@@ -151,7 +148,7 @@ export function useAnalyticsFilters(): UseAnalyticsFiltersReturn {
         }
       }
     } catch (error) {
-      console.error("[Analytics Filters] Failed to parse localStorage:", error);
+      console.error(error);
     }
     return {};
   });
@@ -170,10 +167,7 @@ export function useAnalyticsFilters(): UseAnalyticsFiltersReturn {
           }
         }
       } catch (error) {
-        console.error(
-          "[Analytics Filters] Failed to parse localStorage:",
-          error
-        );
+        console.error(error);
       }
       return null;
     }
@@ -189,7 +183,7 @@ export function useAnalyticsFilters(): UseAnalyticsFiltersReturn {
         return parsed.days || DEFAULT_DAYS;
       }
     } catch (error) {
-      console.error("[Analytics Filters] Failed to parse localStorage:", error);
+      console.error(error);
     }
     return DEFAULT_DAYS;
   });
@@ -210,10 +204,7 @@ export function useAnalyticsFilters(): UseAnalyticsFiltersReturn {
       };
       localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
     } catch (error) {
-      console.error(
-        "[Analytics Filters] Failed to save to localStorage:",
-        error
-      );
+      console.error(error);
     }
   };
 
@@ -221,55 +212,59 @@ export function useAnalyticsFilters(): UseAnalyticsFiltersReturn {
     const platform = platforms.find((p) => p.id === platformId);
     if (!platform || platform.accounts.length === 0) return;
 
-    const newSelected: Record<string, string[]> = {};
-    let newActiveId = activeAccountId;
+    const currentSelection = selectedAccounts[platformId] || [];
+    const allIds = platform.accounts.map((a) => a.id);
 
-    if (selectedAccounts[platformId]) {
-      newActiveId = null;
+    let newSelectionForPlatform: string[] = [];
+
+    if (currentSelection.length > 0) {
+      newSelectionForPlatform = [];
     } else {
-      newSelected[platformId] = [platform.accounts[0].id];
-      newActiveId = platform.accounts[0].id;
+      newSelectionForPlatform = allIds;
     }
 
+    const newSelected = {
+      ...selectedAccounts,
+      [platformId]: newSelectionForPlatform,
+    };
+
     setSelectedAccountsState(newSelected);
-    setActiveAccountIdState(newActiveId);
     persistToLocalStorage({
       selectedAccounts: newSelected,
-      activeAccountId: newActiveId,
+      activeAccountId,
       days: selectedDays,
     });
   };
 
-  const selectAccount = (platformId: string, accountId: string) => {
-    const currentSelection = selectedAccounts[platformId] || [];
-    const isSelected = currentSelection.includes(accountId);
+  const setSingleAccount = (platformId: string, accountId: string) => {
+    const newSelected = { ...selectedAccounts, [platformId]: [accountId] };
 
-    if (isSelected) {
-      setActiveAccountIdState(accountId);
-      persistToLocalStorage({
-        selectedAccounts,
-        activeAccountId: accountId,
-        days: selectedDays,
-      });
-    } else {
-      const newSelection = [...currentSelection, accountId];
-      const newSelected = { ...selectedAccounts, [platformId]: newSelection };
+    setSelectedAccountsState(newSelected);
+    setActiveAccountIdState(accountId);
 
-      setSelectedAccountsState(newSelected);
-      setActiveAccountIdState(accountId);
-      persistToLocalStorage({
-        selectedAccounts: newSelected,
-        activeAccountId: accountId,
-        days: selectedDays,
-      });
-    }
+    persistToLocalStorage({
+      selectedAccounts: newSelected,
+      activeAccountId: accountId,
+      days: selectedDays,
+    });
   };
 
-  const setActiveAccount = (accountId: string) => {
-    setActiveAccountIdState(accountId);
+  const toggleAccount = (platformId: string, accountId: string) => {
+    const currentSelection = selectedAccounts[platformId] || [];
+    let newSelection: string[];
+
+    if (currentSelection.includes(accountId)) {
+      newSelection = currentSelection.filter((id) => id !== accountId);
+    } else {
+      newSelection = [...currentSelection, accountId];
+    }
+
+    const newSelected = { ...selectedAccounts, [platformId]: newSelection };
+
+    setSelectedAccountsState(newSelected);
     persistToLocalStorage({
-      selectedAccounts,
-      activeAccountId: accountId,
+      selectedAccounts: newSelected,
+      activeAccountId,
       days: selectedDays,
     });
   };
@@ -290,8 +285,8 @@ export function useAnalyticsFilters(): UseAnalyticsFiltersReturn {
     activeAccountId,
     selectedDays,
     togglePlatform,
-    selectAccount,
-    setActiveAccount,
+    setSingleAccount,
+    toggleAccount,
     setSelectedDays,
     isLoadingIntegrations,
   };

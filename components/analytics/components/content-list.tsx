@@ -14,6 +14,7 @@ import {
   History,
   Layers,
   Loader2,
+  Filter,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -39,7 +40,7 @@ export default function ContentList({
   const filteredPosts = posts.filter((post) => {
     if (filter === "all") return true;
 
-    // Updated: Match new type definition ('carousel', 'text')
+    // "Posts" = Static content (Images, Carousels, Text)
     if (filter === "posts")
       return (
         post.type === "image" ||
@@ -47,8 +48,10 @@ export default function ContentList({
         post.type === "text"
       );
 
+    // "Videos" = Reels, YouTube Videos, Shorts
     if (filter === "videos") return post.type === "video";
 
+    // "Stories" = Ephemeral content
     if (filter === "stories") return post.type === "story";
 
     return true;
@@ -56,7 +59,7 @@ export default function ContentList({
 
   if (isLoading) {
     return (
-      <div className="flex flex-col gap-4 p-6 h-full">
+      <div className="flex flex-col gap-4 p-6 h-full bg-surface border border-border rounded-sm">
         <div className="border-b border-dashed border-foreground/20 pb-4">
           <Skeleton className="h-6 w-48 mb-2" />
           <Skeleton className="h-3 w-32" />
@@ -64,7 +67,7 @@ export default function ContentList({
         <div className="space-y-4">
           {[1, 2, 3, 4, 5].map((i) => (
             <div key={i} className="flex gap-4">
-              <Skeleton className="h-20 w-20 shrink-0" />
+              <Skeleton className="h-20 w-20 shrink-0 rounded-sm" />
               <div className="flex-1 space-y-2 py-1">
                 <Skeleton className="h-3 w-full" />
                 <Skeleton className="h-3 w-3/4" />
@@ -77,7 +80,7 @@ export default function ContentList({
   }
 
   return (
-    <div className="flex flex-col gap-6 p-6 h-full">
+    <div className="flex flex-col gap-6 p-6 h-full bg-surface border border-border rounded-sm">
       <div className="border-b border-dashed border-foreground/20 pb-4">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
           <div>
@@ -86,51 +89,55 @@ export default function ContentList({
               The Wire
             </h3>
             <p className="font-serif text-sm text-muted-foreground italic mt-1">
-              Transmission log.
+              Unified transmission log across all channels.
             </p>
           </div>
         </div>
 
-        <div className="flex flex-wrap gap-3">
+        <div className="flex flex-wrap gap-2">
           <FilterButton
             active={filter === "all"}
             onClick={() => setFilter("all")}
-            label="All"
+            label="All Transmissions"
             count={posts.length}
-            icon={<Layers className="h-4 w-4" />}
+            icon={<Filter className="h-3 w-3" />}
           />
           <FilterButton
             active={filter === "posts"}
             onClick={() => setFilter("posts")}
             label="Posts"
-            icon={<LayoutGrid className="h-4 w-4" />}
+            icon={<LayoutGrid className="h-3 w-3" />}
           />
           <FilterButton
             active={filter === "videos"}
             onClick={() => setFilter("videos")}
             label="Videos"
-            icon={<Clapperboard className="h-4 w-4" />}
+            icon={<Clapperboard className="h-3 w-3" />}
           />
           <FilterButton
             active={filter === "stories"}
             onClick={() => setFilter("stories")}
             label="Stories"
-            icon={<History className="h-4 w-4" />}
+            icon={<History className="h-3 w-3" />}
           />
         </div>
       </div>
 
       {filteredPosts.length === 0 ? (
-        <div className="flex flex-col items-center justify-center flex-1 min-h-[200px] text-muted-foreground text-center bg-surface/50 border border-dotted border-foreground/10 rounded-sm">
+        <div className="flex flex-col items-center justify-center flex-1 min-h-[200px] text-muted-foreground text-center bg-muted/20 border-2 border-dashed border-border rounded-sm p-8">
+          <div className="bg-muted p-4 rounded-full mb-3">
+            <Filter className="h-6 w-6 text-muted-foreground/50" />
+          </div>
           <p className="font-serif italic text-lg">Signal lost.</p>
-          <p className="font-mono text-xs uppercase tracking-widest mt-1">
-            No {filter !== "all" ? filter : ""} content found
+          <p className="font-mono text-xs uppercase tracking-widest mt-1 text-muted-foreground/70">
+            No {filter !== "all" ? filter : ""} content detected in this
+            timeframe.
           </p>
         </div>
       ) : (
         <div className="space-y-4">
           {filteredPosts.map((post) => (
-            <PostCard key={post.id} post={post} />
+            <PostCard key={`${post.platform}-${post.id}`} post={post} />
           ))}
         </div>
       )}
@@ -177,16 +184,16 @@ function FilterButton({
     <button
       onClick={onClick}
       className={cn(
-        "flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-md transition-colors outline-none",
+        "flex items-center gap-2 px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider rounded-sm transition-all outline-none",
         active
-          ? "border-2 border-brand-primary text-brand-primary bg-background shadow-sm"
-          : "border-2 border-border text-foreground hover:border-brand-primary/50 bg-background"
+          ? "bg-foreground text-background shadow-md transform scale-105"
+          : "bg-background border border-border text-muted-foreground hover:text-foreground hover:border-foreground/50"
       )}
     >
       {icon}
       <span>{label}</span>
       {count !== undefined && (
-        <span className="opacity-60 text-xs">({count})</span>
+        <span className="opacity-60 ml-0.5">({count})</span>
       )}
     </button>
   );

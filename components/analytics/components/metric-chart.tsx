@@ -2,6 +2,7 @@
 
 "use client";
 
+import { useMemo } from "react";
 import {
   ResponsiveContainer,
   AreaChart,
@@ -11,121 +12,142 @@ import {
   CartesianGrid,
   Tooltip,
 } from "recharts";
-import { Lock, AlertTriangle } from "lucide-react";
-import type { AnalyticsMetric, AccountStatus } from "@/lib/types/analytics";
+import { CalendarDays, CalendarRange } from "lucide-react";
+import type { AnalyticsMetric, DailyMetric } from "@/lib/types/analytics";
+import { cn } from "@/lib/utils";
 
 interface MetricChartProps {
   metric: AnalyticsMetric;
-  accountStatus?: AccountStatus;
-  errorMessage?: string;
+  granularity: "daily" | "weekly";
+  onGranularityChange: (g: "daily" | "weekly") => void;
+  className?: string;
 }
+
+// --- Helpers ---
+
+/**
+ * Groups daily data into weekly chunks.
+ * Sums values for totals (Views, Likes), averages values for Rates.
+ */
+function aggregateDataToWeekly(
+  history: DailyMetric[],
+  metricKey: string
+): DailyMetric[] {
+  if (!history || history.length === 0) return [];
+
+  const weeklyData: DailyMetric[] = [];
+  let currentChunk: number[] = [];
+  let chunkStartDate = history[0].date;
+
+  history.forEach((point, index) => {
+    currentChunk.push(point.value);
+
+    // End of week (every 7 days) or End of array
+    if (currentChunk.length === 7 || index === history.length - 1) {
+      const isRate =
+        metricKey.includes("rate") || metricKey.includes("percentage");
+
+      const sum = currentChunk.reduce((a, b) => a + b, 0);
+      const value = isRate ? sum / currentChunk.length : sum;
+
+      weeklyData.push({
+        date: chunkStartDate, // Label week by its start date
+        value: value,
+      });
+
+      // Reset for next chunk
+      currentChunk = [];
+      if (index < history.length - 1) {
+        chunkStartDate = history[index + 1].date;
+      }
+    }
+  });
+
+  return weeklyData;
+}
+
+function formatXAxisDate(
+  dateString: string,
+  granularity: "daily" | "weekly"
+): string {
+  const date = new Date(dateString);
+  const options: Intl.DateTimeFormatOptions =
+    granularity === "weekly"
+      ? { month: "short", day: "numeric" }
+      : { month: "numeric", day: "numeric" };
+
+  return date.toLocaleDateString("en-US", options);
+}
+
+// --- Component ---
 
 interface CustomTooltipProps {
   active?: boolean;
-  payload?: Array<{
-    value: number;
-    payload: {
-      date: string;
-      value: number;
-    };
-  }>;
+  payload?: Array<{ value: number; payload: { date: string } }>;
+  granularity: "daily" | "weekly";
 }
 
-function CustomTooltip({ active, payload }: CustomTooltipProps) {
+function CustomTooltip({ active, payload, granularity }: CustomTooltipProps) {
   if (!active || !payload || !payload.length) return null;
 
   const data = payload[0];
-  const date = new Date(data.payload.date).toLocaleDateString("en-US", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  });
+  const dateObj = new Date(data.payload.date);
+
+  const label =
+    granularity === "weekly"
+      ? `Week of ${dateObj.toLocaleDateString("en-US", {
+          month: "long",
+          day: "numeric",
+        })}`
+      : dateObj.toLocaleDateString("en-US", {
+          weekday: "long",
+          month: "long",
+          day: "numeric",
+        });
 
   return (
-    <div className="bg-surface border-2 border-foreground p-3 shadow-[4px_4px_0_0_rgba(0,0,0,1)] min-w-[140px]">
+    <div className="bg-surface border-2 border-foreground p-3 shadow-[4px_4px_0_0_rgba(0,0,0,1)] min-w-[150px]">
       <p className="font-mono text-[10px] text-muted-foreground mb-2 uppercase tracking-widest border-b border-dashed border-foreground/20 pb-1">
-        {date}
+        {label}
       </p>
       <div className="flex items-center gap-2">
         <div className="h-2 w-2 bg-brand-primary" />
         <p className="font-mono text-lg font-bold text-foreground tabular-nums">
-          {data.value?.toLocaleString()}
+          {data.value?.toLocaleString(undefined, {
+            maximumFractionDigits: 1,
+            minimumFractionDigits: 0,
+          })}
         </p>
       </div>
     </div>
   );
 }
 
-function formatXAxisDate(dateString: string): string {
-  const date = new Date(dateString);
-  return date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
-}
-
 export default function MetricChart({
   metric,
-  accountStatus,
-  errorMessage,
+  granularity,
+  onGranularityChange,
+  className,
 }: MetricChartProps) {
-  const isRestricted =
-    accountStatus === "error" ||
-    (errorMessage && errorMessage.includes("followers"));
+  // Memoize data transformation to avoid recalc on re-renders
+  const chartData = useMemo(() => {
+    if (granularity === "weekly") {
+      return aggregateDataToWeekly(metric.history, metric.key);
+    }
+    return metric.history;
+  }, [metric.history, metric.key, granularity]);
 
-  if (isRestricted) {
-    return (
-      <div className="flex flex-col gap-6 p-4 relative overflow-hidden">
-        <div className="flex items-end justify-between opacity-50 blur-[2px] select-none pointer-events-none">
-          <div>
-            <span className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground block mb-1">
-              Figure 1.0 // Trend Analysis
-            </span>
-            <h3 className="font-serif text-2xl font-bold text-foreground leading-none">
-              {metric.label}
-            </h3>
-          </div>
-          <span className="text-[10px] font-mono font-bold text-foreground border-b border-foreground/20 pb-0.5 uppercase tracking-wider">
-            30 Day Scope
-          </span>
-        </div>
-
-        <div className="w-full h-[300px] bg-muted/20 relative rounded-sm border-2 border-dashed border-foreground/10">
-          <div className="absolute inset-0 flex flex-col items-center justify-center p-6 text-center z-10 bg-surface/80 backdrop-blur-sm">
-            <div className="h-12 w-12 rounded-full bg-background border-2 border-foreground flex items-center justify-center mb-4 shadow-[4px_4px_0_0_rgba(0,0,0,0.1)]">
-              <Lock className="h-5 w-5 text-muted-foreground" />
-            </div>
-            <h3 className="font-serif text-lg font-bold text-foreground mb-2">
-              Data Restricted
-            </h3>
-            <p className="text-sm text-muted-foreground max-w-sm leading-relaxed">
-              {errorMessage ||
-                "This metric is currently unavailable for this account due to platform requirements."}
-            </p>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  if (!metric.history || metric.history.length === 0) {
-    return (
-      <div className="flex flex-col gap-4 p-6 min-h-[300px] justify-center items-center text-center bg-surface-hover/30 rounded-sm border border-dashed border-foreground/10">
-        <div className="h-10 w-10 rounded-full bg-muted flex items-center justify-center mb-2">
-          <AlertTriangle className="h-5 w-5 text-muted-foreground/50" />
-        </div>
-        <div className="space-y-1">
-          <h3 className="font-mono text-xs uppercase tracking-widest text-muted-foreground">
-            No Data Available
-          </h3>
-          <p className="font-serif italic text-muted-foreground/60 text-sm">
-            Insufficient historical records for {metric.label}
-          </p>
-        </div>
-      </div>
-    );
-  }
+  const isEmpty = !chartData || chartData.length === 0;
 
   return (
-    <div className="flex flex-col gap-6 p-4">
-      <div className="flex items-end justify-between">
+    <div
+      className={cn(
+        "flex flex-col gap-6 p-6 border border-border bg-surface",
+        className
+      )}
+    >
+      {/* Header Controls */}
+      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
         <div>
           <span className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground block mb-1">
             Figure 1.0 // Trend Analysis
@@ -134,100 +156,138 @@ export default function MetricChart({
             {metric.label}
           </h3>
         </div>
-        <span className="text-[10px] font-mono font-bold text-foreground border-b border-foreground/20 pb-0.5 uppercase tracking-wider">
-          {metric.history.length} Day Scope
-        </span>
+
+        <div className="flex items-center gap-2 bg-background border border-border p-1 rounded-sm">
+          <button
+            onClick={() => onGranularityChange("daily")}
+            className={cn(
+              "flex items-center gap-1.5 px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider transition-all rounded-sm",
+              granularity === "daily"
+                ? "bg-foreground text-background shadow-sm"
+                : "text-muted-foreground hover:text-foreground hover:bg-muted"
+            )}
+          >
+            <CalendarDays className="h-3 w-3" />
+            Daily
+          </button>
+          <button
+            onClick={() => onGranularityChange("weekly")}
+            className={cn(
+              "flex items-center gap-1.5 px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider transition-all rounded-sm",
+              granularity === "weekly"
+                ? "bg-foreground text-background shadow-sm"
+                : "text-muted-foreground hover:text-foreground hover:bg-muted"
+            )}
+          >
+            <CalendarRange className="h-3 w-3" />
+            Weekly
+          </button>
+        </div>
       </div>
 
-      <div className="w-full h-[300px]">
-        <ResponsiveContainer width="100%" height="100%">
-          <AreaChart
-            data={metric.history}
-            margin={{ top: 10, right: 10, left: 0, bottom: 0 }}
-          >
-            <defs>
-              <linearGradient
-                id={`gradient-${metric.key}`}
-                x1="0"
-                y1="0"
-                x2="0"
-                y2="1"
-              >
-                <stop
-                  offset="5%"
-                  stopColor="var(--brand-primary)"
-                  stopOpacity={0.1}
-                />
-                <stop
-                  offset="95%"
-                  stopColor="var(--brand-primary)"
-                  stopOpacity={0}
-                />
-              </linearGradient>
-            </defs>
+      {/* Chart Area */}
+      <div className="w-full h-[350px] relative">
+        {isEmpty ? (
+          <div className="absolute inset-0 flex items-center justify-center text-muted-foreground border-2 border-dashed border-border/50 rounded-sm bg-muted/10">
+            <p className="font-mono text-xs uppercase tracking-widest">
+              No data available for this period
+            </p>
+          </div>
+        ) : (
+          <ResponsiveContainer width="100%" height="100%">
+            <AreaChart
+              data={chartData}
+              margin={{ top: 10, right: 10, left: 0, bottom: 0 }}
+            >
+              <defs>
+                <linearGradient
+                  id={`gradient-${metric.key}`}
+                  x1="0"
+                  y1="0"
+                  x2="0"
+                  y2="1"
+                >
+                  <stop
+                    offset="5%"
+                    stopColor="var(--brand-primary)"
+                    stopOpacity={0.15}
+                  />
+                  <stop
+                    offset="95%"
+                    stopColor="var(--brand-primary)"
+                    stopOpacity={0}
+                  />
+                </linearGradient>
+              </defs>
 
-            <CartesianGrid
-              strokeDasharray="2 2"
-              stroke="var(--foreground)"
-              vertical={false}
-              opacity={0.1}
-            />
+              <CartesianGrid
+                strokeDasharray="2 2"
+                stroke="var(--foreground)"
+                vertical={false}
+                opacity={0.05}
+              />
 
-            <XAxis
-              dataKey="date"
-              tickFormatter={formatXAxisDate}
-              tick={{
-                fill: "var(--muted-foreground)",
-                fontSize: 10,
-                fontFamily: "var(--font-mono)",
-              }}
-              stroke="var(--foreground)"
-              strokeOpacity={0.2}
-              tickLine={false}
-              axisLine={{ stroke: "var(--foreground)", strokeOpacity: 0.2 }}
-              dy={15}
-              minTickGap={40}
-            />
+              <XAxis
+                dataKey="date"
+                tickFormatter={(d) => formatXAxisDate(d, granularity)}
+                tick={{
+                  fill: "var(--muted-foreground)",
+                  fontSize: 10,
+                  fontFamily: "var(--font-mono)",
+                }}
+                stroke="var(--foreground)"
+                strokeOpacity={0.1}
+                tickLine={false}
+                axisLine={{ stroke: "var(--foreground)", strokeOpacity: 0.1 }}
+                dy={15}
+                minTickGap={30}
+              />
 
-            <YAxis
-              tick={{
-                fill: "var(--muted-foreground)",
-                fontSize: 10,
-                fontFamily: "var(--font-mono)",
-              }}
-              stroke="transparent"
-              tickLine={false}
-              axisLine={false}
-              tickFormatter={(value) => value.toLocaleString()}
-              dx={-10}
-            />
+              <YAxis
+                tick={{
+                  fill: "var(--muted-foreground)",
+                  fontSize: 10,
+                  fontFamily: "var(--font-mono)",
+                }}
+                stroke="transparent"
+                tickLine={false}
+                axisLine={false}
+                tickFormatter={(value) =>
+                  value.toLocaleString(undefined, {
+                    notation: "compact",
+                    compactDisplay: "short",
+                  })
+                }
+                dx={-10}
+              />
 
-            <Tooltip
-              content={<CustomTooltip />}
-              cursor={{
-                stroke: "var(--foreground)",
-                strokeWidth: 1,
-                strokeDasharray: "4 4",
-                opacity: 0.5,
-              }}
-            />
+              <Tooltip
+                content={<CustomTooltip granularity={granularity} />}
+                cursor={{
+                  stroke: "var(--foreground)",
+                  strokeWidth: 1,
+                  strokeDasharray: "4 4",
+                  opacity: 0.3,
+                }}
+              />
 
-            <Area
-              type="monotone"
-              dataKey="value"
-              stroke="var(--brand-primary)"
-              strokeWidth={2}
-              fill={`url(#gradient-${metric.key})`}
-              animationDuration={1500}
-              activeDot={{
-                r: 4,
-                fill: "var(--surface)",
-                stroke: "var(--brand-primary)",
-                strokeWidth: 2,
-              }}
-            />
-          </AreaChart>
-        </ResponsiveContainer>
+              <Area
+                type="monotone"
+                dataKey="value"
+                stroke="var(--brand-primary)"
+                strokeWidth={2}
+                fill={`url(#gradient-${metric.key})`}
+                animationDuration={1500}
+                activeDot={{
+                  r: 4,
+                  fill: "var(--surface)",
+                  stroke: "var(--brand-primary)",
+                  strokeWidth: 2,
+                }}
+              />
+            </AreaChart>
+          </ResponsiveContainer>
+        )}
       </div>
     </div>
   );
