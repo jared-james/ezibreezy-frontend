@@ -25,10 +25,6 @@ interface MetricChartProps {
 
 // --- Helpers ---
 
-/**
- * Groups daily data into weekly chunks.
- * Sums values for totals (Views, Likes), averages values for Rates.
- */
 function aggregateDataToWeekly(
   history: DailyMetric[],
   metricKey: string
@@ -149,37 +145,36 @@ export default function MetricChart({
       {/* Header Controls */}
       <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
         <div>
-          <span className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground block mb-1">
-            Figure 1.0 // Trend Analysis
-          </span>
+          {/* Removed Figure text */}
           <h3 className="font-serif text-2xl font-bold text-foreground leading-none">
             {metric.label}
           </h3>
         </div>
 
-        <div className="flex items-center gap-2 bg-background border border-border p-1 rounded-sm">
+        {/* Buttons - Green Dotted Style */}
+        <div className="flex items-center gap-2">
           <button
             onClick={() => onGranularityChange("daily")}
             className={cn(
-              "flex items-center gap-1.5 px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider transition-all rounded-sm",
+              "flex items-center gap-1.5 px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider transition-all rounded-sm border",
               granularity === "daily"
-                ? "bg-foreground text-background shadow-sm"
-                : "text-muted-foreground hover:text-foreground hover:bg-muted"
+                ? "border-dashed border-brand-primary text-brand-primary bg-brand-primary/5 shadow-sm"
+                : "border-transparent text-muted-foreground hover:text-foreground hover:bg-muted/50"
             )}
           >
-            <CalendarDays className="h-3 w-3" />
+            <CalendarDays className="h-3.5 w-3.5" />
             Daily
           </button>
           <button
             onClick={() => onGranularityChange("weekly")}
             className={cn(
-              "flex items-center gap-1.5 px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider transition-all rounded-sm",
+              "flex items-center gap-1.5 px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider transition-all rounded-sm border",
               granularity === "weekly"
-                ? "bg-foreground text-background shadow-sm"
-                : "text-muted-foreground hover:text-foreground hover:bg-muted"
+                ? "border-dashed border-brand-primary text-brand-primary bg-brand-primary/5 shadow-sm"
+                : "border-transparent text-muted-foreground hover:text-foreground hover:bg-muted/50"
             )}
           >
-            <CalendarRange className="h-3 w-3" />
+            <CalendarRange className="h-3.5 w-3.5" />
             Weekly
           </button>
         </div>

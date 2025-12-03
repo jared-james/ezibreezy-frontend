@@ -1,5 +1,8 @@
 // components/analytics/components/account-avatar.tsx
 
+"use client";
+
+import { useState, useEffect } from "react";
 import { Check } from "lucide-react";
 import { Account } from "@/lib/types/analytics";
 import { cn } from "@/lib/utils";
@@ -19,7 +22,18 @@ export function AccountAvatar({
   isLastSelected,
   onClick,
 }: AccountAvatarProps) {
+  const [imageError, setImageError] = useState(false);
   const isSyncing = account.status === "syncing";
+
+  // Reset error state if the account prop changes (though usually these are keyed by ID)
+  useEffect(() => {
+    setImageError(false);
+  }, [account.img]);
+
+  // Get the first letter for the fallback (e.g., "EziBreezy" -> "E")
+  const fallbackInitial = account.name
+    ? account.name.replace("@", "").charAt(0).toUpperCase()
+    : "?";
 
   return (
     <button
@@ -34,17 +48,27 @@ export function AccountAvatar({
     >
       <div
         className={cn(
-          "h-10 w-10 rounded-full border-2 transition-all overflow-hidden bg-background",
+          "h-10 w-10 rounded-full border-2 transition-all overflow-hidden flex items-center justify-center",
           isSelected
             ? "border-primary"
-            : "border-border hover:border-primary/50"
+            : "border-border hover:border-primary/50",
+          // Add background color for the fallback state
+          imageError || !account.img ? "bg-muted" : "bg-background"
         )}
       >
-        <img
-          src={account.img}
-          alt={account.name}
-          className="h-full w-full object-cover"
-        />
+        {!imageError && account.img ? (
+          /* eslint-disable-next-line @next/next/no-img-element */
+          <img
+            src={account.img}
+            alt={account.name}
+            className="h-full w-full object-cover"
+            onError={() => setImageError(true)}
+          />
+        ) : (
+          <span className="font-mono text-sm font-bold text-muted-foreground select-none">
+            {fallbackInitial}
+          </span>
+        )}
       </div>
 
       {isActive && (
