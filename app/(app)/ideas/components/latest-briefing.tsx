@@ -67,7 +67,6 @@ export default function LatestBriefing({ clippings }: LatestBriefingProps) {
 
     saveMutation.mutate({
       userId: userId,
-      organizationId: organizationId,
       integrationId: defaultIntegrationId,
       title: idea.title,
       content: idea.body,

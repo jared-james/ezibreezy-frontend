@@ -51,7 +51,6 @@ export function PinterestOptions({
   const [isSourceModalOpen, setIsSourceModalOpen] = useState(false);
   const [isMediaRoomOpen, setIsMediaRoomOpen] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const { organizationId } = useClientData();
 
   const isVideo = activeMediaItem?.type === "video";
   const displayMediaSrc = activeMediaItem?.mediaUrl || activeMediaItem?.preview;
@@ -65,21 +64,15 @@ export function PinterestOptions({
       return;
     }
 
-    if (!organizationId) {
-      toast.error("Organization context missing.");
-      return;
-    }
-
     try {
       setIsUploadingCover(true);
-      // Fixed: Passing organizationId instead of integrationId
-      const response = await uploadMedia(file, organizationId);
+      const response = await uploadMedia(file);
       onCoverChange?.(response.url);
       toast.success("Cover image uploaded");
     } catch (error) {
       toast.error("Failed to upload cover image");
       console.error(error);
-    } finally {
+    } finally{
       setIsUploadingCover(false);
     }
   };
@@ -237,7 +230,6 @@ export function PinterestOptions({
         isOpen={isMediaRoomOpen}
         onClose={() => setIsMediaRoomOpen(false)}
         onConfirmSelection={handleLibraryConfirm}
-        organizationId={organizationId}
         preSelectedIds={new Set()}
       />
     </div>

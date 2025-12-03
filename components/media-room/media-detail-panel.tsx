@@ -53,17 +53,13 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 
-interface MediaDetailPanelProps {
-  organizationId: string | null;
-}
+interface MediaDetailPanelProps {}
 
-export default function MediaDetailPanel({
-  organizationId,
-}: MediaDetailPanelProps) {
+export default function MediaDetailPanel({}: MediaDetailPanelProps) {
   const mediaId = useMediaRoomStore((s) => s.detailPanelMediaId);
   const closeDetailPanel = useMediaRoomStore((s) => s.closeDetailPanel);
 
-  const { data: media, isLoading } = useMediaItem(mediaId, organizationId);
+  const { data: media, isLoading } = useMediaItem(mediaId);
 
   return (
     <Dialog
@@ -85,7 +81,6 @@ export default function MediaDetailPanel({
           <MediaItemEditor
             key={media.id}
             media={media}
-            organizationId={organizationId}
             onClose={closeDetailPanel}
           />
         ) : (
@@ -102,13 +97,11 @@ export default function MediaDetailPanel({
 
 interface MediaItemEditorProps {
   media: MediaItemWithUsage;
-  organizationId: string | null;
   onClose: () => void;
 }
 
 function MediaItemEditor({
   media,
-  organizationId,
   onClose,
 }: MediaItemEditorProps) {
   const [filename, setFilename] = useState(media.filename);
@@ -119,13 +112,13 @@ function MediaItemEditor({
   const [showFolderDropdown, setShowFolderDropdown] = useState(false);
   const [isDownloading, setIsDownloading] = useState(false);
 
-  const { data: tags = [] } = useTagList(organizationId);
-  const { data: folders = [] } = useFolderList(organizationId, "root");
+  const { data: tags = [] } = useTagList();
+  const { data: folders = [] } = useFolderList("root");
 
-  const updateMedia = useUpdateMedia(organizationId);
-  const archiveMedia = useArchiveMedia(organizationId);
-  const attachTags = useAttachTags(organizationId);
-  const detachTags = useDetachTags(organizationId);
+  const updateMedia = useUpdateMedia();
+  const archiveMedia = useArchiveMedia();
+  const attachTags = useAttachTags();
+  const detachTags = useDetachTags();
 
   const hasChanges =
     filename !== media.filename || altText !== (media.altText || "");
@@ -142,14 +135,11 @@ function MediaItemEditor({
 
   const handleDownload = async (e: React.MouseEvent) => {
     e.preventDefault();
-    if (!organizationId || media.isArchived) return;
+    if (media.isArchived) return;
 
     setIsDownloading(true);
     try {
-      const { downloadUrl } = await getMediaDownloadUrl(
-        media.id,
-        organizationId
-      );
+      const { downloadUrl } = await getMediaDownloadUrl(media.id);
 
       const link = document.createElement("a");
       link.href = downloadUrl;

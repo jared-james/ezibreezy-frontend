@@ -24,7 +24,6 @@ import {
 import { useTagList, useCreateTag } from "@/lib/hooks/use-media";
 
 interface MediaToolbarProps {
-  organizationId: string | null;
   onUploadClick?: () => void;
 }
 
@@ -54,7 +53,7 @@ const getRandomColor = () => {
   return colors[Math.floor(Math.random() * colors.length)];
 };
 
-export default function MediaToolbar({ organizationId }: MediaToolbarProps) {
+export default function MediaToolbar({}: MediaToolbarProps) {
   const [showTagDropdown, setShowTagDropdown] = useState(false);
   const [newTagName, setNewTagName] = useState("");
 
@@ -72,8 +71,8 @@ export default function MediaToolbar({ organizationId }: MediaToolbarProps) {
   const toggleTagFilter = useMediaRoomStore((s) => s.toggleTagFilter);
   const clearAllFilters = useMediaRoomStore((s) => s.clearAllFilters);
 
-  const { data: tags = [] } = useTagList(organizationId);
-  const createTagMutation = useCreateTag(organizationId);
+  const { data: tags = [] } = useTagList();
+  const createTagMutation = useCreateTag();
 
   const [inputValue, setInputValue] = useState(searchQuery);
 

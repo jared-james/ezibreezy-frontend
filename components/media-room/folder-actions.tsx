@@ -2,7 +2,7 @@
 
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useCallback } from "react";
 import { Loader2 } from "lucide-react";
 import {
   useCreateFolder,
@@ -31,97 +31,105 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 
-interface UseFolderActionsProps {
-  organizationId: string | null;
+interface FolderActionDialogsProps {
+  isCreateOpen: boolean;
+  onCloseCreate: () => void;
+  folderToRename: MediaFolder | null;
+  onCloseRename: () => void;
+  folderToDelete: MediaFolder | null;
+  onCloseDelete: () => void;
 }
 
-export function useFolderActions({ organizationId }: UseFolderActionsProps) {
-  // State for dialogs
-  const [isCreateOpen, setIsCreateOpen] = useState(false);
-  const [folderToRename, setFolderToRename] = useState<MediaFolder | null>(
-    null
-  );
-  const [folderToDelete, setFolderToDelete] = useState<MediaFolder | null>(
-    null
-  );
+export function useFolderActions() {
+  console.log("🔄 useFolderActions hook called");
 
-  // Form inputs
-  const [folderName, setFolderName] = useState("");
+  const FolderActionDialogs = ({
+    isCreateOpen,
+    onCloseCreate,
+    folderToRename,
+    onCloseRename,
+    folderToDelete,
+    onCloseDelete,
+  }: FolderActionDialogsProps) => {
+    console.log("🎨 FolderActionDialogs rendering");
 
-  const currentFolderId = useMediaRoomStore((s) => s.currentFolderId);
-  const setCurrentFolder = useMediaRoomStore((s) => s.setCurrentFolder);
+    const [folderName, setFolderName] = useState("");
 
-  const createMutation = useCreateFolder(organizationId);
-  const renameMutation = useRenameFolder(organizationId);
-  const deleteMutation = useDeleteFolder(organizationId);
+    const currentFolderId = useMediaRoomStore((s) => s.currentFolderId);
+    const setCurrentFolder = useMediaRoomStore((s) => s.setCurrentFolder);
 
-  // Reset input when any dialog opens
-  useEffect(() => {
-    if (isCreateOpen) setFolderName("");
-    if (folderToRename) setFolderName(folderToRename.name);
-  }, [isCreateOpen, folderToRename]);
+    const createMutation = useCreateFolder();
+    const renameMutation = useRenameFolder();
+    const deleteMutation = useDeleteFolder();
 
-  // Handlers
-  const handleCreate = () => {
-    if (!folderName.trim()) return;
-    createMutation.mutate(
-      { name: folderName.trim(), parentId: currentFolderId || undefined },
-      {
-        onSuccess: () => {
-          setIsCreateOpen(false);
-          setFolderName("");
-        },
-      }
-    );
-  };
-
-  const handleRename = () => {
-    if (!folderToRename || !folderName.trim()) return;
-    renameMutation.mutate(
-      { id: folderToRename.id, name: folderName.trim() },
-      {
-        onSuccess: () => {
-          setFolderToRename(null);
-          setFolderName("");
-        },
-      }
-    );
-  };
-
-  const handleDelete = () => {
-    if (!folderToDelete) return;
-    deleteMutation.mutate(folderToDelete.id, {
-      onSuccess: () => {
-        if (currentFolderId === folderToDelete.id) {
-          setCurrentFolder(null);
+    const handleCreate = () => {
+      if (!folderName.trim()) return;
+      createMutation.mutate(
+        { name: folderName.trim(), parentId: currentFolderId || undefined },
+        {
+          onSuccess: () => {
+            setFolderName("");
+            onCloseCreate();
+          },
         }
-        setFolderToDelete(null);
-      },
-    });
-  };
+      );
+    };
 
-  const FolderActionDialogs = () => (
-    <>
-      {/* Create Dialog */}
-      <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
-        <DialogContent className="sm:max-w-[425px] border-2 border-foreground shadow-[8px_8px_0_0_rgba(0,0,0,1)] rounded-sm bg-surface p-6">
-          <DialogHeader>
-            <DialogTitle className="font-serif text-xl font-bold uppercase tracking-tight">
-              New Folder
-            </DialogTitle>
-          </DialogHeader>
-          <div className="py-4">
-            <Input
-              value={folderName}
-              onChange={(e) => setFolderName(e.target.value)}
-              placeholder="Folder name"
-              className="font-serif text-base h-11 bg-background border-border focus:border-foreground rounded-sm"
-              autoFocus
-              onKeyDown={(e) => {
-                if (e.key === "Enter") handleCreate();
-              }}
-            />
-          </div>
+    const handleRename = () => {
+      if (!folderToRename || !folderName.trim()) return;
+      renameMutation.mutate(
+        { id: folderToRename.id, name: folderName.trim() },
+        {
+          onSuccess: () => {
+            setFolderName("");
+            onCloseRename();
+          },
+        }
+      );
+    };
+
+    const handleDelete = () => {
+      if (!folderToDelete) return;
+      deleteMutation.mutate(folderToDelete.id, {
+        onSuccess: () => {
+          if (currentFolderId === folderToDelete.id) {
+            setCurrentFolder(null);
+          }
+          onCloseDelete();
+        },
+      });
+    };
+
+    return (
+      <>
+        {/* Create Dialog */}
+        <Dialog open={isCreateOpen} onOpenChange={(open) => {
+          if (!open) {
+            setFolderName("");
+            onCloseCreate();
+          }
+        }}>
+          <DialogContent className="sm:max-w-[425px] border-2 border-foreground shadow-[8px_8px_0_0_rgba(0,0,0,1)] rounded-sm bg-surface p-6">
+            <DialogHeader>
+              <DialogTitle className="font-serif text-xl font-bold uppercase tracking-tight">
+                New Folder
+              </DialogTitle>
+            </DialogHeader>
+            <div className="py-4">
+              <Input
+                value={folderName}
+                onChange={(e) => {
+                  console.log("⌨️ Input changed:", e.target.value);
+                  setFolderName(e.target.value);
+                }}
+                placeholder="Folder name"
+                className="font-serif text-base h-11 bg-background border-border focus:border-foreground rounded-sm"
+                autoFocus
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") handleCreate(folderName);
+                }}
+              />
+            </div>
           <DialogFooter>
             <DialogClose asChild>
               <button className="btn btn-outline border-border hover:bg-surface-hover">
@@ -129,7 +137,7 @@ export function useFolderActions({ organizationId }: UseFolderActionsProps) {
               </button>
             </DialogClose>
             <button
-              onClick={handleCreate}
+              onClick={() => handleCreate(folderName)}
               disabled={createMutation.isPending || !folderName.trim()}
               className="btn btn-primary"
             >
@@ -146,7 +154,14 @@ export function useFolderActions({ organizationId }: UseFolderActionsProps) {
       {/* Rename Dialog */}
       <Dialog
         open={!!folderToRename}
-        onOpenChange={(open) => !open && setFolderToRename(null)}
+        onOpenChange={(open) => {
+          if (!open) {
+            setFolderName("");
+            onCloseRename();
+          } else if (folderToRename) {
+            setFolderName(folderToRename.name);
+          }
+        }}
       >
         <DialogContent className="sm:max-w-[425px] border-2 border-foreground shadow-[8px_8px_0_0_rgba(0,0,0,1)] rounded-sm bg-surface p-6">
           <DialogHeader>
@@ -162,7 +177,7 @@ export function useFolderActions({ organizationId }: UseFolderActionsProps) {
               className="font-serif text-base h-11 bg-background border-border focus:border-foreground rounded-sm"
               autoFocus
               onKeyDown={(e) => {
-                if (e.key === "Enter") handleRename();
+                if (e.key === "Enter" && folderToRename) handleRename(folderToRename.id, folderName);
               }}
             />
           </div>
@@ -173,7 +188,7 @@ export function useFolderActions({ organizationId }: UseFolderActionsProps) {
               </button>
             </DialogClose>
             <button
-              onClick={handleRename}
+              onClick={() => folderToRename && handleRename(folderToRename.id, folderName)}
               disabled={renameMutation.isPending || !folderName.trim()}
               className="btn btn-primary"
             >
@@ -190,7 +205,7 @@ export function useFolderActions({ organizationId }: UseFolderActionsProps) {
       {/* Delete Alert */}
       <AlertDialog
         open={!!folderToDelete}
-        onOpenChange={(open) => !open && setFolderToDelete(null)}
+        onOpenChange={(open) => !open && onCloseDelete()}
       >
         <AlertDialogContent className="border-2 border-foreground shadow-[8px_8px_0_0_rgba(0,0,0,1)] rounded-sm bg-surface p-6">
           <AlertDialogHeader>
@@ -207,7 +222,7 @@ export function useFolderActions({ organizationId }: UseFolderActionsProps) {
               Cancel
             </AlertDialogCancel>
             <AlertDialogAction
-              onClick={handleDelete}
+              onClick={() => folderToDelete && handleDelete(folderToDelete.id)}
               className="btn btn-primary bg-error text-white hover:bg-error-hover border-error-hover"
             >
               {deleteMutation.isPending ? (
@@ -221,11 +236,9 @@ export function useFolderActions({ organizationId }: UseFolderActionsProps) {
       </AlertDialog>
     </>
   );
+  };
 
   return {
-    openCreateDialog: () => setIsCreateOpen(true),
-    openRenameDialog: setFolderToRename,
-    openDeleteDialog: setFolderToDelete,
     FolderActionDialogs,
   };
 }

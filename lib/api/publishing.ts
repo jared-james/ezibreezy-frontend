@@ -107,7 +107,7 @@ export interface FullPostDetails {
   title: string | null;
   content: string;
   integrationId: string;
-  organizationId: string;
+  workspaceId: string;
   userId: string;
   scheduledAt: string | null;
   recycleInterval: number | null;

@@ -88,8 +88,7 @@ function InstagramPreview({
   const selectedAccounts = usePublishingStore(
     (state) => state.selectedAccounts
   );
-  const { organizationId } = useClientData();
-  const { getOriginalUrl } = useOriginalUrl(organizationId);
+  const { getOriginalUrl } = useOriginalUrl();
   const integrationId = selectedAccounts["instagram"]?.[0];
 
   const [isTaggingMode, setIsTaggingMode] = useState(false);

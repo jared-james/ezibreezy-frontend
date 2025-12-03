@@ -63,7 +63,6 @@ export function YouTubeOptions({
   const [isSourceModalOpen, setIsSourceModalOpen] = useState(false);
   const [isMediaRoomOpen, setIsMediaRoomOpen] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const { organizationId } = useClientData();
 
   const handleThumbnailUpload = async (
     e: React.ChangeEvent<HTMLInputElement>
@@ -76,15 +75,9 @@ export function YouTubeOptions({
       return;
     }
 
-    if (!organizationId) {
-      toast.error("Organization context missing.");
-      return;
-    }
-
     try {
       setIsUploadingThumb(true);
-      // Fixed: Passing organizationId instead of integrationId
-      const response = await uploadMedia(file, organizationId);
+      const response = await uploadMedia(file);
       onThumbnailChange(response.url);
       toast.success("Thumbnail uploaded");
     } catch (error) {
@@ -252,7 +245,6 @@ export function YouTubeOptions({
         isOpen={isMediaRoomOpen}
         onClose={() => setIsMediaRoomOpen(false)}
         onConfirmSelection={handleLibraryConfirm}
-        organizationId={organizationId}
         preSelectedIds={new Set()}
       />
     </div>

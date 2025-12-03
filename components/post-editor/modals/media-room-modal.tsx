@@ -22,7 +22,6 @@ interface MediaRoomModalProps {
   isOpen: boolean;
   onClose: () => void;
   onConfirmSelection: (selectedMedia: MediaItem[]) => void;
-  organizationId: string | null;
   preSelectedIds?: Set<string>;
 }
 
@@ -30,7 +29,6 @@ export default function MediaRoomModal({
   isOpen,
   onClose,
   onConfirmSelection,
-  organizationId,
   preSelectedIds = new Set(),
 }: MediaRoomModalProps) {
   const selectedIds = useMediaRoomStore((s) => s.selectedIds);
@@ -90,7 +88,7 @@ export default function MediaRoomModal({
     sortOrder,
   ]);
 
-  const { data } = useMediaList(organizationId, filters);
+  const { data } = useMediaList(filters);
   const allMediaItems = useMemo(
     () => data?.pages.flatMap((page) => page.data) || [],
     [data]
@@ -141,14 +139,14 @@ export default function MediaRoomModal({
         </DialogHeader>
 
         <div className="flex-1 overflow-hidden flex flex-col mt-4">
-          <MediaFolderBar organizationId={organizationId} />
+          <MediaFolderBar />
 
           <div className="py-4">
-            <MediaToolbar organizationId={organizationId} />
+            <MediaToolbar />
           </div>
 
           <div className="flex-1 overflow-y-auto">
-            <MediaGrid organizationId={organizationId} />
+            <MediaGrid />
           </div>
         </div>
 

@@ -33,25 +33,24 @@ export default async function MediaRoomPage() {
     redirect("/auth/login");
   }
 
-  // 1. Get Organization Context (Server-Side)
-  // Instead of fetching connections, we get the organization ID directly associated with the user
+  // 1. Get Workspace Context (Server-Side)
   const userContext = await getUserAndOrganization();
 
-  if (!userContext?.organizationId) {
-    // If authenticated but no organization context, something is wrong
+  if (!userContext?.defaultWorkspaceId) {
+    // If authenticated but no workspace context, something is wrong
     return (
       <div className="p-8 text-center text-red-500 font-serif">
-        Error: Could not load organization context.
+        Error: Could not load workspace context.
       </div>
     );
   }
 
-  const { organizationId } = userContext;
+  const { defaultWorkspaceId: workspaceId } = userContext;
   const token = session.access_token;
   const apiUrl = process.env.NEXT_PUBLIC_API_URL;
   const apiKey = process.env.NEXT_PUBLIC_API_KEY || "";
 
-  // 2. Prefetch Media (Server-Side) using Organization ID
+  // 2. Prefetch Media (Server-Side) using Workspace ID
   // Match the filters logic used in the client-side useMediaList hook
   const filters = {
     sortBy: "createdAt",
@@ -60,15 +59,13 @@ export default async function MediaRoomPage() {
     rootOnly: true,
   };
 
-  const queryKey = ["media", organizationId, filters];
+  const queryKey = ["media", workspaceId, filters];
 
   await queryClient.prefetchInfiniteQuery({
     queryKey,
     initialPageParam: 0,
     queryFn: async ({ pageParam = 0 }) => {
-      // Changed param from integrationId to organizationId
       const params = new URLSearchParams({
-        organizationId: organizationId,
         rootOnly: "true",
         sortBy: "createdAt",
         order: "desc",
@@ -80,6 +77,7 @@ export default async function MediaRoomPage() {
         headers: {
           Authorization: `Bearer ${token}`,
           "x-api-key": apiKey,
+          "x-workspace-id": workspaceId,
           "Content-Type": "application/json",
         },
         cache: "no-store",
@@ -95,8 +93,7 @@ export default async function MediaRoomPage() {
 
   return (
     <HydrationBoundary state={dehydrate(queryClient)}>
-      {/* Pass organizationId so the client component doesn't have to wait to fetch it */}
-      <MediaRoom preloadedOrganizationId={organizationId} />
+      <MediaRoom />
     </HydrationBoundary>
   );
 }

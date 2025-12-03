@@ -53,8 +53,7 @@ function LinkedInPreview({
     (state) => state.setCropForMedia
   );
 
-  const { organizationId } = useClientData();
-  const { getOriginalUrl } = useOriginalUrl(organizationId);
+  const { getOriginalUrl } = useOriginalUrl();
 
   const hasMultipleMedia = mediaItems.length > 1;
   const isCarousel = hasMultipleMedia;

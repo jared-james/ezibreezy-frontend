@@ -5,6 +5,7 @@
 
 import { Instagram, X, Facebook, Check, AlertCircle } from "lucide-react";
 import { PlatformDefinition } from "../types";
+import { useWorkspaceStore } from "@/lib/store/workspace-store";
 
 interface InstagramConnectOptionsModalProps {
   isOpen: boolean;
@@ -15,11 +16,18 @@ interface InstagramConnectOptionsModalProps {
 export const InstagramConnectOptionsModal: React.FC<
   InstagramConnectOptionsModalProps
 > = ({ isOpen, onClose, platform }) => {
+  const { currentWorkspace } = useWorkspaceStore();
+
   if (!isOpen) return null;
 
   const handleConnect = (
     authType: "facebook_business" | "instagram_business"
   ) => {
+    if (!currentWorkspace?.id) {
+      console.error("No workspace selected");
+      return;
+    }
+
     try {
       window.sessionStorage.setItem("connecting_platform", platform.id);
     } catch (e) {
@@ -31,7 +39,7 @@ export const InstagramConnectOptionsModal: React.FC<
         ? "instagram-direct"
         : "instagram-facebook";
 
-    const connectUrl = `/api/integrations/${routePlatformId}/connect`;
+    const connectUrl = `/api/integrations/${routePlatformId}/connect?workspaceId=${currentWorkspace.id}`;
     window.location.href = connectUrl;
   };
 

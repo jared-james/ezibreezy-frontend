@@ -8,6 +8,7 @@ import { authenticatedFetch } from "./billing";
 interface UserContextWithIntegrations {
   userId: string;
   organizationId: string;
+  defaultWorkspaceId: string;
   connections: {
     id: string;
     platform: string;
@@ -24,7 +25,11 @@ export async function getClientDataForEditor(): Promise<UserContextWithIntegrati
     return null;
   }
 
-  const result = await authenticatedFetch("/integrations/connections");
+  const result = await authenticatedFetch("/integrations/connections", {
+    headers: {
+      "x-workspace-id": userContext.defaultWorkspaceId,
+    },
+  });
 
   if (!result.success) {
     console.error(
@@ -34,6 +39,7 @@ export async function getClientDataForEditor(): Promise<UserContextWithIntegrati
     return {
       userId: userContext.userId,
       organizationId: userContext.organizationId,
+      defaultWorkspaceId: userContext.defaultWorkspaceId,
       connections: [],
     };
   }
@@ -41,6 +47,7 @@ export async function getClientDataForEditor(): Promise<UserContextWithIntegrati
   return {
     userId: userContext.userId,
     organizationId: userContext.organizationId,
+    defaultWorkspaceId: userContext.defaultWorkspaceId,
     connections: result.data,
   };
 }

@@ -44,8 +44,7 @@ function PinterestPreview({
     (state) => state.setCropForMedia
   );
 
-  const { organizationId } = useClientData();
-  const { getOriginalUrl } = useOriginalUrl(organizationId);
+  const { getOriginalUrl } = useOriginalUrl();
 
   const croppedPreview = singleMediaItem?.croppedPreviews?.pinterest;
 

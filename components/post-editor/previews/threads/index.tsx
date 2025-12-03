@@ -72,8 +72,7 @@ function ThreadsPreview({
     (state) => state.setCropForMedia
   );
 
-  const { organizationId } = useClientData();
-  const { getOriginalUrl } = useOriginalUrl(organizationId);
+  const { getOriginalUrl } = useOriginalUrl();
 
   const canCrop = mediaItems.some((item) => item.id && item.type === "image");
 

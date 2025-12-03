@@ -4,6 +4,7 @@
 
 import { useState } from "react";
 import { X, AlertCircle, Loader2 } from "lucide-react";
+import { useWorkspaceStore } from "@/lib/store/workspace-store";
 
 interface ConnectAccountModalProps {
   isOpen: boolean;
@@ -21,17 +22,23 @@ export default function ConnectAccountModal({
   platformId,
 }: ConnectAccountModalProps) {
   const [isConnecting, setIsConnecting] = useState(false);
+  const { currentWorkspace } = useWorkspaceStore();
 
   if (!isOpen) return null;
 
   const handleConnectClick = () => {
+    if (!currentWorkspace?.id) {
+      console.error("No workspace selected");
+      return;
+    }
+
     setIsConnecting(true);
     try {
       window.sessionStorage.setItem("connecting_platform", platformId);
     } catch (e) {
       console.error("Could not save to sessionStorage", e);
     }
-    window.location.href = `/api/integrations/${platformId}/connect`;
+    window.location.href = `/api/integrations/${platformId}/connect?workspaceId=${currentWorkspace.id}`;
   };
 
   return (

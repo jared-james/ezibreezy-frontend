@@ -38,7 +38,6 @@ export function InstagramReelOptions({
   const [isSourceModalOpen, setIsSourceModalOpen] = useState(false);
   const [isMediaRoomOpen, setIsMediaRoomOpen] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const { organizationId } = useClientData();
 
   const handleCoverUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -49,15 +48,9 @@ export function InstagramReelOptions({
       return;
     }
 
-    if (!organizationId) {
-      toast.error("Organization context missing. Please refresh.");
-      return;
-    }
-
     try {
       setIsUploadingCover(true);
-      // Fixed: Passing organizationId instead of integrationId
-      const response = await uploadMedia(file, organizationId);
+      const response = await uploadMedia(file);
       onCoverChange?.(response.url);
       toast.success("Cover image uploaded");
     } catch (error) {
@@ -221,7 +214,6 @@ export function InstagramReelOptions({
         isOpen={isMediaRoomOpen}
         onClose={() => setIsMediaRoomOpen(false)}
         onConfirmSelection={handleLibraryConfirm}
-        organizationId={organizationId}
         preSelectedIds={new Set()}
       />
     </div>

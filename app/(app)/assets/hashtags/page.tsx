@@ -33,21 +33,20 @@ export default function HashtagsPage() {
   const [hashtags, setHashtags] = useState<string[]>([]);
   const [hashtagInput, setHashtagInput] = useState("");
 
-  // Use the shared hook for organization context
-  const { organizationId } = useClientData();
+  // Use the shared hook for workspace context
+  const { workspaceId } = useClientData();
 
   // Fetch hashtag groups
   const { data: groups = [], isLoading } = useQuery({
-    queryKey: ["hashtag-groups", organizationId],
-    queryFn: () => listHashtagGroups(organizationId!),
-    enabled: !!organizationId,
+    queryKey: ["hashtag-groups", workspaceId],
+    queryFn: () => listHashtagGroups(),
+    enabled: !!workspaceId,
   });
 
   // Create mutation
   const createMutation = useMutation({
     mutationFn: (data: { name: string; content: string }) =>
       createHashtagGroup({
-        organizationId: organizationId!,
         name: data.name,
         content: data.content,
       }),
@@ -67,7 +66,6 @@ export default function HashtagsPage() {
   const updateMutation = useMutation({
     mutationFn: (data: { id: string; name: string; content: string }) =>
       updateHashtagGroup(data.id, {
-        organizationId: organizationId!,
         name: data.name,
         content: data.content,
       }),
@@ -85,7 +83,7 @@ export default function HashtagsPage() {
 
   // Delete mutation
   const deleteMutation = useMutation({
-    mutationFn: (id: string) => deleteHashtagGroup(id, organizationId!),
+    mutationFn: (id: string) => deleteHashtagGroup(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["hashtag-groups"] });
       toast.success("Hashtag group deleted successfully");
@@ -191,7 +189,7 @@ export default function HashtagsPage() {
     }
   };
 
-  if (!organizationId) {
+  if (!workspaceId) {
     return (
       <div className="flex items-center justify-center h-full">
         <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />

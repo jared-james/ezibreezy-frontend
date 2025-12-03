@@ -82,6 +82,10 @@ export default function SidebarClient({
 
   const [isConfirmingLogout, setIsConfirmingLogout] = useState(false);
 
+  const displayOrgName = organizationName
+    ? `${organizationName.charAt(0).toUpperCase()} Org`
+    : "Org";
+
   const executeLogout = async () => {
     await logout();
     router.refresh();
@@ -104,7 +108,7 @@ export default function SidebarClient({
           className="font-serif font-normal text-sm uppercase tracking-[0.15em] text-[--foreground] truncate"
           title={organizationName}
         >
-          {organizationName}
+          {displayOrgName}
         </Link>
       </div>
 
@@ -190,7 +194,7 @@ export default function SidebarClient({
         <div className="flex items-center gap-3 px-3 pt-3">
           <Users className="w-4 h-4 text-[--muted-foreground]" />
           <p className="font-serif text-xs font-medium text-[--muted-foreground] truncate">
-            {organizationName}
+            {displayOrgName}
           </p>
         </div>
       </div>

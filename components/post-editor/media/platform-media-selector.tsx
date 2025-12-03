@@ -189,8 +189,7 @@ export default function PlatformMediaSelector({
     (state) => state.setCropForMedia
   );
 
-  const { organizationId } = useClientData();
-  const { getOriginalUrl } = useOriginalUrl(organizationId);
+  const { getOriginalUrl } = useOriginalUrl();
 
   const selectedUids = platformMediaSelections[platformId] || [];
   const rules = PLATFORM_RULES[platformId as keyof typeof PLATFORM_RULES];

@@ -102,15 +102,29 @@ export default function CalendarContainer() {
     );
   }
 
+  // Check if error is due to no channels/connections or empty state
+  // In these cases, show empty calendar instead of error
   if (isError) {
-    toast.error(`Error loading schedule: ${error?.message}`);
-    return (
-      <div className="flex h-full w-full items-center justify-center p-8">
-        <p className="font-serif text-error">
-          Error loading scheduled posts. Please check your connections.
-        </p>
-      </div>
-    );
+    const errorMessage = error?.message?.toLowerCase() || '';
+    const isExpectedEmptyState =
+      errorMessage.includes('no channels') ||
+      errorMessage.includes('no connections') ||
+      errorMessage.includes('no integrations') ||
+      errorMessage.includes('not found') ||
+      scheduledPosts.length === 0;
+
+    // Only show error for unexpected/actual errors, not for empty states
+    if (!isExpectedEmptyState) {
+      toast.error(`Error loading schedule: ${error?.message}`);
+      return (
+        <div className="flex h-full w-full items-center justify-center p-8">
+          <p className="font-serif text-error">
+            Error loading scheduled posts. Please check your connections.
+          </p>
+        </div>
+      );
+    }
+    // For expected empty states, continue to render the calendar (it will be empty)
   }
 
   return (

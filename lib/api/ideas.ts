@@ -11,7 +11,6 @@ interface BriefingResponse {
 
 export interface SaveDraftPayload {
   userId: string;
-  organizationId: string;
   integrationId: string;
   title?: string;
   content: string;

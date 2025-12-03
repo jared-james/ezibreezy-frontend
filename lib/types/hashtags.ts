@@ -2,7 +2,7 @@
 
 export interface HashtagGroup {
   id: string;
-  organizationId: string;
+  workspaceId: string;
   name: string;
   content: string;
   createdAt: string;
@@ -10,13 +10,11 @@ export interface HashtagGroup {
 }
 
 export interface CreateHashtagGroupDto {
-  organizationId: string;
   name: string;
   content: string;
 }
 
 export interface UpdateHashtagGroupDto {
-  organizationId: string;
   name: string;
   content: string;
 }

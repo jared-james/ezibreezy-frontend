@@ -29,12 +29,24 @@ export async function GET(
     );
   }
 
+  // Get workspaceId from query params
+  const { searchParams } = new URL(request.url);
+  const workspaceId = searchParams.get("workspaceId");
+
+  if (!workspaceId) {
+    return NextResponse.json(
+      { error: "Workspace ID is required" },
+      { status: 400 }
+    );
+  }
+
   try {
     const backendUrl = `${BACKEND_URL}/integrations/${platform}/connect`;
 
     const response = await fetch(backendUrl, {
       headers: {
         Authorization: `Bearer ${session.access_token}`,
+        "x-workspace-id": workspaceId,
       },
       redirect: "manual",
     });

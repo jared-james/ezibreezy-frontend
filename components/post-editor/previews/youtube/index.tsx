@@ -44,8 +44,7 @@ function YouTubePreview({
     (state) => state.setCropForMedia
   );
 
-  const { organizationId } = useClientData();
-  const { getOriginalUrl } = useOriginalUrl(organizationId);
+  const { getOriginalUrl } = useOriginalUrl();
 
   // Determine viewing mode based on media aspect ratio or type
   // Shorts = 9:16 aspect ratio OR explicit crop

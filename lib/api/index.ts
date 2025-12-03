@@ -28,6 +28,27 @@ apiClient.interceptors.request.use(
       config.headers["Content-Type"] = "application/json";
     }
 
+    // Add workspace header for operational endpoints
+    // Skip auth endpoints and user context endpoint
+    if (
+      !config.url?.startsWith("/auth") &&
+      !config.url?.startsWith("/users/me/context")
+    ) {
+      // Get current workspace from localStorage
+      if (typeof window !== "undefined") {
+        const workspaceId = localStorage.getItem("currentWorkspaceId");
+
+        if (workspaceId) {
+          config.headers["x-workspace-id"] = workspaceId;
+        } else {
+          console.warn(
+            "⚠️ No workspace selected - API call may fail:",
+            config.url
+          );
+        }
+      }
+    }
+
     return config;
   },
   (error) => {

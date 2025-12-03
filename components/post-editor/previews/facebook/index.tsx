@@ -89,8 +89,7 @@ function FacebookPreview({
   );
 
   // Data Hooks
-  const { organizationId } = useClientData();
-  const { getOriginalUrl } = useOriginalUrl(organizationId);
+  const { getOriginalUrl } = useOriginalUrl();
 
   const isStory = postType === "story";
   const hasMultipleMedia = mediaItems.length > 1;

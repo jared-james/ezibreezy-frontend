@@ -20,10 +20,9 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { useFolderActions } from "./folder-actions";
-
 interface MediaFolderBarProps {
-  organizationId: string | null;
+  onRenameFolder: (folder: MediaFolder) => void;
+  onDeleteFolder: (folder: MediaFolder) => void;
 }
 
 interface DroppableFolderTabProps {
@@ -107,18 +106,13 @@ function DroppableFolderTab({
 }
 
 export default function MediaFolderBar({
-  organizationId,
+  onRenameFolder,
+  onDeleteFolder,
 }: MediaFolderBarProps) {
-  const { data: folders = [], isLoading } = useFolderList(
-    organizationId,
-    "root"
-  );
+  const { data: folders = [], isLoading } = useFolderList("root");
 
   const currentFolderId = useMediaRoomStore((s) => s.currentFolderId);
   const setCurrentFolder = useMediaRoomStore((s) => s.setCurrentFolder);
-
-  const { openRenameDialog, openDeleteDialog, FolderActionDialogs } =
-    useFolderActions({ organizationId });
 
   return (
     <div className="border-b border-border">
@@ -146,8 +140,8 @@ export default function MediaFolderBar({
               folder={folder}
               isActive={currentFolderId === folder.id}
               onSelect={() => setCurrentFolder(folder.id)}
-              onEdit={() => openRenameDialog(folder)}
-              onDelete={() => openDeleteDialog(folder)}
+              onEdit={() => onRenameFolder(folder)}
+              onDelete={() => onDeleteFolder(folder)}
             >
               {currentFolderId === folder.id ? (
                 <FolderOpen className="h-4 w-4 shrink-0" />
@@ -159,8 +153,6 @@ export default function MediaFolderBar({
           ))
         )}
       </div>
-
-      <FolderActionDialogs />
     </div>
   );
 }

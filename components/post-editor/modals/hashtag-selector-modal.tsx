@@ -9,6 +9,7 @@ import { cn } from "@/lib/utils";
 import { useQuery } from "@tanstack/react-query";
 import { getClientDataForEditor } from "@/app/actions/data";
 import { listHashtagGroups } from "@/lib/api/hashtags";
+import { useClientData } from "@/lib/hooks/use-client-data";
 
 interface HashtagSelectorModalProps {
   isOpen: boolean;
@@ -38,20 +39,13 @@ export default function HashtagSelectorModal({
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [expandedGroupId, setExpandedGroupId] = useState<string | null>(null);
 
-  // Fetch user context to get organizationId
-  const { data: clientData } = useQuery({
-    queryKey: ["clientEditorData"],
-    queryFn: getClientDataForEditor,
-    staleTime: 60000,
-  });
-
-  const organizationId = clientData?.organizationId;
+  const { workspaceId } = useClientData();
 
   // Fetch hashtag groups from library
   const { data: hashtagGroups = [] } = useQuery({
-    queryKey: ["hashtag-groups", organizationId],
-    queryFn: () => listHashtagGroups(organizationId!),
-    enabled: !!organizationId && isOpen,
+    queryKey: ["hashtag-groups", workspaceId],
+    queryFn: () => listHashtagGroups(),
+    enabled: !!workspaceId && isOpen,
   });
 
   useEffect(() => {

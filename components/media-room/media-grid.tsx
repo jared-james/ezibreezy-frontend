@@ -6,15 +6,16 @@ import { useMemo, useEffect, useRef } from "react";
 import { Loader2, ImageOff } from "lucide-react";
 import { useMediaList } from "@/lib/hooks/use-media";
 import { useMediaRoomStore } from "@/lib/store/media-room-store";
+import { useClientData } from "@/lib/hooks/use-client-data";
 import type { MediaFilters } from "@/lib/api/media";
 import MediaCard from "./media-card";
 import MediaListItem from "./media-list-item";
 
-interface MediaGridProps {
-  organizationId: string | null;
-}
+interface MediaGridProps {}
 
-export default function MediaGrid({ organizationId }: MediaGridProps) {
+export default function MediaGrid({}: MediaGridProps) {
+  const { organizationId } = useClientData();
+
   const currentFolderId = useMediaRoomStore((s) => s.currentFolderId);
   const searchQuery = useMediaRoomStore((s) => s.searchQuery);
   const typeFilter = useMediaRoomStore((s) => s.typeFilter);
@@ -82,7 +83,7 @@ export default function MediaGrid({ organizationId }: MediaGridProps) {
     fetchNextPage,
     hasNextPage,
     isFetchingNextPage,
-  } = useMediaList(organizationId, filters);
+  } = useMediaList(filters);
 
   useEffect(() => {
     const observer = new IntersectionObserver(

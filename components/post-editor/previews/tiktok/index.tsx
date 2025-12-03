@@ -60,8 +60,7 @@ function TikTokPreview({
     (state) => state.tiktokVideoCoverTimestamp
   );
 
-  const { organizationId } = useClientData();
-  const { getOriginalUrl } = useOriginalUrl(organizationId);
+  const { getOriginalUrl } = useOriginalUrl();
 
   const isCarousel = mediaItems && mediaItems.length > 1;
 

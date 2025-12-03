@@ -45,8 +45,6 @@ export default function MediaUpload({
     staleTime: Infinity,
   });
 
-  const organizationId = clientData?.organizationId || null;
-
   const MAX_FILES = 20;
 
   useEffect(() => {
@@ -318,7 +316,6 @@ export default function MediaUpload({
         isOpen={isMediaRoomOpen}
         onClose={() => setIsMediaRoomOpen(false)}
         onConfirmSelection={handleLibraryConfirm}
-        organizationId={organizationId}
         preSelectedIds={selectedLibraryMediaIds}
       />
     </>

@@ -114,8 +114,6 @@ function AltTextModalContent({
     (state) => state.setStagedMediaItems
   );
 
-  const { organizationId } = useClientData();
-
   const [currentMediaIndex, setCurrentMediaIndex] = useState(initialMediaIndex);
   const [localAltTexts, setLocalAltTexts] = useState<Record<string, string>>(
     {}
@@ -139,7 +137,7 @@ function AltTextModalContent({
     setLocalAltTexts(initialTexts);
   }, [initialTexts]);
 
-  const updateMediaMutation = useUpdateMedia(organizationId);
+  const updateMediaMutation = useUpdateMedia();
 
   const currentMedia = mediaItems[currentMediaIndex];
   const currentId = currentMedia?.id;
@@ -173,7 +171,7 @@ function AltTextModalContent({
   };
 
   const handleSave = async () => {
-    if (!currentId || !organizationId) {
+    if (!currentId) {
       toast.error("Cannot save alt text at this time");
       return;
     }

@@ -8,7 +8,6 @@ import { cn } from "@/lib/utils";
 import { useUploadMedia } from "@/lib/hooks/use-media";
 
 interface MediaUploadZoneProps {
-  organizationId: string | null;
   isOpen: boolean;
   onClose: () => void;
 }
@@ -20,14 +19,13 @@ interface UploadItem {
 }
 
 export default function MediaUploadZone({
-  organizationId,
   isOpen,
   onClose,
 }: MediaUploadZoneProps) {
   const [isDragging, setIsDragging] = useState(false);
   const [uploadQueue, setUploadQueue] = useState<UploadItem[]>([]);
 
-  const uploadMedia = useUploadMedia(organizationId);
+  const uploadMedia = useUploadMedia();
 
   const uploadFile = async (file: File) => {
     setUploadQueue((prev) =>

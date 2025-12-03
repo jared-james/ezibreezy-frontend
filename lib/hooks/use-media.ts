@@ -40,15 +40,15 @@ import {
 } from "@/lib/api/media";
 import { toast } from "sonner";
 import { generateVideoThumbnail } from "@/lib/utils/video-thumbnail";
+import { useWorkspaceStore } from "@/lib/store/workspace-store";
 
-export function useMediaList(
-  organizationId: string | null,
-  filters: MediaFilters = {}
-) {
+export function useMediaList(filters: MediaFilters = {}) {
+  const { currentWorkspace } = useWorkspaceStore();
+
   return useInfiniteQuery({
-    queryKey: ["media", organizationId, filters],
+    queryKey: ["media", currentWorkspace?.id, filters],
     queryFn: ({ pageParam = 0 }) =>
-      listMedia(organizationId!, { ...filters, offset: pageParam as number }),
+      listMedia({ ...filters, offset: pageParam as number }),
     initialPageParam: 0,
     getNextPageParam: (lastPage) => {
       if (lastPage.pagination.hasMore) {
@@ -56,27 +56,28 @@ export function useMediaList(
       }
       return undefined;
     },
-    enabled: !!organizationId,
+    enabled: !!currentWorkspace,
     placeholderData: keepPreviousData,
     staleTime: 30000,
   });
 }
 
-export function useMediaItem(id: string | null, organizationId: string | null) {
+export function useMediaItem(id: string | null) {
   const queryClient = useQueryClient();
+  const { currentWorkspace } = useWorkspaceStore();
 
   return useQuery({
-    queryKey: ["media", id, organizationId],
-    queryFn: () => getMedia(id!, organizationId!),
-    enabled: !!id && !!organizationId,
+    queryKey: ["media", id, currentWorkspace?.id],
+    queryFn: () => getMedia(id!),
+    enabled: !!id && !!currentWorkspace,
     staleTime: 30000,
     initialData: () => {
-      if (!id || !organizationId) return undefined;
+      if (!id || !currentWorkspace) return undefined;
 
       const queries = queryClient.getQueriesData<{
         pages: MediaListResponse[];
       }>({
-        queryKey: ["media", organizationId],
+        queryKey: ["media", currentWorkspace.id],
       });
 
       for (const [_, queryData] of queries) {
@@ -101,8 +102,9 @@ export function useMediaItem(id: string | null, organizationId: string | null) {
   });
 }
 
-export function useUploadMedia(organizationId: string | null) {
+export function useUploadMedia() {
   const queryClient = useQueryClient();
+  const { currentWorkspace } = useWorkspaceStore();
 
   return useMutation({
     mutationFn: async (file: File) => {
@@ -116,10 +118,12 @@ export function useUploadMedia(organizationId: string | null) {
         }
       }
 
-      return uploadMedia(file, organizationId!, thumbnail);
+      return uploadMedia(file, thumbnail);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["media", organizationId] });
+      queryClient.invalidateQueries({
+        queryKey: ["media", currentWorkspace?.id],
+      });
       toast.success("Media uploaded successfully");
     },
     onError: (error: Error) => {
@@ -128,7 +132,7 @@ export function useUploadMedia(organizationId: string | null) {
   });
 }
 
-export function useUpdateMedia(organizationId: string | null) {
+export function useUpdateMedia() {
   const queryClient = useQueryClient();
 
   return useMutation({
@@ -138,7 +142,7 @@ export function useUpdateMedia(organizationId: string | null) {
     }: {
       id: string;
       data: { filename?: string; altText?: string; folderId?: string | null };
-    }) => updateMedia(id, organizationId!, data),
+    }) => updateMedia(id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["media"] });
       toast.success("Media updated");
@@ -149,11 +153,11 @@ export function useUpdateMedia(organizationId: string | null) {
   });
 }
 
-export function useDeleteMedia(organizationId: string | null) {
+export function useDeleteMedia() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (id: string) => deleteMedia(id, organizationId!),
+    mutationFn: (id: string) => deleteMedia(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["media"] });
       toast.success("Media deleted");
@@ -164,11 +168,11 @@ export function useDeleteMedia(organizationId: string | null) {
   });
 }
 
-export function useArchiveMedia(organizationId: string | null) {
+export function useArchiveMedia() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (id: string) => archiveMedia(id, organizationId!),
+    mutationFn: (id: string) => archiveMedia(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["media"] });
       toast.success("Media archived successfully");
@@ -179,12 +183,11 @@ export function useArchiveMedia(organizationId: string | null) {
   });
 }
 
-export function useBulkDeleteMedia(organizationId: string | null) {
+export function useBulkDeleteMedia() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (mediaIds: string[]) =>
-      bulkDeleteMedia(organizationId!, mediaIds),
+    mutationFn: (mediaIds: string[]) => bulkDeleteMedia(mediaIds),
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["media"] });
       toast.success(`Deleted ${data.deleted} items`);
@@ -195,12 +198,11 @@ export function useBulkDeleteMedia(organizationId: string | null) {
   });
 }
 
-export function useBulkArchiveMedia(organizationId: string | null) {
+export function useBulkArchiveMedia() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (mediaIds: string[]) =>
-      bulkArchiveMedia(organizationId!, mediaIds),
+    mutationFn: (mediaIds: string[]) => bulkArchiveMedia(mediaIds),
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["media"] });
       toast.success(`Archived ${data.archived} items`);
@@ -211,7 +213,7 @@ export function useBulkArchiveMedia(organizationId: string | null) {
   });
 }
 
-export function useBulkMoveMedia(organizationId: string | null) {
+export function useBulkMoveMedia() {
   const queryClient = useQueryClient();
 
   return useMutation({
@@ -221,7 +223,7 @@ export function useBulkMoveMedia(organizationId: string | null) {
     }: {
       mediaIds: string[];
       folderId: string | null;
-    }) => bulkMoveMedia(organizationId!, mediaIds, folderId),
+    }) => bulkMoveMedia(mediaIds, folderId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["media"] });
       toast.success("Media moved");
@@ -232,7 +234,7 @@ export function useBulkMoveMedia(organizationId: string | null) {
   });
 }
 
-export function useBulkTagMedia(organizationId: string | null) {
+export function useBulkTagMedia() {
   const queryClient = useQueryClient();
 
   return useMutation({
@@ -242,7 +244,7 @@ export function useBulkTagMedia(organizationId: string | null) {
     }: {
       mediaIds: string[];
       tagIds: string[];
-    }) => bulkTagMedia(organizationId!, mediaIds, tagIds),
+    }) => bulkTagMedia(mediaIds, tagIds),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["media"] });
       toast.success("Tags added");
@@ -253,7 +255,7 @@ export function useBulkTagMedia(organizationId: string | null) {
   });
 }
 
-export function useBulkUntagMedia(organizationId: string | null) {
+export function useBulkUntagMedia() {
   const queryClient = useQueryClient();
 
   return useMutation({
@@ -263,7 +265,7 @@ export function useBulkUntagMedia(organizationId: string | null) {
     }: {
       mediaIds: string[];
       tagIds: string[];
-    }) => bulkUntagMedia(organizationId!, mediaIds, tagIds),
+    }) => bulkUntagMedia(mediaIds, tagIds),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["media"] });
       toast.success("Tags removed");
@@ -274,50 +276,50 @@ export function useBulkUntagMedia(organizationId: string | null) {
   });
 }
 
-export function useFolderList(
-  organizationId: string | null,
-  parentId?: string | "root"
-) {
+export function useFolderList(parentId?: string | "root") {
+  const { currentWorkspace } = useWorkspaceStore();
+
   const validParentId =
     parentId === "root" || (parentId && parentId.length >= 32)
       ? parentId
       : undefined;
 
   return useQuery({
-    queryKey: ["folders", organizationId, validParentId],
-    queryFn: () => listFolders(organizationId!, validParentId),
-    enabled: !!organizationId,
+    queryKey: ["folders", currentWorkspace?.id, validParentId],
+    queryFn: () => listFolders(validParentId),
+    enabled: !!currentWorkspace,
     staleTime: 60000,
   });
 }
 
-export function useFolder(id: string | null, organizationId: string | null) {
+export function useFolder(id: string | null) {
+  const { currentWorkspace } = useWorkspaceStore();
+
   return useQuery({
-    queryKey: ["folder", id, organizationId],
-    queryFn: () => getFolder(id!, organizationId!),
-    enabled: !!id && !!organizationId,
+    queryKey: ["folder", id, currentWorkspace?.id],
+    queryFn: () => getFolder(id!),
+    enabled: !!id && !!currentWorkspace,
     staleTime: 60000,
   });
 }
 
-export function useFolderBreadcrumb(
-  id: string | null,
-  organizationId: string | null
-) {
+export function useFolderBreadcrumb(id: string | null) {
+  const { currentWorkspace } = useWorkspaceStore();
+
   return useQuery({
-    queryKey: ["folderBreadcrumb", id, organizationId],
-    queryFn: () => getFolderBreadcrumb(id!, organizationId!),
-    enabled: !!id && !!organizationId,
+    queryKey: ["folderBreadcrumb", id, currentWorkspace?.id],
+    queryFn: () => getFolderBreadcrumb(id!),
+    enabled: !!id && !!currentWorkspace,
     staleTime: 60000,
   });
 }
 
-export function useCreateFolder(organizationId: string | null) {
+export function useCreateFolder() {
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: ({ name, parentId }: { name: string; parentId?: string }) =>
-      createFolder(organizationId!, name, parentId),
+      createFolder(name, parentId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["folders"] });
       toast.success("Folder created");
@@ -328,12 +330,12 @@ export function useCreateFolder(organizationId: string | null) {
   });
 }
 
-export function useRenameFolder(organizationId: string | null) {
+export function useRenameFolder() {
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: ({ id, name }: { id: string; name: string }) =>
-      renameFolder(id, organizationId!, name),
+      renameFolder(id, name),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["folders"] });
       toast.success("Folder renamed");
@@ -344,12 +346,12 @@ export function useRenameFolder(organizationId: string | null) {
   });
 }
 
-export function useMoveFolder(organizationId: string | null) {
+export function useMoveFolder() {
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: ({ id, parentId }: { id: string; parentId: string | null }) =>
-      moveFolder(id, organizationId!, parentId),
+      moveFolder(id, parentId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["folders"] });
       toast.success("Folder moved");
@@ -360,11 +362,11 @@ export function useMoveFolder(organizationId: string | null) {
   });
 }
 
-export function useDeleteFolder(organizationId: string | null) {
+export function useDeleteFolder() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (id: string) => deleteFolder(id, organizationId!),
+    mutationFn: (id: string) => deleteFolder(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["folders"] });
       queryClient.invalidateQueries({ queryKey: ["media"] });
@@ -376,21 +378,23 @@ export function useDeleteFolder(organizationId: string | null) {
   });
 }
 
-export function useTagList(organizationId: string | null, search?: string) {
+export function useTagList(search?: string) {
+  const { currentWorkspace } = useWorkspaceStore();
+
   return useQuery({
-    queryKey: ["tags", organizationId, search],
-    queryFn: () => listTags(organizationId!, search),
-    enabled: !!organizationId,
+    queryKey: ["tags", currentWorkspace?.id, search],
+    queryFn: () => listTags(search),
+    enabled: !!currentWorkspace,
     staleTime: 60000,
   });
 }
 
-export function useCreateTag(organizationId: string | null) {
+export function useCreateTag() {
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: ({ name, color }: { name: string; color?: string }) =>
-      createTag(organizationId!, name, color),
+      createTag(name, color),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["tags"] });
       toast.success("Tag created");
@@ -401,7 +405,7 @@ export function useCreateTag(organizationId: string | null) {
   });
 }
 
-export function useUpdateTag(organizationId: string | null) {
+export function useUpdateTag() {
   const queryClient = useQueryClient();
 
   return useMutation({
@@ -411,7 +415,7 @@ export function useUpdateTag(organizationId: string | null) {
     }: {
       id: string;
       data: { name?: string; color?: string };
-    }) => updateTag(id, organizationId!, data),
+    }) => updateTag(id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["tags"] });
       queryClient.invalidateQueries({ queryKey: ["media"] });
@@ -423,11 +427,11 @@ export function useUpdateTag(organizationId: string | null) {
   });
 }
 
-export function useDeleteTag(organizationId: string | null) {
+export function useDeleteTag() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (id: string) => deleteTag(id, organizationId!),
+    mutationFn: (id: string) => deleteTag(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["tags"] });
       queryClient.invalidateQueries({ queryKey: ["media"] });
@@ -439,12 +443,12 @@ export function useDeleteTag(organizationId: string | null) {
   });
 }
 
-export function useAttachTags(organizationId: string | null) {
+export function useAttachTags() {
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: ({ mediaId, tagIds }: { mediaId: string; tagIds: string[] }) =>
-      attachTagsToMedia(mediaId, organizationId!, tagIds),
+      attachTagsToMedia(mediaId, tagIds),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["media"] });
     },
@@ -454,12 +458,12 @@ export function useAttachTags(organizationId: string | null) {
   });
 }
 
-export function useDetachTags(organizationId: string | null) {
+export function useDetachTags() {
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: ({ mediaId, tagIds }: { mediaId: string; tagIds: string[] }) =>
-      detachTagsFromMedia(mediaId, organizationId!, tagIds),
+      detachTagsFromMedia(mediaId, tagIds),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["media"] });
     },

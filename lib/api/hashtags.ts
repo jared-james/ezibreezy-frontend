@@ -11,12 +11,8 @@ import {
 // Hashtag Groups
 // ============================================================================
 
-export const listHashtagGroups = async (
-  organizationId: string
-): Promise<HashtagGroup[]> => {
-  const response = await apiClient.get<HashtagGroup[]>(
-    `/hashtags?organizationId=${organizationId}`
-  );
+export const listHashtagGroups = async (): Promise<HashtagGroup[]> => {
+  const response = await apiClient.get<HashtagGroup[]>("/hashtags");
   return response.data;
 };
 
@@ -35,11 +31,6 @@ export const updateHashtagGroup = async (
   return response.data;
 };
 
-export const deleteHashtagGroup = async (
-  id: string,
-  organizationId: string
-): Promise<void> => {
-  await apiClient.delete(
-    `/hashtags/${id}?organizationId=${organizationId}`
-  );
+export const deleteHashtagGroup = async (id: string): Promise<void> => {
+  await apiClient.delete(`/hashtags/${id}`);
 };
