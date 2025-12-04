@@ -4,6 +4,7 @@
 
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
+import { cookies } from "next/headers";
 
 const BACKEND_URL = process.env.BACKEND_URL;
 if (!BACKEND_URL) {
@@ -73,7 +74,8 @@ export async function syncUser(options?: { inviteToken?: string }) {
   }
 
   const { id, email } = user;
-  const displayName = user.user_metadata?.displayName ?? "";
+  const displayName =
+    user.user_metadata?.displayName || user.user_metadata?.full_name || "";
 
   if (!email) {
     console.error(`User ${id} has no email. Cannot sync.`);
@@ -90,8 +92,13 @@ export async function syncUser(options?: { inviteToken?: string }) {
     return { success: false, error: "Session not found." };
   }
 
+  // 3. Check for Invite Token (Priority: Options -> Cookie)
+  const cookieStore = await cookies();
+  const tokenToUse =
+    options?.inviteToken || cookieStore.get("invite_token")?.value;
+
   try {
-    // 3. Call Backend Sync
+    // 4. Call Backend Sync
     const response = await fetch(`${BACKEND_URL}/users/sync`, {
       method: "POST",
       headers: {
@@ -103,7 +110,7 @@ export async function syncUser(options?: { inviteToken?: string }) {
         id,
         email,
         displayName,
-        inviteToken: options?.inviteToken,
+        inviteToken: tokenToUse,
       }),
     });
 
@@ -118,8 +125,23 @@ export async function syncUser(options?: { inviteToken?: string }) {
       };
     }
 
+    // 5. Capture the Result (Target Context)
+    const data = await response.json();
+
+    // Clean up cookie if it was used/consumed
+    if (tokenToUse) {
+      cookieStore.delete("invite_token");
+    }
+
     revalidatePath("/", "layout");
-    return { success: true };
+
+    // Return the Target IDs so the Frontend knows where to go
+    return {
+      success: true,
+      targetWorkspaceId: data.targetWorkspaceId,
+      targetOrganizationId: data.targetOrganizationId,
+      event: data.event,
+    };
   } catch (error) {
     const message =
       error instanceof Error

@@ -11,6 +11,7 @@ import MinimalHeader from "@/components/shared/minimal-header";
 import LandingPageFooter from "@/components/landing-page/landing-page-footer";
 import { ArrowRight, Loader2 } from "lucide-react";
 import posthog from "posthog-js";
+import { syncUser } from "@/app/actions/user"; // Import the server action
 
 function LoginForm() {
   const [email, setEmail] = useState("");
@@ -37,7 +38,9 @@ function LoginForm() {
         verification_failed:
           "Email verification failed. The link may have expired. Please try signing up again or contact support.",
       };
-      setError(errorMessages[errorParam] || "An error occurred during sign in.");
+      setError(
+        errorMessages[errorParam] || "An error occurred during sign in."
+      );
     }
   }, [searchParams]);
 
@@ -47,10 +50,13 @@ function LoginForm() {
     setIsLoading(true);
 
     try {
-      const { data, error: authError } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
+      // 1. Supabase Auth
+      const { data, error: authError } = await supabase.auth.signInWithPassword(
+        {
+          email,
+          password,
+        }
+      );
 
       if (authError) {
         const errorMessage = authError.message.includes(
@@ -62,7 +68,6 @@ function LoginForm() {
           : "Unable to sign in. Please try again.";
 
         setError(errorMessage);
-        // Track login error
         posthog.captureException(authError);
         posthog.capture("auth_error_occurred", {
           error_type: "login",
@@ -70,35 +75,48 @@ function LoginForm() {
           email: email,
         });
 
-        // Stop loading ONLY if there is an error
         setIsLoading(false);
-      } else if (data.user && !data.user.email_confirmed_at) {
-        // Check if email is verified
-        setError("Please verify your email address. Check your inbox for the verification link.");
-        setIsLoading(false);
-      } else {
-        // Track successful login and identify user
-        posthog.identify(email, {
-          email: email,
-        });
-        posthog.capture("user_logged_in", {
-          email: email,
-          login_method: "email_password",
-        });
-
-        // Refresh the router to update server components with the new session
-        router.refresh();
-        // Push to dashboard
-        router.push("/dashboard");
-
-        // We do NOT set isLoading(false) here.
-        // We want the button to remain in the "Accessing..." state
-        // until the browser successfully navigates away.
+        return; // Stop here on auth error
       }
+
+      if (data.user && !data.user.email_confirmed_at) {
+        setError(
+          "Please verify your email address. Check your inbox for the verification link."
+        );
+        setIsLoading(false);
+        return;
+      }
+
+      // 2. Track Success
+      posthog.identify(email, {
+        email: email,
+      });
+      posthog.capture("user_logged_in", {
+        email: email,
+        login_method: "email_password",
+      });
+
+      // 3. SYNC & CHECK INVITES (The Magic Step)
+      // This reads the cookie, sends it to backend, and gets back where we should go
+      const syncResult = await syncUser();
+
+      // Refresh router to update server components with new session
+      router.refresh();
+
+      // 4. INTENT AWARE REDIRECT
+      if (syncResult.success && syncResult.targetWorkspaceId) {
+        router.push(
+          `/dashboard?workspaceId=${syncResult.targetWorkspaceId}&invite=success`
+        );
+      } else {
+        router.push("/dashboard");
+      }
+
+      // Note: We don't set isLoading(false) here to keep the button state
+      // active while redirecting
     } catch (err) {
       const errorMessage = "An unexpected error occurred";
       setError(errorMessage);
-      // Track unexpected login error
       if (err instanceof Error) {
         posthog.captureException(err);
       }
@@ -108,11 +126,8 @@ function LoginForm() {
         email: email,
       });
 
-      // Stop loading ONLY if there is an exception
       setIsLoading(false);
     }
-    // The finally block has been removed to prevent the loading state
-    // from resetting while the router is still navigating to the dashboard.
   };
 
   return (
@@ -285,11 +300,13 @@ function LoginForm() {
 
 export default function Login() {
   return (
-    <Suspense fallback={
-      <div className="flex items-center justify-center min-h-screen">
-        <Loader2 className="w-8 h-8 animate-spin" />
-      </div>
-    }>
+    <Suspense
+      fallback={
+        <div className="flex items-center justify-center min-h-screen">
+          <Loader2 className="w-8 h-8 animate-spin" />
+        </div>
+      }
+    >
       <LoginForm />
     </Suspense>
   );

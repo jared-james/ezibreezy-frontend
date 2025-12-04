@@ -8,14 +8,9 @@ import Link from "next/link";
 import Image from "next/image";
 import MinimalHeader from "@/components/shared/minimal-header";
 import LandingPageFooter from "@/components/landing-page/landing-page-footer";
-import {
-  ArrowRight,
-  Loader2,
-  CheckCircle2,
-  Mail,
-  ArrowLeft,
-} from "lucide-react";
+import { ArrowRight, Loader2, Mail, ArrowLeft } from "lucide-react";
 import posthog from "posthog-js";
+import { useSearchParams } from "next/navigation"; // Import this
 
 export default function FullSignUp() {
   const [email, setEmail] = useState("");
@@ -23,51 +18,61 @@ export default function FullSignUp() {
   const [error, setError] = useState<string | null>(null);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+
   const supabase = createClient();
+  const searchParams = useSearchParams(); // Hook to get URL params
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
     setIsLoading(true);
 
+    // CRITICAL CHANGE: Grab the token from URL
+    const inviteToken = searchParams.get("token");
+
+    // Construct the redirect URL.
+    // If we have a token, append it: /auth/callback?invite_token=xyz
+    let redirectUrl = `${window.location.origin}/auth/callback`;
+    if (inviteToken) {
+      redirectUrl += `?invite_token=${inviteToken}`;
+    }
+
     try {
       const { error } = await supabase.auth.signUp({
         email,
         password,
         options: {
-          emailRedirectTo: `${location.origin}/auth/callback`,
+          // Supabase will now send the user to THIS url after clicking the email link
+          emailRedirectTo: redirectUrl,
         },
       });
 
       if (error) {
         setError(error.message);
-        // Track signup error
         posthog.captureException(error);
-        posthog.capture('auth_error_occurred', {
-          error_type: 'signup',
+        posthog.capture("auth_error_occurred", {
+          error_type: "signup",
           error_message: error.message,
           email: email,
         });
       } else {
         setIsSubmitted(true);
-        // Track successful signup and identify user
         posthog.identify(email, {
           email: email,
         });
-        posthog.capture('user_signed_up', {
+        posthog.capture("user_signed_up", {
           email: email,
-          signup_method: 'email_password',
+          signup_method: "email_password",
         });
       }
     } catch (err) {
       const errorMessage = "An unexpected error occurred";
       setError(errorMessage);
-      // Track unexpected signup error
       if (err instanceof Error) {
         posthog.captureException(err);
       }
-      posthog.capture('auth_error_occurred', {
-        error_type: 'signup_unexpected',
+      posthog.capture("auth_error_occurred", {
+        error_type: "signup_unexpected",
         error_message: errorMessage,
         email: email,
       });
@@ -81,7 +86,6 @@ export default function FullSignUp() {
       <MinimalHeader />
 
       <main className="grow flex items-center justify-center py-16 px-4 relative">
-        {/* Background Grid Pattern */}
         <div
           className="absolute inset-0 pointer-events-none opacity-[0.03]"
           style={{
@@ -92,9 +96,7 @@ export default function FullSignUp() {
         />
 
         <div className="w-full max-w-5xl relative z-10">
-          {/* THE POSTCARD CONTAINER */}
           <div className="bg-surface border border-foreground shadow-2xl relative overflow-hidden">
-            {/* Success State Overlay */}
             {isSubmitted ? (
               <div className="flex flex-col items-center justify-center min-h-[500px] p-10 text-center">
                 <div className="w-20 h-20 rounded-full bg-brand-primary/10 flex items-center justify-center mb-6 border-2 border-dashed border-brand-primary">
@@ -127,9 +129,7 @@ export default function FullSignUp() {
                 </div>
               </div>
             ) : (
-              /* The Form State - Split Layout */
               <div className="grid md:grid-cols-2 min-h-[600px]">
-                {/* LEFT COLUMN: "The Message" */}
                 <div className="p-8 md:p-12 flex flex-col relative border-b md:border-b-0 md:border-r border-dashed border-foreground/30 bg-surface">
                   <div className="mb-8">
                     <span className="font-mono text-[10px] uppercase tracking-widest text-foreground/40 border border-foreground/20 px-2 py-1">
@@ -155,9 +155,7 @@ export default function FullSignUp() {
                   </div>
                 </div>
 
-                {/* RIGHT COLUMN: "The Address / Form" */}
                 <div className="p-8 md:p-12 flex flex-col relative bg-surface-hover/30">
-                  {/* The Stamp Graphic */}
                   <div className="absolute top-8 right-8 pointer-events-none select-none">
                     <div className="relative w-24 h-28 border-[3px] border-dotted border-foreground/20 bg-background-editorial flex items-center justify-center rotate-3 shadow-sm">
                       <Image
@@ -167,7 +165,6 @@ export default function FullSignUp() {
                         height={60}
                         className="opacity-80 grayscale contrast-125"
                       />
-                      {/* Cancellation Waves */}
                       <div className="absolute inset-0 overflow-hidden opacity-30">
                         <div className="w-[200%] h-px bg-foreground absolute top-1/4 -left-10 rotate-[25deg]" />
                         <div className="w-[200%] h-px bg-foreground absolute top-2/4 -left-10 rotate-[25deg]" />
@@ -176,7 +173,6 @@ export default function FullSignUp() {
                     </div>
                   </div>
 
-                  {/* Form */}
                   <div className="flex-1 flex flex-col justify-center mt-20 md:mt-10">
                     <form
                       onSubmit={handleSignUp}

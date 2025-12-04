@@ -8,12 +8,10 @@ export async function GET(request: NextRequest) {
   const requestUrl = new URL(request.url);
   const token = requestUrl.searchParams.get("token");
 
-  // If no token provided, redirect to home
   if (!token) {
     return NextResponse.redirect(new URL("/", request.url));
   }
 
-  // 1. Check if user is already authenticated
   const supabase = await createClient();
   const {
     data: { session },
@@ -21,11 +19,11 @@ export async function GET(request: NextRequest) {
 
   // CASE A: User is ALREADY Logged In
   if (session) {
-    const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL;
+    const BACKEND_URL =
+      process.env.NEXT_PUBLIC_API_URL || process.env.BACKEND_URL;
 
     try {
-      // Call Backend to Sync/Accept Invite immediately
-      await fetch(`${BACKEND_URL}/users/sync`, {
+      const response = await fetch(`${BACKEND_URL}/users/sync`, {
         method: "POST",
         headers: {
           Authorization: `Bearer ${session.access_token}`,
@@ -34,34 +32,49 @@ export async function GET(request: NextRequest) {
         body: JSON.stringify({
           id: session.user.id,
           email: session.user.email,
-          inviteToken: token, // <--- Pass the token here
+          inviteToken: token,
         }),
       });
 
-      // Redirect straight to dashboard with a success flag
+      if (!response.ok) {
+        return NextResponse.redirect(
+          new URL("/dashboard?invite=error", request.url)
+        );
+      }
+
+      const data = await response.json();
+
+      // FIX: Use Query Parameter
+      if (data.targetWorkspaceId) {
+        return NextResponse.redirect(
+          new URL(
+            `/dashboard?workspaceId=${data.targetWorkspaceId}&invite=success`,
+            request.url
+          )
+        );
+      }
+
       return NextResponse.redirect(
         new URL("/dashboard?invite=success", request.url)
       );
     } catch (error) {
-      console.error("Auto-join failed:", error);
       return NextResponse.redirect(
         new URL("/dashboard?invite=error", request.url)
       );
     }
   }
 
-  // CASE B: User is NOT Logged In (Existing Logic)
-  // Store the invite token in a secure, short-lived httpOnly cookie.
+  // CASE B: User is NOT Logged In
   const cookieStore = await cookies();
-
   cookieStore.set("invite_token", token, {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
     sameSite: "lax",
-    maxAge: 60 * 60, // 1 hour expiration
+    maxAge: 60 * 60 * 24,
     path: "/",
   });
 
-  // Redirect to the Login page.
-  return NextResponse.redirect(new URL("/auth/login?flow=invite", request.url));
+  return NextResponse.redirect(
+    new URL(`/auth/signup?token=${token}`, request.url)
+  );
 }
