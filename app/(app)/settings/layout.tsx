@@ -19,20 +19,33 @@ export default function SettingsLayout({
   const pathname = usePathname();
 
   return (
-    <div className="h-full flex flex-col w-full max-w-7xl mx-auto">
-      <div className="mb-8 border-b-4 border-double border-[--foreground] pb-6">
-        <p className="eyebrow mb-2">Administration</p>
-        <h1 className="font-serif text-5xl md:text-6xl font-bold uppercase tracking-tight text-[--foreground]">
-          Settings
-        </h1>
-        <p className="font-serif text-[--muted] mt-2 max-w-xl text-lg italic">
-          Manage your account, connections, and application preferences.
+    <div className="min-h-full w-full max-w-7xl mx-auto px-6 md:px-12 py-10 flex flex-col">
+      {/* Masthead Header */}
+      <div className="mb-12 border-b-4 border-double border-foreground pb-6">
+        <div className="flex items-baseline justify-between">
+          <div>
+            <p className="eyebrow mb-3 text-brand-primary">Administration</p>
+            <h1 className="font-serif text-5xl md:text-6xl font-bold uppercase tracking-tight text-foreground">
+              Settings
+            </h1>
+          </div>
+          <span className="hidden md:block font-serif text-xs italic text-muted-foreground uppercase tracking-widest">
+            Vol. 1 — Config
+          </span>
+        </div>
+        <p className="font-serif text-muted-foreground mt-4 max-w-xl text-lg leading-relaxed">
+          Manage your account credentials, integration channels, and workspace
+          preferences.
         </p>
       </div>
 
-      <div className="flex-1 grid grid-cols-1 lg:grid-cols-12 gap-8 min-h-0">
+      <div className="flex-1 grid grid-cols-1 lg:grid-cols-12 gap-12 min-h-0">
+        {/* Sidebar Navigation - Table of Contents Style */}
         <aside className="lg:col-span-3">
-          <nav className="border border-[--border] p-2 space-y-1">
+          <nav className="space-y-1 sticky top-6">
+            <p className="font-serif text-xs font-bold uppercase tracking-widest text-foreground/40 mb-4 pl-3">
+              Contents
+            </p>
             {settingsNav.map((item) => {
               const Icon = item.icon;
               const isActive = pathname === item.href;
@@ -41,24 +54,36 @@ export default function SettingsLayout({
                 <Link
                   key={item.name}
                   href={item.href}
-                  className={`flex items-center gap-3 px-3 py-2
-                    font-serif text-sm transition-colors
+                  className={`
+                    group flex items-center gap-3 px-3 py-3
+                    font-serif text-base transition-all duration-200
+                    border-l-2
                     ${
                       isActive
-                        ? "font-bold text-[--foreground]"
-                        : "text-[--muted]"
-                    }`}
+                        ? "border-brand-primary bg-brand-primary/5 text-brand-primary font-bold"
+                        : "border-transparent text-muted-foreground hover:text-foreground hover:bg-surface-hover hover:border-border"
+                    }
+                  `}
                 >
-                  <Icon className="w-4 h-4" />
-                  <span className="mt-px">{item.name}</span>
+                  <Icon
+                    className={`w-4 h-4 ${
+                      isActive
+                        ? "text-brand-primary"
+                        : "text-muted-foreground group-hover:text-foreground"
+                    }`}
+                  />
+                  <span className="mt-0.5">{item.name}</span>
                 </Link>
               );
             })}
           </nav>
         </aside>
 
-        <main className="lg:col-span-9 p-6 md:p-8">
-          {children}
+        {/* Main Content Paper */}
+        <main className="lg:col-span-9">
+          <div className="bg-surface border border-border p-8 md:p-10 shadow-sm min-h-[500px]">
+            {children}
+          </div>
         </main>
       </div>
     </div>

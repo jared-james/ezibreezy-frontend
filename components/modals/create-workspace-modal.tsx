@@ -10,6 +10,20 @@ import {
   createWorkspace,
   getWorkspaceStructure,
 } from "@/app/actions/workspaces";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  AlertTriangle,
+  Loader2,
+  Building2,
+  Globe,
+  Briefcase,
+} from "lucide-react";
 
 interface CreateWorkspaceModalProps {
   onClose: () => void;
@@ -77,17 +91,19 @@ export function CreateWorkspaceModal({
 
   if (eligibleOrgs.length === 0) {
     return (
-      <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-        <div className="bg-background border-2 border-foreground p-6 max-w-md w-full">
-          <h2 className="font-serif text-xl mb-4">Cannot Create Workspace</h2>
-          <p className="text-sm text-muted-foreground mb-4">
+      <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+        <div className="bg-surface border border-border shadow-2xl rounded-lg p-8 max-w-md w-full text-center">
+          <div className="flex justify-center mb-4">
+            <div className="h-12 w-12 rounded-full bg-error/10 flex items-center justify-center text-error border border-error/20">
+              <AlertTriangle className="h-6 w-6" />
+            </div>
+          </div>
+          <h2 className="headline text-xl font-bold mb-2">Access Denied</h2>
+          <p className="font-serif text-sm text-muted-foreground mb-6 leading-relaxed">
             You need to be an owner or admin of an organization to create
             workspaces.
           </p>
-          <button
-            onClick={onClose}
-            className="px-4 py-2 bg-foreground text-background font-serif uppercase tracking-wide"
-          >
+          <button onClick={onClose} className="btn btn-outline w-full">
             Close
           </button>
         </div>
@@ -96,34 +112,54 @@ export function CreateWorkspaceModal({
   }
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-      <div className="bg-background border-2 border-foreground p-6 max-w-md w-full">
-        <h2 className="font-serif text-xl mb-6">Create New Workspace</h2>
+    <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-in fade-in duration-200">
+      <div className="bg-surface border border-border shadow-2xl rounded-lg w-full max-w-lg overflow-hidden flex flex-col">
+        {/* Header */}
+        <div className="p-6 md:p-8 border-b border-border bg-surface-hover/50">
+          <p className="eyebrow text-brand-primary mb-2">Registration</p>
+          <h2 className="headline text-2xl font-bold text-foreground">
+            New Workspace
+          </h2>
+          <p className="font-serif text-sm text-muted-foreground mt-1">
+            Initialize a new environment for your projects.
+          </p>
+        </div>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label className="block text-sm font-serif mb-2">
-              Organization
+        <form
+          onSubmit={handleSubmit}
+          className="p-6 md:p-8 space-y-5 bg-surface"
+        >
+          {/* Organization Select */}
+          <div className="space-y-2">
+            <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-2">
+              <Building2 className="w-3.5 h-3.5" /> Organization
             </label>
-            <select
+            <Select
               value={formData.organizationId}
-              onChange={(e) =>
-                setFormData({ ...formData, organizationId: e.target.value })
+              onValueChange={(value) =>
+                setFormData({ ...formData, organizationId: value })
               }
-              required
-              className="w-full px-3 py-2 border-2 border-foreground bg-background font-serif"
             >
-              {eligibleOrgs.map((node) => (
-                <option key={node.organization.id} value={node.organization.id}>
-                  {node.organization.name}
-                </option>
-              ))}
-            </select>
+              <SelectTrigger className="w-full bg-background font-serif">
+                <SelectValue placeholder="Select Organization" />
+              </SelectTrigger>
+              <SelectContent>
+                {eligibleOrgs.map((node) => (
+                  <SelectItem
+                    key={node.organization.id}
+                    value={node.organization.id}
+                  >
+                    {node.organization.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
-          <div>
-            <label className="block text-sm font-serif mb-2">
-              Workspace Name
+          {/* Workspace Name Input */}
+          <div className="space-y-2">
+            <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-2">
+              <Briefcase className="w-3.5 h-3.5" /> Workspace Name
             </label>
             <input
               type="text"
@@ -131,51 +167,74 @@ export function CreateWorkspaceModal({
               onChange={(e) =>
                 setFormData({ ...formData, name: e.target.value })
               }
-              placeholder="e.g., Client Name or Project"
+              placeholder="e.g., Q4 Marketing Campaign"
               maxLength={50}
               required
-              className="w-full px-3 py-2 border-2 border-foreground bg-background font-serif"
+              className="w-full h-10 px-3 rounded-md border border-input bg-background font-serif text-sm shadow-sm transition-colors placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
             />
           </div>
 
-          <div>
-            <label className="block text-sm font-serif mb-2">Timezone</label>
-            <select
+          {/* Timezone Select */}
+          <div className="space-y-2">
+            <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-2">
+              <Globe className="w-3.5 h-3.5" /> Timezone
+            </label>
+            <Select
               value={formData.timezone}
-              onChange={(e) =>
-                setFormData({ ...formData, timezone: e.target.value })
+              onValueChange={(value) =>
+                setFormData({ ...formData, timezone: value })
               }
-              className="w-full px-3 py-2 border-2 border-foreground bg-background font-serif"
             >
-              <option value="UTC">UTC</option>
-              <option value="America/New_York">Eastern Time</option>
-              <option value="America/Chicago">Central Time</option>
-              <option value="America/Denver">Mountain Time</option>
-              <option value="America/Los_Angeles">Pacific Time</option>
-            </select>
+              <SelectTrigger className="w-full bg-background font-serif">
+                <SelectValue placeholder="Select Timezone" />
+              </SelectTrigger>
+              <SelectContent className="max-h-[200px]">
+                <SelectItem value="UTC">UTC (Universal Time)</SelectItem>
+                <SelectItem value="America/New_York">Eastern Time</SelectItem>
+                <SelectItem value="America/Chicago">Central Time</SelectItem>
+                <SelectItem value="America/Denver">Mountain Time</SelectItem>
+                <SelectItem value="America/Los_Angeles">
+                  Pacific Time
+                </SelectItem>
+                <SelectItem value="Europe/London">London</SelectItem>
+                <SelectItem value="Europe/Paris">Paris</SelectItem>
+                <SelectItem value="Asia/Tokyo">Tokyo</SelectItem>
+                <SelectItem value="Australia/Sydney">Sydney</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
 
+          {/* Error Message */}
           {error && (
-            <div className="text-sm text-error bg-error/10 p-3 border border-error">
-              {error}
+            <div className="p-3 rounded-md bg-error/5 border border-error/20 flex items-start gap-2 text-error animate-in slide-in-from-top-1">
+              <AlertTriangle className="w-4 h-4 mt-0.5 shrink-0" />
+              <span className="text-xs font-medium leading-tight">{error}</span>
             </div>
           )}
 
-          <div className="flex gap-3 pt-2">
+          {/* Footer Buttons */}
+          <div className="pt-4 flex flex-col-reverse sm:flex-row gap-3">
             <button
               type="button"
               onClick={onClose}
               disabled={loading}
-              className="flex-1 px-4 py-2 border-2 border-foreground font-serif uppercase tracking-wide hover:bg-surface"
+              className="btn btn-outline flex-1"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={loading}
-              className="flex-1 px-4 py-2 bg-foreground text-background font-serif uppercase tracking-wide hover:opacity-90 disabled:opacity-50"
+              className="btn btn-primary flex-1"
             >
-              {loading ? "Creating..." : "Create"}
+              {loading ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                  Creating...
+                </>
+              ) : (
+                "Create Workspace"
+              )}
             </button>
           </div>
         </form>

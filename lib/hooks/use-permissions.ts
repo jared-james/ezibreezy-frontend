@@ -1,12 +1,12 @@
+// lib/hooks/use-permissions.ts
+
 import { useWorkspaceStore } from "@/lib/store/workspace-store";
 
 export function usePermissions() {
   const { currentWorkspace, currentOrganization, structure } =
     useWorkspaceStore();
 
-  const hasWorkspaceRole = (
-    ...roles: Array<"admin" | "editor" | "viewer">
-  ) => {
+  const hasWorkspaceRole = (...roles: Array<"admin" | "editor" | "viewer">) => {
     return currentWorkspace && roles.includes(currentWorkspace.role);
   };
 
@@ -14,8 +14,9 @@ export function usePermissions() {
     orgId: string,
     ...roles: Array<"owner" | "admin" | "member">
   ) => {
-    const org = structure.find((n) => n.organization.id === orgId)
-      ?.organization;
+    const org = structure.find(
+      (n) => n.organization.id === orgId
+    )?.organization;
     return org && roles.includes(org.role);
   };
 

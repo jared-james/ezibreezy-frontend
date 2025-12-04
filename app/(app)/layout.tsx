@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/auth";
 import SidebarClient from "@/components/sidebar-client";
 import { getWorkspaceStructure } from "@/app/actions/workspaces";
+import { InviteToast } from "@/components/auth/invite-toast";
 
 export default async function AppLayout({
   children,
@@ -11,7 +12,6 @@ export default async function AppLayout({
   children: React.ReactNode;
 }) {
   // 1. Server-side Auth Check
-  // We use the lighter `getCurrentUser` here just to verify session & get display name.
   const user = await getCurrentUser();
 
   if (!user) {
@@ -19,8 +19,6 @@ export default async function AppLayout({
   }
 
   // 2. Fetch workspace structure server-side
-  // This ensures data is available before client components mount,
-  // preventing the "Loading..." state in the workspace switcher
   const workspaceResult = await getWorkspaceStructure();
   const workspaceStructure = workspaceResult.success
     ? workspaceResult.data
@@ -30,11 +28,16 @@ export default async function AppLayout({
     success: workspaceResult.success,
     dataLength: workspaceStructure.length,
     error: workspaceResult.error,
-    structure: workspaceStructure,
   });
 
   return (
     <div className="flex h-screen w-full bg-[--background] overflow-hidden">
+      {/* 
+        This component watches the URL for ?invite=success 
+        and triggers a toast notification when appropriate 
+      */}
+      <InviteToast />
+
       {/*
         Sidebar
         We pass both the user's name and the workspace structure.

@@ -3,8 +3,8 @@
 "use client";
 
 import { createClient } from "@/lib/supabase/client";
-import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useState, useEffect, Suspense } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import MinimalHeader from "@/components/shared/minimal-header";
@@ -12,13 +12,34 @@ import LandingPageFooter from "@/components/landing-page/landing-page-footer";
 import { ArrowRight, Loader2 } from "lucide-react";
 import posthog from "posthog-js";
 
-export default function Login() {
+function LoginForm() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
+  const searchParams = useSearchParams();
   const supabase = createClient();
+
+  // Check for error messages from callback
+  useEffect(() => {
+    const errorParam = searchParams.get("error");
+    if (errorParam) {
+      const errorMessages: Record<string, string> = {
+        auth_callback_failed:
+          "Authentication failed. Please try signing in again.",
+        email_not_verified:
+          "Please verify your email address. Check your inbox for the verification link.",
+        sync_failed:
+          "Account setup failed. Please contact support or try again.",
+        link_expired:
+          "This verification link has expired or was already used. Please sign in to request a new one.",
+        verification_failed:
+          "Email verification failed. The link may have expired. Please try signing up again or contact support.",
+      };
+      setError(errorMessages[errorParam] || "An error occurred during sign in.");
+    }
+  }, [searchParams]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -26,7 +47,7 @@ export default function Login() {
     setIsLoading(true);
 
     try {
-      const { error: authError } = await supabase.auth.signInWithPassword({
+      const { data, error: authError } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
@@ -50,6 +71,10 @@ export default function Login() {
         });
 
         // Stop loading ONLY if there is an error
+        setIsLoading(false);
+      } else if (data.user && !data.user.email_confirmed_at) {
+        // Check if email is verified
+        setError("Please verify your email address. Check your inbox for the verification link.");
         setIsLoading(false);
       } else {
         // Track successful login and identify user
@@ -255,5 +280,17 @@ export default function Login() {
 
       <LandingPageFooter />
     </div>
+  );
+}
+
+export default function Login() {
+  return (
+    <Suspense fallback={
+      <div className="flex items-center justify-center min-h-screen">
+        <Loader2 className="w-8 h-8 animate-spin" />
+      </div>
+    }>
+      <LoginForm />
+    </Suspense>
   );
 }
