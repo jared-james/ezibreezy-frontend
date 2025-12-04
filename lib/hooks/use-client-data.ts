@@ -14,21 +14,29 @@ export function useClientData() {
     staleTime: Infinity,
   });
 
-  const { currentWorkspace, setCurrentWorkspace } = useWorkspaceStore();
+  const { currentWorkspace, setCurrentWorkspace, structure } =
+    useWorkspaceStore();
 
   // Initialize workspace from server data on first load
   useEffect(() => {
-    if (data?.defaultWorkspaceId && !currentWorkspace) {
-      // Create a minimal workspace object from the default workspace ID
-      setCurrentWorkspace({
-        id: data.defaultWorkspaceId,
-        name: "Default Workspace", // Placeholder name
-        organizationId: data.organizationId,
-        role: "admin", // Assume admin for now
-        timezone: "UTC", // Default timezone
-      });
+    // Only initialize if:
+    // 1. We have data with a default workspace ID
+    // 2. We don't already have a workspace selected
+    // 3. Structure is loaded (to ensure setCurrentWorkspace can validate)
+    if (
+      data?.defaultWorkspaceId &&
+      !currentWorkspace &&
+      structure.length > 0
+    ) {
+      console.log(
+        "🔵 [useClientData] Initializing workspace:",
+        data.defaultWorkspaceId
+      );
+      // FIX: Pass workspace ID string, not object
+      // setCurrentWorkspace expects a string ID and looks it up in the structure
+      setCurrentWorkspace(data.defaultWorkspaceId);
     }
-  }, [data, currentWorkspace, setCurrentWorkspace]);
+  }, [data, currentWorkspace, setCurrentWorkspace, structure]);
 
   return {
     organizationId: data?.organizationId || null,

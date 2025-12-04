@@ -16,12 +16,26 @@ export function InviteToast() {
     if (inviteStatus === "success") {
       toast.success("Invitation accepted! Welcome to the workspace.");
 
-      // Clean up the URL
+      // Clean up the URL - only remove 'invite' param
+      // WorkspaceQuerySelector will handle 'workspaceId' cleanup
       const newParams = new URLSearchParams(searchParams.toString());
       newParams.delete("invite");
-      router.replace(`?${newParams.toString()}`);
+
+      // Only update URL if we actually removed something
+      const newUrl = newParams.toString()
+        ? `?${newParams.toString()}`
+        : window.location.pathname;
+      router.replace(newUrl, { scroll: false });
     } else if (inviteStatus === "error") {
       toast.error("There was an issue processing your invite.");
+
+      // Clean up error param
+      const newParams = new URLSearchParams(searchParams.toString());
+      newParams.delete("invite");
+      const newUrl = newParams.toString()
+        ? `?${newParams.toString()}`
+        : window.location.pathname;
+      router.replace(newUrl, { scroll: false });
     }
   }, [searchParams, router]);
 
