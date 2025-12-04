@@ -2,6 +2,7 @@
 
 "use client";
 
+import { Suspense } from "react";
 import ComingSoonSignUp from "./ComingSoonSignUp";
 import FullSignUp from "./FullSignUp";
 
@@ -15,5 +16,9 @@ export default function SignUp() {
     return <ComingSoonSignUp />;
   }
 
-  return <FullSignUp />;
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <FullSignUp />
+    </Suspense>
+  );
 }
