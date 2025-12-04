@@ -63,9 +63,8 @@ export const useWorkspaceStore = create<WorkspaceState & WorkspaceActions>()(
 
         const state = get();
 
-        // 2. AUTO-REFRESH LOGIC:
-        // If we currently have a workspace selected, we must look it up in the
-        // NEW structure to see if its name/timezone/role has changed.
+        // 2. AUTO-REFRESH & VALIDATION LOGIC:
+        // Check if the currently selected workspace still exists in the new data.
         if (state.currentWorkspace) {
           let foundNewData = false;
 
@@ -74,8 +73,7 @@ export const useWorkspaceStore = create<WorkspaceState & WorkspaceActions>()(
               (w) => w.id === state.currentWorkspace!.id
             );
             if (ws) {
-              // We found the currently selected workspace in the new data!
-              // Update the state objects to match the new data.
+              // Found it! Update state with fresh data (name changes, role changes, etc)
               set({
                 currentWorkspace: {
                   ...ws,
@@ -92,31 +90,60 @@ export const useWorkspaceStore = create<WorkspaceState & WorkspaceActions>()(
             }
           }
 
-          // Optional: If the workspace is GONE (deleted), revert to default logic?
-          // For now, we leave it, or handle it in the component.
+          // --- FIX: HANDLE REMOVED WORKSPACES ---
+          if (!foundNewData) {
+            console.warn(
+              "⚠️ [Store] Selected workspace no longer exists in structure. Resetting selection."
+            );
+            // Clear the stale selection so the fallback logic below can kick in
+            set({
+              currentWorkspace: null,
+              currentOrganization: null,
+            });
+            if (typeof window !== "undefined") {
+              localStorage.removeItem("currentWorkspaceId");
+            }
+          }
         }
 
-        // 3. Fallback / Default Selection Logic (Existing Code)
-        const updatedState = get(); // Re-get state after potential refresh above
+        // 3. Fallback / Default Selection Logic
+        const updatedState = get(); // Re-get state after potential reset above
 
         if (structure.length > 0) {
-          if (
+          // If we have no workspace selected (either it was null, or we just cleared it because it was stale)
+          if (!updatedState.currentWorkspace) {
+            // Find the first available workspace in the structure
+            for (const node of structure) {
+              if (node.workspaces.length > 0) {
+                const firstWs = node.workspaces[0];
+                const workspaceWithOrg = {
+                  ...firstWs,
+                  organizationId: node.organization.id,
+                };
+
+                console.log(
+                  "🟡 [Store] Auto-selecting first available workspace:",
+                  firstWs.id
+                );
+
+                set({
+                  currentWorkspace: workspaceWithOrg,
+                  currentOrganization: node.organization,
+                });
+
+                if (typeof window !== "undefined") {
+                  localStorage.setItem("currentWorkspaceId", firstWs.id);
+                }
+                break; // Stop after finding the first valid one
+              }
+            }
+          }
+          // Edge Case: Workspace exists but Org was missing in state (rare sync issue)
+          else if (
             updatedState.currentWorkspace &&
             !updatedState.currentOrganization
           ) {
-            // Edge case: Workspace exists in LocalStorage but Org is missing
             get().setCurrentWorkspace(updatedState.currentWorkspace.id);
-          } else if (!updatedState.currentWorkspace) {
-            // Edge case: No workspace selected at all -> Select first available
-            const firstOrg = structure[0];
-            if (firstOrg.workspaces.length > 0) {
-              const firstWs = firstOrg.workspaces[0];
-              console.log(
-                "🟡 [Store] Auto-selecting first workspace:",
-                firstWs.id
-              );
-              get().setCurrentWorkspace(firstWs.id);
-            }
           }
         }
       },
