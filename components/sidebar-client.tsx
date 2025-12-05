@@ -4,7 +4,7 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import {
   LayoutDashboard,
   Pencil,
@@ -27,6 +27,7 @@ import {
 } from "@/lib/store/workspace-store";
 import { WorkspaceSwitcher } from "@/components/layout/workspace-switcher";
 import { cn } from "@/lib/utils";
+import { useWorkspaceLink } from "@/lib/hooks/use-workspace-link";
 
 const coreNavigation = [
   { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
@@ -64,9 +65,12 @@ function NavItem({
       : pathname?.startsWith(item.href);
   const Icon = item.icon;
 
+  // Preserve workspaceId in navigation links
+  const href = useWorkspaceLink(item.href);
+
   return (
     <Link
-      href={item.href}
+      href={href}
       prefetch={false}
       className={cn(
         "flex items-center gap-3 px-3 py-2 font-serif text-sm transition-colors",
@@ -90,25 +94,8 @@ export default function SidebarClient({
   const router = useRouter();
   const [isConfirmingLogout, setIsConfirmingLogout] = useState(false);
 
-  // Store hooks
-  const { setStructure, currentOrganization } = useWorkspaceStore();
-
-  // Initialize store with server-fetched data immediately
-  useEffect(() => {
-    console.log("🟢 [Sidebar] Received initialStructure:", {
-      length: initialStructure?.length || 0,
-      structure: initialStructure,
-    });
-
-    if (initialStructure && initialStructure.length > 0) {
-      console.log("🟢 [Sidebar] Setting structure in store");
-      setStructure(initialStructure);
-    } else {
-      console.warn("⚠️ [Sidebar] initialStructure is empty or undefined");
-    }
-    // If initialStructure is empty, we could fetch client-side as fallback,
-    // but this shouldn't happen since the layout fetches it server-side
-  }, [initialStructure, setStructure]);
+  // Store hooks (WorkspaceHydrator now handles setStructure)
+  const { currentOrganization } = useWorkspaceStore();
 
   const executeLogout = async () => {
     await logout();

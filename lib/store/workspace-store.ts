@@ -3,7 +3,6 @@
 "use client";
 
 import { create } from "zustand";
-import { persist } from "zustand/middleware";
 
 // Matches backend: src/auth/workspace.guard.ts
 export interface Workspace {
@@ -30,14 +29,26 @@ export interface OrganizationNode {
 }
 
 export interface WorkspaceState {
+  // Data cache (hydrated from server props, not persisted)
   structure: OrganizationNode[];
   currentWorkspace: Workspace | null;
   currentOrganization: Organization | null;
+
+  // UI-only state
+  sidebarCollapsed: boolean;
+  workspaceSwitcherOpen: boolean;
 }
 
 export interface WorkspaceActions {
+  // Data setters (for hydration from server)
   setStructure: (structure: OrganizationNode[]) => void;
   setCurrentWorkspace: (workspaceId: string) => void;
+
+  // UI state setters
+  toggleSidebar: () => void;
+  setWorkspaceSwitcherOpen: (open: boolean) => void;
+
+  // Keep clear for logout
   clearWorkspace: () => void;
 }
 
@@ -45,151 +56,57 @@ const initialState: WorkspaceState = {
   structure: [],
   currentWorkspace: null,
   currentOrganization: null,
+  sidebarCollapsed: false,
+  workspaceSwitcherOpen: false,
 };
 
 export const useWorkspaceStore = create<WorkspaceState & WorkspaceActions>()(
-  persist(
-    (set, get) => ({
-      ...initialState,
+  (set, get) => ({
+    ...initialState,
 
-      setStructure: (structure) => {
-        console.log(
-          "🟡 [Store] setStructure called with length:",
-          structure.length
-        );
+    setStructure: (structure) => {
+      console.log(
+        "🟡 [Store] setStructure called with length:",
+        structure.length
+      );
+      // Simply update structure - no auto-selection logic
+      set({ structure });
+    },
 
-        // 1. Update the structure immediately
-        set({ structure });
+    setCurrentWorkspace: (workspaceId) => {
+      const { structure } = get();
+      let foundWorkspace: Workspace | null = null;
+      let foundOrg: Organization | null = null;
 
-        const state = get();
-
-        // 2. AUTO-REFRESH & VALIDATION LOGIC:
-        // Check if the currently selected workspace still exists in the new data.
-        if (state.currentWorkspace) {
-          let foundNewData = false;
-
-          for (const node of structure) {
-            const ws = node.workspaces.find(
-              (w) => w.id === state.currentWorkspace!.id
-            );
-            if (ws) {
-              // Found it! Update state with fresh data (name changes, role changes, etc)
-              set({
-                currentWorkspace: {
-                  ...ws,
-                  organizationId: node.organization.id,
-                },
-                currentOrganization: node.organization,
-              });
-              foundNewData = true;
-              console.log(
-                "🔄 [Store] Refreshed current workspace with new data:",
-                ws.name
-              );
-              break;
-            }
-          }
-
-          // --- FIX: HANDLE REMOVED WORKSPACES ---
-          if (!foundNewData) {
-            console.warn(
-              "⚠️ [Store] Selected workspace no longer exists in structure. Resetting selection."
-            );
-            // Clear the stale selection so the fallback logic below can kick in
-            set({
-              currentWorkspace: null,
-              currentOrganization: null,
-            });
-            if (typeof window !== "undefined") {
-              localStorage.removeItem("currentWorkspaceId");
-            }
-          }
+      for (const node of structure) {
+        const ws = node.workspaces.find((w) => w.id === workspaceId);
+        if (ws) {
+          foundWorkspace = { ...ws, organizationId: node.organization.id };
+          foundOrg = node.organization;
+          break;
         }
+      }
 
-        // 3. Fallback / Default Selection Logic
-        const updatedState = get(); // Re-get state after potential reset above
+      if (foundWorkspace && foundOrg) {
+        set({
+          currentWorkspace: foundWorkspace,
+          currentOrganization: foundOrg,
+        });
+      } else {
+        console.warn(`❌ Workspace ${workspaceId} not found in structure.`);
+      }
+    },
 
-        if (structure.length > 0) {
-          // If we have no workspace selected (either it was null, or we just cleared it because it was stale)
-          if (!updatedState.currentWorkspace) {
-            // Find the first available workspace in the structure
-            for (const node of structure) {
-              if (node.workspaces.length > 0) {
-                const firstWs = node.workspaces[0];
-                const workspaceWithOrg = {
-                  ...firstWs,
-                  organizationId: node.organization.id,
-                };
+    toggleSidebar: () => {
+      set((state) => ({ sidebarCollapsed: !state.sidebarCollapsed }));
+    },
 
-                console.log(
-                  "🟡 [Store] Auto-selecting first available workspace:",
-                  firstWs.id
-                );
+    setWorkspaceSwitcherOpen: (open) => {
+      set({ workspaceSwitcherOpen: open });
+    },
 
-                set({
-                  currentWorkspace: workspaceWithOrg,
-                  currentOrganization: node.organization,
-                });
-
-                if (typeof window !== "undefined") {
-                  localStorage.setItem("currentWorkspaceId", firstWs.id);
-                }
-                break; // Stop after finding the first valid one
-              }
-            }
-          }
-          // Edge Case: Workspace exists but Org was missing in state (rare sync issue)
-          else if (
-            updatedState.currentWorkspace &&
-            !updatedState.currentOrganization
-          ) {
-            get().setCurrentWorkspace(updatedState.currentWorkspace.id);
-          }
-        }
-      },
-
-      setCurrentWorkspace: (workspaceId) => {
-        const { structure } = get();
-        let foundWorkspace: Workspace | null = null;
-        let foundOrg: Organization | null = null;
-
-        for (const node of structure) {
-          const ws = node.workspaces.find((w) => w.id === workspaceId);
-          if (ws) {
-            foundWorkspace = { ...ws, organizationId: node.organization.id };
-            foundOrg = node.organization;
-            break;
-          }
-        }
-
-        if (foundWorkspace && foundOrg) {
-          set({
-            currentWorkspace: foundWorkspace,
-            currentOrganization: foundOrg,
-          });
-
-          if (typeof window !== "undefined") {
-            localStorage.setItem("currentWorkspaceId", foundWorkspace.id);
-          }
-        } else {
-          console.warn(`❌ Workspace ${workspaceId} not found in structure.`);
-        }
-      },
-
-      clearWorkspace: () => {
-        set(initialState);
-        if (typeof window !== "undefined") {
-          localStorage.removeItem("currentWorkspaceId");
-        }
-      },
-    }),
-    {
-      name: "workspace-storage",
-      partialize: (state) => ({
-        structure: state.structure,
-        currentWorkspace: state.currentWorkspace,
-        currentOrganization: state.currentOrganization,
-      }),
-    }
-  )
+    clearWorkspace: () => {
+      set(initialState);
+    },
+  })
 );

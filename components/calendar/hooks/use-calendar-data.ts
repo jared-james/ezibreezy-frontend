@@ -37,7 +37,8 @@ export function useCalendarData({
   });
 
   const filteredPosts = useMemo(() => {
-    let posts = allContent;
+    // Ensure allContent is always an array
+    let posts = Array.isArray(allContent) ? allContent : [];
 
     // Apply filter-based filtering
     if (filters) {

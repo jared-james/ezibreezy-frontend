@@ -3,6 +3,7 @@
 "use client";
 
 import * as React from "react";
+import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import { ChevronsUpDown, Check, Building2, Briefcase } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useWorkspaceStore } from "@/lib/store/workspace-store";
@@ -17,6 +18,10 @@ export function WorkspaceSwitcher({ initialStructure }: WorkspaceSwitcherProps) 
   const [open, setOpen] = React.useState(false);
   const dropdownRef = React.useRef<HTMLDivElement>(null);
   const hasInitialized = React.useRef(false);
+
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
 
   const {
     structure,
@@ -82,11 +87,18 @@ export function WorkspaceSwitcher({ initialStructure }: WorkspaceSwitcherProps) 
   }, []);
 
   const handleSelect = (workspaceId: string) => {
+    // 1. Update store immediately (optimistic UI - instant visual feedback)
     setCurrentWorkspace(workspaceId);
+
+    // 2. Update URL with new workspaceId
+    const newParams = new URLSearchParams(searchParams.toString());
+    newParams.set("workspaceId", workspaceId);
+
+    // 3. Navigate to new URL (triggers server component re-render with new data)
+    router.push(`${pathname}?${newParams.toString()}`);
+
+    // 4. Close dropdown
     setOpen(false);
-    // Optional: Refresh page if deep context changes require it,
-    // but the store update should trigger re-renders in other components.
-    // router.refresh();
   };
 
   // Debug logging

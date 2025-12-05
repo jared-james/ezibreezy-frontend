@@ -1,10 +1,12 @@
 // app/(app)/layout.tsx
 
 import { redirect } from "next/navigation";
+import { Suspense } from "react";
 import { getCurrentUser } from "@/lib/auth";
 import SidebarClient from "@/components/sidebar-client";
 import { getWorkspaceStructure } from "@/app/actions/workspaces";
 import { InviteToast } from "@/components/auth/invite-toast";
+import { WorkspaceHydrator } from "@/components/workspace/workspace-hydrator";
 
 export default async function AppLayout({
   children,
@@ -32,11 +34,19 @@ export default async function AppLayout({
 
   return (
     <div className="flex h-screen w-full bg-[--background] overflow-hidden">
-      {/* 
-        This component watches the URL for ?invite=success 
-        and triggers a toast notification when appropriate 
+      {/*
+        This component watches the URL for ?invite=success
+        and triggers a toast notification when appropriate
       */}
       <InviteToast />
+
+      {/*
+        Workspace Hydrator
+        Synchronizes server-fetched workspace data and URL params into Zustand store
+      */}
+      <Suspense fallback={null}>
+        <WorkspaceHydrator structure={workspaceStructure} />
+      </Suspense>
 
       {/*
         Sidebar

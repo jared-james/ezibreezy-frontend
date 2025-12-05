@@ -6,9 +6,11 @@ import {
   QueryClient,
 } from "@tanstack/react-query";
 import { createClient } from "@/lib/supabase/server";
-import { getUserAndOrganization } from "@/lib/auth";
 import MediaRoom from "@/components/media-room/media-room";
 import { redirect } from "next/navigation";
+
+// Media library is relatively stable - cache for 1 minute
+export const revalidate = 60;
 
 // Define response types inline for server-fetch
 interface MediaListResponse {
@@ -21,7 +23,11 @@ interface MediaListResponse {
   };
 }
 
-export default async function MediaRoomPage() {
+interface PageProps {
+  searchParams: Promise<{ workspaceId?: string }>;
+}
+
+export default async function MediaRoomPage({ searchParams }: PageProps) {
   const queryClient = new QueryClient();
   const supabase = await createClient();
 
@@ -33,25 +39,15 @@ export default async function MediaRoomPage() {
     redirect("/auth/login");
   }
 
-  // 1. Get Workspace Context (Server-Side)
-  const userContext = await getUserAndOrganization();
+  // Extract workspaceId from URL (guaranteed by proxy)
+  const params = await searchParams;
+  const workspaceId = params.workspaceId!;
 
-  if (!userContext?.defaultWorkspaceId) {
-    // If authenticated but no workspace context, something is wrong
-    return (
-      <div className="p-8 text-center text-red-500 font-serif">
-        Error: Could not load workspace context.
-      </div>
-    );
-  }
-
-  const { defaultWorkspaceId: workspaceId } = userContext;
   const token = session.access_token;
   const apiUrl = process.env.NEXT_PUBLIC_API_URL;
   const apiKey = process.env.NEXT_PUBLIC_API_KEY || "";
 
-  // 2. Prefetch Media (Server-Side) using Workspace ID
-  // Match the filters logic used in the client-side useMediaList hook
+  // Prefetch Media (Server-Side) using Workspace ID from URL
   const filters = {
     sortBy: "createdAt",
     order: "desc",
@@ -65,7 +61,7 @@ export default async function MediaRoomPage() {
     queryKey,
     initialPageParam: 0,
     queryFn: async ({ pageParam = 0 }) => {
-      const params = new URLSearchParams({
+      const urlParams = new URLSearchParams({
         rootOnly: "true",
         sortBy: "createdAt",
         order: "desc",
@@ -73,7 +69,7 @@ export default async function MediaRoomPage() {
         offset: String(pageParam),
       });
 
-      const res = await fetch(`${apiUrl}/media?${params}`, {
+      const res = await fetch(`${apiUrl}/media?${urlParams}`, {
         headers: {
           Authorization: `Bearer ${token}`,
           "x-api-key": apiKey,

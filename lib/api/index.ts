@@ -32,7 +32,7 @@ apiClient.interceptors.request.use(
       config.headers["Content-Type"] = "application/json";
     }
 
-    // 4. Inject Workspace Context
+    // 4. Inject Workspace Context from URL
     // We skip this for endpoints that:
     // - Are generic authentication routes
     // - Are fetching the user/workspace hierarchy itself
@@ -42,16 +42,18 @@ apiClient.interceptors.request.use(
       config.url?.startsWith("/workspaces");
 
     if (!isExcluded) {
-      // Read the ID we stored in localStorage via the WorkspaceStore
+      // CRITICAL: Check if window is defined to prevent SSR breakage
       if (typeof window !== "undefined") {
-        const workspaceId = localStorage.getItem("currentWorkspaceId");
+        // Read workspaceId from URL instead of localStorage
+        const urlParams = new URLSearchParams(window.location.search);
+        const workspaceId = urlParams.get("workspaceId");
 
         if (workspaceId) {
           config.headers["x-workspace-id"] = workspaceId;
         } else {
           // If we are hitting a data endpoint without an ID, it will likely 400/403.
           console.warn(
-            "⚠️ No workspace selected for data request:",
+            "⚠️ No workspaceId in URL for data request:",
             config.url
           );
         }

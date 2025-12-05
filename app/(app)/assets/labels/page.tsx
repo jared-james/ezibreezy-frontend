@@ -2,7 +2,18 @@
 
 import { Tag } from "lucide-react";
 
-export default function LabelsPage() {
+// Labels are frequently edited - force dynamic rendering
+export const dynamic = "force-dynamic";
+
+interface PageProps {
+  searchParams: Promise<{ workspaceId?: string }>;
+}
+
+export default async function LabelsPage({ searchParams }: PageProps) {
+  // Extract workspaceId from URL (guaranteed by proxy)
+  const params = await searchParams;
+  const workspaceId = params.workspaceId;
+
   return (
     <div className="min-h-screen w-full flex items-center justify-center bg-[--background] px-4">
       <div className="text-center space-y-6 max-w-2xl">
@@ -21,6 +32,13 @@ export default function LabelsPage() {
           Define and manage post labels (e.g., "Evergreen," "Promotion," "Series
           1") for better content categorization, filtering, and reporting.
         </p>
+
+        {/* Debug info - remove in production */}
+        {process.env.NODE_ENV === "development" && workspaceId && (
+          <p className="text-xs text-[--muted-foreground] font-mono">
+            Workspace: {workspaceId}
+          </p>
+        )}
       </div>
     </div>
   );

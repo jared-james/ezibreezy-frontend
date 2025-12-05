@@ -1,30 +1,41 @@
 // app/(app)/dashboard/page.tsx
 
-import { Suspense } from "react";
-import { WorkspaceQuerySelector } from "@/components/workspace/workspace-query-selector";
+// Force dynamic rendering - no caching for dashboard
+export const dynamic = "force-dynamic";
 
-export default function DashboardPage() {
+interface PageProps {
+  searchParams: Promise<{ workspaceId?: string }>;
+}
+
+export default async function DashboardPage({ searchParams }: PageProps) {
+  // Extract workspaceId from URL (guaranteed by proxy)
+  const params = await searchParams;
+  const workspaceId = params.workspaceId;
+
+  // For future: Fetch dashboard data using serverFetch
+  // const dashboardData = await serverFetch('/dashboard/summary', { workspaceId });
+
   return (
-    <>
-      {/* Handle workspace query parameter for invite acceptance flow */}
-      <Suspense fallback={null}>
-        <WorkspaceQuerySelector />
-      </Suspense>
-
-      <div className="w-full flex items-center justify-center bg-[--background] px-4">
-        <div className="text-center space-y-6">
-          <div className="border-b-4 border-double border-[--foreground] pb-4">
-            <p className="eyebrow mb-2">Dashboard</p>
-            <h1 className="font-serif text-4xl md:text-5xl font-bold uppercase tracking-tight text-[--foreground]">
-              Coming Soon
-            </h1>
-          </div>
-
-          <p className="font-serif text-[--muted] italic text-lg">
-            Your command center for ideas, posts, analytics and insights.
-          </p>
+    <div className="w-full flex items-center justify-center bg-[--background] px-4">
+      <div className="text-center space-y-6">
+        <div className="border-b-4 border-double border-[--foreground] pb-4">
+          <p className="eyebrow mb-2">Dashboard</p>
+          <h1 className="font-serif text-4xl md:text-5xl font-bold uppercase tracking-tight text-[--foreground]">
+            Coming Soon
+          </h1>
         </div>
+
+        <p className="font-serif text-[--muted] italic text-lg">
+          Your command center for ideas, posts, analytics and insights.
+        </p>
+
+        {/* Debug info - remove in production */}
+        {process.env.NODE_ENV === "development" && workspaceId && (
+          <p className="text-xs text-[--muted-foreground] font-mono">
+            Workspace: {workspaceId}
+          </p>
+        )}
       </div>
-    </>
+    </div>
   );
 }
