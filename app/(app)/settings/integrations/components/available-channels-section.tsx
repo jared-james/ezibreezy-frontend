@@ -24,7 +24,7 @@ const platformDetails: Record<string, string> = {
   tiktok: "Business or Creator",
   mastodon: "Profile",
   pinterest: "Business or Profile",
-  google_business: "Profile", // Assuming ID is google_business or similar
+  google_business: "Profile",
   twitter: "Profile",
   start_page: "Simple, powerful link-in-bio",
 };
@@ -51,7 +51,7 @@ export const AvailableChannelsSection: React.FC<
             <button
               key={platform.id}
               onClick={() => onPlatformClick(platform)}
-              className="group relative flex flex-col items-center text-center p-6 border border-border bg-surface rounded-sm transition-all duration-200 hover:border-foreground/50 hover:shadow-sm"
+              className="group relative flex flex-col items-center text-center p-6 border border-border bg-surface rounded-sm transition-all duration-200 hover:border-brand-primary hover:shadow-sm"
               title={platform.name}
             >
               {/* Connected Badge */}
@@ -64,13 +64,13 @@ export const AvailableChannelsSection: React.FC<
               )}
 
               {/* Icon Circle */}
-              <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-surface-hover border border-border group-hover:border-foreground/20 group-hover:scale-105 transition-all duration-300">
+              <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-surface-hover border border-border group-hover:border-brand-primary/20 group-hover:scale-105 transition-all duration-300">
                 <Icon className="h-5 w-5 text-foreground group-hover:text-brand-primary transition-colors" />
               </div>
 
               {/* Text Content */}
               <div className="space-y-1.5">
-                <span className="block font-serif text-base text-foreground group-hover:underline decoration-border decoration-dashed underline-offset-4">
+                <span className="block font-serif text-base text-foreground group-hover:text-brand-primary transition-colors">
                   {platform.name}
                 </span>
                 <span className="block text-[0.65rem] uppercase tracking-wider text-muted-foreground leading-snug max-w-[120px] mx-auto">

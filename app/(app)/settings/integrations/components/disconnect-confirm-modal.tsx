@@ -2,7 +2,7 @@
 
 "use client";
 
-import { X, AlertTriangle, Trash2, Loader2 } from "lucide-react";
+import { X, AlertTriangle, Trash2, Loader2, Scissors } from "lucide-react";
 import { useState } from "react";
 
 interface DisconnectConfirmModalProps {
@@ -28,68 +28,112 @@ export const DisconnectConfirmModal: React.FC<DisconnectConfirmModalProps> = ({
       await onConfirm();
     } finally {
       setIsLoading(false);
-      onClose(); // Ensure modal closes even if void return
+      onClose();
     }
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-in fade-in duration-200">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#e5e5e0]/80 backdrop-blur-sm animate-in fade-in duration-200">
+      {/* 
+        Container: 
+        - Editorial paper color
+        - Standard soft shadow
+        - Clean border
+      */}
       <div
-        className="relative w-full max-w-md bg-surface border border-border shadow-2xl rounded-lg overflow-hidden flex flex-col"
+        className="
+          relative w-full max-w-md 
+          bg-[#fdfbf7] 
+          border border-black/10
+          shadow-2xl rounded-lg
+          flex flex-col overflow-hidden
+        "
         role="dialog"
         aria-modal="true"
       >
-        <button
-          onClick={onClose}
-          disabled={isLoading}
-          className="absolute top-4 right-4 p-2 text-muted-foreground hover:text-foreground transition-colors rounded-sm hover:bg-surface-hover disabled:opacity-50"
-          aria-label="Close"
-        >
-          <X className="w-5 h-5" />
-        </button>
-
-        <div className="p-8 text-center">
-          {/* Top Icon - Red for Destructive Action */}
-          <div className="inline-flex items-center justify-center w-14 h-14 mb-6 rounded-full border border-error/20 bg-error/5 shadow-sm">
-            <Trash2 className="w-7 h-7 text-error" />
-          </div>
-
-          <div className="space-y-3 mb-2">
-            <p className="eyebrow text-error">Disconnect Account</p>
-            <h2 className="headline text-2xl">Are you sure?</h2>
-          </div>
-
-          <p className="font-serif text-sm leading-relaxed text-muted-foreground">
-            You are about to disconnect{" "}
-            <strong className="text-foreground">{accountName}</strong>. This
-            will stop any scheduled posts for this channel.
-          </p>
-        </div>
-
-        {/* Footer Actions */}
-        <div className="px-8 py-6 border-t border-border border-dashed bg-surface/50">
-          <div className="flex flex-col-reverse gap-3 sm:flex-row sm:gap-4">
+        {/* Header Section */}
+        <div className="p-8 border-b border-black/5 pb-6">
+          <div className="flex items-start justify-between">
+            <div>
+              <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-red-600/70 mb-2">
+                System // Termination
+              </p>
+              <h2 className="headline text-3xl font-bold tracking-tight text-foreground">
+                Disconnect
+              </h2>
+            </div>
             <button
               onClick={onClose}
               disabled={isLoading}
-              className="btn btn-outline flex-1 py-3"
+              className="text-muted-foreground hover:text-foreground transition-colors p-1"
             >
-              Cancel
+              <X className="w-6 h-6" />
             </button>
-            <button
-              onClick={handleConfirm}
-              disabled={isLoading}
-              className="btn flex-1 py-3 bg-error text-error-foreground border-error/50 hover:bg-error-hover hover:border-error-hover shadow-sm"
-            >
-              {isLoading ? (
-                <span className="flex items-center justify-center gap-2">
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                  Disconnecting...
-                </span>
-              ) : (
-                "Yes, Disconnect"
-              )}
-            </button>
+          </div>
+
+          <div className="mt-4 font-serif text-sm text-foreground/80 leading-relaxed border-l-2 border-red-500 pl-3">
+            Severing connection with{" "}
+            <span className="font-bold border-b border-black/20 border-dotted">
+              {accountName}
+            </span>
+            .
+          </div>
+        </div>
+
+        {/* Content Section */}
+        <div className="p-8 pt-6">
+          <div className="space-y-6">
+            {/* Warning Box */}
+            <div className="border border-red-200 bg-red-50/50 p-4 flex items-start gap-3 rounded-sm">
+              <div className="p-2 bg-white border border-red-100 rounded-full shrink-0">
+                <AlertTriangle className="w-4 h-4 text-red-600" />
+              </div>
+              <div className="space-y-1 pt-0.5">
+                <p className="font-mono text-[10px] font-bold text-red-700 uppercase tracking-wide">
+                  Impact Warning
+                </p>
+                <p className="font-serif text-sm text-red-900/80 leading-relaxed">
+                  This action will immediately stop all scheduled posts for this
+                  channel. Configuration data may be lost.
+                </p>
+              </div>
+            </div>
+
+            {/* "Cut Line" Separator */}
+            <div className="flex items-center gap-2 text-black/20 py-2">
+              <Scissors className="h-4 w-4 -rotate-90" />
+              <div className="flex-1 border-b-2 border-dashed border-black/10" />
+            </div>
+
+            {/* Actions */}
+            <div className="flex gap-3">
+              <button
+                type="button"
+                onClick={onClose}
+                disabled={isLoading}
+                className="btn btn-outline flex-1"
+              >
+                Cancel
+              </button>
+
+              <button
+                type="button"
+                onClick={handleConfirm}
+                disabled={isLoading}
+                className="btn bg-red-600 text-white hover:bg-red-700 border-transparent flex-[2]"
+              >
+                {isLoading ? (
+                  <>
+                    <Loader2 className="w-3 h-3 animate-spin mr-2" />
+                    Disconnecting...
+                  </>
+                ) : (
+                  <>
+                    <Trash2 className="w-3 h-3 mr-2" /> Confirm Disconnect
+                  </>
+                )}
+              </button>
+            </div>
           </div>
         </div>
       </div>
