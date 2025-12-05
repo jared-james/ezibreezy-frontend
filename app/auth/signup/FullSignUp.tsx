@@ -3,32 +3,59 @@
 "use client";
 
 import { createClient } from "@/lib/supabase/client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import MinimalHeader from "@/components/shared/minimal-header";
 import LandingPageFooter from "@/components/landing-page/landing-page-footer";
-import { ArrowRight, Loader2, Mail, ArrowLeft } from "lucide-react";
+import { ArrowRight, Loader2, Mail, ArrowLeft, UserPlus } from "lucide-react";
 import posthog from "posthog-js";
-import { useSearchParams } from "next/navigation"; // Import this
+import { useSearchParams } from "next/navigation";
+import { getInviteDetails } from "@/app/actions/invites";
 
 export default function FullSignUp() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+
+  // Auth state
   const [error, setError] = useState<string | null>(null);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
+  // Invite Context state
+  const [inviteInfo, setInviteInfo] = useState<{
+    workspaceName: string;
+    inviterName: string;
+  } | null>(null);
+  const [verifyingInvite, setVerifyingInvite] = useState(false);
+
   const supabase = createClient();
-  const searchParams = useSearchParams(); // Hook to get URL params
+  const searchParams = useSearchParams();
+  const inviteToken = searchParams.get("token");
+
+  // Fetch invite details on mount if token exists
+  useEffect(() => {
+    if (!inviteToken) return;
+
+    const fetchInviteContext = async () => {
+      setVerifyingInvite(true);
+      const result = await getInviteDetails(inviteToken);
+
+      if (result.success && result.data) {
+        setInviteInfo(result.data);
+      }
+      // If it fails (e.g. expired), we just fall back to the default "Join the Editorial Desk" view
+      // rather than blocking them from signing up entirely.
+      setVerifyingInvite(false);
+    };
+
+    fetchInviteContext();
+  }, [inviteToken]);
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
     setIsLoading(true);
-
-    // CRITICAL CHANGE: Grab the token from URL
-    const inviteToken = searchParams.get("token");
 
     // Construct the redirect URL.
     // If we have a token, append it: /auth/callback?invite_token=xyz
@@ -63,6 +90,7 @@ export default function FullSignUp() {
         posthog.capture("user_signed_up", {
           email: email,
           signup_method: "email_password",
+          has_invite: !!inviteToken,
         });
       }
     } catch (err) {
@@ -130,22 +158,60 @@ export default function FullSignUp() {
               </div>
             ) : (
               <div className="grid md:grid-cols-2 min-h-[600px]">
+                {/* LEFT COLUMN: Context Aware Message */}
                 <div className="p-8 md:p-12 flex flex-col relative border-b md:border-b-0 md:border-r border-dashed border-foreground/30 bg-surface">
                   <div className="mb-8">
                     <span className="font-mono text-[10px] uppercase tracking-widest text-foreground/40 border border-foreground/20 px-2 py-1">
-                      New Member Registration
+                      {inviteInfo
+                        ? "Team Invitation"
+                        : "New Member Registration"}
                     </span>
                   </div>
 
                   <div className="flex-1 flex flex-col justify-center space-y-6">
-                    <h1 className="font-serif text-4xl md:text-5xl font-light leading-[1.1]">
-                      Join the <br />
-                      <span className="font-bold italic">Editorial Desk.</span>
-                    </h1>
-                    <p className="font-serif text-lg text-foreground/70 leading-relaxed max-w-sm">
-                      Stop managing your content like a spreadsheet. Start
-                      curating it like a publication.
-                    </p>
+                    {verifyingInvite ? (
+                      /* Skeleton Loading for Invite Info */
+                      <div className="space-y-4 opacity-50">
+                        <div className="h-12 w-3/4 bg-foreground/10 animate-pulse" />
+                        <div className="h-20 w-full bg-foreground/10 animate-pulse" />
+                      </div>
+                    ) : inviteInfo ? (
+                      /* INVITE CONTEXT */
+                      <>
+                        <div className="inline-flex items-center gap-2 text-brand-primary mb-2">
+                          <UserPlus className="w-5 h-5" />
+                          <span className="font-mono text-xs uppercase tracking-wider">
+                            Incoming Request
+                          </span>
+                        </div>
+                        <h1 className="font-serif text-4xl md:text-5xl font-light leading-[1.1]">
+                          Join <br />
+                          <span className="font-bold italic">
+                            {inviteInfo.workspaceName}
+                          </span>
+                        </h1>
+                        <p className="font-serif text-lg text-foreground/70 leading-relaxed max-w-sm">
+                          <span className="font-semibold text-foreground">
+                            {inviteInfo.inviterName}
+                          </span>{" "}
+                          has invited you to collaborate on the desk.
+                        </p>
+                      </>
+                    ) : (
+                      /* DEFAULT CONTEXT */
+                      <>
+                        <h1 className="font-serif text-4xl md:text-5xl font-light leading-[1.1]">
+                          Join the <br />
+                          <span className="font-bold italic">
+                            Editorial Desk.
+                          </span>
+                        </h1>
+                        <p className="font-serif text-lg text-foreground/70 leading-relaxed max-w-sm">
+                          Stop managing your content like a spreadsheet. Start
+                          curating it like a publication.
+                        </p>
+                      </>
+                    )}
                   </div>
 
                   <div className="mt-auto pt-12">
@@ -155,6 +221,7 @@ export default function FullSignUp() {
                   </div>
                 </div>
 
+                {/* RIGHT COLUMN: Form */}
                 <div className="p-8 md:p-12 flex flex-col relative bg-surface-hover/30">
                   <div className="absolute top-8 right-8 pointer-events-none select-none">
                     <div className="relative w-24 h-28 border-[3px] border-dotted border-foreground/20 bg-background-editorial flex items-center justify-center rotate-3 shadow-sm">
@@ -245,7 +312,9 @@ export default function FullSignUp() {
                             </>
                           ) : (
                             <>
-                              Create Account
+                              {inviteInfo
+                                ? "Accept & Create"
+                                : "Create Account"}
                               <ArrowRight className="w-4 h-4" />
                             </>
                           )}
