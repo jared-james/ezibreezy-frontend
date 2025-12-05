@@ -28,7 +28,6 @@ export async function getWorkspaceStructure() {
         Authorization: `Bearer ${session.access_token}`,
         "Content-Type": "application/json",
       },
-      // We don't cache this aggressively because permissions/structures change
       cache: "no-store",
     });
 
@@ -174,11 +173,25 @@ export async function deleteWorkspace(workspaceId: string) {
   }
 }
 
-export async function inviteUserToWorkspace(data: {
+// --- NEW INVITE LOGIC ---
+
+export interface WorkspaceInviteConfig {
   workspaceId: string;
-  email: string;
   role: "admin" | "editor" | "viewer";
-}) {
+}
+
+/**
+ * Invites a user to the Organization associated with the contextWorkspaceId.
+ * Allows bulk assignment of workspace access rights.
+ */
+export async function inviteUserToOrganization(
+  contextWorkspaceId: string,
+  data: {
+    email: string;
+    orgRole: "owner" | "admin" | "member";
+    workspaces: WorkspaceInviteConfig[];
+  }
+) {
   const supabase = await createClient();
   const {
     data: { session },
@@ -193,9 +206,10 @@ export async function inviteUserToWorkspace(data: {
   }
 
   try {
-    // TODO: Verify this endpoint exists in your backend
+    // We send the request to the workspace endpoint, but the backend resolves
+    // the organization from this ID and handles the invite at the Org level.
     const response = await fetch(
-      `${BACKEND_URL}/workspaces/${data.workspaceId}/invites`,
+      `${BACKEND_URL}/workspaces/${contextWorkspaceId}/invites`,
       {
         method: "POST",
         headers: {
@@ -204,7 +218,8 @@ export async function inviteUserToWorkspace(data: {
         },
         body: JSON.stringify({
           email: data.email,
-          role: data.role,
+          orgRole: data.orgRole,
+          workspaces: data.workspaces,
         }),
       }
     );
@@ -217,8 +232,8 @@ export async function inviteUserToWorkspace(data: {
       };
     }
 
-    const invite = await response.json();
-    return { success: true, data: invite };
+    const result = await response.json();
+    return { success: true, data: result };
   } catch (error) {
     console.error("Error sending invite:", error);
     return { success: false, error: "Connection failed" };

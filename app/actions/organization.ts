@@ -4,6 +4,8 @@
 
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
+import { authenticatedFetch } from "./billing";
+import { getUserAndOrganization } from "@/lib/auth";
 
 const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL;
 const API_KEY = process.env.NEXT_PUBLIC_API_KEY;
@@ -51,5 +53,31 @@ export async function updateOrganizationName(
   } catch (error) {
     console.error("Server action error updating org name:", error);
     return { success: false, error: "Failed to connect to backend service." };
+  }
+}
+
+export async function getOrganizationMembers(organizationId: string) {
+  const userContext = await getUserAndOrganization();
+
+  if (!userContext) {
+    return { success: false, error: "Not authenticated" };
+  }
+
+  // Security check: ensure the user requesting belongs to the org they are querying
+  if (userContext.organizationId !== organizationId) {
+    return {
+      success: false,
+      error: "Unauthorized access to organization members.",
+    };
+  }
+
+  try {
+    const response = await authenticatedFetch(
+      `/users/organization/${organizationId}/members`
+    );
+    return response;
+  } catch (error) {
+    console.error("Error fetching organization members:", error);
+    return { success: false, error: "Failed to load members" };
   }
 }

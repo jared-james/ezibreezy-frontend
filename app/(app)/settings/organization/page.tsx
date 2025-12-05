@@ -2,6 +2,7 @@
 
 import { getUserAndOrganization } from "@/lib/auth";
 import OrganizationForm from "@/components/settings/organization/organization-form";
+import { MembersList } from "@/components/settings/organization/members-list";
 import { redirect } from "next/navigation";
 
 export default async function OrganizationSettingsPage() {
@@ -11,13 +12,16 @@ export default async function OrganizationSettingsPage() {
     redirect("/auth/login");
   }
 
-  // We pass the data to the client component
-  // The client component will handle the extra layer of "Hide if not admin"
-  // though the nav link is already hidden.
   return (
-    <OrganizationForm
-      initialOrgName={userContext.organizationName}
-      organizationId={userContext.organizationId}
-    />
+    <div className="space-y-12">
+      <OrganizationForm
+        initialOrgName={userContext.organizationName}
+        organizationId={userContext.organizationId}
+      />
+
+      <div className="border-t border-dashed border-border pt-12">
+        <MembersList organizationId={userContext.organizationId} />
+      </div>
+    </div>
   );
 }

@@ -1,29 +1,25 @@
-// components/settings/workspace/modals/invite-user-modal.tsx
-
-// components/modals/invite-user-modal.tsx
-
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo, useEffect } from "react";
 import {
   X,
   Mail,
-  Shield,
+  ShieldCheck, // Added
   Loader2,
   Send,
   Scissors,
   AlertCircle,
+  Building2,
+  Check,
+  Briefcase,
 } from "lucide-react";
-import { inviteUserToWorkspace } from "@/app/actions/workspaces";
+import {
+  inviteUserToOrganization,
+  WorkspaceInviteConfig,
+} from "@/app/actions/workspaces";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { useWorkspaceStore } from "@/lib/store/workspace-store";
 
 interface InviteUserModalProps {
   isOpen: boolean;
@@ -38,10 +34,33 @@ export function InviteUserModal({
   workspaceId,
   workspaceName,
 }: InviteUserModalProps) {
+  const { structure, currentOrganization } = useWorkspaceStore();
+
   const [email, setEmail] = useState("");
-  const [role, setRole] = useState<"admin" | "editor" | "viewer">("editor");
+  const [orgRole, setOrgRole] = useState<"admin" | "member">("member");
+
+  const [selectedWorkspaces, setSelectedWorkspaces] = useState<
+    Record<string, "admin" | "editor" | "viewer">
+  >({});
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (isOpen && workspaceId) {
+      setSelectedWorkspaces((prev) => ({
+        ...prev,
+        [workspaceId]: "editor",
+      }));
+    }
+  }, [isOpen, workspaceId]);
+
+  const availableWorkspaces = useMemo(() => {
+    if (!currentOrganization) return [];
+    const orgNode = structure.find(
+      (n) => n.organization.id === currentOrganization.id
+    );
+    return orgNode ? orgNode.workspaces : [];
+  }, [structure, currentOrganization]);
 
   if (!isOpen) return null;
 
@@ -49,21 +68,48 @@ export function InviteUserModal({
     e.preventDefault();
     if (!email) return;
 
+    // IMPORTANT: If Admin, we don't send specific workspaces
+    const workspacesPayload: WorkspaceInviteConfig[] =
+      orgRole === "member"
+        ? Object.entries(selectedWorkspaces).map(([wId, role]) => ({
+            workspaceId: wId,
+            role,
+          }))
+        : [];
+
+    if (orgRole === "member" && workspacesPayload.length === 0) {
+      setError("A member must be assigned to at least one workspace.");
+      return;
+    }
+
     setIsLoading(true);
     setError(null);
 
     try {
-      const result = await inviteUserToWorkspace({
-        workspaceId,
+      const result = await inviteUserToOrganization(workspaceId, {
         email,
-        role,
+        orgRole,
+        workspaces: workspacesPayload,
       });
 
       if (result.success) {
-        toast.success(`Dispatched invite to ${email}`);
+        const isProvisioning = result.data?.provisioned;
+        const count = workspacesPayload.length;
+
+        if (isProvisioning) {
+          toast.success(
+            `Access granted to ${
+              orgRole === "admin" ? "all" : count
+            } workspace${count === 1 ? "" : "s"}.`
+          );
+        } else {
+          toast.success(`Invitation dispatched to ${email}`);
+        }
+
         onClose();
         setEmail("");
-        setRole("editor");
+        setOrgRole("member");
+        setSelectedWorkspaces({ [workspaceId]: "editor" });
       } else {
         setError(result.error || "Failed to dispatch invite");
       }
@@ -74,39 +120,42 @@ export function InviteUserModal({
     }
   };
 
-  const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setError(null);
-    setEmail(e.target.value);
+  const toggleWorkspace = (wId: string) => {
+    setSelectedWorkspaces((prev) => {
+      const next = { ...prev };
+      if (next[wId]) {
+        delete next[wId];
+      } else {
+        next[wId] = "editor";
+      }
+      return next;
+    });
   };
+
+  const updateWorkspaceRole = (
+    wId: string,
+    role: "admin" | "editor" | "viewer"
+  ) => {
+    setSelectedWorkspaces((prev) => ({
+      ...prev,
+      [wId]: role,
+    }));
+  };
+
+  const isGlobalAdmin = orgRole === "admin";
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#e5e5e0]/80 backdrop-blur-sm animate-in fade-in duration-200">
-      {/* 
-        Container: 
-        - Editorial paper color
-        - Standard soft shadow instead of hard offset
-        - Clean border
-      */}
-      <div
-        className="
-          relative w-full max-w-md 
-          bg-[#fdfbf7] 
-          border border-black/10
-          shadow-2xl rounded-lg
-          flex flex-col overflow-hidden
-        "
-        role="dialog"
-        aria-modal="true"
-      >
-        {/* Header Section */}
-        <div className="p-8 border-b border-black/5 pb-6">
+      <div className="relative w-full max-w-lg bg-[#fdfbf7] border border-black/10 shadow-2xl rounded-lg flex flex-col overflow-hidden max-h-[90vh]">
+        {/* Header */}
+        <div className="p-8 border-b border-black/5 pb-6 bg-[#fdfbf7] shrink-0">
           <div className="flex items-start justify-between">
             <div>
               <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-muted-foreground mb-2">
-                Internal Memo // New Personnel
+                Organization // Personnel
               </p>
               <h2 className="headline text-3xl font-bold tracking-tight text-foreground">
-                Team Admit
+                Invite Member
               </h2>
             </div>
             <button
@@ -118,19 +167,18 @@ export function InviteUserModal({
             </button>
           </div>
 
-          <div className="mt-4 font-serif text-sm text-foreground/80 leading-relaxed border-l-2 border-brand-primary pl-3">
-            Granting access to{" "}
-            <span className="font-bold border-b border-black/20 border-dotted">
-              {workspaceName}
+          <div className="mt-4 flex items-center gap-2 text-sm text-foreground/80 font-serif border-l-2 border-brand-primary pl-3">
+            <span>Adding to Organization:</span>
+            <span className="font-bold border-b border-black/10">
+              {currentOrganization?.name}
             </span>
-            .
           </div>
         </div>
 
-        {/* Content Section */}
-        <div className="p-8 pt-6">
+        {/* Content */}
+        <div className="p-8 pt-6 overflow-y-auto">
           <form onSubmit={handleSubmit} className="space-y-8">
-            {/* Email Input - "Fill in the blank" style */}
+            {/* 1. Recipient Email */}
             <div className="space-y-1">
               <label className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground pl-1">
                 Recipient Email
@@ -140,9 +188,12 @@ export function InviteUserModal({
                 <input
                   type="email"
                   value={email}
-                  onChange={handleEmailChange}
+                  onChange={(e) => {
+                    setError(null);
+                    setEmail(e.target.value);
+                  }}
                   required
-                  placeholder="editor@newsroom.com"
+                  placeholder="colleague@company.com"
                   className={cn(
                     "w-full bg-transparent px-6 py-2 font-serif text-xl text-foreground placeholder:text-muted-foreground/40 outline-none transition-all",
                     "border-b-2 border-dotted border-black/20",
@@ -153,62 +204,161 @@ export function InviteUserModal({
               </div>
             </div>
 
-            {/* Role Selection - Minimal style */}
-            <div className="space-y-1">
+            {/* 2. Organization Role */}
+            <div className="space-y-3">
               <label className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground pl-1">
-                Security Clearance
+                Organization Clearance
               </label>
-              <Select value={role} onValueChange={(val: any) => setRole(val)}>
-                <SelectTrigger className="w-full h-12 bg-transparent border-0 border-b-2 border-dotted border-black/20 rounded-none px-0 font-serif text-xl focus:ring-0 focus:border-brand-primary focus:border-solid shadow-none">
-                  <div className="flex items-center gap-3 px-1">
-                    <Shield className="w-4 h-4 text-muted-foreground" />
-                    <SelectValue placeholder="Select Role" />
-                  </div>
-                </SelectTrigger>
+              <div className="grid grid-cols-2 gap-3">
+                <button
+                  type="button"
+                  onClick={() => setOrgRole("member")}
+                  className={cn(
+                    "flex flex-col items-start p-3 border rounded-sm transition-all text-left",
+                    orgRole === "member"
+                      ? "border-brand-primary bg-brand-primary/5"
+                      : "border-border hover:border-black/30"
+                  )}
+                >
+                  <span className="font-bold text-sm flex items-center gap-2">
+                    Member{" "}
+                    {orgRole === "member" && (
+                      <Check className="w-3 h-3 text-brand-primary" />
+                    )}
+                  </span>
+                  <span className="text-[10px] text-muted-foreground mt-1 leading-snug">
+                    Can only access assigned workspaces.
+                  </span>
+                </button>
 
-                {/* Dropdown Content */}
-                <SelectContent className="bg-[#fdfbf7] border border-black/10 shadow-xl font-serif">
-                  <SelectItem
-                    value="viewer"
-                    className="cursor-pointer focus:bg-black/5 focus:text-black"
-                  >
-                    <div className="flex flex-col py-1">
-                      <span className="font-bold uppercase text-xs tracking-wider">
-                        Viewer
-                      </span>
-                      <span className="text-muted-foreground text-[10px]">
-                        Read-only access
-                      </span>
-                    </div>
-                  </SelectItem>
-                  <SelectItem
-                    value="editor"
-                    className="cursor-pointer focus:bg-black/5 focus:text-black"
-                  >
-                    <div className="flex flex-col py-1">
-                      <span className="font-bold uppercase text-xs tracking-wider">
-                        Editor
-                      </span>
-                      <span className="text-muted-foreground text-[10px]">
-                        Create & publish
-                      </span>
-                    </div>
-                  </SelectItem>
-                  <SelectItem
-                    value="admin"
-                    className="cursor-pointer focus:bg-black/5 focus:text-black"
-                  >
-                    <div className="flex flex-col py-1">
-                      <span className="font-bold uppercase text-xs tracking-wider">
-                        Admin
-                      </span>
-                      <span className="text-muted-foreground text-[10px]">
-                        Full system control
-                      </span>
-                    </div>
-                  </SelectItem>
-                </SelectContent>
-              </Select>
+                <button
+                  type="button"
+                  onClick={() => setOrgRole("admin")}
+                  className={cn(
+                    "flex flex-col items-start p-3 border rounded-sm transition-all text-left",
+                    orgRole === "admin"
+                      ? "border-brand-primary bg-brand-primary/5"
+                      : "border-border hover:border-black/30"
+                  )}
+                >
+                  <span className="font-bold text-sm flex items-center gap-2">
+                    Admin{" "}
+                    {orgRole === "admin" && (
+                      <Check className="w-3 h-3 text-brand-primary" />
+                    )}
+                  </span>
+                  <span className="text-[10px] text-muted-foreground mt-1 leading-snug">
+                    Full control over billing and all workspaces.
+                  </span>
+                </button>
+              </div>
+            </div>
+
+            {/* 3. Workspace Access (Conditional) */}
+            <div className="space-y-3 pt-2">
+              <div className="flex items-center justify-between border-b border-black/10 pb-2">
+                <label className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground pl-1 flex items-center gap-2">
+                  <Briefcase className="w-3 h-3" /> Workspace Assignments
+                </label>
+                {!isGlobalAdmin && (
+                  <span className="font-mono text-[10px] text-muted-foreground">
+                    {Object.keys(selectedWorkspaces).length} Selected
+                  </span>
+                )}
+              </div>
+
+              {isGlobalAdmin ? (
+                // ADMIN BANNER
+                <div className="p-4 bg-surface-hover border border-black/5 rounded-sm flex gap-3 animate-in fade-in duration-300">
+                  <div className="p-2 bg-brand-primary/10 rounded-full h-fit">
+                    <ShieldCheck className="w-5 h-5 text-brand-primary" />
+                  </div>
+                  <div>
+                    <p className="font-serif text-sm font-bold text-foreground">
+                      Global Access Granted
+                    </p>
+                    <p className="font-serif text-xs text-muted-foreground mt-1 leading-relaxed">
+                      Organization Admins automatically have{" "}
+                      <strong>Admin</strong> access to all current and future
+                      workspaces.
+                    </p>
+                  </div>
+                </div>
+              ) : (
+                // MEMBER LIST
+                <div className="space-y-1 max-h-[180px] overflow-y-auto pr-1 custom-scrollbar">
+                  {availableWorkspaces.length === 0 ? (
+                    <p className="text-sm text-muted-foreground italic p-2">
+                      No workspaces found.
+                    </p>
+                  ) : (
+                    availableWorkspaces.map((ws) => {
+                      const isSelected = !!selectedWorkspaces[ws.id];
+                      const role = selectedWorkspaces[ws.id] || "editor";
+
+                      return (
+                        <div
+                          key={ws.id}
+                          className={cn(
+                            "group flex items-center justify-between p-2 rounded-sm border transition-all",
+                            isSelected
+                              ? "bg-surface border-brand-primary/30 shadow-sm"
+                              : "border-transparent hover:bg-black/5"
+                          )}
+                        >
+                          <div
+                            className="flex items-center gap-3 cursor-pointer flex-1"
+                            onClick={() => toggleWorkspace(ws.id)}
+                          >
+                            <div
+                              className={cn(
+                                "w-4 h-4 flex items-center justify-center border rounded-[2px] transition-colors",
+                                isSelected
+                                  ? "bg-brand-primary border-brand-primary text-white"
+                                  : "border-black/30 bg-white"
+                              )}
+                            >
+                              {isSelected && <Check className="w-3 h-3" />}
+                            </div>
+                            <span
+                              className={cn(
+                                "font-serif text-sm transition-colors",
+                                isSelected
+                                  ? "text-foreground font-medium"
+                                  : "text-muted-foreground"
+                              )}
+                            >
+                              {ws.name}
+                            </span>
+                          </div>
+
+                          {isSelected && (
+                            <div className="flex items-center gap-2 animate-in fade-in slide-in-from-right-2 duration-200">
+                              <span className="text-[9px] uppercase tracking-wider text-muted-foreground">
+                                Role:
+                              </span>
+                              <select
+                                value={role}
+                                onChange={(e) =>
+                                  updateWorkspaceRole(
+                                    ws.id,
+                                    e.target.value as any
+                                  )
+                                }
+                                className="text-[10px] uppercase font-bold bg-transparent border-b border-dotted border-black/30 focus:border-brand-primary focus:outline-none cursor-pointer py-0.5 text-brand-primary"
+                              >
+                                <option value="viewer">Viewer</option>
+                                <option value="editor">Editor</option>
+                                <option value="admin">Admin</option>
+                              </select>
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })
+                  )}
+                </div>
+              )}
             </div>
 
             {/* Error Message */}
@@ -227,7 +377,7 @@ export function InviteUserModal({
               <div className="flex-1 border-b-2 border-dashed border-black/10" />
             </div>
 
-            {/* Actions - Standard Buttons */}
+            {/* Actions */}
             <div className="flex gap-3">
               <button
                 type="button"
@@ -237,7 +387,6 @@ export function InviteUserModal({
               >
                 Discard
               </button>
-
               <button
                 type="submit"
                 disabled={isLoading}
@@ -245,12 +394,12 @@ export function InviteUserModal({
               >
                 {isLoading ? (
                   <>
-                    <Loader2 className="w-3 h-3 animate-spin mr-2" />
+                    <Loader2 className="w-3 h-3 animate-spin mr-2" />{" "}
                     Processing...
                   </>
                 ) : (
                   <>
-                    Dispatch Invite <Send className="w-3 h-3 ml-2" />
+                    <Send className="w-3 h-3 mr-2" /> Dispatch Invite
                   </>
                 )}
               </button>
