@@ -3,7 +3,7 @@
 "use client";
 
 import { useState } from "react";
-import { X, Mail, Shield, Loader2, Send } from "lucide-react";
+import { X, Mail, Shield, Loader2, Send, AlertTriangle } from "lucide-react";
 import { inviteUserToWorkspace } from "@/app/actions/workspaces";
 import { toast } from "sonner";
 import {
@@ -30,6 +30,7 @@ export function InviteUserModal({
   const [email, setEmail] = useState("");
   const [role, setRole] = useState<"admin" | "editor" | "viewer">("editor");
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   if (!isOpen) return null;
 
@@ -38,6 +39,7 @@ export function InviteUserModal({
     if (!email) return;
 
     setIsLoading(true);
+    setError(null); // Clear previous errors on new attempt
 
     try {
       const result = await inviteUserToWorkspace({
@@ -52,13 +54,20 @@ export function InviteUserModal({
         setEmail(""); // Reset form
         setRole("editor");
       } else {
-        toast.error(result.error || "Failed to send invite");
+        // Set the error state instead of showing a toast
+        setError(result.error || "Failed to send invite");
       }
     } catch (error) {
-      toast.error("An unexpected error occurred");
+      setError("An unexpected error occurred");
     } finally {
       setIsLoading(false);
     }
+  };
+
+  // Clear error when user changes input to let them know they are trying again
+  const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setError(null);
+    setEmail(e.target.value);
   };
 
   return (
@@ -95,10 +104,14 @@ export function InviteUserModal({
               <input
                 type="email"
                 value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                onChange={handleEmailChange}
                 required
                 placeholder="colleague@example.com"
-                className="w-full px-4 py-3 bg-background border border-border focus:border-foreground focus:ring-1 focus:ring-foreground transition-all font-serif"
+                className={`w-full px-4 py-3 bg-background border focus:ring-1 transition-all font-serif ${
+                  error
+                    ? "border-error focus:border-error focus:ring-error"
+                    : "border-border focus:border-foreground focus:ring-foreground"
+                }`}
               />
             </div>
 
@@ -127,6 +140,21 @@ export function InviteUserModal({
                 </SelectContent>
               </Select>
             </div>
+
+            {/* INLINE ERROR MESSAGE */}
+            {error && (
+              <div className="p-3 bg-error/5 border border-error/20 flex items-start gap-3 rounded-sm animate-in slide-in-from-top-1">
+                <AlertTriangle className="w-5 h-5 text-error shrink-0 mt-0.5" />
+                <div className="flex-1">
+                  <h4 className="text-xs font-bold text-error uppercase tracking-wider mb-1">
+                    Unable to Invite
+                  </h4>
+                  <p className="text-sm text-error/90 font-medium leading-tight">
+                    {error}
+                  </p>
+                </div>
+              </div>
+            )}
 
             <div className="flex gap-3 pt-2">
               <button
