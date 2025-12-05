@@ -13,6 +13,7 @@ import {
 } from "@/app/actions/workspaces";
 import { CreateWorkspaceModal } from "@/components/modals/create-workspace-modal";
 import { InviteUserModal } from "@/components/modals/invite-user-modal";
+import { DeleteWorkspaceModal } from "@/components/modals/delete-workspace-modal";
 import {
   Briefcase,
   Globe,
@@ -31,6 +32,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { toast } from "sonner";
 
 export default function WorkspaceSettingsPage() {
   const router = useRouter();
@@ -41,9 +43,11 @@ export default function WorkspaceSettingsPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
-  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+
+  // Modal States
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showInviteModal, setShowInviteModal] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
 
   // Track current workspace ID to detect changes
   const [lastWorkspaceId, setLastWorkspaceId] = useState(currentWorkspace?.id);
@@ -125,8 +129,8 @@ export default function WorkspaceSettingsPage() {
   };
 
   const handleDelete = async () => {
-    setLoading(true);
-    setError("");
+    // We don't need to set local 'loading' state here because
+    // the DeleteWorkspaceModal handles its own loading state.
 
     const result = await deleteWorkspace(currentWorkspace.id);
 
@@ -148,8 +152,10 @@ export default function WorkspaceSettingsPage() {
       router.push("/dashboard");
       router.refresh();
     } else {
-      setError(result.error || "Failed to delete workspace");
-      setLoading(false);
+      // If we fail, we throw an error so the Modal knows to stop loading
+      // and we display a toast.
+      toast.error(result.error || "Failed to delete workspace");
+      throw new Error(result.error || "Failed to delete workspace");
     }
   };
 
@@ -157,7 +163,6 @@ export default function WorkspaceSettingsPage() {
     <div className="max-w-4xl space-y-12">
       {/* Header */}
       <div>
-        <p className="eyebrow mb-2">Configuration</p>
         <h2 className="headline text-3xl font-bold">Workspace Settings</h2>
         <div className="mt-6 flex items-center gap-3 p-3 bg-surface-hover border border-border">
           <div className="h-10 w-10 bg-brand-primary text-white flex items-center justify-center font-serif text-lg font-bold">
@@ -278,7 +283,7 @@ export default function WorkspaceSettingsPage() {
         {/* Team Card */}
         <div className="group border border-border p-6 bg-surface hover:border-foreground/30 transition-all duration-300">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="font-serif text-lg font-bold">Team Roster</h3>
+            <h3 className="font-serif text-lg font-bold">Team Members</h3>
             <Users className="w-5 h-5 text-muted-foreground group-hover:text-foreground transition-colors" />
           </div>
           <p className="font-serif text-sm text-muted-foreground mb-6 h-10">
@@ -286,13 +291,12 @@ export default function WorkspaceSettingsPage() {
           </p>
           <button
             onClick={() => setShowInviteModal(true)}
-            className="w-full py-3 border border-dashed border-border text-muted-foreground hover:text-foreground hover:border-foreground hover:bg-surface-hover transition-all text-xs font-bold uppercase tracking-wider"
+            className="w-full py-3 border border-dashed border-primary text-primary hover:bg-primary/10 hover:border-primary transition-all text-xs font-bold uppercase tracking-wider"
           >
             Invite User
           </button>
         </div>
 
-        {/* Create New Workspace - "Ticket" Style */}
         <div className="group flex flex-col p-6 border-2 border-dashed border-brand-accent/30 bg-brand-accent/[0.02] hover:bg-brand-accent/[0.05] hover:border-brand-accent/60 transition-all duration-300">
           <div className="flex items-start justify-between mb-2">
             <h3 className="font-serif text-lg font-bold text-foreground group-hover:text-brand-accent transition-colors">
@@ -308,7 +312,7 @@ export default function WorkspaceSettingsPage() {
 
           <button
             onClick={() => setShowCreateModal(true)}
-            className="mt-auto w-full btn btn-primary gap-2"
+            className="mt-auto w-full py-3 border border-dashed border-primary text-primary hover:bg-primary/10 hover:border-primary transition-all text-xs font-bold uppercase tracking-wider flex items-center justify-center gap-2"
           >
             <Plus className="w-4 h-4" />
             Create New Workspace
@@ -336,42 +340,18 @@ export default function WorkspaceSettingsPage() {
             </p>
 
             <div className="mt-6">
-              {!showDeleteConfirm ? (
-                <button
-                  onClick={() => setShowDeleteConfirm(true)}
-                  className="px-5 py-2.5 bg-white border border-error/30 text-error hover:bg-error hover:text-white hover:border-error transition-all text-xs font-bold uppercase tracking-wider shadow-sm"
-                >
-                  Delete Workspace
-                </button>
-              ) : (
-                <div className="bg-error/5 border border-error/20 p-4 inline-block max-w-md animate-in fade-in slide-in-from-left-2">
-                  <p className="text-sm font-bold text-error mb-3">
-                    Are you absolutely sure? This cannot be undone.
-                  </p>
-                  <div className="flex gap-3">
-                    <button
-                      onClick={() => setShowDeleteConfirm(false)}
-                      disabled={loading}
-                      className="px-4 py-2 bg-white border border-border hover:bg-surface-hover text-xs font-bold uppercase tracking-wider"
-                    >
-                      Cancel
-                    </button>
-                    <button
-                      onClick={handleDelete}
-                      disabled={loading}
-                      className="px-4 py-2 bg-error text-white border border-error hover:bg-error-hover text-xs font-bold uppercase tracking-wider flex items-center gap-2"
-                    >
-                      {loading && <Loader2 className="w-3 h-3 animate-spin" />}
-                      Confirm Deletion
-                    </button>
-                  </div>
-                </div>
-              )}
+              <button
+                onClick={() => setShowDeleteModal(true)}
+                className="px-8 py-3 border border-dashed border-error text-error hover:bg-error/10 hover:border-error transition-all text-xs font-bold uppercase tracking-wider"
+              >
+                Delete Workspace
+              </button>
             </div>
           </div>
         </div>
       </div>
 
+      {/* Modals */}
       {showCreateModal && (
         <CreateWorkspaceModal
           onClose={() => setShowCreateModal(false)}
@@ -387,6 +367,15 @@ export default function WorkspaceSettingsPage() {
           isOpen={showInviteModal}
           onClose={() => setShowInviteModal(false)}
           workspaceId={currentWorkspace.id}
+          workspaceName={currentWorkspace.name}
+        />
+      )}
+
+      {showDeleteModal && (
+        <DeleteWorkspaceModal
+          isOpen={showDeleteModal}
+          onClose={() => setShowDeleteModal(false)}
+          onConfirm={handleDelete}
           workspaceName={currentWorkspace.name}
         />
       )}
