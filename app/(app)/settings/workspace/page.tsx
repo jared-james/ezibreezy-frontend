@@ -101,6 +101,12 @@ export default function WorkspaceSettingsPage() {
     );
   }
 
+  // Derived state: Check if changes exist compared to the current workspace
+  // This is performant (O(1)) and runs on every render without causing re-renders
+  const hasChanges =
+    formData.name !== currentWorkspace.name ||
+    formData.timezone !== currentWorkspace.timezone;
+
   const handleUpdate = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -261,8 +267,12 @@ export default function WorkspaceSettingsPage() {
 
             <button
               type="submit"
-              disabled={loading}
-              className="btn btn-primary"
+              disabled={loading || !hasChanges}
+              className={`btn btn-primary transition-all duration-200 ${
+                !hasChanges || loading
+                  ? "opacity-50 cursor-not-allowed grayscale"
+                  : ""
+              }`}
             >
               {loading ? (
                 <>
@@ -314,7 +324,6 @@ export default function WorkspaceSettingsPage() {
             onClick={() => setShowCreateModal(true)}
             className="mt-auto w-full py-3 border border-dashed border-primary text-primary hover:bg-primary/10 hover:border-primary transition-all text-xs font-bold uppercase tracking-wider flex items-center justify-center gap-2"
           >
-            <Plus className="w-4 h-4" />
             Create New Workspace
           </button>
         </div>
