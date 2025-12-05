@@ -21,7 +21,10 @@ import {
 } from "lucide-react";
 import { Button } from "./ui/button";
 import { logout } from "@/app/actions/auth";
-import { useWorkspaceStore, OrganizationNode } from "@/lib/store/workspace-store";
+import {
+  useWorkspaceStore,
+  OrganizationNode,
+} from "@/lib/store/workspace-store";
 import { WorkspaceSwitcher } from "@/components/layout/workspace-switcher";
 import { cn } from "@/lib/utils";
 

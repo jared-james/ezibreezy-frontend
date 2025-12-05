@@ -3,12 +3,7 @@
 "use client";
 
 import * as React from "react";
-import {
-  ChevronsUpDown,
-  Check,
-  Building2,
-  Briefcase,
-} from "lucide-react";
+import { ChevronsUpDown, Check, Building2, Briefcase } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useWorkspaceStore } from "@/lib/store/workspace-store";
 
@@ -116,9 +111,7 @@ export function WorkspaceSwitcher() {
 
       {/* Dropdown Content */}
       {open && (
-        <div
-          className="absolute top-[calc(100%+8px)] left-4 right-4 bg-background border border-border shadow-xl max-h-[400px] overflow-y-auto z-50"
-        >
+        <div className="absolute top-[calc(100%+8px)] left-4 right-4 bg-background border border-border shadow-xl max-h-[400px] overflow-y-auto z-50">
           <div className="py-2">
             {structure.map((node) => (
               <div key={node.organization.id} className="mb-4 last:mb-0">

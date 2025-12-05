@@ -1,23 +1,19 @@
 // app/(app)/settings/profile/page.tsx
 import { getUserAndOrganization } from "@/lib/auth";
 import ProfileForm from "@/components/settings/profile/profile-form";
+import { redirect } from "next/navigation";
 
 export default async function ProfileSettingsPage() {
   const userContext = await getUserAndOrganization();
 
-  // We only need personal info here now
-  const initialData = {
-    initialDisplayName: userContext?.displayName || "Loading...",
-    initialEmail: userContext?.email || "loading@example.com",
-  };
-
   if (!userContext) {
-    return (
-      <div className="text-error font-serif">
-        Error: Authentication context missing.
-      </div>
-    );
+    redirect("/auth/login");
   }
 
-  return <ProfileForm {...initialData} />;
+  return (
+    <ProfileForm
+      initialDisplayName={userContext.displayName}
+      initialEmail={userContext.email}
+    />
+  );
 }
