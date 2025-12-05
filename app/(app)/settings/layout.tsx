@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { User, PenTool, Link2, Briefcase, Building2 } from "lucide-react";
+import { User, Link2, Briefcase, Building2 } from "lucide-react";
 import { usePermissions } from "@/lib/hooks/use-permissions";
 import { useWorkspaceStore } from "@/lib/store/workspace-store";
 
@@ -34,7 +34,6 @@ export default function SettingsLayout({
         ]
       : []),
     { name: "Workspaces", href: "/settings/workspace", icon: Briefcase },
-    { name: "Writing Style", href: "/settings/writing-style", icon: PenTool },
   ];
 
   return (

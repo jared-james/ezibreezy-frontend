@@ -6,8 +6,8 @@ import { useState } from "react";
 import { AlertTriangle, Trash2, ArrowRight, RefreshCw } from "lucide-react";
 import { Connection } from "@/lib/api/integrations";
 import { cn } from "@/lib/utils";
-import { PlatformDefinition } from "../types";
-import { DisconnectConfirmModal } from "./disconnect-confirm-modal";
+import { PlatformDefinition } from "./types";
+import { DisconnectConfirmModal } from "./modals/disconnect-confirm-modal";
 
 interface ConnectedChannelsSectionProps {
   connections: Connection[];

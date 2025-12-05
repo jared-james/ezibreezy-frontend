@@ -1,3 +1,5 @@
+// components/settings/workspace/modals/invite-user-modal.tsx
+
 // components/modals/invite-user-modal.tsx
 
 "use client";

@@ -1,3 +1,5 @@
+// components/settings/integrations/constants.ts
+
 // app/(app)/settings/integrations/constants.ts
 
 import {

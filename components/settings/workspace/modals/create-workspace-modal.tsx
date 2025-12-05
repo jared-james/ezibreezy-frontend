@@ -1,3 +1,5 @@
+// components/settings/workspace/modals/create-workspace-modal.tsx
+
 // components/modals/create-workspace-modal.tsx
 
 "use client";

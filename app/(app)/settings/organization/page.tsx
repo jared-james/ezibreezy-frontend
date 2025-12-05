@@ -1,7 +1,7 @@
 // app/(app)/settings/organization/page.tsx
 
 import { getUserAndOrganization } from "@/lib/auth";
-import OrganizationForm from "./organization-form";
+import OrganizationForm from "@/components/settings/organization/organization-form";
 import { redirect } from "next/navigation";
 
 export default async function OrganizationSettingsPage() {

@@ -3,8 +3,8 @@
 "use client";
 
 import { Connection } from "@/lib/api/integrations";
-import { platformDefinitions } from "../constants";
-import { PlatformDefinition } from "../types";
+import { platformDefinitions } from "./constants";
+import { PlatformDefinition } from "./types";
 import { cn } from "@/lib/utils";
 
 interface AvailableChannelsSectionProps {

@@ -1,6 +1,6 @@
 // app/(app)/settings/profile/page.tsx
 import { getUserAndOrganization } from "@/lib/auth";
-import ProfileForm from "./profile-form";
+import ProfileForm from "@/components/settings/profile/profile-form";
 
 export default async function ProfileSettingsPage() {
   const userContext = await getUserAndOrganization();
