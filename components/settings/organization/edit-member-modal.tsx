@@ -220,7 +220,7 @@ export function EditMemberModal({
                         className={cn(
                           "flex items-center justify-between p-2 rounded-sm transition-colors",
                           isSelected
-                            ? "bg-surface border border-brand-primary/20"
+                            ? "bg-brand-primary/5 border border-brand-primary/20"
                             : "hover:bg-black/5 border border-transparent"
                         )}
                       >

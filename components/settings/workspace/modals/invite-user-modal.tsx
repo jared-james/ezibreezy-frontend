@@ -1,3 +1,5 @@
+// components/settings/workspace/modals/invite-user-modal.tsx
+
 "use client";
 
 import { useState, useMemo, useEffect } from "react";

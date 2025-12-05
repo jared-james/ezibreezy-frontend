@@ -1,13 +1,12 @@
-// app/(app)/settings/organization/organization-form.tsx
+// components/settings/organization/organization-form.tsx
 
 "use client";
 
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Loader2, AlertTriangle, Building2 } from "lucide-react";
+import { Loader2, AlertTriangle, Building2, Save, Check } from "lucide-react";
 import { updateOrganizationName } from "@/app/actions/organization";
-import { usePermissions } from "@/lib/hooks/use-permissions";
 import { useWorkspaceStore } from "@/lib/store/workspace-store";
 import { toast } from "sonner";
 
@@ -68,51 +67,63 @@ export default function OrganizationForm({
     orgName.trim() !== initialOrgName && orgName.trim().length > 0;
 
   return (
-    <form className="space-y-6">
-      <div className="pb-6">
-        <div className="flex items-center gap-3 mb-4">
-          <h3 className="font-serif text-lg font-bold text-foreground">
-            Organization Details
-          </h3>
-          <div className="flex-1 h-px bg-border" />
-        </div>
+    <div className="relative">
+      <div className="absolute -top-3 left-4 bg-surface px-2 z-10">
+        <span className="font-mono text-[10px] uppercase tracking-widest font-bold text-foreground bg-brand-primary/10 px-2 py-0.5 border border-brand-primary/20 rounded-sm">
+          Organization Profile
+        </span>
+      </div>
 
-        <div className="space-y-4">
-          <div>
-            <label className="eyebrow mb-2 flex items-center gap-2">
-              <Building2 className="w-3 h-3" /> Organization Name
+      <form
+        onSubmit={handleOrgNameSubmit}
+        className="border border-border p-6 md:p-8 space-y-6 bg-surface rounded-sm"
+      >
+        <div className="grid grid-cols-1 gap-6">
+          <div className="space-y-2">
+            <label className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground flex items-center gap-2 pl-1">
+              <Building2 className="w-3.5 h-3.5" /> Legal Name
             </label>
-            <div className="flex gap-2 items-start pt-2">
-              <Input
-                type="text"
-                value={orgName}
-                onChange={(e) => setOrgName(e.target.value)}
-                placeholder="Your Organization Name"
-                className="flex-1"
-                disabled={isUpdatingOrg}
-              />
-              <Button
-                type="button"
-                variant="primary"
-                onClick={handleOrgNameSubmit}
-                disabled={isUpdatingOrg || !isOrgDirty}
-              >
-                {isUpdatingOrg ? (
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                ) : (
-                  "Save Changes"
-                )}
-              </Button>
-            </div>
-            <p className="font-serif text-xs text-muted-foreground mt-2">
+            <input
+              type="text"
+              value={orgName}
+              onChange={(e) => setOrgName(e.target.value)}
+              placeholder="Your Organization Name"
+              className="w-full px-4 py-3 bg-background border border-border focus:border-foreground focus:ring-1 focus:ring-foreground transition-all font-serif rounded-sm"
+              disabled={isUpdatingOrg}
+            />
+            <p className="font-serif text-xs text-muted-foreground mt-2 pl-1">
               This name is shown in the sidebar and is visible to all members of
               your organization.
             </p>
           </div>
         </div>
 
-        {/* Future: Add Billing / Plan details here */}
-      </div>
-    </form>
+        <div className="pt-4 border-t border-dashed border-border flex items-center justify-between">
+          <div className="text-sm min-h-[20px]">
+            {/* Status messages placeholder */}
+          </div>
+
+          <button
+            type="submit"
+            disabled={isUpdatingOrg || !isOrgDirty}
+            className={`btn btn-primary transition-all duration-200 ${
+              !isOrgDirty || isUpdatingOrg
+                ? "opacity-50 cursor-not-allowed grayscale"
+                : ""
+            }`}
+          >
+            {isUpdatingOrg ? (
+              <>
+                <Loader2 className="w-4 h-4 animate-spin mr-2" /> Saving...
+              </>
+            ) : (
+              <>
+                <Save className="w-4 h-4 mr-2" /> Save Changes
+              </>
+            )}
+          </button>
+        </div>
+      </form>
+    </div>
   );
 }
