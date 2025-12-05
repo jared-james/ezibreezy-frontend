@@ -1,5 +1,3 @@
-// components/settings/workspace/modals/invite-user-modal.tsx
-
 "use client";
 
 import { useState, useMemo, useEffect } from "react";
@@ -22,6 +20,13 @@ import {
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { useWorkspaceStore } from "@/lib/store/workspace-store";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 interface InviteUserModalProps {
   isOpen: boolean;
@@ -309,7 +314,7 @@ export function InviteUserModal({
                           className={cn(
                             "group flex items-center justify-between p-2 rounded-sm border transition-all",
                             isSelected
-                              ? "bg-surface border-brand-primary/30 shadow-sm"
+                              ? "bg-brand-primary/5 border-brand-primary shadow-sm"
                               : "border-transparent hover:bg-black/5"
                           )}
                         >
@@ -344,20 +349,42 @@ export function InviteUserModal({
                               <span className="text-[9px] uppercase tracking-wider text-muted-foreground">
                                 Role:
                               </span>
-                              <select
+                              <Select
                                 value={role}
-                                onChange={(e) =>
+                                onValueChange={(val) =>
                                   updateWorkspaceRole(
                                     ws.id,
-                                    e.target.value as any
+                                    val as "admin" | "editor" | "viewer"
                                   )
                                 }
-                                className="text-[10px] uppercase font-bold bg-transparent border-b border-dotted border-black/30 focus:border-brand-primary focus:outline-none cursor-pointer py-0.5 text-brand-primary"
                               >
-                                <option value="viewer">Viewer</option>
-                                <option value="editor">Editor</option>
-                                <option value="admin">Admin</option>
-                              </select>
+                                <SelectTrigger className="h-auto w-fit gap-1 border-0 bg-transparent px-0 py-0 text-[10px] font-bold uppercase tracking-wider text-brand-primary shadow-none focus:ring-0 hover:bg-transparent data-[placeholder]:text-brand-primary [&_svg]:size-3 [&_svg]:opacity-50">
+                                  <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent
+                                  align="end"
+                                  className="bg-[#fdfbf7] border border-black/10 shadow-xl font-serif"
+                                >
+                                  <SelectItem
+                                    value="viewer"
+                                    className="cursor-pointer focus:bg-black/5 focus:text-black"
+                                  >
+                                    Viewer
+                                  </SelectItem>
+                                  <SelectItem
+                                    value="editor"
+                                    className="cursor-pointer focus:bg-black/5 focus:text-black"
+                                  >
+                                    Editor
+                                  </SelectItem>
+                                  <SelectItem
+                                    value="admin"
+                                    className="cursor-pointer focus:bg-black/5 focus:text-black"
+                                  >
+                                    Admin
+                                  </SelectItem>
+                                </SelectContent>
+                              </Select>
                             </div>
                           )}
                         </div>
