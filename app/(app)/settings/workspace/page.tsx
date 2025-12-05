@@ -189,7 +189,7 @@ export default function WorkspaceSettingsPage() {
 
         <form
           onSubmit={handleUpdate}
-          className="border-2 border-foreground p-6 md:p-8 space-y-6 bg-surface"
+          className="border-1 border-border p-6 md:p-8 space-y-6 bg-surface"
         >
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-2">
