@@ -2,14 +2,9 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { User, PenTool, Link2, Briefcase } from "lucide-react";
-
-const settingsNav = [
-  { name: "Profile", href: "/settings/profile", icon: User },
-  { name: "Writing Style", href: "/settings/writing-style", icon: PenTool },
-  { name: "Manage Channels", href: "/settings/integrations", icon: Link2 },
-  { name: "Workspaces", href: "/settings/workspace", icon: Briefcase },
-];
+import { User, PenTool, Link2, Briefcase, Building2 } from "lucide-react";
+import { usePermissions } from "@/lib/hooks/use-permissions";
+import { useWorkspaceStore } from "@/lib/store/workspace-store";
 
 export default function SettingsLayout({
   children,
@@ -17,6 +12,30 @@ export default function SettingsLayout({
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
+  const { currentOrganization } = useWorkspaceStore();
+
+  // We check if the user is an owner or admin of the current organization
+  // You can also use the helper: hasOrgRole(currentOrganization.id, 'owner', 'admin')
+  const isAdmin =
+    currentOrganization?.role === "owner" ||
+    currentOrganization?.role === "admin";
+
+  const settingsNav = [
+    { name: "Manage Channels", href: "/settings/integrations", icon: Link2 },
+    { name: "Profile", href: "/settings/profile", icon: User },
+    // Only show Organization settings to admins
+    ...(isAdmin
+      ? [
+          {
+            name: "Organization",
+            href: "/settings/organization",
+            icon: Building2,
+          },
+        ]
+      : []),
+    { name: "Workspaces", href: "/settings/workspace", icon: Briefcase },
+    { name: "Writing Style", href: "/settings/writing-style", icon: PenTool },
+  ];
 
   return (
     <div className="min-h-full w-full max-w-7xl mx-auto px-6 md:px-12 py-10 flex flex-col">
@@ -40,7 +59,7 @@ export default function SettingsLayout({
       </div>
 
       <div className="flex-1 grid grid-cols-1 lg:grid-cols-12 gap-12 min-h-0">
-        {/* Sidebar Navigation - Table of Contents Style */}
+        {/* Sidebar Navigation */}
         <aside className="lg:col-span-3">
           <nav className="space-y-1 sticky top-6">
             <p className="font-serif text-xs font-bold uppercase tracking-widest text-foreground/40 mb-4 pl-3">
