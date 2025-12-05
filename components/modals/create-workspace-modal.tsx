@@ -137,7 +137,6 @@ export function CreateWorkspaceModal({
               <X className="w-6 h-6" />
             </button>
           </div>
-          {/* Removed the description div here as requested */}
         </div>
 
         <form onSubmit={handleSubmit} className="p-8 pt-6 space-y-8">
@@ -160,7 +159,7 @@ export function CreateWorkspaceModal({
                   <SelectItem
                     key={node.organization.id}
                     value={node.organization.id}
-                    className="cursor-pointer focus:bg-black/5 focus:text-black text-black"
+                    className="cursor-pointer focus:bg-black/5 focus:text-black"
                   >
                     <span className="font-bold">{node.organization.name}</span>
                   </SelectItem>
@@ -206,55 +205,55 @@ export function CreateWorkspaceModal({
               <SelectContent className="max-h-[200px] bg-[#fdfbf7] border border-black/10 shadow-xl font-serif">
                 <SelectItem
                   value="UTC"
-                  className="cursor-pointer focus:bg-black/5 focus:text-black text-black"
+                  className="cursor-pointer focus:bg-black/5 focus:text-black"
                 >
                   UTC (Universal Time)
                 </SelectItem>
                 <SelectItem
                   value="America/New_York"
-                  className="cursor-pointer focus:bg-black/5 focus:text-black text-black"
+                  className="cursor-pointer focus:bg-black/5 focus:text-black"
                 >
                   Eastern Time
                 </SelectItem>
                 <SelectItem
                   value="America/Chicago"
-                  className="cursor-pointer focus:bg-black/5 focus:text-black text-black"
+                  className="cursor-pointer focus:bg-black/5 focus:text-black"
                 >
                   Central Time
                 </SelectItem>
                 <SelectItem
                   value="America/Denver"
-                  className="cursor-pointer focus:bg-black/5 focus:text-black text-black"
+                  className="cursor-pointer focus:bg-black/5 focus:text-black"
                 >
                   Mountain Time
                 </SelectItem>
                 <SelectItem
                   value="America/Los_Angeles"
-                  className="cursor-pointer focus:bg-black/5 focus:text-black text-black"
+                  className="cursor-pointer focus:bg-black/5 focus:text-black"
                 >
                   Pacific Time
                 </SelectItem>
                 <SelectItem
                   value="Europe/London"
-                  className="cursor-pointer focus:bg-black/5 focus:text-black text-black"
+                  className="cursor-pointer focus:bg-black/5 focus:text-black"
                 >
                   London
                 </SelectItem>
                 <SelectItem
                   value="Europe/Paris"
-                  className="cursor-pointer focus:bg-black/5 focus:text-black text-black"
+                  className="cursor-pointer focus:bg-black/5 focus:text-black"
                 >
                   Paris
                 </SelectItem>
                 <SelectItem
                   value="Asia/Tokyo"
-                  className="cursor-pointer focus:bg-black/5 focus:text-black text-black"
+                  className="cursor-pointer focus:bg-black/5 focus:text-black"
                 >
                   Tokyo
                 </SelectItem>
                 <SelectItem
                   value="Australia/Sydney"
-                  className="cursor-pointer focus:bg-black/5 focus:text-black text-black"
+                  className="cursor-pointer focus:bg-black/5 focus:text-black"
                 >
                   Sydney
                 </SelectItem>

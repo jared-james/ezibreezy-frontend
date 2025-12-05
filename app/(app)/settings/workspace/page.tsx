@@ -102,7 +102,6 @@ export default function WorkspaceSettingsPage() {
   }
 
   // Derived state: Check if changes exist compared to the current workspace
-  // This is performant (O(1)) and runs on every render without causing re-renders
   const hasChanges =
     formData.name !== currentWorkspace.name ||
     formData.timezone !== currentWorkspace.timezone;
@@ -135,9 +134,6 @@ export default function WorkspaceSettingsPage() {
   };
 
   const handleDelete = async () => {
-    // We don't need to set local 'loading' state here because
-    // the DeleteWorkspaceModal handles its own loading state.
-
     const result = await deleteWorkspace(currentWorkspace.id);
 
     if (result.success) {
@@ -158,8 +154,6 @@ export default function WorkspaceSettingsPage() {
       router.push("/dashboard");
       router.refresh();
     } else {
-      // If we fail, we throw an error so the Modal knows to stop loading
-      // and we display a toast.
       toast.error(result.error || "Failed to delete workspace");
       throw new Error(result.error || "Failed to delete workspace");
     }
@@ -228,24 +222,61 @@ export default function WorkspaceSettingsPage() {
                 <SelectTrigger className="w-full h-[50px] px-4 bg-background border-border font-serif text-base focus:ring-foreground/20">
                   <SelectValue placeholder="Select Timezone" />
                 </SelectTrigger>
-                <SelectContent className="max-h-[300px] font-serif">
-                  <SelectItem value="UTC">UTC (Universal Time)</SelectItem>
-                  <SelectItem value="America/New_York">
+                <SelectContent className="max-h-[300px] bg-[#fdfbf7] border border-black/10 shadow-xl font-serif">
+                  <SelectItem
+                    value="UTC"
+                    className="cursor-pointer focus:bg-black/5 focus:text-black"
+                  >
+                    UTC (Universal Time)
+                  </SelectItem>
+                  <SelectItem
+                    value="America/New_York"
+                    className="cursor-pointer focus:bg-black/5 focus:text-black"
+                  >
                     Eastern Time (US & Canada)
                   </SelectItem>
-                  <SelectItem value="America/Chicago">
+                  <SelectItem
+                    value="America/Chicago"
+                    className="cursor-pointer focus:bg-black/5 focus:text-black"
+                  >
                     Central Time (US & Canada)
                   </SelectItem>
-                  <SelectItem value="America/Denver">
+                  <SelectItem
+                    value="America/Denver"
+                    className="cursor-pointer focus:bg-black/5 focus:text-black"
+                  >
                     Mountain Time (US & Canada)
                   </SelectItem>
-                  <SelectItem value="America/Los_Angeles">
+                  <SelectItem
+                    value="America/Los_Angeles"
+                    className="cursor-pointer focus:bg-black/5 focus:text-black"
+                  >
                     Pacific Time (US & Canada)
                   </SelectItem>
-                  <SelectItem value="Europe/London">London</SelectItem>
-                  <SelectItem value="Europe/Paris">Paris</SelectItem>
-                  <SelectItem value="Asia/Tokyo">Tokyo</SelectItem>
-                  <SelectItem value="Australia/Sydney">Sydney</SelectItem>
+                  <SelectItem
+                    value="Europe/London"
+                    className="cursor-pointer focus:bg-black/5 focus:text-black"
+                  >
+                    London
+                  </SelectItem>
+                  <SelectItem
+                    value="Europe/Paris"
+                    className="cursor-pointer focus:bg-black/5 focus:text-black"
+                  >
+                    Paris
+                  </SelectItem>
+                  <SelectItem
+                    value="Asia/Tokyo"
+                    className="cursor-pointer focus:bg-black/5 focus:text-black"
+                  >
+                    Tokyo
+                  </SelectItem>
+                  <SelectItem
+                    value="Australia/Sydney"
+                    className="cursor-pointer focus:bg-black/5 focus:text-black"
+                  >
+                    Sydney
+                  </SelectItem>
                 </SelectContent>
               </Select>
             </div>

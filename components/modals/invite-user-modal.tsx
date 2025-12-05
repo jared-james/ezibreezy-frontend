@@ -168,7 +168,7 @@ export function InviteUserModal({
                 <SelectContent className="bg-[#fdfbf7] border border-black/10 shadow-xl font-serif">
                   <SelectItem
                     value="viewer"
-                    className="cursor-pointer focus:bg-black/5"
+                    className="cursor-pointer focus:bg-black/5 focus:text-black"
                   >
                     <div className="flex flex-col py-1">
                       <span className="font-bold uppercase text-xs tracking-wider">
@@ -181,7 +181,7 @@ export function InviteUserModal({
                   </SelectItem>
                   <SelectItem
                     value="editor"
-                    className="cursor-pointer focus:bg-black/5"
+                    className="cursor-pointer focus:bg-black/5 focus:text-black"
                   >
                     <div className="flex flex-col py-1">
                       <span className="font-bold uppercase text-xs tracking-wider">
@@ -194,7 +194,7 @@ export function InviteUserModal({
                   </SelectItem>
                   <SelectItem
                     value="admin"
-                    className="cursor-pointer focus:bg-black/5"
+                    className="cursor-pointer focus:bg-black/5 focus:text-black"
                   >
                     <div className="flex flex-col py-1">
                       <span className="font-bold uppercase text-xs tracking-wider">
