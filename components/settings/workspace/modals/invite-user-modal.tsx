@@ -1,10 +1,12 @@
+// components/settings/workspace/modals/invite-user-modal.tsx
+
 "use client";
 
 import { useState, useMemo, useEffect } from "react";
 import {
   X,
   Mail,
-  ShieldCheck, // Added
+  ShieldCheck,
   Loader2,
   Send,
   Scissors,
@@ -62,13 +64,23 @@ export function InviteUserModal({
     return orgNode ? orgNode.workspaces : [];
   }, [structure, currentOrganization]);
 
+  // Validation Logic
+  const isFormValid = useMemo(() => {
+    if (!email.trim()) return false;
+    // If Admin, they don't need workspaces selected.
+    // If Member, they MUST have at least one.
+    if (orgRole === "member" && Object.keys(selectedWorkspaces).length === 0) {
+      return false;
+    }
+    return true;
+  }, [email, orgRole, selectedWorkspaces]);
+
   if (!isOpen) return null;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!email) return;
+    if (!isFormValid) return;
 
-    // IMPORTANT: If Admin, we don't send specific workspaces
     const workspacesPayload: WorkspaceInviteConfig[] =
       orgRole === "member"
         ? Object.entries(selectedWorkspaces).map(([wId, role]) => ({
@@ -76,11 +88,6 @@ export function InviteUserModal({
             role,
           }))
         : [];
-
-    if (orgRole === "member" && workspacesPayload.length === 0) {
-      setError("A member must be assigned to at least one workspace.");
-      return;
-    }
 
     setIsLoading(true);
     setError(null);
@@ -389,8 +396,13 @@ export function InviteUserModal({
               </button>
               <button
                 type="submit"
-                disabled={isLoading}
-                className="btn btn-primary flex-[2]"
+                disabled={isLoading || !isFormValid}
+                className={cn(
+                  "btn flex-[2]",
+                  !isFormValid
+                    ? "bg-black/10 text-muted-foreground cursor-not-allowed border-transparent"
+                    : "btn-primary"
+                )}
               >
                 {isLoading ? (
                   <>
