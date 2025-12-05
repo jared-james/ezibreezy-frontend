@@ -3,9 +3,18 @@
 "use client";
 
 import { useState } from "react";
-import { X, Mail, Shield, Loader2, Send, AlertTriangle } from "lucide-react";
+import {
+  X,
+  Mail,
+  Shield,
+  Loader2,
+  Send,
+  Scissors,
+  AlertCircle,
+} from "lucide-react";
 import { inviteUserToWorkspace } from "@/app/actions/workspaces";
 import { toast } from "sonner";
+import { cn } from "@/lib/utils";
 import {
   Select,
   SelectContent,
@@ -39,7 +48,7 @@ export function InviteUserModal({
     if (!email) return;
 
     setIsLoading(true);
-    setError(null); // Clear previous errors on new attempt
+    setError(null);
 
     try {
       const result = await inviteUserToWorkspace({
@@ -49,134 +58,197 @@ export function InviteUserModal({
       });
 
       if (result.success) {
-        toast.success(`Invite sent to ${email}`);
+        toast.success(`Dispatched invite to ${email}`);
         onClose();
-        setEmail(""); // Reset form
+        setEmail("");
         setRole("editor");
       } else {
-        // Set the error state instead of showing a toast
-        setError(result.error || "Failed to send invite");
+        setError(result.error || "Failed to dispatch invite");
       }
     } catch (error) {
-      setError("An unexpected error occurred");
+      setError("Critical transmission error.");
     } finally {
       setIsLoading(false);
     }
   };
 
-  // Clear error when user changes input to let them know they are trying again
   const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setError(null);
     setEmail(e.target.value);
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-in fade-in duration-200">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#e5e5e0]/80 backdrop-blur-sm animate-in fade-in duration-200">
+      {/* 
+        Container: 
+        - Editorial paper color
+        - Standard soft shadow instead of hard offset
+        - Clean border
+      */}
       <div
-        className="relative w-full max-w-md bg-surface border border-border shadow-2xl rounded-sm overflow-hidden flex flex-col"
+        className="
+          relative w-full max-w-md 
+          bg-[#fdfbf7] 
+          border border-black/10
+          shadow-2xl rounded-lg
+          flex flex-col overflow-hidden
+        "
         role="dialog"
         aria-modal="true"
       >
-        <button
-          onClick={onClose}
-          disabled={isLoading}
-          className="absolute top-4 right-4 p-2 text-muted-foreground hover:text-foreground transition-colors rounded-sm hover:bg-surface-hover z-10"
-        >
-          <X className="w-5 h-5" />
-        </button>
-
-        <div className="p-6 md:p-8">
-          <div className="mb-6">
-            <h2 className="headline text-2xl">Invite Team Member</h2>
-            <p className="font-serif text-sm text-muted-foreground mt-2">
-              Send an invitation to join{" "}
-              <span className="font-bold text-foreground">{workspaceName}</span>
-              .
-            </p>
+        {/* Header Section */}
+        <div className="p-8 border-b border-black/5 pb-6">
+          <div className="flex items-start justify-between">
+            <div>
+              <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-muted-foreground mb-2">
+                Internal Memo // New Personnel
+              </p>
+              <h2 className="headline text-3xl font-bold tracking-tight text-foreground">
+                Team Admit
+              </h2>
+            </div>
+            <button
+              onClick={onClose}
+              disabled={isLoading}
+              className="text-muted-foreground hover:text-foreground transition-colors p-1"
+            >
+              <X className="w-6 h-6" />
+            </button>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-6">
-            {/* Email Input */}
-            <div className="space-y-2">
-              <label className="text-xs font-bold uppercase tracking-wider flex items-center gap-2 text-muted-foreground">
-                <Mail className="w-3.5 h-3.5" /> Email Address
+          <div className="mt-4 font-serif text-sm text-foreground/80 leading-relaxed border-l-2 border-brand-primary pl-3">
+            Granting access to{" "}
+            <span className="font-bold border-b border-black/20 border-dotted">
+              {workspaceName}
+            </span>
+            .
+          </div>
+        </div>
+
+        {/* Content Section */}
+        <div className="p-8 pt-6">
+          <form onSubmit={handleSubmit} className="space-y-8">
+            {/* Email Input - "Fill in the blank" style */}
+            <div className="space-y-1">
+              <label className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground pl-1">
+                Recipient Email
               </label>
-              <input
-                type="email"
-                value={email}
-                onChange={handleEmailChange}
-                required
-                placeholder="colleague@example.com"
-                className={`w-full px-4 py-3 bg-background border focus:ring-1 transition-all font-serif ${
-                  error
-                    ? "border-error focus:border-error focus:ring-error"
-                    : "border-border focus:border-foreground focus:ring-foreground"
-                }`}
-              />
+              <div className="relative group">
+                <Mail className="absolute left-0 top-3 w-4 h-4 text-muted-foreground group-focus-within:text-brand-primary transition-colors" />
+                <input
+                  type="email"
+                  value={email}
+                  onChange={handleEmailChange}
+                  required
+                  placeholder="editor@newsroom.com"
+                  className={cn(
+                    "w-full bg-transparent px-6 py-2 font-serif text-xl text-foreground placeholder:text-muted-foreground/40 outline-none transition-all",
+                    "border-b-2 border-dotted border-black/20",
+                    "focus:border-brand-primary focus:border-solid",
+                    error && "border-red-500 border-solid text-red-600"
+                  )}
+                />
+              </div>
             </div>
 
-            {/* Role Selection */}
-            <div className="space-y-2">
-              <label className="text-xs font-bold uppercase tracking-wider flex items-center gap-2 text-muted-foreground">
-                <Shield className="w-3.5 h-3.5" /> Role Permission
+            {/* Role Selection - Minimal style */}
+            <div className="space-y-1">
+              <label className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground pl-1">
+                Security Clearance
               </label>
               <Select value={role} onValueChange={(val: any) => setRole(val)}>
-                <SelectTrigger className="w-full h-[50px] px-4 bg-background border-border font-serif text-base">
-                  <SelectValue placeholder="Select Role" />
+                <SelectTrigger className="w-full h-12 bg-transparent border-0 border-b-2 border-dotted border-black/20 rounded-none px-0 font-serif text-xl focus:ring-0 focus:border-brand-primary focus:border-solid shadow-none">
+                  <div className="flex items-center gap-3 px-1">
+                    <Shield className="w-4 h-4 text-muted-foreground" />
+                    <SelectValue placeholder="Select Role" />
+                  </div>
                 </SelectTrigger>
-                <SelectContent className="font-serif">
-                  <SelectItem value="viewer">
-                    <span className="font-bold">Viewer</span> - Can only view
-                    content
+
+                {/* Dropdown Content */}
+                <SelectContent className="bg-[#fdfbf7] border border-black/10 shadow-xl font-serif">
+                  <SelectItem
+                    value="viewer"
+                    className="cursor-pointer focus:bg-black/5"
+                  >
+                    <div className="flex flex-col py-1">
+                      <span className="font-bold uppercase text-xs tracking-wider">
+                        Viewer
+                      </span>
+                      <span className="text-muted-foreground text-[10px]">
+                        Read-only access
+                      </span>
+                    </div>
                   </SelectItem>
-                  <SelectItem value="editor">
-                    <span className="font-bold">Editor</span> - Can create &
-                    edit posts
+                  <SelectItem
+                    value="editor"
+                    className="cursor-pointer focus:bg-black/5"
+                  >
+                    <div className="flex flex-col py-1">
+                      <span className="font-bold uppercase text-xs tracking-wider">
+                        Editor
+                      </span>
+                      <span className="text-muted-foreground text-[10px]">
+                        Create & publish
+                      </span>
+                    </div>
                   </SelectItem>
-                  <SelectItem value="admin">
-                    <span className="font-bold">Admin</span> - Full workspace
-                    access
+                  <SelectItem
+                    value="admin"
+                    className="cursor-pointer focus:bg-black/5"
+                  >
+                    <div className="flex flex-col py-1">
+                      <span className="font-bold uppercase text-xs tracking-wider">
+                        Admin
+                      </span>
+                      <span className="text-muted-foreground text-[10px]">
+                        Full system control
+                      </span>
+                    </div>
                   </SelectItem>
                 </SelectContent>
               </Select>
             </div>
 
-            {/* INLINE ERROR MESSAGE */}
+            {/* Error Message */}
             {error && (
-              <div className="p-3 bg-error/5 border border-error/20 flex items-start gap-3 rounded-sm animate-in slide-in-from-top-1">
-                <AlertTriangle className="w-5 h-5 text-error shrink-0 mt-0.5" />
-                <div className="flex-1">
-                  <h4 className="text-xs font-bold text-error uppercase tracking-wider mb-1">
-                    Unable to Invite
-                  </h4>
-                  <p className="text-sm text-error/90 font-medium leading-tight">
-                    {error}
-                  </p>
-                </div>
+              <div className="border border-red-200 bg-red-50 p-3 flex items-start gap-3 rounded-sm">
+                <AlertCircle className="w-4 h-4 text-red-600 mt-0.5 shrink-0" />
+                <p className="font-mono text-xs text-red-700 leading-relaxed">
+                  <span className="font-bold">ERROR:</span> {error}
+                </p>
               </div>
             )}
 
-            <div className="flex gap-3 pt-2">
+            {/* "Cut Line" Separator */}
+            <div className="flex items-center gap-2 text-black/20 py-2">
+              <Scissors className="h-4 w-4 -rotate-90" />
+              <div className="flex-1 border-b-2 border-dashed border-black/10" />
+            </div>
+
+            {/* Actions - Standard Buttons */}
+            <div className="flex gap-3">
               <button
                 type="button"
                 onClick={onClose}
                 disabled={isLoading}
                 className="btn btn-outline flex-1"
               >
-                Cancel
+                Discard
               </button>
+
               <button
                 type="submit"
                 disabled={isLoading}
-                className="btn btn-primary flex-1 gap-2"
+                className="btn btn-primary flex-[2]"
               >
                 {isLoading ? (
                   <>
-                    <Loader2 className="w-4 h-4 animate-spin" /> Sending...
+                    <Loader2 className="w-3 h-3 animate-spin mr-2" />
+                    Processing...
                   </>
                 ) : (
                   <>
-                    <Send className="w-4 h-4" /> Send Invite
+                    Dispatch Invite <Send className="w-3 h-3 ml-2" />
                   </>
                 )}
               </button>
