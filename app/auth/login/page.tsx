@@ -3,7 +3,7 @@
 "use client";
 
 import { createClient } from "@/lib/supabase/client";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { useState, useEffect, Suspense } from "react";
 import Link from "next/link";
 import Image from "next/image";
@@ -18,7 +18,6 @@ function LoginForm() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const router = useRouter();
   const searchParams = useSearchParams();
   const supabase = createClient();
 
@@ -102,19 +101,23 @@ function LoginForm() {
       const syncResult = await syncUser();
       console.log("🔵 [Login] syncUser result:", syncResult);
 
-      // Refresh router to update server components with new session
-      console.log("🔵 [Login] Refreshing router...");
-      router.refresh();
+      if (!syncResult.success) {
+        setError(syncResult.error || "Failed to sync user");
+        setIsLoading(false);
+        return;
+      }
 
       // 4. INTENT AWARE REDIRECT
-      if (syncResult.success && syncResult.targetWorkspaceId) {
-        console.log("🔵 [Login] Redirecting to dashboard with workspaceId:", syncResult.targetWorkspaceId);
-        router.push(
-          `/dashboard?workspaceId=${syncResult.targetWorkspaceId}&invite=success`
-        );
+      // Use window.location.href for a hard navigation that ensures the session
+      // and all server components are properly loaded with the new auth state
+      console.log("🔵 [Login] Redirecting to dashboard...");
+
+      if (syncResult.targetWorkspaceId) {
+        console.log("🔵 [Login] Target workspace:", syncResult.targetWorkspaceId);
+        window.location.href = `/dashboard?workspaceId=${syncResult.targetWorkspaceId}&invite=success`;
       } else {
-        console.log("🔵 [Login] Redirecting to dashboard (no workspace)");
-        router.push("/dashboard");
+        console.log("🔵 [Login] No target workspace, going to default dashboard");
+        window.location.href = "/dashboard";
       }
 
       // Note: We don't set isLoading(false) here to keep the button state

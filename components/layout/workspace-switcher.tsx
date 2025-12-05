@@ -7,16 +7,65 @@ import { ChevronsUpDown, Check, Building2, Briefcase } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useWorkspaceStore } from "@/lib/store/workspace-store";
 
-export function WorkspaceSwitcher() {
+import type { OrganizationNode } from "@/lib/store/workspace-store";
+
+interface WorkspaceSwitcherProps {
+  initialStructure?: OrganizationNode[];
+}
+
+export function WorkspaceSwitcher({ initialStructure }: WorkspaceSwitcherProps) {
   const [open, setOpen] = React.useState(false);
   const dropdownRef = React.useRef<HTMLDivElement>(null);
+  const hasInitialized = React.useRef(false);
 
   const {
     structure,
     currentWorkspace,
     currentOrganization,
     setCurrentWorkspace,
+    setStructure,
   } = useWorkspaceStore();
+
+  // Initialize store SYNCHRONOUSLY during render if we have initial data
+  // This ensures the store is populated before the first render completes
+  if (initialStructure && initialStructure.length > 0 && structure.length === 0 && !hasInitialized.current) {
+    console.log("🟡 [WorkspaceSwitcher] SYNC initialization with server data");
+    setStructure(initialStructure);
+    hasInitialized.current = true;
+  }
+
+  // Use initialStructure or store structure, whichever is available
+  // During SSR/hydration, the store might not be updated yet, so fallback to initialStructure
+  const effectiveStructure = structure.length > 0 ? structure : (initialStructure || []);
+
+  // Derive workspace and org from effectiveStructure if store hasn't updated yet
+  let effectiveWorkspace = currentWorkspace;
+  let effectiveOrg = currentOrganization;
+
+  // If store is empty but we have initialStructure, derive the values
+  if (!effectiveWorkspace && effectiveStructure.length > 0) {
+    // Find the first workspace in the structure
+    for (const node of effectiveStructure) {
+      if (node.workspaces.length > 0) {
+        const firstWs = node.workspaces[0];
+        effectiveWorkspace = {
+          ...firstWs,
+          organizationId: node.organization.id,
+        };
+        effectiveOrg = node.organization;
+        break;
+      }
+    }
+  }
+
+  // Debug: Log what we receive
+  console.log("🟡 [WorkspaceSwitcher] Render:", {
+    receivedInitialStructure: !!initialStructure,
+    initialLength: initialStructure?.length,
+    storeLength: structure.length,
+    effectiveLength: effectiveStructure.length,
+    hasCurrentWorkspace: !!effectiveWorkspace
+  });
 
   // Close dropdown when clicking outside
   React.useEffect(() => {
@@ -51,9 +100,9 @@ export function WorkspaceSwitcher() {
   });
 
   // If data hasn't loaded yet
-  if (!currentWorkspace || !currentOrganization) {
+  if (!effectiveWorkspace || !effectiveOrg) {
     // If structure is empty, user has no workspaces
-    if (structure.length === 0) {
+    if (effectiveStructure.length === 0) {
       console.warn("⚠️ [WorkspaceSwitcher] No workspaces available");
       return (
         <div className="h-16 flex items-center justify-center px-6 border-b-2 border-[--foreground]">
@@ -66,15 +115,15 @@ export function WorkspaceSwitcher() {
 
     // Still loading (shouldn't happen with server-side fetch, but handle gracefully)
     console.warn("⚠️ [WorkspaceSwitcher] Still loading - missing:", {
-      missingWorkspace: !currentWorkspace,
-      missingOrg: !currentOrganization,
-      structureLength: structure.length,
+      missingWorkspace: !effectiveWorkspace,
+      missingOrg: !effectiveOrg,
+      effectiveStructureLength: effectiveStructure.length,
     });
 
     return (
       <div className="h-16 flex items-center justify-center px-6 border-b-2 border-[--foreground]">
         <span className="font-serif text-sm text-[--muted]">
-          Loading... (check console)
+          Loading...
         </span>
       </div>
     );
@@ -94,15 +143,15 @@ export function WorkspaceSwitcher() {
           <div className="flex flex-col items-start overflow-hidden min-w-0">
             <span
               className="font-serif text-sm font-bold text-foreground truncate w-full text-left"
-              title={currentWorkspace.name}
+              title={effectiveWorkspace.name}
             >
-              {currentWorkspace.name}
+              {effectiveWorkspace.name}
             </span>
             <span
               className="font-serif text-xs text-muted-foreground truncate w-full text-left"
-              title={currentOrganization.name}
+              title={effectiveOrg.name}
             >
-              {currentOrganization.name}
+              {effectiveOrg.name}
             </span>
           </div>
         </div>
@@ -113,7 +162,7 @@ export function WorkspaceSwitcher() {
       {open && (
         <div className="absolute top-[calc(100%+8px)] left-4 right-4 bg-background border border-border shadow-xl max-h-[400px] overflow-y-auto z-50">
           <div className="py-2">
-            {structure.map((node) => (
+            {effectiveStructure.map((node) => (
               <div key={node.organization.id} className="mb-4 last:mb-0">
                 {/* Organization Header */}
                 <div className="px-3 py-1.5 mb-1">
@@ -128,7 +177,7 @@ export function WorkspaceSwitcher() {
                 {/* Workspaces List */}
                 <div>
                   {node.workspaces.map((workspace) => {
-                    const isActive = currentWorkspace.id === workspace.id;
+                    const isActive = effectiveWorkspace.id === workspace.id;
                     return (
                       <button
                         key={workspace.id}

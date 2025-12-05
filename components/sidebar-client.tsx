@@ -118,7 +118,7 @@ export default function SidebarClient({
   return (
     <aside className="w-64 bg-[--background] border-r-2 border-[--foreground] flex flex-col">
       {/* 1. Replaced Static Header with Switcher */}
-      <WorkspaceSwitcher />
+      <WorkspaceSwitcher initialStructure={initialStructure} />
 
       <div className="p-4 border-b-2 border-[--foreground] shrink-0">
         <Button
