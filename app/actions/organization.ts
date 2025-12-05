@@ -56,6 +56,57 @@ export async function updateOrganizationName(
   }
 }
 
+export async function transferOrganizationOwnership(
+  organizationId: string,
+  newOwnerId: string
+) {
+  if (!BACKEND_URL || !API_KEY) {
+    return { success: false, error: "API configuration missing." };
+  }
+
+  const supabase = await createClient();
+  const { data: sessionData } = await supabase.auth.getSession();
+  const session = sessionData.session;
+
+  if (!session) {
+    return { success: false, error: "User not authenticated." };
+  }
+
+  try {
+    const response = await fetch(
+      `${BACKEND_URL}/users/organization/transfer-ownership`,
+      {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${session.access_token}`,
+          "x-api-key": API_KEY,
+        },
+        body: JSON.stringify({ organizationId, newOwnerId }),
+        cache: "no-store",
+      }
+    );
+
+    if (!response.ok) {
+      const errorData = await response
+        .json()
+        .catch(() => ({ message: "Unknown backend error." }));
+      return {
+        success: false,
+        error: errorData.message || "Failed to transfer ownership.",
+      };
+    }
+
+    // Critical: Revalidate the layout so the "Organization" settings tab
+    // disappears immediately for the user (who is now just an Admin)
+    revalidatePath("/", "layout");
+    return { success: true };
+  } catch (error) {
+    console.error("Server action error transferring ownership:", error);
+    return { success: false, error: "Failed to connect to backend service." };
+  }
+}
+
 export async function getOrganizationMembers(organizationId: string) {
   const userContext = await getUserAndOrganization();
 
