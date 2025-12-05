@@ -47,9 +47,6 @@ export default function SettingsLayout({
               Settings
             </h1>
           </div>
-          <span className="hidden md:block font-serif text-xs italic text-muted-foreground uppercase tracking-widest">
-            Vol. 1 — Config
-          </span>
         </div>
         <p className="font-serif text-muted-foreground mt-4 max-w-xl text-lg leading-relaxed">
           Manage your account credentials, integration channels, and workspace
