@@ -291,8 +291,13 @@ export function CreateWorkspaceModal({
             </button>
             <button
               type="submit"
-              disabled={loading}
-              className="btn btn-primary flex-[2]"
+              disabled={loading || !formData.name.trim()}
+              className={cn(
+                "btn flex-[2]",
+                !formData.name.trim()
+                  ? "bg-black/10 text-muted-foreground cursor-not-allowed border-transparent"
+                  : "btn-primary"
+              )}
             >
               {loading ? (
                 <>
