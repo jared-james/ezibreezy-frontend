@@ -55,7 +55,7 @@ export default function ProfileForm({
 
         <div className="space-y-4">
           <div>
-            <label className="eyebrow mb-2">Full Name</label>
+            <label className="eyebrow mb-2">Name</label>
             <div className="flex gap-2 items-start pt-2">
               <Input
                 type="text"

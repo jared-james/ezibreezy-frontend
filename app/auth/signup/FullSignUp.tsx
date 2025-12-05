@@ -14,6 +14,7 @@ import { useSearchParams } from "next/navigation";
 import { getInviteDetails } from "@/app/actions/invites";
 
 export default function FullSignUp() {
+  const [name, setName] = useState(""); // <--- New State
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
@@ -44,8 +45,6 @@ export default function FullSignUp() {
       if (result.success && result.data) {
         setInviteInfo(result.data);
       }
-      // If it fails (e.g. expired), we just fall back to the default "Join the Editorial Desk" view
-      // rather than blocking them from signing up entirely.
       setVerifyingInvite(false);
     };
 
@@ -57,8 +56,6 @@ export default function FullSignUp() {
     setError(null);
     setIsLoading(true);
 
-    // Construct the redirect URL.
-    // If we have a token, append it: /auth/callback?invite_token=xyz
     let redirectUrl = `${window.location.origin}/auth/callback`;
     if (inviteToken) {
       redirectUrl += `?invite_token=${inviteToken}`;
@@ -69,8 +66,11 @@ export default function FullSignUp() {
         email,
         password,
         options: {
-          // Supabase will now send the user to THIS url after clicking the email link
           emailRedirectTo: redirectUrl,
+          // We attach the name here. Your syncUser action will pick this up automatically.
+          data: {
+            displayName: name,
+          },
         },
       });
 
@@ -86,6 +86,7 @@ export default function FullSignUp() {
         setIsSubmitted(true);
         posthog.identify(email, {
           email: email,
+          name: name, // Tracking name in PostHog too
         });
         posthog.capture("user_signed_up", {
           email: email,
@@ -246,6 +247,28 @@ export default function FullSignUp() {
                       className="space-y-8 max-w-sm w-full"
                     >
                       <div className="space-y-8">
+                        {/* NAME INPUT */}
+                        <div className="group">
+                          <label
+                            htmlFor="name"
+                            className="block font-mono text-[10px] uppercase tracking-widest text-foreground/50 mb-2"
+                          >
+                            Name
+                          </label>
+                          <input
+                            id="name"
+                            name="name"
+                            type="text"
+                            required
+                            value={name}
+                            onChange={(e) => setName(e.target.value)}
+                            placeholder="Ernest Hemingway"
+                            className="w-full bg-transparent border-b-2 border-dotted border-foreground/30 py-2 font-serif text-xl text-foreground placeholder:text-foreground/20 focus:outline-none focus:border-foreground transition-colors"
+                            disabled={isLoading}
+                          />
+                        </div>
+
+                        {/* EMAIL INPUT */}
                         <div className="group">
                           <label
                             htmlFor="email"
@@ -266,6 +289,7 @@ export default function FullSignUp() {
                           />
                         </div>
 
+                        {/* PASSWORD INPUT */}
                         <div className="group">
                           <label
                             htmlFor="password"
