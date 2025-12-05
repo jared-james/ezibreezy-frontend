@@ -23,7 +23,10 @@ import {
   Building2,
   Globe,
   Briefcase,
+  Scissors,
+  X,
 } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 interface CreateWorkspaceModalProps {
   onClose: () => void;
@@ -67,21 +70,13 @@ export function CreateWorkspaceModal({
     const result = await createWorkspace(formData);
 
     if (result.success && result.data) {
-      // Refresh workspace structure
       const structureResult = await getWorkspaceStructure();
       if (structureResult.success && structureResult.data) {
         setStructure(structureResult.data);
       }
-
-      // Switch to new workspace
       setCurrentWorkspace(result.data.id);
-
-      // Call success callback
       onSuccess?.(result.data);
-
-      // Refresh the page to update all components
       router.refresh();
-
       onClose();
     } else {
       setError(result.error || "Failed to create workspace");
@@ -89,12 +84,13 @@ export function CreateWorkspaceModal({
     }
   };
 
+  // Access Denied State
   if (eligibleOrgs.length === 0) {
     return (
-      <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-        <div className="bg-surface border border-border shadow-2xl rounded-lg p-8 max-w-md w-full text-center">
+      <div className="fixed inset-0 bg-[#e5e5e0]/80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+        <div className="bg-[#fdfbf7] border border-black/10 shadow-2xl rounded-lg p-8 max-w-md w-full text-center">
           <div className="flex justify-center mb-4">
-            <div className="h-12 w-12 rounded-full bg-error/10 flex items-center justify-center text-error border border-error/20">
+            <div className="h-12 w-12 rounded-full bg-red-50 flex items-center justify-center text-red-600 border border-red-100">
               <AlertTriangle className="h-6 w-6" />
             </div>
           </div>
@@ -112,27 +108,43 @@ export function CreateWorkspaceModal({
   }
 
   return (
-    <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-in fade-in duration-200">
-      <div className="bg-surface border border-border shadow-2xl rounded-lg w-full max-w-lg overflow-hidden flex flex-col">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#e5e5e0]/80 backdrop-blur-sm animate-in fade-in duration-200">
+      <div
+        className="
+          relative w-full max-w-lg 
+          bg-[#fdfbf7] 
+          border border-black/10 
+          shadow-2xl rounded-lg 
+          flex flex-col overflow-hidden
+        "
+      >
         {/* Header */}
-        <div className="p-6 md:p-8 border-b border-border bg-surface-hover/50">
-          <p className="eyebrow text-brand-primary mb-2">Registration</p>
-          <h2 className="headline text-2xl font-bold text-foreground">
-            New Workspace
-          </h2>
-          <p className="font-serif text-sm text-muted-foreground mt-1">
-            Initialize a new environment for your projects.
-          </p>
+        <div className="p-8 border-b border-black/5 pb-6">
+          <div className="flex items-start justify-between">
+            <div>
+              <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-muted-foreground mb-2">
+                System // Expansion
+              </p>
+              <h2 className="headline text-3xl font-bold tracking-tight text-foreground">
+                New Workspace
+              </h2>
+            </div>
+            <button
+              onClick={onClose}
+              disabled={loading}
+              className="text-muted-foreground hover:text-foreground transition-colors p-1"
+            >
+              <X className="w-6 h-6" />
+            </button>
+          </div>
+          {/* Removed the description div here as requested */}
         </div>
 
-        <form
-          onSubmit={handleSubmit}
-          className="p-6 md:p-8 space-y-5 bg-surface"
-        >
+        <form onSubmit={handleSubmit} className="p-8 pt-6 space-y-8">
           {/* Organization Select */}
-          <div className="space-y-2">
-            <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-2">
-              <Building2 className="w-3.5 h-3.5" /> Organization
+          <div className="space-y-1">
+            <label className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground pl-1 flex items-center gap-2">
+              <Building2 className="w-3 h-3" /> Organization
             </label>
             <Select
               value={formData.organizationId}
@@ -140,16 +152,17 @@ export function CreateWorkspaceModal({
                 setFormData({ ...formData, organizationId: value })
               }
             >
-              <SelectTrigger className="w-full bg-background font-serif">
+              <SelectTrigger className="w-full h-12 bg-transparent border-0 border-b-2 border-dotted border-black/20 rounded-none px-0 font-serif text-xl focus:ring-0 focus:border-brand-primary focus:border-solid shadow-none">
                 <SelectValue placeholder="Select Organization" />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className="bg-[#fdfbf7] border border-black/10 shadow-xl font-serif">
                 {eligibleOrgs.map((node) => (
                   <SelectItem
                     key={node.organization.id}
                     value={node.organization.id}
+                    className="cursor-pointer focus:bg-black/5 focus:text-black text-black"
                   >
-                    {node.organization.name}
+                    <span className="font-bold">{node.organization.name}</span>
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -157,27 +170,29 @@ export function CreateWorkspaceModal({
           </div>
 
           {/* Workspace Name Input */}
-          <div className="space-y-2">
-            <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-2">
-              <Briefcase className="w-3.5 h-3.5" /> Workspace Name
+          <div className="space-y-1">
+            <label className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground pl-1 flex items-center gap-2">
+              <Briefcase className="w-3 h-3" /> Workspace Name
             </label>
-            <input
-              type="text"
-              value={formData.name}
-              onChange={(e) =>
-                setFormData({ ...formData, name: e.target.value })
-              }
-              placeholder="e.g., Q4 Marketing Campaign"
-              maxLength={50}
-              required
-              className="w-full h-10 px-3 rounded-md border border-input bg-background font-serif text-sm shadow-sm transition-colors placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-            />
+            <div className="relative group">
+              <input
+                type="text"
+                value={formData.name}
+                onChange={(e) =>
+                  setFormData({ ...formData, name: e.target.value })
+                }
+                placeholder="e.g., Q4 Marketing Campaign"
+                maxLength={50}
+                required
+                className="w-full bg-transparent px-0 py-2 font-serif text-xl text-foreground placeholder:text-muted-foreground/40 outline-none transition-all border-b-2 border-dotted border-black/20 focus:border-brand-primary focus:border-solid"
+              />
+            </div>
           </div>
 
           {/* Timezone Select */}
-          <div className="space-y-2">
-            <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-2">
-              <Globe className="w-3.5 h-3.5" /> Timezone
+          <div className="space-y-1">
+            <label className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground pl-1 flex items-center gap-2">
+              <Globe className="w-3 h-3" /> Timezone
             </label>
             <Select
               value={formData.timezone}
@@ -185,47 +200,98 @@ export function CreateWorkspaceModal({
                 setFormData({ ...formData, timezone: value })
               }
             >
-              <SelectTrigger className="w-full bg-background font-serif">
+              <SelectTrigger className="w-full h-12 bg-transparent border-0 border-b-2 border-dotted border-black/20 rounded-none px-0 font-serif text-xl focus:ring-0 focus:border-brand-primary focus:border-solid shadow-none">
                 <SelectValue placeholder="Select Timezone" />
               </SelectTrigger>
-              <SelectContent className="max-h-[200px]">
-                <SelectItem value="UTC">UTC (Universal Time)</SelectItem>
-                <SelectItem value="America/New_York">Eastern Time</SelectItem>
-                <SelectItem value="America/Chicago">Central Time</SelectItem>
-                <SelectItem value="America/Denver">Mountain Time</SelectItem>
-                <SelectItem value="America/Los_Angeles">
+              <SelectContent className="max-h-[200px] bg-[#fdfbf7] border border-black/10 shadow-xl font-serif">
+                <SelectItem
+                  value="UTC"
+                  className="cursor-pointer focus:bg-black/5 focus:text-black text-black"
+                >
+                  UTC (Universal Time)
+                </SelectItem>
+                <SelectItem
+                  value="America/New_York"
+                  className="cursor-pointer focus:bg-black/5 focus:text-black text-black"
+                >
+                  Eastern Time
+                </SelectItem>
+                <SelectItem
+                  value="America/Chicago"
+                  className="cursor-pointer focus:bg-black/5 focus:text-black text-black"
+                >
+                  Central Time
+                </SelectItem>
+                <SelectItem
+                  value="America/Denver"
+                  className="cursor-pointer focus:bg-black/5 focus:text-black text-black"
+                >
+                  Mountain Time
+                </SelectItem>
+                <SelectItem
+                  value="America/Los_Angeles"
+                  className="cursor-pointer focus:bg-black/5 focus:text-black text-black"
+                >
                   Pacific Time
                 </SelectItem>
-                <SelectItem value="Europe/London">London</SelectItem>
-                <SelectItem value="Europe/Paris">Paris</SelectItem>
-                <SelectItem value="Asia/Tokyo">Tokyo</SelectItem>
-                <SelectItem value="Australia/Sydney">Sydney</SelectItem>
+                <SelectItem
+                  value="Europe/London"
+                  className="cursor-pointer focus:bg-black/5 focus:text-black text-black"
+                >
+                  London
+                </SelectItem>
+                <SelectItem
+                  value="Europe/Paris"
+                  className="cursor-pointer focus:bg-black/5 focus:text-black text-black"
+                >
+                  Paris
+                </SelectItem>
+                <SelectItem
+                  value="Asia/Tokyo"
+                  className="cursor-pointer focus:bg-black/5 focus:text-black text-black"
+                >
+                  Tokyo
+                </SelectItem>
+                <SelectItem
+                  value="Australia/Sydney"
+                  className="cursor-pointer focus:bg-black/5 focus:text-black text-black"
+                >
+                  Sydney
+                </SelectItem>
               </SelectContent>
             </Select>
           </div>
 
           {/* Error Message */}
           {error && (
-            <div className="p-3 rounded-md bg-error/5 border border-error/20 flex items-start gap-2 text-error animate-in slide-in-from-top-1">
-              <AlertTriangle className="w-4 h-4 mt-0.5 shrink-0" />
-              <span className="text-xs font-medium leading-tight">{error}</span>
+            <div className="border border-red-200 bg-red-50 p-3 flex items-start gap-3 rounded-sm">
+              <AlertTriangle className="w-4 h-4 text-red-600 mt-0.5 shrink-0" />
+              <p className="font-mono text-xs text-red-700 leading-relaxed">
+                <span className="font-bold">ERROR:</span> {error}
+              </p>
             </div>
           )}
 
+          {/* "Cut Line" Separator */}
+          <div className="flex items-center gap-2 text-black/20 py-2">
+            <Scissors className="h-4 w-4 -rotate-90" />
+            <div className="flex-1 border-b-2 border-dashed border-black/10" />
+          </div>
+
           {/* Footer Buttons */}
-          <div className="pt-4 flex flex-col-reverse sm:flex-row gap-3">
+          <div className="flex gap-3">
             <button
               type="button"
               onClick={onClose}
               disabled={loading}
               className="btn btn-outline flex-1"
             >
-              Cancel
+              Discard
             </button>
             <button
               type="submit"
               disabled={loading}
-              className="btn btn-primary flex-1"
+              className="btn btn-primary flex-[2]"
             >
               {loading ? (
                 <>
@@ -233,7 +299,7 @@ export function CreateWorkspaceModal({
                   Creating...
                 </>
               ) : (
-                "Create Workspace"
+                "Confirm & Create"
               )}
             </button>
           </div>
