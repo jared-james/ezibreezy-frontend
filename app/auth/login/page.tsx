@@ -98,17 +98,22 @@ function LoginForm() {
 
       // 3. SYNC & CHECK INVITES (The Magic Step)
       // This reads the cookie, sends it to backend, and gets back where we should go
+      console.log("🔵 [Login] Calling syncUser...");
       const syncResult = await syncUser();
+      console.log("🔵 [Login] syncUser result:", syncResult);
 
       // Refresh router to update server components with new session
+      console.log("🔵 [Login] Refreshing router...");
       router.refresh();
 
       // 4. INTENT AWARE REDIRECT
       if (syncResult.success && syncResult.targetWorkspaceId) {
+        console.log("🔵 [Login] Redirecting to dashboard with workspaceId:", syncResult.targetWorkspaceId);
         router.push(
           `/dashboard?workspaceId=${syncResult.targetWorkspaceId}&invite=success`
         );
       } else {
+        console.log("🔵 [Login] Redirecting to dashboard (no workspace)");
         router.push("/dashboard");
       }
 

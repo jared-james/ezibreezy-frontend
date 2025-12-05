@@ -60,16 +60,19 @@ export async function updateDisplayName(newDisplayName: string) {
  * @param options.inviteToken - If provided, the backend will attempt to accept this invite for the user
  */
 export async function syncUser(options?: { inviteToken?: string }) {
+  console.log("🔵 [syncUser] START - Options:", options);
+
   const supabase = await createClient();
 
   // 1. Get User Details
+  console.log("🔵 [syncUser] Getting user from Supabase...");
   const {
     data: { user },
     error: userError,
   } = await supabase.auth.getUser();
 
   if (userError || !user) {
-    console.error("No authenticated user found. Cannot sync user.");
+    console.error("❌ [syncUser] No authenticated user found. Error:", userError);
     return { success: false, error: "User not authenticated." };
   }
 
@@ -77,28 +80,39 @@ export async function syncUser(options?: { inviteToken?: string }) {
   const displayName =
     user.user_metadata?.displayName || user.user_metadata?.full_name || "";
 
+  console.log("🔵 [syncUser] User found:", { id, email, displayName });
+
   if (!email) {
-    console.error(`User ${id} has no email. Cannot sync.`);
+    console.error(`❌ [syncUser] User ${id} has no email. Cannot sync.`);
     return { success: false, error: "User email is missing." };
   }
 
   // 2. Get Session for Authorization Header
+  console.log("🔵 [syncUser] Getting session...");
   const {
     data: { session },
   } = await supabase.auth.getSession();
 
   if (!session) {
-    console.error("No session found. Cannot get access token.");
+    console.error("❌ [syncUser] No session found. Cannot get access token.");
     return { success: false, error: "Session not found." };
   }
+
+  console.log("🔵 [syncUser] Session found, token length:", session.access_token?.length);
 
   // 3. Check for Invite Token (Priority: Options -> Cookie)
   const cookieStore = await cookies();
   const tokenToUse =
     options?.inviteToken || cookieStore.get("invite_token")?.value;
 
+  console.log("🔵 [syncUser] Invite token:", tokenToUse ? "Present" : "None");
+
   try {
     // 4. Call Backend Sync
+    console.log("🔵 [syncUser] Calling backend /users/sync at:", BACKEND_URL);
+    console.log("🔵 [syncUser] Request payload:", { id, email, displayName, hasInviteToken: !!tokenToUse });
+
+    const fetchStart = Date.now();
     const response = await fetch(`${BACKEND_URL}/users/sync`, {
       method: "POST",
       headers: {
@@ -113,10 +127,14 @@ export async function syncUser(options?: { inviteToken?: string }) {
         inviteToken: tokenToUse,
       }),
     });
+    const fetchDuration = Date.now() - fetchStart;
+
+    console.log("🔵 [syncUser] Backend response received in", fetchDuration, "ms");
+    console.log("🔵 [syncUser] Response status:", response.status, response.statusText);
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
-      console.error("Failed to sync user with backend:", errorData.message);
+      console.error("❌ [syncUser] Failed to sync user with backend:", errorData.message);
       return {
         success: false,
         error: `Backend sync failed: ${
@@ -126,14 +144,25 @@ export async function syncUser(options?: { inviteToken?: string }) {
     }
 
     // 5. Capture the Result (Target Context)
+    console.log("🔵 [syncUser] Parsing response JSON...");
     const data = await response.json();
+    console.log("🔵 [syncUser] Response data:", data);
 
     // Clean up cookie if it was used/consumed
     if (tokenToUse) {
+      console.log("🔵 [syncUser] Deleting invite_token cookie");
       cookieStore.delete("invite_token");
     }
 
+    console.log("🔵 [syncUser] Revalidating paths...");
     revalidatePath("/", "layout");
+
+    console.log("✅ [syncUser] SUCCESS - Returning:", {
+      success: true,
+      targetWorkspaceId: data.targetWorkspaceId,
+      targetOrganizationId: data.targetOrganizationId,
+      event: data.event,
+    });
 
     // Return the Target IDs so the Frontend knows where to go
     return {
@@ -147,7 +176,8 @@ export async function syncUser(options?: { inviteToken?: string }) {
       error instanceof Error
         ? error.message
         : "An unknown server error occurred.";
-    console.error("Error calling sync user endpoint:", message);
+    console.error("❌ [syncUser] Error calling sync user endpoint:", message);
+    console.error("❌ [syncUser] Error details:", error);
     return { success: false, error: "Failed to connect to backend service." };
   }
 }
