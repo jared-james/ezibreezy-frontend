@@ -87,54 +87,53 @@ export function WorkspaceSwitcher() {
 
   return (
     <div
-      className="h-16 flex items-center px-6 border-b-2 border-foreground relative select-none"
+      className="px-4 py-3 border-b border-border relative select-none"
       ref={dropdownRef}
     >
       <button
         onClick={() => setOpen(!open)}
-        className="flex items-center justify-between w-full group outline-none"
+        className="flex items-center justify-between w-full px-3 py-2"
       >
-        <div className="flex flex-col items-start overflow-hidden">
-          <span
-            className="font-serif text-[0.65rem] uppercase tracking-widest text-muted-foreground group-hover:text-foreground transition-colors truncate w-full text-left"
-            title={currentOrganization.name}
-          >
-            {currentOrganization.name}
-          </span>
-          <span
-            className="font-serif font-bold text-sm uppercase tracking-wider text-foreground truncate w-full text-left"
-            title={currentWorkspace.name}
-          >
-            {currentWorkspace.name}
-          </span>
+        <div className="flex items-center gap-3 overflow-hidden min-w-0">
+          <Briefcase className="h-4 w-4 shrink-0 text-muted-foreground" />
+          <div className="flex flex-col items-start overflow-hidden min-w-0">
+            <span
+              className="font-serif text-sm font-bold text-foreground truncate w-full text-left"
+              title={currentWorkspace.name}
+            >
+              {currentWorkspace.name}
+            </span>
+            <span
+              className="font-serif text-xs text-muted-foreground truncate w-full text-left"
+              title={currentOrganization.name}
+            >
+              {currentOrganization.name}
+            </span>
+          </div>
         </div>
-        <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50 text-foreground" />
+        <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 text-muted-foreground" />
       </button>
 
       {/* Dropdown Content */}
       {open && (
         <div
-          className="absolute top-[102%] -left-0.5 -right-0.5 bg-background border-2 border-foreground shadow-xl max-h-[400px] overflow-y-auto animate-in fade-in zoom-in-95 duration-100"
-          style={{ zIndex: 9999 }}
+          className="absolute top-[calc(100%+8px)] left-4 right-4 bg-background border border-border shadow-xl max-h-[400px] overflow-y-auto z-50"
         >
-          <div className="p-2 space-y-4">
+          <div className="py-2">
             {structure.map((node) => (
-              <div key={node.organization.id} className="space-y-1">
+              <div key={node.organization.id} className="mb-4 last:mb-0">
                 {/* Organization Header */}
-                <div className="flex items-center justify-between px-2 py-1.5">
+                <div className="px-3 py-1.5 mb-1">
                   <div className="flex items-center gap-2">
-                    <Building2 className="h-3 w-3 text-muted-foreground" />
-                    <span className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground">
+                    <Building2 className="h-3.5 w-3.5 text-muted-foreground" />
+                    <span className="font-serif text-xs uppercase tracking-wider text-muted-foreground">
                       {node.organization.name}
                     </span>
                   </div>
-                  <span className="text-[9px] border border-border px-1 rounded-sm text-muted-foreground uppercase">
-                    {node.organization.role}
-                  </span>
                 </div>
 
                 {/* Workspaces List */}
-                <div className="space-y-0.5">
+                <div>
                   {node.workspaces.map((workspace) => {
                     const isActive = currentWorkspace.id === workspace.id;
                     return (
@@ -142,23 +141,17 @@ export function WorkspaceSwitcher() {
                         key={workspace.id}
                         onClick={() => handleSelect(workspace.id)}
                         className={cn(
-                          "flex items-center justify-between w-full px-2 py-2 text-sm font-serif transition-colors hover:bg-surface-hover rounded-sm group",
-                          isActive && "bg-surface font-bold"
+                          "flex items-center justify-between w-full px-3 py-2 font-serif text-sm transition-colors hover:bg-surface-hover",
+                          isActive && "font-bold text-foreground bg-surface",
+                          !isActive && "text-muted-foreground"
                         )}
                       >
-                        <div className="flex items-center gap-2 overflow-hidden">
-                          <Briefcase
-                            className={cn(
-                              "h-3.5 w-3.5 shrink-0",
-                              isActive
-                                ? "text-foreground"
-                                : "text-muted group-hover:text-foreground"
-                            )}
-                          />
+                        <div className="flex items-center gap-3 overflow-hidden">
+                          <Briefcase className="h-4 w-4 shrink-0" />
                           <span className="truncate">{workspace.name}</span>
                         </div>
                         {isActive && (
-                          <Check className="h-3.5 w-3.5 ml-2 text-brand-primary" />
+                          <Check className="h-4 w-4 ml-2 shrink-0" />
                         )}
                       </button>
                     );
