@@ -7,22 +7,34 @@
 import { useWorkspaceStore } from "@/lib/store/workspace-store";
 import { WorkspaceSettings } from "@/components/settings/workspace";
 
+interface Workspace {
+  id: string;
+  name: string;
+  slug: string;
+  timezone: string;
+}
+
 interface WorkspaceSettingsClientProps {
   workspaceId: string;
+  initialWorkspace?: Workspace;
 }
 
 export default function WorkspaceSettingsClient({
   workspaceId,
+  initialWorkspace,
 }: WorkspaceSettingsClientProps) {
   const { currentWorkspace } = useWorkspaceStore();
 
-  // Combine URL workspaceId with store data
-  // This ensures we always have the identifier even if store isn't hydrated yet
-  const workspaceWithId = currentWorkspace
+  // Use server-provided initialWorkspace first, then fall back to store
+  const workspace = initialWorkspace || currentWorkspace;
+
+  // Combine URL workspaceId with workspace data
+  // This ensures we always have the identifier even if neither source is available yet
+  const workspaceWithId = workspace
     ? {
-        ...currentWorkspace,
+        ...workspace,
         // Ensure we have the identifier from URL as fallback
-        slug: currentWorkspace.slug || workspaceId,
+        slug: workspace.slug || workspaceId,
       }
     : null;
 

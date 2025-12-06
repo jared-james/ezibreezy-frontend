@@ -1,6 +1,7 @@
 // app/(app)/[workspace]/assets/hashtags/page.tsx
 
 import HashtagsClient from "./hashtags-client";
+import { listHashtagGroupsAction } from "@/app/actions/hashtags";
 
 // Hashtags are frequently edited - force dynamic rendering
 export const dynamic = "force-dynamic";
@@ -13,8 +14,12 @@ interface PageProps {
 export default async function HashtagsPage({ params }: PageProps) {
   const { workspace: workspaceId } = await params;
 
-  // For future: Fetch hashtag groups server-side
-  // const hashtagsResult = await serverFetch('/hashtag-groups', { workspaceId });
+  const hashtagsResult = await listHashtagGroupsAction(workspaceId);
 
-  return <HashtagsClient workspaceId={workspaceId} />;
+  return (
+    <HashtagsClient
+      workspaceId={workspaceId}
+      initialData={hashtagsResult.success ? hashtagsResult.data : undefined}
+    />
+  );
 }

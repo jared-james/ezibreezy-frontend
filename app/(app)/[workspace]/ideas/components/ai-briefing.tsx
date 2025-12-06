@@ -9,19 +9,25 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { Clipping } from "@/lib/types/editorial";
-import { generateClippings } from "@/lib/api/ideas";
+import { generateClippingsAction } from "@/app/actions/ideas";
 
 interface AIBriefingProps {
+  workspaceId: string;
   onNewBriefingGenerated: (clippings: Clipping[]) => void;
 }
 
 export default function AIBriefing({
+  workspaceId,
   onNewBriefingGenerated,
 }: AIBriefingProps) {
   const [prompt, setPrompt] = useState("");
 
   const mutation = useMutation({
-    mutationFn: generateClippings,
+    mutationFn: async (prompt: string) => {
+      const result = await generateClippingsAction(prompt, workspaceId);
+      if (!result.success) throw new Error(result.error);
+      return result.data || [];
+    },
     onSuccess: (data) => {
       onNewBriefingGenerated(data);
     },
@@ -29,7 +35,7 @@ export default function AIBriefing({
       console.error("Error generating ideas:", error);
       toast.error(
         `Failed to generate ideas: ${
-          error?.response?.data?.message || "Please try again later."
+          error?.message || "Please try again later."
         }`
       );
     },

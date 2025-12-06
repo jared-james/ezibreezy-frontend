@@ -5,11 +5,11 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
-  listHashtagGroups,
-  createHashtagGroup,
-  updateHashtagGroup,
-  deleteHashtagGroup,
-} from "@/lib/api/hashtags";
+  listHashtagGroupsAction,
+  createHashtagGroupAction,
+  updateHashtagGroupAction,
+  deleteHashtagGroupAction,
+} from "@/app/actions/hashtags";
 import { HashtagGroup } from "@/lib/types/hashtags";
 import { Button } from "@/components/ui/button";
 import {
@@ -26,9 +26,13 @@ import { toast } from "sonner";
 
 interface HashtagsClientProps {
   workspaceId: string;
+  initialData?: HashtagGroup[];
 }
 
-export default function HashtagsClient({ workspaceId }: HashtagsClientProps) {
+export default function HashtagsClient({
+  workspaceId,
+  initialData,
+}: HashtagsClientProps) {
   const queryClient = useQueryClient();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingGroup, setEditingGroup] = useState<HashtagGroup | null>(null);
@@ -39,17 +43,28 @@ export default function HashtagsClient({ workspaceId }: HashtagsClientProps) {
   // Fetch hashtag groups
   const { data: groups = [], isLoading } = useQuery({
     queryKey: ["hashtag-groups", workspaceId],
-    queryFn: () => listHashtagGroups(),
+    queryFn: async () => {
+      const result = await listHashtagGroupsAction(workspaceId);
+      if (!result.success) throw new Error(result.error);
+      return result.data || [];
+    },
+    initialData,
     enabled: !!workspaceId,
   });
 
   // Create mutation
   const createMutation = useMutation({
-    mutationFn: (data: { name: string; content: string }) =>
-      createHashtagGroup({
-        name: data.name,
-        content: data.content,
-      }),
+    mutationFn: async (data: { name: string; content: string }) => {
+      const result = await createHashtagGroupAction(
+        {
+          name: data.name,
+          content: data.content,
+        },
+        workspaceId
+      );
+      if (!result.success) throw new Error(result.error);
+      return result.data;
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["hashtag-groups"] });
       toast.success("Hashtag group created successfully");
@@ -64,11 +79,18 @@ export default function HashtagsClient({ workspaceId }: HashtagsClientProps) {
 
   // Update mutation
   const updateMutation = useMutation({
-    mutationFn: (data: { id: string; name: string; content: string }) =>
-      updateHashtagGroup(data.id, {
-        name: data.name,
-        content: data.content,
-      }),
+    mutationFn: async (data: { id: string; name: string; content: string }) => {
+      const result = await updateHashtagGroupAction(
+        data.id,
+        {
+          name: data.name,
+          content: data.content,
+        },
+        workspaceId
+      );
+      if (!result.success) throw new Error(result.error);
+      return result.data;
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["hashtag-groups"] });
       toast.success("Hashtag group updated successfully");
@@ -83,7 +105,10 @@ export default function HashtagsClient({ workspaceId }: HashtagsClientProps) {
 
   // Delete mutation
   const deleteMutation = useMutation({
-    mutationFn: (id: string) => deleteHashtagGroup(id),
+    mutationFn: async (id: string) => {
+      const result = await deleteHashtagGroupAction(id, workspaceId);
+      if (!result.success) throw new Error(result.error);
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["hashtag-groups"] });
       toast.success("Hashtag group deleted successfully");

@@ -5,6 +5,7 @@
 import { useState } from "react";
 import { useAnalyticsFilters } from "@/components/analytics/hooks/use-analytics-filters";
 import { useAggregatedAnalytics } from "@/components/analytics/hooks/use-aggregated-analytics";
+import type { Connection } from "@/lib/api/integrations";
 
 import AnalyticsHeader from "@/components/analytics/components/analytics-header";
 import AnalyticsTabs from "@/components/analytics/components/analytics-tabs";
@@ -20,9 +21,13 @@ import { useUnifiedPostAnalytics } from "@/components/analytics/hooks/use-unifie
 
 interface AnalyticsClientProps {
   workspaceId: string;
+  initialConnections?: Connection[];
 }
 
-export default function AnalyticsClient({ workspaceId }: AnalyticsClientProps) {
+export default function AnalyticsClient({
+  workspaceId,
+  initialConnections,
+}: AnalyticsClientProps) {
   const filters = useAnalyticsFilters();
   const [selectedMetricKey, setSelectedMetricKey] =
     useState<string>("total_audience");

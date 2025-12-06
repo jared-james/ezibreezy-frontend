@@ -72,7 +72,10 @@ export default function IdeasClient({ workspaceId }: IdeasClientProps) {
 
       {mainTab === "ai" && (
         <div className="space-y-8">
-          <AIBriefing onNewBriefingGenerated={setLatestBriefing} />
+          <AIBriefing
+            workspaceId={workspaceId}
+            onNewBriefingGenerated={setLatestBriefing}
+          />
           <LatestBriefing clippings={latestBriefing} />
         </div>
       )}
