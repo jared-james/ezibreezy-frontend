@@ -39,7 +39,10 @@ export function WorkspaceQuerySelector() {
     }
 
     // Already on the correct workspace → just clean the URL
-    if (currentWorkspace?.id === workspaceIdFromUrl) {
+    if (
+      currentWorkspace?.id === workspaceIdFromUrl ||
+      currentWorkspace?.slug === workspaceIdFromUrl
+    ) {
       hasProcessedRef.current = true;
       const newParams = new URLSearchParams(searchParams.toString());
       newParams.delete("workspaceId");
@@ -50,10 +53,14 @@ export function WorkspaceQuerySelector() {
       return;
     }
 
-    // Validate workspace ID exists in structure
+    // Validate workspace ID/slug exists in structure
     let workspaceExists = false;
     for (const node of structure) {
-      if (node.workspaces.some((w) => w.id === workspaceIdFromUrl)) {
+      if (
+        node.workspaces.some(
+          (w) => w.id === workspaceIdFromUrl || w.slug === workspaceIdFromUrl
+        )
+      ) {
         workspaceExists = true;
         break;
       }

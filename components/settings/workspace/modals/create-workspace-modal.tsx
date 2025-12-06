@@ -32,7 +32,7 @@ import { cn } from "@/lib/utils";
 
 interface CreateWorkspaceModalProps {
   onClose: () => void;
-  onSuccess?: (workspace: { id: string; name: string }) => void;
+  onSuccess?: (workspace: { id: string; name: string; slug: string }) => void;
 }
 
 export function CreateWorkspaceModal({
@@ -76,7 +76,8 @@ export function CreateWorkspaceModal({
       if (structureResult.success && structureResult.data) {
         setStructure(structureResult.data);
       }
-      setCurrentWorkspace(result.data.id);
+      // Use slug for navigation, fallback to id if slug not available
+      setCurrentWorkspace(result.data.slug || result.data.id);
       onSuccess?.(result.data);
       router.refresh();
       onClose();

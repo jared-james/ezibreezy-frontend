@@ -12,5 +12,13 @@ interface WorkspaceSettingsClientProps {
 export default function WorkspaceSettingsClient({ workspaceId }: WorkspaceSettingsClientProps) {
   const { currentWorkspace } = useWorkspaceStore();
 
-  return <WorkspaceSettings workspace={currentWorkspace} />;
+  // Combine URL workspaceId with store data
+  // This ensures we always have the identifier even if store isn't hydrated yet
+  const workspaceWithId = currentWorkspace ? {
+    ...currentWorkspace,
+    // Ensure we have the identifier from URL as fallback
+    slug: currentWorkspace.slug || workspaceId,
+  } : null;
+
+  return <WorkspaceSettings workspace={workspaceWithId} workspaceIdFromUrl={workspaceId} />;
 }

@@ -22,14 +22,16 @@ import { useWorkspaceForm } from "./hooks/use-workspace-form";
 interface Workspace {
   id: string;
   name: string;
+  slug: string;
   timezone: string;
 }
 
 interface WorkspaceFormProps {
   workspace: Workspace;
+  workspaceIdFromUrl?: string; // Fallback identifier from URL
 }
 
-export function WorkspaceForm({ workspace }: WorkspaceFormProps) {
+export function WorkspaceForm({ workspace, workspaceIdFromUrl }: WorkspaceFormProps) {
   const {
     formData,
     setFormData,
@@ -38,7 +40,7 @@ export function WorkspaceForm({ workspace }: WorkspaceFormProps) {
     success,
     hasChanges,
     handleUpdate,
-  } = useWorkspaceForm(workspace);
+  } = useWorkspaceForm(workspace, workspaceIdFromUrl);
 
   return (
     <div className="relative">

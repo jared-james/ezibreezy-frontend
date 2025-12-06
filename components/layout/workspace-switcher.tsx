@@ -79,11 +79,11 @@ export function WorkspaceSwitcher({
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const handleSelect = (workspaceId: string) => {
-    setCurrentWorkspace(workspaceId);
+  const handleSelect = (workspaceSlug: string) => {
+    setCurrentWorkspace(workspaceSlug);
 
     const newParams = new URLSearchParams(searchParams.toString());
-    newParams.set("workspaceId", workspaceId);
+    newParams.set("workspaceId", workspaceSlug); // Now passing slug instead of UUID
 
     router.push(`${pathname}?${newParams.toString()}`);
 
@@ -159,7 +159,7 @@ export function WorkspaceSwitcher({
                     return (
                       <button
                         key={workspace.id}
-                        onClick={() => handleSelect(workspace.id)}
+                        onClick={() => handleSelect(workspace.slug)}
                         className={cn(
                           "flex items-center justify-between w-full px-3 py-2 font-serif text-sm transition-colors hover:bg-surface-hover",
                           isActive && "font-bold text-foreground bg-surface",

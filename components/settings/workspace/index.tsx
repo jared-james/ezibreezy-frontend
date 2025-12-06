@@ -24,14 +24,16 @@ import { toast } from "sonner";
 interface Workspace {
   id: string;
   name: string;
+  slug: string;
   timezone: string;
 }
 
 interface WorkspaceSettingsProps {
   workspace: Workspace | null;
+  workspaceIdFromUrl?: string; // Fallback identifier from URL
 }
 
-export function WorkspaceSettings({ workspace }: WorkspaceSettingsProps) {
+export function WorkspaceSettings({ workspace, workspaceIdFromUrl }: WorkspaceSettingsProps) {
   const router = useRouter();
   const { setStructure, setCurrentWorkspace } = useWorkspaceStore();
   const { canManageWorkspace } = usePermissions();
@@ -91,11 +93,11 @@ export function WorkspaceSettings({ workspace }: WorkspaceSettingsProps) {
       if (structureResult.success && structureResult.data) {
         setStructure(structureResult.data);
 
-        // Switch to first available workspace
+        // Switch to first available workspace (using slug)
         if (structureResult.data.length > 0) {
           const firstWs = structureResult.data[0].workspaces[0];
           if (firstWs) {
-            setCurrentWorkspace(firstWs.id);
+            setCurrentWorkspace(firstWs.slug || firstWs.id);
           }
         }
       }
@@ -114,7 +116,7 @@ export function WorkspaceSettings({ workspace }: WorkspaceSettingsProps) {
       <WorkspaceHeader workspace={workspace} />
 
       {/* Main Form Section */}
-      <WorkspaceForm workspace={workspace} />
+      <WorkspaceForm workspace={workspace} workspaceIdFromUrl={workspaceIdFromUrl} />
 
       {/* Operations Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -133,7 +135,7 @@ export function WorkspaceSettings({ workspace }: WorkspaceSettingsProps) {
         <CreateWorkspaceModal
           onClose={closeCreateModal}
           onSuccess={(newWorkspace) => {
-            setCurrentWorkspace(newWorkspace.id);
+            setCurrentWorkspace(newWorkspace.slug || newWorkspace.id);
             closeCreateModal();
           }}
         />

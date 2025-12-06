@@ -8,6 +8,7 @@ import { create } from "zustand";
 export interface Workspace {
   id: string;
   name: string;
+  slug: string; // Human-readable slug for URLs (e.g., "marketing-team")
   role: "admin" | "editor" | "viewer";
   timezone: string;
   organizationId: string;
@@ -42,7 +43,7 @@ export interface WorkspaceState {
 export interface WorkspaceActions {
   // Data setters (for hydration from server)
   setStructure: (structure: OrganizationNode[]) => void;
-  setCurrentWorkspace: (workspaceId: string) => void;
+  setCurrentWorkspace: (workspaceIdOrSlug: string) => void; // Accepts slug or UUID
 
   // UI state setters
   toggleSidebar: () => void;
@@ -73,13 +74,16 @@ export const useWorkspaceStore = create<WorkspaceState & WorkspaceActions>()(
       set({ structure });
     },
 
-    setCurrentWorkspace: (workspaceId) => {
+    setCurrentWorkspace: (workspaceIdOrSlug) => {
       const { structure } = get();
       let foundWorkspace: Workspace | null = null;
       let foundOrg: Organization | null = null;
 
       for (const node of structure) {
-        const ws = node.workspaces.find((w) => w.id === workspaceId);
+        // Try to match by slug first, then fall back to UUID
+        const ws = node.workspaces.find(
+          (w) => w.slug === workspaceIdOrSlug || w.id === workspaceIdOrSlug
+        );
         if (ws) {
           foundWorkspace = { ...ws, organizationId: node.organization.id };
           foundOrg = node.organization;
@@ -93,7 +97,7 @@ export const useWorkspaceStore = create<WorkspaceState & WorkspaceActions>()(
           currentOrganization: foundOrg,
         });
       } else {
-        console.warn(`❌ Workspace ${workspaceId} not found in structure.`);
+        console.warn(`❌ Workspace ${workspaceIdOrSlug} not found in structure.`);
       }
     },
 
