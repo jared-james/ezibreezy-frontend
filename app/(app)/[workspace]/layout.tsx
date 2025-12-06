@@ -1,6 +1,9 @@
 // app/(app)/[workspace]/layout.tsx
 
 import { ReactNode } from "react";
+import { notFound } from "next/navigation";
+import { getWorkspaceStructure } from "@/app/actions/workspaces";
+import { OrganizationNode } from "@/lib/store/workspace-store";
 
 interface WorkspaceLayoutProps {
   children: ReactNode;
@@ -11,7 +14,8 @@ interface WorkspaceLayoutProps {
  * Workspace Layout
  *
  * This layout wraps all workspace-scoped routes (/:workspace/...)
- * The workspace slug is available via params and can be used for validation.
+ * It validates that the workspace slug exists and the user has access
+ * BEFORE rendering children, preventing flash of unauthorized content.
  */
 export default async function WorkspaceLayout({
   children,
@@ -19,15 +23,23 @@ export default async function WorkspaceLayout({
 }: WorkspaceLayoutProps) {
   const { workspace } = await params;
 
-  // The workspace slug is available here if needed for future enhancements:
-  // - Validate workspace exists and user has access
-  // - Fetch workspace-specific configuration
-  // - Set workspace-specific metadata
+  // Server-side validation: Check if user has access to this workspace
+  const workspaceResult = await getWorkspaceStructure();
+  const workspaceStructure: OrganizationNode[] = workspaceResult.success
+    ? (workspaceResult.data ?? [])
+    : [];
 
-  // For now, we simply render the children
-  // Workspace validation and context setting happens via:
-  // 1. proxy.ts (ensures valid workspace in URL)
-  // 2. WorkspaceHydrator (syncs workspace to Zustand store)
+  // Validate workspace exists in user's accessible workspaces
+  const hasAccess = workspaceStructure.some((node) =>
+    node.workspaces.some(
+      (ws) => ws.slug === workspace || ws.id === workspace
+    )
+  );
+
+  if (!hasAccess) {
+    // Workspace not found or user doesn't have access
+    notFound();
+  }
 
   return <>{children}</>;
 }
