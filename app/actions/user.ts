@@ -105,6 +105,7 @@ export async function syncUser(options?: { inviteToken?: string }) {
         error: `Backend sync failed: ${
           errorData.message || response.statusText
         }`,
+        statusCode: response.status,
       };
     }
 

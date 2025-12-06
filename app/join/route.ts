@@ -3,6 +3,7 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { createClient } from "@/lib/supabase/server";
+import { syncUser } from "@/app/actions/user";
 
 export async function GET(request: NextRequest) {
   const requestUrl = new URL(request.url);
@@ -19,38 +20,22 @@ export async function GET(request: NextRequest) {
 
   // CASE A: User appears to be Logged In
   if (session) {
-    const BACKEND_URL =
-      process.env.NEXT_PUBLIC_API_URL || process.env.BACKEND_URL;
-
     try {
-      const response = await fetch(`${BACKEND_URL}/users/sync`, {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${session.access_token}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          id: session.user.id,
-          email: session.user.email,
-          inviteToken: token,
-        }),
-      });
+      const result = await syncUser({ inviteToken: token });
 
-      if (response.ok) {
-        const data = await response.json();
-
+      if (result.success) {
         // Success: Redirect to the specific workspace they just joined
-        if (data.targetWorkspaceSlug) {
+        if (result.targetWorkspaceSlug) {
           return NextResponse.redirect(
             new URL(
-              `/${data.targetWorkspaceSlug}/dashboard?invite=success`,
+              `/${result.targetWorkspaceSlug}/dashboard?invite=success`,
               request.url
             )
           );
-        } else if (data.targetWorkspaceId) {
+        } else if (result.targetWorkspaceId) {
           return NextResponse.redirect(
             new URL(
-              `/${data.targetWorkspaceId}/dashboard?invite=success`,
+              `/${result.targetWorkspaceId}/dashboard?invite=success`,
               request.url
             )
           );
@@ -61,10 +46,13 @@ export async function GET(request: NextRequest) {
         );
       }
 
-      // Handle "Zombie Session" (401 Unauthorized)
+      // Handle "Zombie Session" (401 Unauthorized or 403 Forbidden)
       // This happens if the user exists in the browser (Supabase session)
       // but was deleted from the Backend Database.
-      if (response.status === 401 || response.status === 403) {
+      if (
+        "statusCode" in result &&
+        (result.statusCode === 401 || result.statusCode === 403)
+      ) {
         console.warn(
           "Invite processed with invalid/stale session. Signing out..."
         );
