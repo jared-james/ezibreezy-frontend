@@ -5,11 +5,14 @@
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 import { cookies } from "next/headers";
+import type { CompleteOnboardingRequest } from "@/lib/types/onboarding";
 
 const BACKEND_URL = process.env.BACKEND_URL;
 if (!BACKEND_URL) {
   throw new Error("BACKEND_URL is not defined in environment variables");
 }
+
+const API_KEY = process.env.NEXT_PUBLIC_API_KEY;
 
 export async function updateDisplayName(newDisplayName: string) {
   const supabase = await createClient();
@@ -83,6 +86,7 @@ export async function syncUser(options?: { inviteToken?: string }) {
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${session.access_token}`,
+        "x-api-key": API_KEY || "",
       },
       body: JSON.stringify({
         id,
@@ -120,5 +124,70 @@ export async function syncUser(options?: { inviteToken?: string }) {
     };
   } catch {
     return { success: false, error: "Failed to connect to backend service." };
+  }
+}
+
+/**
+ * Complete onboarding by creating organization and workspace
+ * POST /users/onboarding/complete
+ */
+export async function completeOnboarding(data: CompleteOnboardingRequest) {
+  const supabase = await createClient();
+
+  const {
+    data: { user },
+    error: userError,
+  } = await supabase.auth.getUser();
+
+  if (userError || !user) {
+    return { success: false, error: "User not authenticated." };
+  }
+
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
+
+  if (!session) {
+    return { success: false, error: "Session not found." };
+  }
+
+  try {
+    const response = await fetch(`${BACKEND_URL}/users/onboarding/complete`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${session.access_token}`,
+        "x-api-key": API_KEY || "",
+      },
+      body: JSON.stringify(data),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      return {
+        success: false,
+        error: `Onboarding failed: ${
+          errorData.message || response.statusText
+        }`,
+        statusCode: response.status,
+      };
+    }
+
+    const responseData = await response.json();
+
+    revalidatePath("/", "layout");
+
+    return {
+      success: true,
+      targetWorkspaceId: responseData.targetWorkspaceId,
+      targetWorkspaceSlug: responseData.targetWorkspaceSlug,
+      targetOrganizationId: responseData.targetOrganizationId,
+      event: responseData.event,
+    };
+  } catch {
+    return {
+      success: false,
+      error: "Failed to connect to backend service.",
+    };
   }
 }

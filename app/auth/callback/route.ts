@@ -9,7 +9,7 @@ import { cookies } from "next/headers";
 export async function GET(request: NextRequest) {
   const requestUrl = new URL(request.url);
   const code = requestUrl.searchParams.get("code");
-  const next = requestUrl.searchParams.get("next") ?? "/dashboard";
+  const nextParam = requestUrl.searchParams.get("next");
   const origin = requestUrl.origin;
 
   const urlInviteToken = requestUrl.searchParams.get("invite_token");
@@ -55,18 +55,28 @@ export async function GET(request: NextRequest) {
       cookieStore.delete("invite_token");
     }
 
-    // FIX: Use Query Parameter
+    // Handle onboarding_required event - redirect to onboarding
+    if (syncResult.event === "onboarding_required") {
+      return NextResponse.redirect(`${origin}/onboarding`);
+    }
+
+    // Handle invite_accepted or login - redirect to workspace
     if (syncResult.targetWorkspaceSlug) {
+      const inviteParam = syncResult.event === "invite_accepted" ? "?invite=success" : "";
       return NextResponse.redirect(
-        `${origin}/${syncResult.targetWorkspaceSlug}/dashboard?invite=success`
+        `${origin}/${syncResult.targetWorkspaceSlug}/dashboard${inviteParam}`
       );
     } else if (syncResult.targetWorkspaceId) {
+      const inviteParam = syncResult.event === "invite_accepted" ? "?invite=success" : "";
       return NextResponse.redirect(
-        `${origin}/${syncResult.targetWorkspaceId}/dashboard?invite=success`
+        `${origin}/${syncResult.targetWorkspaceId}/dashboard${inviteParam}`
       );
     }
 
-    return NextResponse.redirect(`${origin}${next}`);
+    // Fallback: If we have a next parameter and it's a relative path, use it
+    // Otherwise default to /dashboard
+    const fallbackPath = nextParam && nextParam.startsWith('/') ? nextParam : '/dashboard';
+    return NextResponse.redirect(`${origin}${fallbackPath}`);
   }
 
   return NextResponse.redirect(

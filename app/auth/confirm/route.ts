@@ -9,7 +9,7 @@ export async function GET(request: NextRequest) {
   const { searchParams, origin } = new URL(request.url);
   const token_hash = searchParams.get("token_hash");
   const type = searchParams.get("type") as EmailOtpType | null;
-  const next = searchParams.get("next") ?? "/dashboard";
+  const nextParam = searchParams.get("next");
 
   const urlInviteToken = searchParams.get("invite_token");
 
@@ -53,18 +53,28 @@ export async function GET(request: NextRequest) {
       return NextResponse.redirect(`${origin}/auth/login?error=sync_failed`);
     }
 
-    // FIX: Use Query Parameter instead of Path
+    // Handle onboarding_required event - redirect to onboarding
+    if (syncResult.event === "onboarding_required") {
+      return NextResponse.redirect(`${origin}/onboarding`);
+    }
+
+    // Handle invite_accepted or login - redirect to workspace
     if (syncResult.targetWorkspaceSlug) {
+      const inviteParam = syncResult.event === "invite_accepted" ? "?invite=success" : "";
       return NextResponse.redirect(
-        `${origin}/${syncResult.targetWorkspaceSlug}/dashboard?invite=success`
+        `${origin}/${syncResult.targetWorkspaceSlug}/dashboard${inviteParam}`
       );
     } else if (syncResult.targetWorkspaceId) {
+      const inviteParam = syncResult.event === "invite_accepted" ? "?invite=success" : "";
       return NextResponse.redirect(
-        `${origin}/${syncResult.targetWorkspaceId}/dashboard?invite=success`
+        `${origin}/${syncResult.targetWorkspaceId}/dashboard${inviteParam}`
       );
     }
 
-    return NextResponse.redirect(`${origin}${next}`);
+    // Fallback: If we have a next parameter and it's a relative path, use it
+    // Otherwise default to /dashboard
+    const fallbackPath = nextParam && nextParam.startsWith('/') ? nextParam : '/dashboard';
+    return NextResponse.redirect(`${origin}${fallbackPath}`);
   }
 
   return NextResponse.redirect(

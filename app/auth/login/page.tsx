@@ -2,7 +2,6 @@
 
 "use client";
 
-import { createClient } from "@/lib/supabase/client";
 import { useSearchParams, useRouter } from "next/navigation";
 import { useState, useEffect, Suspense } from "react";
 import Link from "next/link";
@@ -27,7 +26,6 @@ function LoginForm() {
 
   const searchParams = useSearchParams();
   const router = useRouter();
-  const supabase = createClient();
 
   useEffect(() => {
     const errorParam = searchParams.get("error");
@@ -91,6 +89,13 @@ function LoginForm() {
       // --- PHASE 4: Redirect ---
       setLoginState("redirecting");
 
+      // Handle onboarding_required - redirect to onboarding
+      if (syncResult.event === "onboarding_required") {
+        router.push("/onboarding");
+        return;
+      }
+
+      // Handle normal login or invite_accepted
       const targetSlug =
         syncResult.targetWorkspaceSlug || syncResult.targetWorkspaceId;
       const targetPath = targetSlug ? `/${targetSlug}/dashboard` : "/dashboard";

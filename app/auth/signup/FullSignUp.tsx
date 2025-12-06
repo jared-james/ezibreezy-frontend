@@ -4,14 +4,14 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import Image from "next/image";
 import MinimalHeader from "@/components/shared/minimal-header";
 import LandingPageFooter from "@/components/landing-page/landing-page-footer";
-import { ArrowRight, Loader2, Mail, ArrowLeft, UserPlus } from "lucide-react";
+import { ArrowRight, Loader2, ArrowLeft, UserPlus, CheckCircle2 } from "lucide-react";
 import posthog from "posthog-js";
 import { useSearchParams } from "next/navigation";
 import { getInviteDetails } from "@/app/actions/invites";
 import { signup } from "@/app/actions/auth";
+import { cn } from "@/lib/utils";
 
 export default function FullSignUp() {
   const [name, setName] = useState(""); // <--- New State
@@ -124,40 +124,8 @@ export default function FullSignUp() {
         />
 
         <div className="w-full max-w-5xl relative z-10">
-          <div className="bg-surface border border-foreground shadow-2xl relative overflow-hidden">
-            {isSubmitted ? (
-              <div className="flex flex-col items-center justify-center min-h-[500px] p-10 text-center">
-                <div className="w-20 h-20 rounded-full bg-brand-primary/10 flex items-center justify-center mb-6 border-2 border-dashed border-brand-primary">
-                  <Mail className="w-10 h-10 text-brand-primary" />
-                </div>
-
-                <h1 className="font-serif text-4xl font-bold mb-4">
-                  Dispatch Sent.
-                </h1>
-
-                <div className="max-w-md space-y-4 font-serif text-lg text-foreground/70">
-                  <p>
-                    We have sent a confirmation link to <strong>{email}</strong>
-                    .
-                  </p>
-                  <p className="italic text-base">
-                    Please check your mailbox (and spam folder) to validate your
-                    credentials.
-                  </p>
-                </div>
-
-                <div className="mt-10">
-                  <Link
-                    href="/"
-                    className="inline-flex items-center gap-2 border-b-2 border-foreground pb-1 font-mono text-xs uppercase tracking-widest hover:text-brand-primary hover:border-brand-primary transition-colors"
-                  >
-                    <ArrowLeft className="w-3 h-3" />
-                    Return to Front Page
-                  </Link>
-                </div>
-              </div>
-            ) : (
-              <div className="grid md:grid-cols-2 min-h-[600px]">
+          <div className="bg-surface border border-foreground shadow-2xl relative overflow-hidden transition-all duration-500">
+            <div className="grid md:grid-cols-2 min-h-[600px]">
                 {/* LEFT COLUMN: Context Aware Message */}
                 <div className="p-8 md:p-12 flex flex-col relative border-b md:border-b-0 md:border-r border-dashed border-foreground/30 bg-surface">
                   <div className="mb-8">
@@ -222,29 +190,22 @@ export default function FullSignUp() {
                 </div>
 
                 {/* RIGHT COLUMN: Form */}
-                <div className="p-8 md:p-12 flex flex-col relative bg-surface-hover/30">
-                  <div className="absolute top-8 right-8 pointer-events-none select-none">
-                    <div className="relative w-24 h-28 border-[3px] border-dotted border-foreground/20 bg-background-editorial flex items-center justify-center rotate-3 shadow-sm">
-                      <Image
-                        src="/logo_smile.webp"
-                        alt="Stamp"
-                        width={60}
-                        height={60}
-                        className="opacity-80 grayscale contrast-125"
-                      />
-                      <div className="absolute inset-0 overflow-hidden opacity-30">
-                        <div className="w-[200%] h-px bg-foreground absolute top-1/4 -left-10 rotate-[25deg]" />
-                        <div className="w-[200%] h-px bg-foreground absolute top-2/4 -left-10 rotate-[25deg]" />
-                        <div className="w-[200%] h-px bg-foreground absolute top-3/4 -left-10 rotate-[25deg]" />
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="flex-1 flex flex-col justify-center mt-20 md:mt-10">
-                    <form
-                      onSubmit={handleSignUp}
-                      className="space-y-8 max-w-sm w-full"
+                <div className="p-8 md:p-12 flex flex-col relative bg-surface-hover/30 justify-center">
+                  {/* CONTENT SWITCHER */}
+                  <div className="max-w-sm w-full mx-auto relative min-h-[400px] flex flex-col justify-center">
+                    {/* --- STATE 1: SIGNUP FORM --- */}
+                    <div
+                      className={cn(
+                        "transition-all duration-500 absolute inset-0 flex flex-col justify-center",
+                        !isSubmitted
+                          ? "opacity-100 translate-x-0 pointer-events-auto"
+                          : "opacity-0 -translate-x-8 pointer-events-none"
+                      )}
                     >
+                      <form
+                        onSubmit={handleSignUp}
+                        className="space-y-8"
+                      >
                       <div className="space-y-8">
                         {/* NAME INPUT */}
                         <div className="group">
@@ -363,9 +324,63 @@ export default function FullSignUp() {
                       </div>
                     </form>
                   </div>
+
+                  {/* --- STATE 2: SUCCESS / DISPATCH SENT --- */}
+                  <div
+                    className={cn(
+                      "transition-all duration-700 delay-100 absolute inset-0 flex flex-col items-center justify-center text-center space-y-6",
+                      isSubmitted
+                        ? "opacity-100 translate-x-0 transform scale-100"
+                        : "opacity-0 translate-x-8 transform scale-95 pointer-events-none"
+                    )}
+                  >
+                    <div className="relative">
+                      <div className="w-20 h-20 rounded-full border-2 border-dashed border-foreground/20 flex items-center justify-center animate-[spin_10s_linear_infinite]">
+                        {/* Decorative outer ring */}
+                      </div>
+                      <div className="absolute inset-0 flex items-center justify-center">
+                        <CheckCircle2 className="w-10 h-10 text-green-600 animate-in zoom-in duration-300" />
+                      </div>
+                    </div>
+
+                    <div className="space-y-2">
+                      <h3 className="font-serif text-2xl text-foreground font-medium">
+                        Dispatch Sent
+                      </h3>
+                      <p className="font-mono text-xs uppercase tracking-widest text-foreground/50">
+                        Check your mailbox...
+                      </p>
+                    </div>
+
+                    <div className="max-w-md space-y-3 font-serif text-sm text-foreground/70">
+                      <p>
+                        We have sent a confirmation link to <strong>{email}</strong>.
+                      </p>
+                      <p className="italic text-xs">
+                        Please check your inbox (and spam folder) to validate your credentials.
+                      </p>
+                    </div>
+
+                    <div className="flex gap-2 justify-center opacity-50 pt-4">
+                      {/* Fake progress indicators */}
+                      <div className="w-2 h-2 rounded-full bg-foreground animate-bounce [animation-delay:-0.3s]" />
+                      <div className="w-2 h-2 rounded-full bg-foreground animate-bounce [animation-delay:-0.15s]" />
+                      <div className="w-2 h-2 rounded-full bg-foreground animate-bounce" />
+                    </div>
+
+                    <div className="pt-4">
+                      <Link
+                        href="/"
+                        className="inline-flex items-center gap-2 border-b-2 border-foreground/30 pb-1 font-mono text-xs uppercase tracking-widest hover:text-brand-primary hover:border-brand-primary transition-colors"
+                      >
+                        <ArrowLeft className="w-3 h-3" />
+                        Return to Front Page
+                      </Link>
+                    </div>
+                  </div>
                 </div>
               </div>
-            )}
+            </div>
           </div>
         </div>
       </main>
