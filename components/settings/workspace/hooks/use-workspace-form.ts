@@ -7,6 +7,7 @@ import {
   updateWorkspace,
   getWorkspaceStructure,
 } from "@/app/actions/workspaces";
+import { validateWorkspaceSlug } from "@/lib/constants/reserved-slugs";
 
 interface Workspace {
   id: string;
@@ -57,6 +58,22 @@ export function useWorkspaceForm(initialWorkspace: Workspace | null, workspaceId
     setLoading(true);
     setError("");
     setSuccess(false);
+
+    // Validate that the new name won't generate a reserved slug
+    if (formData.name !== initialWorkspace.name) {
+      const potentialSlug = formData.name
+        .toLowerCase()
+        .trim()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/^-+|-+$/g, '');
+
+      const slugValidation = validateWorkspaceSlug(potentialSlug);
+      if (!slugValidation.valid) {
+        setError(`Workspace name will generate a reserved URL (${potentialSlug}). ${slugValidation.error}`);
+        setLoading(false);
+        return;
+      }
+    }
 
     // Use slug if available, fallback to id, or use URL identifier as last resort
     // The backend accepts both via WorkspaceGuard

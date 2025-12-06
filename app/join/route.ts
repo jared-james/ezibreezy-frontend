@@ -40,10 +40,17 @@ export async function GET(request: NextRequest) {
         const data = await response.json();
 
         // Success: Redirect to the specific workspace they just joined
-        if (data.targetWorkspaceId) {
+        if (data.targetWorkspaceSlug) {
           return NextResponse.redirect(
             new URL(
-              `/dashboard?workspaceId=${data.targetWorkspaceId}&invite=success`,
+              `/${data.targetWorkspaceSlug}/dashboard?invite=success`,
+              request.url
+            )
+          );
+        } else if (data.targetWorkspaceId) {
+          return NextResponse.redirect(
+            new URL(
+              `/${data.targetWorkspaceId}/dashboard?invite=success`,
               request.url
             )
           );

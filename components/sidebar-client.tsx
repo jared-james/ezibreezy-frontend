@@ -27,20 +27,20 @@ import {
 } from "@/lib/store/workspace-store";
 import { WorkspaceSwitcher } from "@/components/layout/workspace-switcher";
 import { cn } from "@/lib/utils";
-import { useWorkspaceLink } from "@/lib/hooks/use-workspace-link";
+import { useWorkspacePath } from "@/lib/hooks/use-workspace-path";
 
 const coreNavigation = [
-  { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
-  { name: "Calendar", href: "/calendar", icon: Calendar },
-  { name: "Editorial", href: "/editorial", icon: Pencil },
-  { name: "Ideas", href: "/ideas", icon: Lightbulb },
-  { name: "Analytics", href: "/analytics", icon: BarChart3 },
+  { name: "Dashboard", href: "dashboard", icon: LayoutDashboard },
+  { name: "Calendar", href: "calendar", icon: Calendar },
+  { name: "Editorial", href: "editorial", icon: Pencil },
+  { name: "Ideas", href: "ideas", icon: Lightbulb },
+  { name: "Analytics", href: "analytics", icon: BarChart3 },
 ];
 
 const assetNavigation = [
-  { name: "Media Room", href: "/assets/media", icon: Upload },
-  { name: "Hashtags", href: "/assets/hashtags", icon: Hash },
-  { name: "Labels", href: "/assets/labels", icon: Tag },
+  { name: "Media Room", href: "assets/media", icon: Upload },
+  { name: "Hashtags", href: "assets/hashtags", icon: Hash },
+  { name: "Labels", href: "assets/labels", icon: Tag },
 ];
 
 // Props are now optional as we fetch data internally
@@ -48,6 +48,22 @@ interface SidebarClientProps {
   organizationName?: string;
   displayName?: string;
   initialStructure: OrganizationNode[];
+}
+
+function NewPostButton() {
+  const router = useRouter();
+  const newPostPath = useWorkspacePath("editorial");
+
+  return (
+    <Button
+      variant="primary"
+      className="w-full gap-2 font-serif uppercase tracking-[0.12em]"
+      onClick={() => router.push(newPostPath)}
+    >
+      <Pencil className="w-4 h-4" />
+      New Post
+    </Button>
+  );
 }
 
 function NavItem({
@@ -60,13 +76,13 @@ function NavItem({
   className?: string;
 }) {
   const isActive =
-    item.href === "/dashboard"
-      ? pathname === item.href
-      : pathname?.startsWith(item.href);
+    item.href === "dashboard"
+      ? pathname?.endsWith("/dashboard")
+      : pathname?.includes(`/${item.href}`);
   const Icon = item.icon;
 
-  // Preserve workspaceId in navigation links
-  const href = useWorkspaceLink(item.href);
+  // Build workspace-scoped path
+  const href = useWorkspacePath(item.href);
 
   return (
     <Link
@@ -108,14 +124,7 @@ export default function SidebarClient({
       <WorkspaceSwitcher initialStructure={initialStructure} />
 
       <div className="p-4 border-b-2 border-[--foreground] shrink-0">
-        <Button
-          variant="primary"
-          className="w-full gap-2 font-serif uppercase tracking-[0.12em]"
-          onClick={() => router.push("/editorial")}
-        >
-          <Pencil className="w-4 h-4" />
-          New Post
-        </Button>
+        <NewPostButton />
       </div>
 
       <nav className="shrink-0 px-4 py-6 space-y-2 border-b border-[--border]">
@@ -138,7 +147,7 @@ export default function SidebarClient({
         <NavItem
           item={{
             name: "Channels",
-            href: "/settings/integrations",
+            href: "settings/integrations",
             icon: Link2,
           }}
           pathname={pathname}
@@ -173,7 +182,7 @@ export default function SidebarClient({
               <NavItem
                 item={{
                   name: "Settings",
-                  href: "/settings/workspace",
+                  href: "settings",
                   icon: Settings,
                 }}
                 pathname={pathname}

@@ -10,7 +10,14 @@
       "Bash(cat:*)",
       "Bash(npx tsc:*)",
       "Bash(dir /s /b c:UsersUserDesktopcodeezibreezyezibreezy-frontend)",
-      "Bash(findstr:*)"
+      "Bash(findstr:*)",
+      "Bash(wc:*)",
+      "Bash(head:*)",
+      "Bash(move \"c:\\Users\\User\\Desktop\\code\\ezibreezy\\ezibreezy-frontend\\app\\(app)\\dashboard\\page.tsx\" \"c:\\Users\\User\\Desktop\\code\\ezibreezy\\ezibreezy-frontend\\app\\(app)\\[workspace]\\dashboard\\page.tsx\")",
+      "Bash(move \"c:\\Users\\User\\Desktop\\code\\ezibreezy\\ezibreezy-frontend\\app\\(app)\\calendar\\*\" \"c:\\Users\\User\\Desktop\\code\\ezibreezy\\ezibreezy-frontend\\app\\(app)\\[workspace]\\calendar\"\")",
+      "Bash(move \"c:\\Users\\User\\Desktop\\code\\ezibreezy\\ezibreezy-frontend\\app\\(app)\\editorial\\*\" \"c:\\Users\\User\\Desktop\\code\\ezibreezy\\ezibreezy-frontend\\app\\(app)\\[workspace]\\editorial\"\")",
+      "Bash(move \"c:\\Users\\User\\Desktop\\code\\ezibreezy\\ezibreezy-frontend\\app\\(app)\\ideas\\*\" \"c:\\Users\\User\\Desktop\\code\\ezibreezy\\ezibreezy-frontend\\app\\(app)\\[workspace]\\ideas\"\")",
+      "Bash(move:*)"
     ],
     "deny": [],
     "ask": []

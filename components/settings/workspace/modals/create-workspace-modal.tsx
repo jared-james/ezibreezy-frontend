@@ -12,6 +12,7 @@ import {
   createWorkspace,
   getWorkspaceStructure,
 } from "@/app/actions/workspaces";
+import { validateWorkspaceSlug } from "@/lib/constants/reserved-slugs";
 import {
   Select,
   SelectContent,
@@ -68,6 +69,21 @@ export function CreateWorkspaceModal({
     e.preventDefault();
     setLoading(true);
     setError("");
+
+    // Note: Slug is auto-generated from name on the backend, but we validate
+    // the name to prevent it from generating a reserved slug
+    const potentialSlug = formData.name
+      .toLowerCase()
+      .trim()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-+|-+$/g, '');
+
+    const slugValidation = validateWorkspaceSlug(potentialSlug);
+    if (!slugValidation.valid) {
+      setError(`Workspace name will generate a reserved URL (${potentialSlug}). ${slugValidation.error}`);
+      setLoading(false);
+      return;
+    }
 
     const result = await createWorkspace(formData);
 

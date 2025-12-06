@@ -3,7 +3,7 @@
 "use client";
 
 import * as React from "react";
-import { useRouter, usePathname, useSearchParams } from "next/navigation";
+import { useRouter, usePathname, useSearchParams, useParams } from "next/navigation";
 import { ChevronsUpDown, Check, Building2, Briefcase } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useWorkspaceStore } from "@/lib/store/workspace-store";
@@ -24,6 +24,7 @@ export function WorkspaceSwitcher({
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
+  const params = useParams<{ workspace?: string }>();
 
   const {
     structure,
@@ -82,10 +83,24 @@ export function WorkspaceSwitcher({
   const handleSelect = (workspaceSlug: string) => {
     setCurrentWorkspace(workspaceSlug);
 
-    const newParams = new URLSearchParams(searchParams.toString());
-    newParams.set("workspace", workspaceSlug); // Use new workspace param with slug
+    // Path-based navigation: switch workspace in URL path
+    const pathSegments = pathname.split("/").filter(Boolean);
 
-    router.push(`${pathname}?${newParams.toString()}`);
+    // If we're on a workspace route (/:workspace/something)
+    if (pathSegments.length >= 2 && params?.workspace) {
+      // Replace workspace segment, keep rest of path
+      const [_oldWorkspace, ...rest] = pathSegments;
+      const newPath = `/${workspaceSlug}${rest.length ? "/" + rest.join("/") : "/dashboard"}`;
+
+      // Preserve search params if any
+      const queryString = searchParams.toString();
+      const newUrl = queryString ? `${newPath}?${queryString}` : newPath;
+
+      router.push(newUrl);
+    } else {
+      // Fallback: Go to dashboard of new workspace
+      router.push(`/${workspaceSlug}/dashboard`);
+    }
 
     setOpen(false);
   };

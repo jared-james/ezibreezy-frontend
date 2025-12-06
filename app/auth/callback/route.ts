@@ -56,9 +56,13 @@ export async function GET(request: NextRequest) {
     }
 
     // FIX: Use Query Parameter
-    if (syncResult.targetWorkspaceId) {
+    if (syncResult.targetWorkspaceSlug) {
       return NextResponse.redirect(
-        `${origin}/dashboard?workspaceId=${syncResult.targetWorkspaceId}&invite=success`
+        `${origin}/${syncResult.targetWorkspaceSlug}/dashboard?invite=success`
+      );
+    } else if (syncResult.targetWorkspaceId) {
+      return NextResponse.redirect(
+        `${origin}/${syncResult.targetWorkspaceId}/dashboard?invite=success`
       );
     }
 

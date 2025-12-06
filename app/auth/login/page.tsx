@@ -99,10 +99,13 @@ function LoginForm() {
         return;
       }
 
-      if (syncResult.targetWorkspaceId) {
-        window.location.href = `/dashboard?workspaceId=${syncResult.targetWorkspaceId}&invite=success`;
+      // Use slug for path-based routing, fallback to UUID
+      if (syncResult.targetWorkspaceSlug) {
+        window.location.href = `/${syncResult.targetWorkspaceSlug}/dashboard?invite=success`;
+      } else if (syncResult.targetWorkspaceId) {
+        window.location.href = `/${syncResult.targetWorkspaceId}/dashboard?invite=success`;
       } else {
-        window.location.href = "/dashboard";
+        window.location.href = "/dashboard"; // Proxy will redirect to default workspace
       }
     } catch (err) {
       const errorMessage = "An unexpected error occurred";

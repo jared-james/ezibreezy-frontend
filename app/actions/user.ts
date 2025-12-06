@@ -124,7 +124,8 @@ export async function syncUser(options?: { inviteToken?: string }) {
 
     return {
       success: true,
-      targetWorkspaceId: data.targetWorkspaceId,
+      targetWorkspaceId: data.targetWorkspaceId, // Keep for UUID fallback
+      targetWorkspaceSlug: data.targetWorkspaceSlug, // NEW: Prefer slug for redirects
       targetOrganizationId: data.targetOrganizationId,
       event: data.event,
     };

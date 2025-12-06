@@ -2,6 +2,7 @@
 
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
+import { RESERVED_SLUGS } from "./lib/constants/reserved-slugs";
 
 export async function proxy(request: NextRequest) {
   const response = NextResponse.next({
@@ -32,14 +33,14 @@ export async function proxy(request: NextRequest) {
     data: { session },
   } = await supabase.auth.getSession();
 
-  // === WORKSPACE CONTEXT ENFORCEMENT ===
-  const { pathname, searchParams } = request.nextUrl;
+  const { pathname } = request.nextUrl;
 
-  // CRITICAL: Exclude routes that should NOT have workspace enforcement
+  // === EXCLUDED ROUTES (no workspace logic) ===
   const excludedRoutes = [
     "/auth",
     "/join", // Invite flow - token in URL must be preserved
     "/onboarding", // New user setup - no workspace yet
+    "/account", // User-level settings
     "/api",
     "/_next",
   ];
@@ -51,76 +52,68 @@ export async function proxy(request: NextRequest) {
     return response;
   }
 
-  // Define Work Mode routes that require workspace context
-  const workModeRoutes = [
-    "/dashboard",
-    "/calendar",
-    "/editorial",
-    "/ideas",
-    "/analytics",
-    "/assets",
-    "/settings/workspace",
-    "/settings/integrations",
-  ];
+  // === CHECK IF PATH-BASED WORKSPACE ROUTE ===
+  const pathSegments = pathname.split("/").filter(Boolean);
+  const firstSegment = pathSegments[0];
 
-  const isWorkMode = workModeRoutes.some((route) => pathname.startsWith(route));
-
-  // If this is a Work Mode route and no workspace in URL, redirect to default
-  if (isWorkMode && !searchParams.has("workspace")) {
-    // User must be authenticated to fetch default workspace
-    if (!user || !session) {
-      const loginUrl = new URL("/auth/login", request.url);
-      return NextResponse.redirect(loginUrl);
-    }
-
-    try {
-      // Fetch default workspace from backend
-      const BACKEND_URL = process.env.BACKEND_URL;
-      const apiKey = process.env.NEXT_PUBLIC_API_KEY;
-
-      if (!BACKEND_URL) {
-        console.error("[Proxy] BACKEND_URL not configured");
-        return response; // Let page handle error
-      }
-
-      const contextResponse = await fetch(`${BACKEND_URL}/users/me/context`, {
-        headers: {
-          Authorization: `Bearer ${session.access_token}`,
-          "x-api-key": apiKey || "",
-        },
-        cache: "no-store",
-      });
-
-      if (!contextResponse.ok) {
-        console.error(
-          "[Proxy] Failed to fetch user context:",
-          contextResponse.status
-        );
-        return response; // Let page handle error
-      }
-
-      const context = await contextResponse.json();
-      const defaultWorkspaceSlug = context.defaultWorkspaceSlug;
-
-      // No workspaces - redirect to onboarding
-      if (!defaultWorkspaceSlug) {
-        const onboardingUrl = new URL("/onboarding", request.url);
-        return NextResponse.redirect(onboardingUrl);
-      }
-
-      // Redirect to same URL with workspace parameter (using slug)
-      const redirectUrl = new URL(request.url);
-      redirectUrl.searchParams.set("workspace", defaultWorkspaceSlug);
-
-      return NextResponse.redirect(redirectUrl);
-    } catch (error) {
-      console.error("[Proxy] Error fetching default workspace:", error);
-      // Let the page handle the error gracefully
-      return response;
-    }
+  // If first segment is not reserved, it's a workspace slug
+  if (firstSegment && !(RESERVED_SLUGS as readonly string[]).includes(firstSegment)) {
+    // Valid workspace route: /:workspace/...
+    // TODO: Optionally validate workspace exists and user has access
+    return response;
   }
 
-  return response;
+  // === HANDLE ROOT/MISSING WORKSPACE ===
+  // User accessing root or routes without workspace in path
+  if (!user || !session) {
+    const loginUrl = new URL("/auth/login", request.url);
+    return NextResponse.redirect(loginUrl);
+  }
+
+  try {
+    const BACKEND_URL = process.env.BACKEND_URL;
+    const apiKey = process.env.NEXT_PUBLIC_API_KEY;
+
+    if (!BACKEND_URL) {
+      console.error("[Proxy] BACKEND_URL not configured");
+      return response;
+    }
+
+    const contextResponse = await fetch(`${BACKEND_URL}/users/me/context`, {
+      headers: {
+        Authorization: `Bearer ${session.access_token}`,
+        "x-api-key": apiKey || "",
+      },
+      cache: "no-store",
+    });
+
+    if (!contextResponse.ok) {
+      console.error("[Proxy] Failed to fetch user context:", contextResponse.status);
+      return response;
+    }
+
+    const context = await contextResponse.json();
+    const defaultWorkspaceSlug = context.defaultWorkspaceSlug;
+
+    // No workspaces - redirect to onboarding
+    if (!defaultWorkspaceSlug) {
+      const onboardingUrl = new URL("/onboarding", request.url);
+      return NextResponse.redirect(onboardingUrl);
+    }
+
+    // Redirect to default workspace with path-based routing
+    // / → /:workspace/dashboard
+    // /any-page → /:workspace/any-page (if not reserved)
+    const newPath = pathname === "/"
+      ? `/${defaultWorkspaceSlug}/dashboard`
+      : `/${defaultWorkspaceSlug}${pathname}`;
+
+    const redirectUrl = new URL(newPath, request.url);
+    return NextResponse.redirect(redirectUrl);
+  } catch (error) {
+    console.error("[Proxy] Error:", error);
+    return response;
+  }
 }
 
 export const config = {
