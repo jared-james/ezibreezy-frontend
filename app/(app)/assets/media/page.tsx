@@ -24,7 +24,7 @@ interface MediaListResponse {
 }
 
 interface PageProps {
-  searchParams: Promise<{ workspaceId?: string }>;
+  searchParams: Promise<{ workspace?: string; workspaceId?: string }>;
 }
 
 export default async function MediaRoomPage({ searchParams }: PageProps) {

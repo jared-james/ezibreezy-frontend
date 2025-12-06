@@ -39,6 +39,7 @@ interface UserOrganizationContext {
   organizationName: string;
   organizationId: string;
   defaultWorkspaceId?: string;
+  defaultWorkspaceSlug?: string;
 }
 
 interface UserWithWorkspaceContext {
@@ -47,6 +48,7 @@ interface UserWithWorkspaceContext {
   displayName: string;
   accessToken: string;
   defaultWorkspaceId: string;
+  defaultWorkspaceSlug: string;
   organizationId: string;
   organizationName: string;
 }
@@ -68,6 +70,7 @@ export async function getUserAndOrganization() {
       organizationName: "API Config Error",
       organizationId: "error",
       defaultWorkspaceId: "error",
+      defaultWorkspaceSlug: "error",
     };
   }
 
@@ -93,6 +96,7 @@ export async function getUserAndOrganization() {
       organizationName: context.organizationName,
       organizationId: context.organizationId,
       defaultWorkspaceId: context.defaultWorkspaceId || context.organizationId,
+      defaultWorkspaceSlug: context.defaultWorkspaceSlug || "",
     };
   } catch (error) {
     console.error("Error fetching user and organization context:", error);
@@ -101,6 +105,7 @@ export async function getUserAndOrganization() {
       organizationName: "Org Load Failed",
       organizationId: "error",
       defaultWorkspaceId: "error",
+      defaultWorkspaceSlug: "error",
     };
   }
 }

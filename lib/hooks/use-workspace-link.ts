@@ -5,15 +5,15 @@
 import { useSearchParams } from "next/navigation";
 
 /**
- * Hook to preserve workspaceId in navigation links
+ * Hook to preserve workspace slug in navigation links
  *
- * Problem: If user navigates from /dashboard?workspaceId=ws_123 to /analytics,
- * the workspaceId is dropped, causing the proxy to redirect to default workspace.
+ * Problem: If user navigates from /dashboard?workspace=marketing to /analytics,
+ * the workspace parameter is dropped, causing the proxy to redirect to default workspace.
  *
- * Solution: This hook appends the current workspaceId to any path you provide.
+ * Solution: This hook appends the current workspace slug to any path you provide.
  *
  * @param path - The path to navigate to (e.g., "/analytics")
- * @returns The path with workspaceId preserved (e.g., "/analytics?workspaceId=ws_123")
+ * @returns The path with workspace preserved (e.g., "/analytics?workspace=marketing")
  *
  * @example
  * ```tsx
@@ -23,12 +23,12 @@ import { useSearchParams } from "next/navigation";
  */
 export function useWorkspaceLink(path: string): string {
   const searchParams = useSearchParams();
-  const workspaceId = searchParams.get("workspaceId");
+  const workspace = searchParams.get("workspace");
 
   // If we have workspace context, preserve it
-  if (workspaceId) {
+  if (workspace) {
     const separator = path.includes("?") ? "&" : "?";
-    return `${path}${separator}workspaceId=${workspaceId}`;
+    return `${path}${separator}workspace=${workspace}`;
   }
 
   // No context - let proxy handle redirect

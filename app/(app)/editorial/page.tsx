@@ -6,13 +6,13 @@ import EditorialClient from "./editorial-client";
 export const dynamic = "force-dynamic";
 
 interface PageProps {
-  searchParams: Promise<{ workspaceId?: string }>;
+  searchParams: Promise<{ workspace?: string; workspaceId?: string }>;
 }
 
 export default async function EditorialPage({ searchParams }: PageProps) {
-  // Extract workspaceId from URL (guaranteed by proxy)
+  // Extract workspace from URL (guaranteed by proxy)
   const params = await searchParams;
-  const workspaceId = params.workspaceId!;
+  const workspaceId = params.workspace || params.workspaceId!;
 
   // For future: Fetch draft data and integrations server-side
   // const draftResult = await serverFetch('/drafts', { workspaceId });

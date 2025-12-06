@@ -6,13 +6,13 @@ import HashtagsClient from "./hashtags-client";
 export const dynamic = "force-dynamic";
 
 interface PageProps {
-  searchParams: Promise<{ workspaceId?: string }>;
+  searchParams: Promise<{ workspace?: string; workspaceId?: string }>;
 }
 
 export default async function HashtagsPage({ searchParams }: PageProps) {
-  // Extract workspaceId from URL (guaranteed by proxy)
+  // Extract workspace from URL (guaranteed by proxy)
   const params = await searchParams;
-  const workspaceId = params.workspaceId!;
+  const workspaceId = params.workspace || params.workspaceId!;
 
   // For future: Fetch hashtag groups server-side
   // const hashtagsResult = await serverFetch('/hashtag-groups', { workspaceId });

@@ -32,10 +32,10 @@ export function WorkspaceHydrator({ structure }: WorkspaceHydratorProps) {
       setStructure(structure);
     }
 
-    // 2. Set current workspace from URL parameter
-    const workspaceId = searchParams.get("workspaceId");
-    if (workspaceId) {
-      setCurrentWorkspace(workspaceId);
+    // 2. Set current workspace from URL parameter (supports both slug and UUID)
+    const workspace = searchParams.get("workspace");
+    if (workspace) {
+      setCurrentWorkspace(workspace);
     }
   }, [structure, searchParams, setStructure, setCurrentWorkspace]);
 

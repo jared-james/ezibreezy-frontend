@@ -8,12 +8,12 @@ import { serverFetch } from "@/lib/api/server-fetch";
 export const dynamic = "force-dynamic";
 
 interface PageProps {
-  searchParams: Promise<{ workspaceId?: string }>;
+  searchParams: Promise<{ workspace?: string; workspaceId?: string }>;
 }
 
 export default async function CalendarPage({ searchParams }: PageProps) {
   const params = await searchParams;
-  const workspaceId = params.workspaceId!;
+  const workspaceId = params.workspace || params.workspaceId!;
 
   const queryClient = getQueryClient();
 

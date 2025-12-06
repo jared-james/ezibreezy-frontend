@@ -8,7 +8,8 @@ import { useWorkspaceStore } from "@/lib/store/workspace-store";
 import { toast } from "sonner";
 
 /**
- * Handles the ?workspaceId=X query param.
+ * Handles the legacy ?workspaceId=X query param for backward compatibility.
+ * New links should use ?workspace=slug instead.
  *
  * - Validates the workspace exists
  * - Switches to that workspace
@@ -26,9 +27,10 @@ export function WorkspaceQuerySelector() {
   useEffect(() => {
     if (hasProcessedRef.current) return;
 
-    const workspaceIdFromUrl = searchParams.get("workspaceId");
+    // Support both legacy workspaceId and new workspace param
+    const workspaceFromUrl = searchParams.get("workspace") || searchParams.get("workspaceId");
 
-    if (!workspaceIdFromUrl) {
+    if (!workspaceFromUrl) {
       hasProcessedRef.current = true;
       return;
     }
@@ -40,12 +42,13 @@ export function WorkspaceQuerySelector() {
 
     // Already on the correct workspace → just clean the URL
     if (
-      currentWorkspace?.id === workspaceIdFromUrl ||
-      currentWorkspace?.slug === workspaceIdFromUrl
+      currentWorkspace?.id === workspaceFromUrl ||
+      currentWorkspace?.slug === workspaceFromUrl
     ) {
       hasProcessedRef.current = true;
       const newParams = new URLSearchParams(searchParams.toString());
-      newParams.delete("workspaceId");
+      newParams.delete("workspace");
+      newParams.delete("workspaceId"); // Clean legacy param
       const newUrl = newParams.toString()
         ? `?${newParams.toString()}`
         : window.location.pathname;
@@ -58,7 +61,7 @@ export function WorkspaceQuerySelector() {
     for (const node of structure) {
       if (
         node.workspaces.some(
-          (w) => w.id === workspaceIdFromUrl || w.slug === workspaceIdFromUrl
+          (w) => w.id === workspaceFromUrl || w.slug === workspaceFromUrl
         )
       ) {
         workspaceExists = true;
@@ -72,7 +75,8 @@ export function WorkspaceQuerySelector() {
 
       // Remove invalid workspace from URL
       const newParams = new URLSearchParams(searchParams.toString());
-      newParams.delete("workspaceId");
+      newParams.delete("workspace");
+      newParams.delete("workspaceId"); // Clean legacy param
       const newUrl = newParams.toString()
         ? `?${newParams.toString()}`
         : window.location.pathname;
@@ -81,12 +85,13 @@ export function WorkspaceQuerySelector() {
     }
 
     // Force switch to the workspace
-    setCurrentWorkspace(workspaceIdFromUrl);
+    setCurrentWorkspace(workspaceFromUrl);
     hasProcessedRef.current = true;
 
     // Clean up URL
     const newParams = new URLSearchParams(searchParams.toString());
-    newParams.delete("workspaceId");
+    newParams.delete("workspace");
+    newParams.delete("workspaceId"); // Clean legacy param
     const newUrl = newParams.toString()
       ? `?${newParams.toString()}`
       : window.location.pathname;

@@ -83,7 +83,7 @@ export function WorkspaceSwitcher({
     setCurrentWorkspace(workspaceSlug);
 
     const newParams = new URLSearchParams(searchParams.toString());
-    newParams.set("workspaceId", workspaceSlug); // Now passing slug instead of UUID
+    newParams.set("workspace", workspaceSlug); // Use new workspace param with slug
 
     router.push(`${pathname}?${newParams.toString()}`);
 

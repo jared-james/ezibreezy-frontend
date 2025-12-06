@@ -6,13 +6,13 @@ import { Tag } from "lucide-react";
 export const dynamic = "force-dynamic";
 
 interface PageProps {
-  searchParams: Promise<{ workspaceId?: string }>;
+  searchParams: Promise<{ workspace?: string; workspaceId?: string }>;
 }
 
 export default async function LabelsPage({ searchParams }: PageProps) {
-  // Extract workspaceId from URL (guaranteed by proxy)
+  // Extract workspace from URL (guaranteed by proxy)
   const params = await searchParams;
-  const workspaceId = params.workspaceId;
+  const workspaceId = params.workspace || params.workspaceId;
 
   return (
     <div className="min-h-screen w-full flex items-center justify-center bg-[--background] px-4">

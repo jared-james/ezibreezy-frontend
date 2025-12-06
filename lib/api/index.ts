@@ -44,16 +44,16 @@ apiClient.interceptors.request.use(
     if (!isExcluded) {
       // CRITICAL: Check if window is defined to prevent SSR breakage
       if (typeof window !== "undefined") {
-        // Read workspaceId from URL instead of localStorage
+        // Read workspace from URL (supports both slug and UUID)
         const urlParams = new URLSearchParams(window.location.search);
-        const workspaceId = urlParams.get("workspaceId");
+        const workspace = urlParams.get("workspace");
 
-        if (workspaceId) {
-          config.headers["x-workspace-id"] = workspaceId;
+        if (workspace) {
+          config.headers["x-workspace-id"] = workspace;
         } else {
-          // If we are hitting a data endpoint without an ID, it will likely 400/403.
+          // If we are hitting a data endpoint without a workspace, it will likely 400/403.
           console.warn(
-            "⚠️ No workspaceId in URL for data request:",
+            "⚠️ No workspace in URL for data request:",
             config.url
           );
         }

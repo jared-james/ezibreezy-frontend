@@ -29,13 +29,13 @@ export async function GET(
     );
   }
 
-  // Get workspaceId from query params
+  // Get workspace from query params (supports both new 'workspace' and legacy 'workspaceId')
   const { searchParams } = new URL(request.url);
-  const workspaceId = searchParams.get("workspaceId");
+  const workspaceId = searchParams.get("workspace") || searchParams.get("workspaceId");
 
   if (!workspaceId) {
     return NextResponse.json(
-      { error: "Workspace ID is required" },
+      { error: "Workspace parameter is required" },
       { status: 400 }
     );
   }

@@ -7,13 +7,13 @@ import InstagramClient from "./instagram-client";
 export const revalidate = 300;
 
 interface PageProps {
-  searchParams: Promise<{ workspaceId?: string }>;
+  searchParams: Promise<{ workspace?: string; workspaceId?: string }>;
 }
 
 export default async function InstagramAnalyticsPage({ searchParams }: PageProps) {
-  // Extract workspaceId from URL (guaranteed by proxy)
+  // Extract workspace from URL (guaranteed by proxy)
   const params = await searchParams;
-  const workspaceId = params.workspaceId!;
+  const workspaceId = params.workspace || params.workspaceId!;
 
   // For future: Fetch Instagram analytics server-side
   // const analyticsResult = await serverFetch('/analytics/instagram', { workspaceId });

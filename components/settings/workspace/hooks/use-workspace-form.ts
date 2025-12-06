@@ -90,8 +90,8 @@ export function useWorkspaceForm(initialWorkspace: Workspace | null, workspaceId
       const newSlug = result.data.slug;
 
       if (newSlug && oldSlug !== newSlug) {
-        // Get current workspaceId from URL
-        const currentWorkspaceParam = searchParams.get("workspaceId");
+        // Get current workspace from URL (support both new and legacy param)
+        const currentWorkspaceParam = searchParams.get("workspace") || searchParams.get("workspaceId");
 
         // Only redirect if we're currently viewing this workspace
         if (currentWorkspaceParam === oldSlug || currentWorkspaceParam === initialWorkspace.id) {
@@ -100,7 +100,8 @@ export function useWorkspaceForm(initialWorkspace: Workspace | null, workspaceId
 
           // Replace the URL (not push) to avoid back button going to 404
           const newParams = new URLSearchParams(searchParams.toString());
-          newParams.set("workspaceId", newSlug);
+          newParams.delete("workspaceId"); // Remove legacy param
+          newParams.set("workspace", newSlug); // Use new param with slug
           router.replace(`/settings/workspace?${newParams.toString()}`);
         }
       }

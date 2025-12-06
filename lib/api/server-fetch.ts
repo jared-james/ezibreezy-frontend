@@ -7,7 +7,7 @@ import { createClient } from "@/lib/supabase/server";
 const BACKEND_URL = process.env.BACKEND_URL;
 
 interface FetchOptions extends RequestInit {
-  workspaceId?: string;
+  workspaceId?: string; // Can be either slug or UUID
   skipWorkspaceHeader?: boolean;
 }
 

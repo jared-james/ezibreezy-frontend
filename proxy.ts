@@ -65,8 +65,8 @@ export async function proxy(request: NextRequest) {
 
   const isWorkMode = workModeRoutes.some((route) => pathname.startsWith(route));
 
-  // If this is a Work Mode route and no workspaceId in URL, redirect to default
-  if (isWorkMode && !searchParams.has("workspaceId")) {
+  // If this is a Work Mode route and no workspace in URL, redirect to default
+  if (isWorkMode && !searchParams.has("workspace")) {
     // User must be authenticated to fetch default workspace
     if (!user || !session) {
       const loginUrl = new URL("/auth/login", request.url);
@@ -100,17 +100,17 @@ export async function proxy(request: NextRequest) {
       }
 
       const context = await contextResponse.json();
-      const defaultWorkspaceId = context.defaultWorkspaceId;
+      const defaultWorkspaceSlug = context.defaultWorkspaceSlug;
 
       // No workspaces - redirect to onboarding
-      if (!defaultWorkspaceId) {
+      if (!defaultWorkspaceSlug) {
         const onboardingUrl = new URL("/onboarding", request.url);
         return NextResponse.redirect(onboardingUrl);
       }
 
-      // Redirect to same URL with workspaceId parameter
+      // Redirect to same URL with workspace parameter (using slug)
       const redirectUrl = new URL(request.url);
-      redirectUrl.searchParams.set("workspaceId", defaultWorkspaceId);
+      redirectUrl.searchParams.set("workspace", defaultWorkspaceSlug);
 
       return NextResponse.redirect(redirectUrl);
     } catch (error) {

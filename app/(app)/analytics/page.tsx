@@ -7,13 +7,13 @@ import AnalyticsClient from "./analytics-client";
 export const revalidate = 300;
 
 interface PageProps {
-  searchParams: Promise<{ workspaceId?: string }>;
+  searchParams: Promise<{ workspace?: string; workspaceId?: string }>;
 }
 
 export default async function AnalyticsPage({ searchParams }: PageProps) {
-  // Extract workspaceId from URL (guaranteed by proxy)
+  // Extract workspace from URL (guaranteed by proxy)
   const params = await searchParams;
-  const workspaceId = params.workspaceId!;
+  const workspaceId = params.workspace || params.workspaceId!;
 
   // For future: Fetch analytics summaries server-side
   // const summaryResult = await serverFetch('/analytics/summary', { workspaceId });

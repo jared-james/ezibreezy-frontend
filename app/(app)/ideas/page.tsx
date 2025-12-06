@@ -6,13 +6,13 @@ import IdeasClient from "./ideas-client";
 export const dynamic = "force-dynamic";
 
 interface PageProps {
-  searchParams: Promise<{ workspaceId?: string }>;
+  searchParams: Promise<{ workspace?: string; workspaceId?: string }>;
 }
 
 export default async function IdeasPage({ searchParams }: PageProps) {
-  // Extract workspaceId from URL (guaranteed by proxy)
+  // Extract workspace from URL (guaranteed by proxy)
   const params = await searchParams;
-  const workspaceId = params.workspaceId!;
+  const workspaceId = params.workspace || params.workspaceId!;
 
   // For future: Fetch initial ideas data server-side
   // const ideasResult = await serverFetch('/ideas', { workspaceId });

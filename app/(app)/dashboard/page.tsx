@@ -4,13 +4,14 @@
 export const dynamic = "force-dynamic";
 
 interface PageProps {
-  searchParams: Promise<{ workspaceId?: string }>;
+  searchParams: Promise<{ workspace?: string; workspaceId?: string }>;
 }
 
 export default async function DashboardPage({ searchParams }: PageProps) {
-  // Extract workspaceId from URL (guaranteed by proxy)
+  // Extract workspace from URL (guaranteed by proxy)
+  // Support both new 'workspace' param and legacy 'workspaceId'
   const params = await searchParams;
-  const workspaceId = params.workspaceId;
+  const workspace = params.workspace || params.workspaceId;
 
   // For future: Fetch dashboard data using serverFetch
   // const dashboardData = await serverFetch('/dashboard/summary', { workspaceId });
@@ -30,9 +31,9 @@ export default async function DashboardPage({ searchParams }: PageProps) {
         </p>
 
         {/* Debug info - remove in production */}
-        {process.env.NODE_ENV === "development" && workspaceId && (
+        {process.env.NODE_ENV === "development" && workspace && (
           <p className="text-xs text-[--muted-foreground] font-mono">
-            Workspace: {workspaceId}
+            Workspace: {workspace}
           </p>
         )}
       </div>
