@@ -2,6 +2,7 @@
 
 import axios from "axios";
 import { createClient } from "@/lib/supabase/client";
+import { getWorkspaceFromLocation } from "@/lib/utils/workspace";
 
 const apiClient = axios.create({
   baseURL: process.env.NEXT_PUBLIC_API_URL,
@@ -44,9 +45,8 @@ apiClient.interceptors.request.use(
     if (!isExcluded) {
       // CRITICAL: Check if window is defined to prevent SSR breakage
       if (typeof window !== "undefined") {
-        // Read workspace from URL (supports both slug and UUID)
-        const urlParams = new URLSearchParams(window.location.search);
-        const workspace = urlParams.get("workspace");
+        // Extract workspace from path-based routing (/:workspace/...)
+        const workspace = getWorkspaceFromLocation();
 
         if (workspace) {
           config.headers["x-workspace-id"] = workspace;
