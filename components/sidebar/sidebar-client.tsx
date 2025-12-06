@@ -1,3 +1,5 @@
+// components/sidebar/sidebar-client.tsx
+
 // components/sidebar-client.tsx
 
 "use client";
@@ -19,7 +21,6 @@ import {
   Users,
   Link2,
 } from "lucide-react";
-import { Button } from "./ui/button";
 import { logout } from "@/app/actions/auth";
 import {
   useWorkspaceStore,
@@ -28,6 +29,7 @@ import {
 import { WorkspaceSwitcher } from "@/components/layout/workspace-switcher";
 import { cn } from "@/lib/utils";
 import { useWorkspacePath } from "@/lib/hooks/use-workspace-path";
+import { Button } from "../ui/button";
 
 const coreNavigation = [
   { name: "Dashboard", href: "dashboard", icon: LayoutDashboard },

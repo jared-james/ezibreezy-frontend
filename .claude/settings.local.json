@@ -22,7 +22,8 @@
       "Bash(node replace-imports.js:*)",
       "Bash(del:*)",
       "Bash(node fix-remaining-imports.js:*)",
-      "Bash(dir:*)"
+      "Bash(dir:*)",
+      "Bash(mv:*)"
     ],
     "deny": [],
     "ask": []

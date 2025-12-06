@@ -3,7 +3,7 @@
 import { redirect } from "next/navigation";
 import { Suspense } from "react";
 import { getCurrentUser } from "@/lib/auth";
-import SidebarClient from "@/components/sidebar-client";
+import SidebarClient from "@/components/sidebar/sidebar-client";
 import { getWorkspaceStructure } from "@/app/actions/workspaces";
 import { InviteToast } from "@/components/auth/invite-toast";
 import { WorkspaceHydrator } from "@/components/workspace/workspace-hydrator";
