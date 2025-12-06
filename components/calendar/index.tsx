@@ -22,11 +22,18 @@ import ListView from "./views/list-view";
 
 import EditorialModal from "./modals/editorial-modal";
 import RescheduleConfirmationModal from "./modals/reschedule-confirmation-modal";
+import type { ScheduledPost } from "./types";
 
-export default function CalendarContainer() {
+// === ADD PROP INTERFACE ===
+interface CalendarContainerProps {
+  initialPosts?: ScheduledPost[];
+}
+
+// === UPDATE FUNCTION SIGNATURE ===
+export default function CalendarContainer({
+  initialPosts,
+}: CalendarContainerProps) {
   const calendarState = useCalendarState();
-
-  // 1. We still need this hook to pass the handler to the Modal
   const { handleDeletePost } = useDeletePost();
 
   const {
@@ -46,6 +53,7 @@ export default function CalendarContainer() {
     filters: calendarState.filters,
     activeView: calendarState.activeView,
     currentDate: calendarState.currentDate,
+    initialData: initialPosts, // === PASS PROP TO HOOK ===
   });
 
   const navigation = useCalendarNavigation({
@@ -94,7 +102,11 @@ export default function CalendarContainer() {
     refetch();
   };
 
-  if (isLoading) {
+  // === UPDATED LOADING CHECK ===
+  // If we have initialData, we are not "loading" visually, even if fetching in bg
+  const showLoading = isLoading && !initialPosts;
+
+  if (showLoading) {
     return (
       <div className="flex h-full w-full items-center justify-center p-8">
         <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
@@ -102,8 +114,7 @@ export default function CalendarContainer() {
     );
   }
 
-  // Check if error is due to no channels/connections or empty state
-  // In these cases, show empty calendar instead of error
+  // Error handling remains similar...
   if (isError) {
     const errorMessage = error?.message?.toLowerCase() || "";
     const isExpectedEmptyState =
@@ -113,7 +124,6 @@ export default function CalendarContainer() {
       errorMessage.includes("not found") ||
       scheduledPosts.length === 0;
 
-    // Only show error for unexpected/actual errors, not for empty states
     if (!isExpectedEmptyState) {
       toast.error(`Error loading schedule: ${error?.message}`);
       return (
@@ -124,10 +134,7 @@ export default function CalendarContainer() {
         </div>
       );
     }
-    // For expected empty states, continue to render the calendar (it will be empty)
   }
-
-  console.log("all content", allContent);
 
   return (
     <>
@@ -146,10 +153,6 @@ export default function CalendarContainer() {
         />
 
         <div className="flex-1 overflow-hidden rounded-lg bg-surface shadow-none">
-          {/* 
-            We have removed onDeletePost from these views 
-            as the button is no longer needed on the cards themselves.
-          */}
           {calendarState.activeView === "Month" && (
             <MonthView
               currentDate={calendarState.currentDate}
@@ -187,7 +190,7 @@ export default function CalendarContainer() {
         isLoading={isLoadingFullPost || isFetchingFullPost}
         selectedPost={calendarState.selectedPost}
         onReuse={editor.handleReusePost}
-        onDelete={handleDeletePost} // Passed here for the Modal Header
+        onDelete={handleDeletePost}
       />
 
       <RescheduleConfirmationModal

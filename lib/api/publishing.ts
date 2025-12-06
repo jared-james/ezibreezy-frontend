@@ -131,6 +131,16 @@ export interface FullPostDetails {
   };
 }
 
+interface PaginatedLibraryResponse {
+  items: ScheduledPostResponse[];
+  pagination: {
+    total: number;
+    limit: number;
+    offset: number;
+    hasMore: boolean;
+  };
+}
+
 export const createPost = async (
   payload: CreatePostPayload
 ): Promise<CreatePostResponse> => {
@@ -155,10 +165,10 @@ export const reschedulePostOnly = async (
 };
 
 export const getContentLibrary = async (): Promise<ScheduledPostResponse[]> => {
-  const response = await apiClient.get<ScheduledPostResponse[]>(
+  const response = await apiClient.get<PaginatedLibraryResponse>(
     "/publishing/library"
   );
-  return response.data;
+  return response.data?.items || [];
 };
 
 export const deletePost = async (postId: string): Promise<void> => {

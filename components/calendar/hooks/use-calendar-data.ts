@@ -16,6 +16,7 @@ interface UseCalendarDataProps {
   filters?: CalendarFilters;
   activeView?: CalendarView;
   currentDate?: Date;
+  initialData?: ScheduledPost[]; // === ADDED ===
 }
 
 export function useCalendarData({
@@ -23,6 +24,7 @@ export function useCalendarData({
   filters,
   activeView,
   currentDate,
+  initialData, // === ADDED ===
 }: UseCalendarDataProps) {
   const {
     data: allContent = [],
@@ -33,6 +35,8 @@ export function useCalendarData({
   } = useQuery<ScheduledPost[]>({
     queryKey: ["contentLibrary"],
     queryFn: getContentLibrary,
+    // === ADD HYDRATION CONFIG ===
+    initialData: initialData,
     staleTime: 60000,
   });
 
@@ -88,8 +92,6 @@ export function useCalendarData({
   }, [allContent, filters, activeView, currentDate]);
 
   // Background Fetch logic
-  // We fetch details if a post is selected, regardless of status.
-  // This allows "Reuse" to eventually hydrate with full details even for sent posts.
   const {
     data: fullPostData,
     isLoading: isLoadingFullPost,
@@ -100,7 +102,7 @@ export function useCalendarData({
     queryKey: ["fullPostDetails", postIdToEdit],
     queryFn: () => getPostDetails(postIdToEdit!),
     enabled: !!postIdToEdit,
-    staleTime: 5 * 60 * 1000, // Cache details for 5 mins
+    staleTime: 5 * 60 * 1000,
   });
 
   return {
