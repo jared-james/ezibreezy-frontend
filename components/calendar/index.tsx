@@ -53,7 +53,6 @@ export default function CalendarContainer({
     filters: calendarState.filters,
     activeView: calendarState.activeView,
     currentDate: calendarState.currentDate,
-    initialData: initialPosts, // === PASS PROP TO HOOK ===
   });
 
   const navigation = useCalendarNavigation({

@@ -16,7 +16,6 @@ interface UseCalendarDataProps {
   filters?: CalendarFilters;
   activeView?: CalendarView;
   currentDate?: Date;
-  initialData?: ScheduledPost[]; // === ADDED ===
 }
 
 export function useCalendarData({
@@ -24,7 +23,6 @@ export function useCalendarData({
   filters,
   activeView,
   currentDate,
-  initialData, // === ADDED ===
 }: UseCalendarDataProps) {
   const {
     data: allContent = [],
@@ -36,7 +34,6 @@ export function useCalendarData({
     queryKey: ["contentLibrary"],
     queryFn: getContentLibrary,
     // === ADD HYDRATION CONFIG ===
-    initialData: initialData,
     staleTime: 60000,
   });
 
