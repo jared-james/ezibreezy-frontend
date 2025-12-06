@@ -44,14 +44,21 @@ export function MembersList({ organizationId }: { organizationId: string }) {
   const VISIBLE_WORKSPACE_LIMIT = 3;
 
   const fetchMembers = async () => {
+    // 1. Defensive check: Don't fetch if ID is missing (prevents //members error)
+    if (!organizationId) return;
+
     setIsLoading(true);
+
     const result = await getOrganizationMembers(organizationId);
+
     if (result.success) {
       const sorted = (result.data as Member[]).sort((a, b) => {
         const score = { owner: 3, admin: 2, member: 1 };
         return (score[b.orgRole] || 0) - (score[a.orgRole] || 0);
       });
       setMembers(sorted);
+    } else {
+      console.error("[MEMBERS_LIST] Failed to fetch members:", result.error);
     }
     setIsLoading(false);
   };
@@ -101,12 +108,15 @@ export function MembersList({ organizationId }: { organizationId: string }) {
             </thead>
             <tbody className="divide-y divide-border">
               {members.map((member) => {
+                // FIX: Ensure workspaces is always an array to prevent crash
+                const memberWorkspaces = member.workspaces || [];
+
                 // Calculation for splitting workspaces
-                const visibleWorkspaces = member.workspaces.slice(
+                const visibleWorkspaces = memberWorkspaces.slice(
                   0,
                   VISIBLE_WORKSPACE_LIMIT
                 );
-                const hiddenWorkspaces = member.workspaces.slice(
+                const hiddenWorkspaces = memberWorkspaces.slice(
                   VISIBLE_WORKSPACE_LIMIT
                 );
                 const hasHidden = hiddenWorkspaces.length > 0;
@@ -155,7 +165,7 @@ export function MembersList({ organizationId }: { organizationId: string }) {
                     {/* Workspace Access Column (Updated) */}
                     <td className="p-4 align-middle">
                       <div className="flex items-center gap-1.5 flex-nowrap overflow-hidden">
-                        {member.workspaces.length === 0 && (
+                        {memberWorkspaces.length === 0 && (
                           <span className="text-xs text-muted-foreground italic opacity-50 font-serif">
                             No assigned workspaces
                           </span>

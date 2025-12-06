@@ -108,27 +108,17 @@ export async function transferOrganizationOwnership(
 }
 
 export async function getOrganizationMembers(organizationId: string) {
-  const userContext = await getUserAndOrganization();
-
-  if (!userContext) {
-    return { success: false, error: "Not authenticated" };
-  }
-
-  // Security check: ensure the user requesting belongs to the org they are querying
-  if (userContext.organizationId !== organizationId) {
-    return {
-      success: false,
-      error: "Unauthorized access to organization members.",
-    };
-  }
+  // REMOVE the getUserAndOrganization check entirely.
+  // It effectively blocks access to any org that isn't your "default".
 
   try {
+    // The Backend API handles the permission check (UserInOrgGuard logic)
     const response = await authenticatedFetch(
       `/users/organization/${organizationId}/members`
     );
     return response;
   } catch (error) {
-    console.error("Error fetching organization members:", error);
+    console.error("[ORG_ACTION] Error fetching organization members:", error);
     return { success: false, error: "Failed to load members" };
   }
 }

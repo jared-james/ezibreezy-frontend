@@ -21,7 +21,8 @@
       "Bash(powershell -Command \"Get-ChildItem -Recurse -Include *.ts,*.tsx | ForEach-Object { (Get-Content $_FullName) -replace ''@/lib/api/media'', ''@/lib/types/media'' | Set-Content $_FullName }\")",
       "Bash(node replace-imports.js:*)",
       "Bash(del:*)",
-      "Bash(node fix-remaining-imports.js:*)"
+      "Bash(node fix-remaining-imports.js:*)",
+      "Bash(dir:*)"
     ],
     "deny": [],
     "ask": []

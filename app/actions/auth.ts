@@ -5,6 +5,7 @@ import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { headers } from "next/headers"; // Import headers
+import { syncUser } from "./user";
 
 // --- 1. SETUP SIMPLE RATE LIMITER ---
 const RATE_LIMIT_DURATION = 60 * 1000; // 60 seconds
@@ -84,6 +85,14 @@ export async function login(formData: FormData): Promise<LoginResult> {
   if (data.user && !data.user.email_confirmed_at) {
     await supabase.auth.signOut();
     return { success: false, error: "Please verify your email address." };
+  }
+
+  const syncResult = await syncUser();
+
+  if (!syncResult.success) {
+    console.error("Login sync failed:", syncResult.error);
+    // Optional: Decide if you want to block login if sync fails,
+    // or just let them through and hope a subsequent page load fixes it.
   }
 
   revalidatePath("/", "layout");

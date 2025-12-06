@@ -4,13 +4,14 @@
 
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
-import { cache } from "react"; // Added this
+import { cache } from "react";
 
 const BACKEND_URL = process.env.BACKEND_URL;
 
 // Wrapped in cache()
 export const getWorkspaceStructure = cache(async () => {
   if (!BACKEND_URL) {
+    console.error("[WorkspacesAction] BACKEND_URL not defined");
     return { success: false, error: "Backend URL is not configured." };
   }
 
@@ -20,10 +21,15 @@ export const getWorkspaceStructure = cache(async () => {
   } = await supabase.auth.getSession();
 
   if (!session) {
+    console.warn("[WorkspacesAction] No active session found.");
     return { success: false, error: "Not authenticated" };
   }
 
   try {
+    console.log(
+      `[WorkspacesAction] Fetching from ${BACKEND_URL}/workspaces/structure for User: ${session.user.id}`
+    );
+
     const response = await fetch(`${BACKEND_URL}/workspaces/structure`, {
       method: "GET",
       headers: {
@@ -35,20 +41,27 @@ export const getWorkspaceStructure = cache(async () => {
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error("Failed to fetch workspace structure:", errorText);
+      console.error(
+        `[WorkspacesAction] Fetch Failed: ${response.status} ${response.statusText} | Response: ${errorText}`
+      );
       return { success: false, error: "Failed to load workspaces." };
     }
 
     const data = await response.json();
+    console.log(
+      `[WorkspacesAction] Fetch Success. Data count: ${
+        Array.isArray(data) ? data.length : "Not Array"
+      }`
+    );
 
     return { success: true, data };
   } catch (error) {
-    console.error("Error fetching workspace structure:", error);
+    console.error("[WorkspacesAction] Exception:", error);
     return { success: false, error: "Connection failed." };
   }
 });
 
-// ... (keep the rest of the file: createWorkspace, updateWorkspace, deleteWorkspace, etc.) ...
+// ... (keep the rest of the file exactly as it was) ...
 export async function createWorkspace(data: {
   organizationId: string;
   name: string;

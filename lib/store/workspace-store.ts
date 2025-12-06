@@ -26,7 +26,7 @@ export interface Organization {
 
 export interface OrganizationNode {
   organization: Organization;
-  workspaces: Omit<Workspace, "organizationId">[];
+  workspaces: Workspace[];
 }
 
 export interface WorkspaceState {
@@ -100,7 +100,9 @@ export const useWorkspaceStore = create<WorkspaceState & WorkspaceActions>()(
           currentOrganization: foundOrg,
         });
       } else {
-        console.warn(`❌ Workspace ${workspaceSlugOrId} not found in structure.`);
+        console.warn(
+          `❌ Workspace ${workspaceSlugOrId} not found in structure.`
+        );
       }
     },
 

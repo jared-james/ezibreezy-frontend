@@ -19,9 +19,16 @@ export default function OrganizationForm({
   initialOrgName,
   organizationId,
 }: OrganizationFormProps) {
+  console.log("[ORG_FORM] Component mounted/rendered");
+  console.log("[ORG_FORM] Received initialOrgName:", initialOrgName);
+  console.log("[ORG_FORM] Received organizationId:", organizationId);
+
   const [orgName, setOrgName] = useState(initialOrgName);
   const [isUpdatingOrg, setIsUpdatingOrg] = useState(false);
   const { currentOrganization } = useWorkspaceStore();
+
+  console.log("[ORG_FORM] State orgName:", orgName);
+  console.log("[ORG_FORM] currentOrganization from store:", currentOrganization);
 
   // Security check: If they land here via URL but aren't admin
   const isAdmin =
