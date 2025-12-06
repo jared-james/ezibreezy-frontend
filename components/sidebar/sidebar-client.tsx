@@ -10,7 +10,6 @@ import React, { useState } from "react";
 import {
   LayoutDashboard,
   Pencil,
-  Lightbulb,
   Calendar,
   BarChart3,
   Settings,
@@ -35,7 +34,7 @@ const coreNavigation = [
   { name: "Dashboard", href: "dashboard", icon: LayoutDashboard },
   { name: "Calendar", href: "calendar", icon: Calendar },
   { name: "Editorial", href: "editorial", icon: Pencil },
-  { name: "Ideas", href: "ideas", icon: Lightbulb },
+  // { name: "Ideas", href: "ideas", icon: Lightbulb }, // Temporarily disabled
   { name: "Analytics", href: "analytics", icon: BarChart3 },
 ];
 

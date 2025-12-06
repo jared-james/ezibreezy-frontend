@@ -23,7 +23,7 @@ export default async function AppLayout({
   // 2. Fetch workspace structure server-side
   const workspaceResult = await getWorkspaceStructure();
   const workspaceStructure = workspaceResult.success
-    ? workspaceResult.data
+    ? (workspaceResult.data ?? [])
     : [];
 
   return (

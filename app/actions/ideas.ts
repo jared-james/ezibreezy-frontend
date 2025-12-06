@@ -1,4 +1,7 @@
 // app/actions/ideas.ts
+// TEMPORARILY DISABLED - Will be redesigned
+
+/*
 "use server";
 
 import { serverFetch } from "@/lib/api/server-fetch";
@@ -36,3 +39,4 @@ export async function saveClippingAsDraftAction(
     workspaceId,
   });
 }
+*/
