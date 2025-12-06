@@ -14,7 +14,9 @@ interface WorkspaceSwitcherProps {
   initialStructure?: OrganizationNode[];
 }
 
-export function WorkspaceSwitcher({ initialStructure }: WorkspaceSwitcherProps) {
+export function WorkspaceSwitcher({
+  initialStructure,
+}: WorkspaceSwitcherProps) {
   const [open, setOpen] = React.useState(false);
   const dropdownRef = React.useRef<HTMLDivElement>(null);
   const hasInitialized = React.useRef(false);
@@ -31,25 +33,25 @@ export function WorkspaceSwitcher({ initialStructure }: WorkspaceSwitcherProps) 
     setStructure,
   } = useWorkspaceStore();
 
-  // Initialize store SYNCHRONOUSLY during render if we have initial data
-  // This ensures the store is populated before the first render completes
-  if (initialStructure && initialStructure.length > 0 && structure.length === 0 && !hasInitialized.current) {
-    console.log("🟡 [WorkspaceSwitcher] SYNC initialization with server data");
+  // Sync server-provided structure into Zustand only once
+  if (
+    initialStructure &&
+    initialStructure.length > 0 &&
+    structure.length === 0 &&
+    !hasInitialized.current
+  ) {
     setStructure(initialStructure);
     hasInitialized.current = true;
   }
 
-  // Use initialStructure or store structure, whichever is available
-  // During SSR/hydration, the store might not be updated yet, so fallback to initialStructure
-  const effectiveStructure = structure.length > 0 ? structure : (initialStructure || []);
+  const effectiveStructure =
+    structure.length > 0 ? structure : initialStructure || [];
 
-  // Derive workspace and org from effectiveStructure if store hasn't updated yet
   let effectiveWorkspace = currentWorkspace;
   let effectiveOrg = currentOrganization;
 
-  // If store is empty but we have initialStructure, derive the values
+  // Derive workspace/org if store has not initialized yet
   if (!effectiveWorkspace && effectiveStructure.length > 0) {
-    // Find the first workspace in the structure
     for (const node of effectiveStructure) {
       if (node.workspaces.length > 0) {
         const firstWs = node.workspaces[0];
@@ -62,15 +64,6 @@ export function WorkspaceSwitcher({ initialStructure }: WorkspaceSwitcherProps) 
       }
     }
   }
-
-  // Debug: Log what we receive
-  console.log("🟡 [WorkspaceSwitcher] Render:", {
-    receivedInitialStructure: !!initialStructure,
-    initialLength: initialStructure?.length,
-    storeLength: structure.length,
-    effectiveLength: effectiveStructure.length,
-    hasCurrentWorkspace: !!effectiveWorkspace
-  });
 
   // Close dropdown when clicking outside
   React.useEffect(() => {
@@ -87,35 +80,19 @@ export function WorkspaceSwitcher({ initialStructure }: WorkspaceSwitcherProps) 
   }, []);
 
   const handleSelect = (workspaceId: string) => {
-    // 1. Update store immediately (optimistic UI - instant visual feedback)
     setCurrentWorkspace(workspaceId);
 
-    // 2. Update URL with new workspaceId
     const newParams = new URLSearchParams(searchParams.toString());
     newParams.set("workspaceId", workspaceId);
 
-    // 3. Navigate to new URL (triggers server component re-render with new data)
     router.push(`${pathname}?${newParams.toString()}`);
 
-    // 4. Close dropdown
     setOpen(false);
   };
 
-  // Debug logging
-  console.log("🔴 [WorkspaceSwitcher] Render state:", {
-    hasCurrentWorkspace: !!currentWorkspace,
-    hasCurrentOrg: !!currentOrganization,
-    structureLength: structure.length,
-    currentWorkspace,
-    currentOrganization,
-    structure,
-  });
-
-  // If data hasn't loaded yet
+  // Not ready yet (fallback UI)
   if (!effectiveWorkspace || !effectiveOrg) {
-    // If structure is empty, user has no workspaces
     if (effectiveStructure.length === 0) {
-      console.warn("⚠️ [WorkspaceSwitcher] No workspaces available");
       return (
         <div className="h-16 flex items-center justify-center px-6 border-b-2 border-[--foreground]">
           <span className="font-serif text-sm text-[--error]">
@@ -125,18 +102,9 @@ export function WorkspaceSwitcher({ initialStructure }: WorkspaceSwitcherProps) 
       );
     }
 
-    // Still loading (shouldn't happen with server-side fetch, but handle gracefully)
-    console.warn("⚠️ [WorkspaceSwitcher] Still loading - missing:", {
-      missingWorkspace: !effectiveWorkspace,
-      missingOrg: !effectiveOrg,
-      effectiveStructureLength: effectiveStructure.length,
-    });
-
     return (
       <div className="h-16 flex items-center justify-center px-6 border-b-2 border-[--foreground]">
-        <span className="font-serif text-sm text-[--muted]">
-          Loading...
-        </span>
+        <span className="font-serif text-sm text-[--muted]">Loading...</span>
       </div>
     );
   }
@@ -170,13 +138,12 @@ export function WorkspaceSwitcher({ initialStructure }: WorkspaceSwitcherProps) 
         <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 text-muted-foreground" />
       </button>
 
-      {/* Dropdown Content */}
+      {/* Dropdown */}
       {open && (
         <div className="absolute top-[calc(100%+8px)] left-4 right-4 bg-background border border-border shadow-xl max-h-[400px] overflow-y-auto z-50">
           <div className="py-2">
             {effectiveStructure.map((node) => (
               <div key={node.organization.id} className="mb-4 last:mb-0">
-                {/* Organization Header */}
                 <div className="px-3 py-1.5 mb-1">
                   <div className="flex items-center gap-2">
                     <Building2 className="h-3.5 w-3.5 text-muted-foreground" />
@@ -186,7 +153,6 @@ export function WorkspaceSwitcher({ initialStructure }: WorkspaceSwitcherProps) 
                   </div>
                 </div>
 
-                {/* Workspaces List */}
                 <div>
                   {node.workspaces.map((workspace) => {
                     const isActive = effectiveWorkspace.id === workspace.id;

@@ -18,8 +18,6 @@ import { useFolderActions } from "./folder-actions";
 interface MediaRoomProps {}
 
 export default function MediaRoom({}: MediaRoomProps) {
-  console.log("🏠 MediaRoom rendering");
-
   const [isUploadOpen, setIsUploadOpen] = useState(false);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [folderToRename, setFolderToRename] = useState<any>(null);
@@ -55,7 +53,10 @@ export default function MediaRoom({}: MediaRoomProps) {
             </h1>
           </div>
           <div className="flex items-center gap-3">
-            <button onClick={() => setIsCreateDialogOpen(true)} className="btn btn-outline">
+            <button
+              onClick={() => setIsCreateDialogOpen(true)}
+              className="btn btn-outline"
+            >
               <Plus className="h-4 w-4" />
               New Folder
             </button>
@@ -88,10 +89,12 @@ export default function MediaRoom({}: MediaRoomProps) {
 
       <MediaDetailPanel />
       <BulkActionBar />
+
       <MediaUploadZone
         isOpen={isUploadOpen}
         onClose={() => setIsUploadOpen(false)}
       />
+
       <FolderActionDialogs
         isCreateOpen={isCreateDialogOpen}
         onCloseCreate={() => setIsCreateDialogOpen(false)}

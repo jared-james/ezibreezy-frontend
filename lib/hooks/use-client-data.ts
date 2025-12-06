@@ -19,21 +19,7 @@ export function useClientData() {
 
   // Initialize workspace from server data on first load
   useEffect(() => {
-    // Only initialize if:
-    // 1. We have data with a default workspace ID
-    // 2. We don't already have a workspace selected
-    // 3. Structure is loaded (to ensure setCurrentWorkspace can validate)
-    if (
-      data?.defaultWorkspaceId &&
-      !currentWorkspace &&
-      structure.length > 0
-    ) {
-      console.log(
-        "🔵 [useClientData] Initializing workspace:",
-        data.defaultWorkspaceId
-      );
-      // FIX: Pass workspace ID string, not object
-      // setCurrentWorkspace expects a string ID and looks it up in the structure
+    if (data?.defaultWorkspaceId && !currentWorkspace && structure.length > 0) {
       setCurrentWorkspace(data.defaultWorkspaceId);
     }
   }, [data, currentWorkspace, setCurrentWorkspace, structure]);

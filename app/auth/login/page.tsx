@@ -11,7 +11,7 @@ import MinimalHeader from "@/components/shared/minimal-header";
 import LandingPageFooter from "@/components/landing-page/landing-page-footer";
 import { ArrowRight, Loader2 } from "lucide-react";
 import posthog from "posthog-js";
-import { syncUser } from "@/app/actions/user"; // Import the server action
+import { syncUser } from "@/app/actions/user";
 
 function LoginForm() {
   const [email, setEmail] = useState("");
@@ -21,7 +21,6 @@ function LoginForm() {
   const searchParams = useSearchParams();
   const supabase = createClient();
 
-  // Check for error messages from callback
   useEffect(() => {
     const errorParam = searchParams.get("error");
     if (errorParam) {
@@ -49,7 +48,6 @@ function LoginForm() {
     setIsLoading(true);
 
     try {
-      // 1. Supabase Auth
       const { data, error: authError } = await supabase.auth.signInWithPassword(
         {
           email,
@@ -67,6 +65,7 @@ function LoginForm() {
           : "Unable to sign in. Please try again.";
 
         setError(errorMessage);
+
         posthog.captureException(authError);
         posthog.capture("auth_error_occurred", {
           error_type: "login",
@@ -75,7 +74,7 @@ function LoginForm() {
         });
 
         setIsLoading(false);
-        return; // Stop here on auth error
+        return;
       }
 
       if (data.user && !data.user.email_confirmed_at) {
@@ -86,20 +85,13 @@ function LoginForm() {
         return;
       }
 
-      // 2. Track Success
-      posthog.identify(email, {
-        email: email,
-      });
+      posthog.identify(email, { email });
       posthog.capture("user_logged_in", {
-        email: email,
+        email,
         login_method: "email_password",
       });
 
-      // 3. SYNC & CHECK INVITES (The Magic Step)
-      // This reads the cookie, sends it to backend, and gets back where we should go
-      console.log("🔵 [Login] Calling syncUser...");
       const syncResult = await syncUser();
-      console.log("🔵 [Login] syncUser result:", syncResult);
 
       if (!syncResult.success) {
         setError(syncResult.error || "Failed to sync user");
@@ -107,24 +99,15 @@ function LoginForm() {
         return;
       }
 
-      // 4. INTENT AWARE REDIRECT
-      // Use window.location.href for a hard navigation that ensures the session
-      // and all server components are properly loaded with the new auth state
-      console.log("🔵 [Login] Redirecting to dashboard...");
-
       if (syncResult.targetWorkspaceId) {
-        console.log("🔵 [Login] Target workspace:", syncResult.targetWorkspaceId);
         window.location.href = `/dashboard?workspaceId=${syncResult.targetWorkspaceId}&invite=success`;
       } else {
-        console.log("🔵 [Login] No target workspace, going to default dashboard");
         window.location.href = "/dashboard";
       }
-
-      // Note: We don't set isLoading(false) here to keep the button state
-      // active while redirecting
     } catch (err) {
       const errorMessage = "An unexpected error occurred";
       setError(errorMessage);
+
       if (err instanceof Error) {
         posthog.captureException(err);
       }
@@ -143,7 +126,6 @@ function LoginForm() {
       <MinimalHeader />
 
       <main className="grow flex items-center justify-center py-16 px-4 relative">
-        {/* Background Grid Pattern */}
         <div
           className="absolute inset-0 pointer-events-none opacity-[0.03]"
           style={{
@@ -154,10 +136,8 @@ function LoginForm() {
         />
 
         <div className="w-full max-w-5xl relative z-10">
-          {/* THE POSTCARD CONTAINER */}
           <div className="bg-surface border border-foreground shadow-2xl relative overflow-hidden">
             <div className="grid md:grid-cols-2 min-h-[600px]">
-              {/* LEFT COLUMN: "The Message" */}
               <div className="p-8 md:p-12 flex flex-col relative border-b md:border-b-0 md:border-r border-dashed border-foreground/30 bg-surface">
                 <div className="mb-8">
                   <span className="font-mono text-[10px] uppercase tracking-widest text-foreground/40 border border-foreground/20 px-2 py-1">
@@ -183,9 +163,7 @@ function LoginForm() {
                 </div>
               </div>
 
-              {/* RIGHT COLUMN: "The Address / Form" */}
               <div className="p-8 md:p-12 flex flex-col relative bg-surface-hover/30">
-                {/* The Stamp Graphic */}
                 <div className="absolute top-8 right-8 pointer-events-none select-none">
                   <div className="relative w-24 h-28 border-[3px] border-dotted border-foreground/20 bg-background-editorial flex items-center justify-center rotate-3 shadow-sm">
                     <Image
@@ -195,7 +173,6 @@ function LoginForm() {
                       height={60}
                       className="opacity-80 grayscale contrast-125"
                     />
-                    {/* Cancellation Waves */}
                     <div className="absolute inset-0 overflow-hidden opacity-30">
                       <div className="w-[200%] h-px bg-foreground absolute top-1/4 -left-10 rotate-[25deg]" />
                       <div className="w-[200%] h-px bg-foreground absolute top-2/4 -left-10 rotate-[25deg]" />
@@ -204,7 +181,6 @@ function LoginForm() {
                   </div>
                 </div>
 
-                {/* Form */}
                 <div className="flex-1 flex flex-col justify-center mt-20 md:mt-10">
                   <form
                     onSubmit={handleLogin}

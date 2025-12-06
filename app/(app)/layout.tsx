@@ -26,12 +26,6 @@ export default async function AppLayout({
     ? workspaceResult.data
     : [];
 
-  console.log("🔵 [Layout] Workspace fetch result:", {
-    success: workspaceResult.success,
-    dataLength: workspaceStructure.length,
-    error: workspaceResult.error,
-  });
-
   return (
     <div className="flex h-screen w-full bg-[--background] overflow-hidden">
       {/*

@@ -105,12 +105,12 @@ export default function CalendarContainer() {
   // Check if error is due to no channels/connections or empty state
   // In these cases, show empty calendar instead of error
   if (isError) {
-    const errorMessage = error?.message?.toLowerCase() || '';
+    const errorMessage = error?.message?.toLowerCase() || "";
     const isExpectedEmptyState =
-      errorMessage.includes('no channels') ||
-      errorMessage.includes('no connections') ||
-      errorMessage.includes('no integrations') ||
-      errorMessage.includes('not found') ||
+      errorMessage.includes("no channels") ||
+      errorMessage.includes("no connections") ||
+      errorMessage.includes("no integrations") ||
+      errorMessage.includes("not found") ||
       scheduledPosts.length === 0;
 
     // Only show error for unexpected/actual errors, not for empty states
@@ -126,6 +126,8 @@ export default function CalendarContainer() {
     }
     // For expected empty states, continue to render the calendar (it will be empty)
   }
+
+  console.log("all content", allContent);
 
   return (
     <>

@@ -33,8 +33,6 @@ export async function signupForWaitlist(payload: SignupPayload) {
         .json()
         .catch(() => ({ message: "An unexpected error occurred." }));
 
-      console.log('[Server Action] Error response:', errorData);
-
       // NestJS returns errors with 'message' field (can be string or array)
       const errorMessage = Array.isArray(errorData.message)
         ? errorData.message.join(", ")

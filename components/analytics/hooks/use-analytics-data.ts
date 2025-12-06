@@ -42,24 +42,6 @@ export function useAnalyticsData({
     retry: 1,
   });
 
-  // --- DEBUGGING START ---
-  useEffect(() => {
-    if (data) {
-      console.group("🎥 [YouTube] Analytics Data");
-      console.log("Integration ID:", integrationId);
-      console.log("Days:", days);
-      console.log("Raw Response:", data);
-      console.log("Metrics:", data.data);
-      console.log("Warnings:", data.warnings);
-      console.log("Data Quality:", data.dataQuality);
-      console.groupEnd();
-    }
-    if (error) {
-      console.error("❌ [YouTube] Analytics Data Error:", error);
-    }
-  }, [data, error, integrationId, days]);
-  // --- DEBUGGING END ---
-
   return {
     metrics: data?.data || [],
     warnings: data?.warnings,

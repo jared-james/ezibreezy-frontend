@@ -2,7 +2,7 @@
 
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState } from "react";
 import { Loader2 } from "lucide-react";
 import {
   useCreateFolder,
@@ -41,8 +41,6 @@ interface FolderActionDialogsProps {
 }
 
 export function useFolderActions() {
-  console.log("🔄 useFolderActions hook called");
-
   const FolderActionDialogs = ({
     isCreateOpen,
     onCloseCreate,
@@ -51,8 +49,6 @@ export function useFolderActions() {
     folderToDelete,
     onCloseDelete,
   }: FolderActionDialogsProps) => {
-    console.log("🎨 FolderActionDialogs rendering");
-
     const [folderName, setFolderName] = useState("");
 
     const currentFolderId = useMediaRoomStore((s) => s.currentFolderId);
@@ -102,143 +98,145 @@ export function useFolderActions() {
 
     return (
       <>
-        {/* Create Dialog */}
-        <Dialog open={isCreateOpen} onOpenChange={(open) => {
-          if (!open) {
-            setFolderName("");
-            onCloseCreate();
-          }
-        }}>
+        {/* CREATE FOLDER */}
+        <Dialog
+          open={isCreateOpen}
+          onOpenChange={(open) => {
+            if (!open) {
+              setFolderName("");
+              onCloseCreate();
+            }
+          }}
+        >
           <DialogContent className="sm:max-w-[425px] border-2 border-foreground shadow-[8px_8px_0_0_rgba(0,0,0,1)] rounded-sm bg-surface p-6">
             <DialogHeader>
               <DialogTitle className="font-serif text-xl font-bold uppercase tracking-tight">
                 New Folder
               </DialogTitle>
             </DialogHeader>
+
             <div className="py-4">
               <Input
                 value={folderName}
-                onChange={(e) => {
-                  console.log("⌨️ Input changed:", e.target.value);
-                  setFolderName(e.target.value);
-                }}
+                onChange={(e) => setFolderName(e.target.value)}
                 placeholder="Folder name"
                 className="font-serif text-base h-11 bg-background border-border focus:border-foreground rounded-sm"
                 autoFocus
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") handleCreate();
-                }}
+                onKeyDown={(e) => e.key === "Enter" && handleCreate()}
               />
             </div>
-          <DialogFooter>
-            <DialogClose asChild>
-              <button className="btn btn-outline border-border hover:bg-surface-hover">
-                Cancel
-              </button>
-            </DialogClose>
-            <button
-              onClick={handleCreate}
-              disabled={createMutation.isPending || !folderName.trim()}
-              className="btn btn-primary"
-            >
-              {createMutation.isPending ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
-              ) : (
-                "Create Folder"
-              )}
-            </button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
 
-      {/* Rename Dialog */}
-      <Dialog
-        open={!!folderToRename}
-        onOpenChange={(open) => {
-          if (!open) {
-            setFolderName("");
-            onCloseRename();
-          } else if (folderToRename) {
-            setFolderName(folderToRename.name);
-          }
-        }}
-      >
-        <DialogContent className="sm:max-w-[425px] border-2 border-foreground shadow-[8px_8px_0_0_rgba(0,0,0,1)] rounded-sm bg-surface p-6">
-          <DialogHeader>
-            <DialogTitle className="font-serif text-xl font-bold uppercase tracking-tight">
-              Rename Folder
-            </DialogTitle>
-          </DialogHeader>
-          <div className="py-4">
-            <Input
-              value={folderName}
-              onChange={(e) => setFolderName(e.target.value)}
-              placeholder="Folder name"
-              className="font-serif text-base h-11 bg-background border-border focus:border-foreground rounded-sm"
-              autoFocus
-              onKeyDown={(e) => {
-                if (e.key === "Enter" && folderToRename) handleRename();
-              }}
-            />
-          </div>
-          <DialogFooter>
-            <DialogClose asChild>
-              <button className="btn btn-outline border-border hover:bg-surface-hover">
-                Cancel
+            <DialogFooter>
+              <DialogClose asChild>
+                <button className="btn btn-outline border-border hover:bg-surface-hover">
+                  Cancel
+                </button>
+              </DialogClose>
+              <button
+                onClick={handleCreate}
+                disabled={createMutation.isPending || !folderName.trim()}
+                className="btn btn-primary"
+              >
+                {createMutation.isPending ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  "Create Folder"
+                )}
               </button>
-            </DialogClose>
-            <button
-              onClick={handleRename}
-              disabled={renameMutation.isPending || !folderName.trim()}
-              className="btn btn-primary"
-            >
-              {renameMutation.isPending ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
-              ) : (
-                "Save Changes"
-              )}
-            </button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
 
-      {/* Delete Alert */}
-      <AlertDialog
-        open={!!folderToDelete}
-        onOpenChange={(open) => !open && onCloseDelete()}
-      >
-        <AlertDialogContent className="border-2 border-foreground shadow-[8px_8px_0_0_rgba(0,0,0,1)] rounded-sm bg-surface p-6">
-          <AlertDialogHeader>
-            <AlertDialogTitle className="font-serif text-xl font-bold uppercase tracking-tight">
-              Delete Folder
-            </AlertDialogTitle>
-            <AlertDialogDescription className="font-serif text-sm text-muted-foreground">
-              Are you sure you want to delete &ldquo;{folderToDelete?.name}
-              &rdquo;? Media inside will be moved to the root folder.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter className="mt-4">
-            <AlertDialogCancel className="btn btn-outline border-border hover:bg-surface-hover">
-              Cancel
-            </AlertDialogCancel>
-            <AlertDialogAction
-              onClick={handleDelete}
-              className="btn btn-primary bg-error text-white hover:bg-error-hover border-error-hover"
-            >
-              {deleteMutation.isPending ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
-              ) : (
-                "Delete"
-              )}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-    </>
-  );
+        {/* RENAME FOLDER */}
+        <Dialog
+          open={!!folderToRename}
+          onOpenChange={(open) => {
+            if (!open) {
+              setFolderName("");
+              onCloseRename();
+            } else if (folderToRename) {
+              setFolderName(folderToRename.name);
+            }
+          }}
+        >
+          <DialogContent className="sm:max-w-[425px] border-2 border-foreground shadow-[8px_8px_0_0_rgba(0,0,0,1)] rounded-sm bg-surface p-6">
+            <DialogHeader>
+              <DialogTitle className="font-serif text-xl font-bold uppercase tracking-tight">
+                Rename Folder
+              </DialogTitle>
+            </DialogHeader>
+
+            <div className="py-4">
+              <Input
+                value={folderName}
+                onChange={(e) => setFolderName(e.target.value)}
+                placeholder="Folder name"
+                className="font-serif text-base h-11 bg-background border-border focus:border-foreground rounded-sm"
+                autoFocus
+                onKeyDown={(e) =>
+                  e.key === "Enter" && folderToRename && handleRename()
+                }
+              />
+            </div>
+
+            <DialogFooter>
+              <DialogClose asChild>
+                <button className="btn btn-outline border-border hover:bg-surface-hover">
+                  Cancel
+                </button>
+              </DialogClose>
+              <button
+                onClick={handleRename}
+                disabled={renameMutation.isPending || !folderName.trim()}
+                className="btn btn-primary"
+              >
+                {renameMutation.isPending ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  "Save Changes"
+                )}
+              </button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        {/* DELETE FOLDER */}
+        <AlertDialog
+          open={!!folderToDelete}
+          onOpenChange={(open) => !open && onCloseDelete()}
+        >
+          <AlertDialogContent className="border-2 border-foreground shadow-[8px_8px_0_0_rgba(0,0,0,1)] rounded-sm bg-surface p-6">
+            <AlertDialogHeader>
+              <AlertDialogTitle className="font-serif text-xl font-bold uppercase tracking-tight">
+                Delete Folder
+              </AlertDialogTitle>
+              <AlertDialogDescription className="font-serif text-sm text-muted-foreground">
+                Are you sure you want to delete “{folderToDelete?.name}”? Media
+                inside will be moved to the root folder.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+
+            <AlertDialogFooter className="mt-4">
+              <AlertDialogCancel className="btn btn-outline border-border hover:bg-surface-hover">
+                Cancel
+              </AlertDialogCancel>
+
+              <AlertDialogAction
+                onClick={handleDelete}
+                className="btn btn-primary bg-error text-white hover:bg-error-hover border-error-hover"
+              >
+                {deleteMutation.isPending ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  "Delete"
+                )}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+      </>
+    );
   };
 
-  return {
-    FolderActionDialogs,
-  };
+  return { FolderActionDialogs };
 }
