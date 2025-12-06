@@ -3,7 +3,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter, useSearchParams, useParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import posthog from "posthog-js";
@@ -19,7 +19,15 @@ import { PlatformDefinition } from "./types";
 import { InstagramConnectOptionsModal } from "./modals/instagram-connect-modal";
 import ConnectAccountModal from "./modals/connect-account-modal";
 
-export function IntegrationsSettings() {
+interface IntegrationsSettingsProps {
+  initialConnections: Connection[];
+  workspaceId: string;
+}
+
+export function IntegrationsSettings({
+  initialConnections,
+  workspaceId,
+}: IntegrationsSettingsProps) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedPlatform, setSelectedPlatform] =
     useState<PlatformDefinition | null>(null);
@@ -27,11 +35,9 @@ export function IntegrationsSettings() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const queryClient = useQueryClient();
-  const params = useParams();
-  const workspaceId = params.workspace as string;
 
   const {
-    data: connections = [],
+    data: connections = initialConnections, // Default to initial data
     error,
   } = useQuery<Connection[]>({
     queryKey: ["connections", workspaceId],
@@ -40,6 +46,7 @@ export function IntegrationsSettings() {
       if (!result.success) throw new Error(result.error);
       return result.data!;
     },
+    initialData: initialConnections, // <--- CRITICAL: Hydrates cache immediately
   });
 
   useEffect(() => {
@@ -49,27 +56,32 @@ export function IntegrationsSettings() {
 
     if (connected) {
       toast.success("Account connected successfully!");
-      // Track successful social account connection
       posthog.capture("social_account_connected", {
         platform: platform || connected,
         connection_status: "success",
       });
+      // Invalidate query to ensure fresh data after connection
       queryClient.invalidateQueries({ queryKey: ["connections", workspaceId] });
-      router.replace("/settings/integrations", { scroll: false });
+      router.refresh();
+      router.replace(`/${workspaceId}/settings/integrations`, {
+        scroll: false,
+      });
     }
 
     if (errorParam) {
       toast.error("Connection failed. Please try again.");
-      // Track integration connection failure
       posthog.capture("integration_connection_failed", {
         platform: platform || "unknown",
         error_message: errorParam,
         connection_status: "failed",
       });
       queryClient.invalidateQueries({ queryKey: ["connections", workspaceId] });
-      router.replace("/settings/integrations", { scroll: false });
+      router.refresh();
+      router.replace(`/${workspaceId}/settings/integrations`, {
+        scroll: false,
+      });
     }
-  }, [searchParams, router, queryClient]);
+  }, [searchParams, router, workspaceId, queryClient]);
 
   const errorMessage =
     error instanceof Error
@@ -83,21 +95,29 @@ export function IntegrationsSettings() {
 
   const handleDisconnect = async (platformId: string, accountId: string) => {
     try {
-      const result = await disconnectAccountAction(platformId, accountId, workspaceId);
+      const result = await disconnectAccountAction(
+        platformId,
+        accountId,
+        workspaceId
+      );
       if (!result.success) {
         throw new Error(result.error);
       }
       toast.success("Account disconnected.");
-      // Track social account disconnection
       posthog.capture("social_account_disconnected", {
         platform: platformId,
         account_id: accountId,
       });
-      queryClient.invalidateQueries({ queryKey: ["connections", workspaceId] });
+      // Update cache immediately
+      queryClient.setQueryData(
+        ["connections", workspaceId],
+        (old: Connection[] | undefined) =>
+          old ? old.filter((c) => c.id !== accountId) : []
+      );
+      router.refresh();
     } catch (err) {
       toast.error("Failed to disconnect account.");
       console.error("Disconnect error:", err);
-      // Track disconnection error
       if (err instanceof Error) {
         posthog.captureException(err);
       }

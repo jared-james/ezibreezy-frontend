@@ -1,13 +1,33 @@
-import { getUserAndOrganization } from "@/lib/auth";
-import { IntegrationsSettings } from "@/components/settings/integrations";
+// app/(app)/[workspace]/settings/integrations/page.tsx
+
+import { getWorkspaceDetails } from "@/app/actions/workspaces";
+import { getConnectionsAction } from "@/app/actions/integrations";
+import { IntegrationsSettings } from "@/components/settings/integrations/index";
 import { redirect } from "next/navigation";
 
-export default async function IntegrationsPage() {
-  const userContext = await getUserAndOrganization();
+interface PageProps {
+  params: Promise<{ workspace: string }>;
+}
 
-  if (!userContext) {
-    redirect("/auth/login");
+export default async function IntegrationsPage({ params }: PageProps) {
+  const { workspace: workspaceSlug } = await params;
+
+  const workspaceResult = await getWorkspaceDetails(workspaceSlug);
+
+  if (!workspaceResult.success || !workspaceResult.data) {
+    redirect("/dashboard");
   }
 
-  return <IntegrationsSettings />;
+  const workspaceId = workspaceResult.data.id;
+  const connectionsResult = await getConnectionsAction(workspaceId);
+  const connections = connectionsResult.success
+    ? connectionsResult.data || []
+    : [];
+
+  return (
+    <IntegrationsSettings
+      initialConnections={connections}
+      workspaceId={workspaceId}
+    />
+  );
 }

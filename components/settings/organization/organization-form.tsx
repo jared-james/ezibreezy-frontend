@@ -3,37 +3,25 @@
 "use client";
 
 import { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Loader2, AlertTriangle, Building2, Save, Check } from "lucide-react";
+import { Loader2, AlertTriangle, Building2, Save } from "lucide-react";
 import { updateOrganizationName } from "@/app/actions/organization";
-import { useWorkspaceStore } from "@/lib/store/workspace-store";
 import { toast } from "sonner";
 
 interface OrganizationFormProps {
   initialOrgName: string;
   organizationId: string;
+  initialRole: "owner" | "admin" | "member";
 }
 
 export default function OrganizationForm({
   initialOrgName,
   organizationId,
+  initialRole,
 }: OrganizationFormProps) {
-  console.log("[ORG_FORM] Component mounted/rendered");
-  console.log("[ORG_FORM] Received initialOrgName:", initialOrgName);
-  console.log("[ORG_FORM] Received organizationId:", organizationId);
-
   const [orgName, setOrgName] = useState(initialOrgName);
   const [isUpdatingOrg, setIsUpdatingOrg] = useState(false);
-  const { currentOrganization } = useWorkspaceStore();
 
-  console.log("[ORG_FORM] State orgName:", orgName);
-  console.log("[ORG_FORM] currentOrganization from store:", currentOrganization);
-
-  // Security check: If they land here via URL but aren't admin
-  const isAdmin =
-    currentOrganization?.role === "owner" ||
-    currentOrganization?.role === "admin";
+  const isAdmin = initialRole === "owner" || initialRole === "admin";
 
   if (!isAdmin) {
     return (
@@ -106,9 +94,7 @@ export default function OrganizationForm({
         </div>
 
         <div className="pt-4 border-t border-dashed border-border flex items-center justify-between">
-          <div className="text-sm min-h-[20px]">
-            {/* Status messages placeholder */}
-          </div>
+          <div className="text-sm min-h-[20px]"></div>
 
           <button
             type="submit"

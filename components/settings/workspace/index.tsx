@@ -2,9 +2,9 @@
 
 "use client";
 
+import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useWorkspaceStore } from "@/lib/store/workspace-store";
-import { usePermissions } from "@/lib/hooks/use-permissions";
 import {
   deleteWorkspace,
   getWorkspaceStructure,
@@ -26,17 +26,22 @@ interface Workspace {
   name: string;
   slug: string;
   timezone: string;
+  role?: "admin" | "editor" | "viewer";
 }
 
 interface WorkspaceSettingsProps {
   workspace: Workspace | null;
-  workspaceIdFromUrl?: string; // Fallback identifier from URL
+  workspaceIdFromUrl?: string;
+  userOrgRole?: string; // Passed from server
 }
 
-export function WorkspaceSettings({ workspace, workspaceIdFromUrl }: WorkspaceSettingsProps) {
+export function WorkspaceSettings({
+  workspace,
+  workspaceIdFromUrl,
+  userOrgRole = "member",
+}: WorkspaceSettingsProps) {
   const router = useRouter();
   const { setStructure, setCurrentWorkspace } = useWorkspaceStore();
-  const { canManageWorkspace } = usePermissions();
 
   const {
     showCreateModal,
@@ -50,7 +55,16 @@ export function WorkspaceSettings({ workspace, workspaceIdFromUrl }: WorkspaceSe
     closeDeleteModal,
   } = useWorkspaceModals();
 
-  // Early return: No workspace selected
+  // Debugging permissions
+  useEffect(() => {
+    if (workspace) {
+      console.log(
+        `[WorkspaceSettings] WorkspaceRole: ${workspace.role}, OrgRole: ${userOrgRole}`
+      );
+    }
+  }, [workspace, userOrgRole]);
+
+  // 1. Loading State
   if (!workspace) {
     return (
       <div className="flex h-64 items-center justify-center border-2 border-dashed border-border p-8 text-center">
@@ -64,10 +78,16 @@ export function WorkspaceSettings({ workspace, workspaceIdFromUrl }: WorkspaceSe
     );
   }
 
-  // Early return: No permission
-  if (!canManageWorkspace()) {
+  // 2. Permission Check
+  // Allow access if explicitly a Workspace Admin OR implicitly an Org Owner/Admin
+  const isWorkspaceAdmin = workspace.role === "admin";
+  const isOrgAdmin = userOrgRole === "owner" || userOrgRole === "admin";
+
+  const hasAccess = isWorkspaceAdmin || isOrgAdmin;
+
+  if (!hasAccess) {
     return (
-      <div className="border border-error/50 bg-error/5 p-8 text-center">
+      <div className="border border-error/50 bg-error/5 p-8 text-center rounded-sm">
         <div className="flex justify-center mb-4">
           <div className="h-12 w-12 rounded-full bg-error/10 flex items-center justify-center border border-error/20">
             <AlertTriangle className="h-6 w-6 text-error" />
@@ -78,8 +98,12 @@ export function WorkspaceSettings({ workspace, workspaceIdFromUrl }: WorkspaceSe
         </h3>
         <p className="font-serif text-muted-foreground max-w-md mx-auto">
           You don&apos;t have permission to manage this workspace. Only
-          workspace admins and organization owners can access these settings.
+          workspace admins can access these settings.
         </p>
+        <div className="mt-4 text-xs font-mono text-muted-foreground space-y-1">
+          <p>Workspace Role: {workspace.role}</p>
+          <p>Organization Role: {userOrgRole}</p>
+        </div>
       </div>
     );
   }
@@ -88,12 +112,10 @@ export function WorkspaceSettings({ workspace, workspaceIdFromUrl }: WorkspaceSe
     const result = await deleteWorkspace(workspace.id);
 
     if (result.success) {
-      // Refresh workspace structure
       const structureResult = await getWorkspaceStructure();
       if (structureResult.success && structureResult.data) {
         setStructure(structureResult.data);
 
-        // Switch to first available workspace (using slug)
         if (structureResult.data.length > 0) {
           const firstWs = structureResult.data[0].workspaces[0];
           if (firstWs) {
@@ -112,25 +134,23 @@ export function WorkspaceSettings({ workspace, workspaceIdFromUrl }: WorkspaceSe
 
   return (
     <div className="max-w-4xl space-y-12">
-      {/* Header */}
       <WorkspaceHeader workspace={workspace} />
 
-      {/* Main Form Section */}
-      <WorkspaceForm workspace={workspace} workspaceIdFromUrl={workspaceIdFromUrl} />
+      <WorkspaceForm
+        workspace={workspace}
+        workspaceIdFromUrl={workspaceIdFromUrl}
+      />
 
-      {/* Operations Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <TeamOperationsCard onInviteClick={openInviteModal} />
         <CreateWorkspaceCard onCreateClick={openCreateModal} />
       </div>
 
-      {/* Danger Zone */}
       <DangerZone
         workspaceName={workspace.name}
         onDeleteClick={openDeleteModal}
       />
 
-      {/* Modals */}
       {showCreateModal && (
         <CreateWorkspaceModal
           onClose={closeCreateModal}

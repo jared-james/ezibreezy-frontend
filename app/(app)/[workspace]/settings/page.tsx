@@ -1,32 +1,49 @@
-// app/(app)/settings/workspace/page.tsx
+// app/(app)/[workspace]/settings/page.tsx
 
 import WorkspaceSettingsClient from "./workspace-settings-client";
-import { getWorkspaceStructure } from "@/app/actions/workspaces";
+import {
+  getWorkspaceDetails,
+  getWorkspaceStructure,
+} from "@/app/actions/workspaces";
+import { redirect } from "next/navigation";
 
-// Settings changes must be immediate - force dynamic rendering
 export const dynamic = "force-dynamic";
 
 interface PageProps {
   params: Promise<{ workspace: string }>;
-  searchParams: Promise<Record<string, string | string[] | undefined>>;
 }
 
 export default async function WorkspaceSettingsPage({ params }: PageProps) {
-  const { workspace: workspaceId } = await params;
+  const { workspace: workspaceSlug } = await params;
 
-  // Fetch workspace structure server-side
-  const structureResult = await getWorkspaceStructure();
-  const structure = structureResult.success ? structureResult.data : null;
+  // Fetch details and structure in parallel
+  const [detailsResult, structureResult] = await Promise.all([
+    getWorkspaceDetails(workspaceSlug),
+    getWorkspaceStructure(),
+  ]);
 
-  // Find the current workspace from the structure
-  const currentWorkspace = structure?.workspaces?.find(
-    (ws: any) => ws.slug === workspaceId || ws.id === workspaceId
-  );
+  if (!detailsResult.success || !detailsResult.data) {
+    redirect("/dashboard");
+  }
+
+  const workspace = detailsResult.data;
+
+  // Determine Organization Role from Structure
+  let userOrgRole = "member";
+  if (structureResult.success && Array.isArray(structureResult.data)) {
+    const orgNode = structureResult.data.find(
+      (node: any) => node.organization.id === workspace.organizationId
+    );
+    if (orgNode) {
+      userOrgRole = orgNode.organization.role;
+    }
+  }
 
   return (
     <WorkspaceSettingsClient
-      workspaceId={workspaceId}
-      initialWorkspace={currentWorkspace}
+      workspaceId={workspaceSlug}
+      initialWorkspace={workspace}
+      userOrgRole={userOrgRole}
     />
   );
 }

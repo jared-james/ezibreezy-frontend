@@ -2,9 +2,9 @@
 
 "use client";
 
-import { useState, useEffect } from "react";
-import { MoreHorizontal, Edit2, Trash2, Loader2 } from "lucide-react";
-import { getOrganizationMembers } from "@/app/actions/organization";
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { MoreHorizontal, Edit2, Trash2 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   DropdownMenu,
@@ -35,48 +35,24 @@ interface Member {
   }[];
 }
 
-export function MembersList({ organizationId }: { organizationId: string }) {
-  const [members, setMembers] = useState<Member[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [editingMember, setEditingMember] = useState<Member | null>(null);
+interface MembersListProps {
+  organizationId: string;
+  initialMembers: Member[];
+}
 
+export function MembersList({
+  organizationId,
+  initialMembers,
+}: MembersListProps) {
+  const router = useRouter();
+  const [editingMember, setEditingMember] = useState<Member | null>(null);
   const { currentWorkspace } = useWorkspaceStore();
   const VISIBLE_WORKSPACE_LIMIT = 3;
 
-  const fetchMembers = async () => {
-    // 1. Defensive check: Don't fetch if ID is missing (prevents //members error)
-    if (!organizationId) return;
-
-    setIsLoading(true);
-
-    const result = await getOrganizationMembers(organizationId);
-
-    if (result.success) {
-      const sorted = (result.data as Member[]).sort((a, b) => {
-        const score = { owner: 3, admin: 2, member: 1 };
-        return (score[b.orgRole] || 0) - (score[a.orgRole] || 0);
-      });
-      setMembers(sorted);
-    } else {
-      console.error("[MEMBERS_LIST] Failed to fetch members:", result.error);
-    }
-    setIsLoading(false);
-  };
-
-  useEffect(() => {
-    fetchMembers();
-  }, [organizationId]);
-
-  if (isLoading) {
-    return (
-      <div className="py-12 text-center border-2 border-dashed border-border rounded-sm bg-surface/50">
-        <Loader2 className="w-6 h-6 animate-spin mx-auto text-muted-foreground" />
-        <p className="mt-2 font-serif text-sm text-muted-foreground">
-          Loading personnel records...
-        </p>
-      </div>
-    );
-  }
+  const sortedMembers = [...initialMembers].sort((a, b) => {
+    const score = { owner: 3, admin: 2, member: 1 };
+    return (score[b.orgRole] || 0) - (score[a.orgRole] || 0);
+  });
 
   return (
     <div className="space-y-6">
@@ -85,7 +61,7 @@ export function MembersList({ organizationId }: { organizationId: string }) {
           Team Members
         </h3>
         <span className="text-[10px] font-mono border border-foreground/20 px-2 py-1 rounded-sm uppercase tracking-wider text-muted-foreground font-bold">
-          {members.length} Active
+          {sortedMembers.length} Active
         </span>
       </div>
 
@@ -107,11 +83,8 @@ export function MembersList({ organizationId }: { organizationId: string }) {
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
-              {members.map((member) => {
-                // FIX: Ensure workspaces is always an array to prevent crash
+              {sortedMembers.map((member) => {
                 const memberWorkspaces = member.workspaces || [];
-
-                // Calculation for splitting workspaces
                 const visibleWorkspaces = memberWorkspaces.slice(
                   0,
                   VISIBLE_WORKSPACE_LIMIT
@@ -126,7 +99,6 @@ export function MembersList({ organizationId }: { organizationId: string }) {
                     key={member.userId}
                     className="group hover:bg-surface-hover transition-colors"
                   >
-                    {/* User Identity Column */}
                     <td className="p-4">
                       <div className="flex items-center gap-3">
                         <Avatar className="h-8 w-8 border border-border">
@@ -146,7 +118,6 @@ export function MembersList({ organizationId }: { organizationId: string }) {
                       </div>
                     </td>
 
-                    {/* Clearance Column */}
                     <td className="p-4">
                       <span
                         className={cn(
@@ -162,7 +133,6 @@ export function MembersList({ organizationId }: { organizationId: string }) {
                       </span>
                     </td>
 
-                    {/* Workspace Access Column (Updated) */}
                     <td className="p-4 align-middle">
                       <div className="flex items-center gap-1.5 flex-nowrap overflow-hidden">
                         {memberWorkspaces.length === 0 && (
@@ -172,7 +142,6 @@ export function MembersList({ organizationId }: { organizationId: string }) {
                         )}
 
                         <TooltipProvider delayDuration={100}>
-                          {/* Visible Workspaces */}
                           {visibleWorkspaces.map((ws) => (
                             <Tooltip key={ws.workspaceId}>
                               <TooltipTrigger asChild>
@@ -189,7 +158,6 @@ export function MembersList({ organizationId }: { organizationId: string }) {
                             </Tooltip>
                           ))}
 
-                          {/* Hidden Workspaces Badge (+N) */}
                           {hasHidden && (
                             <Tooltip>
                               <TooltipTrigger asChild>
@@ -232,7 +200,6 @@ export function MembersList({ organizationId }: { organizationId: string }) {
                       </div>
                     </td>
 
-                    {/* Actions Column */}
                     <td className="p-4 text-right">
                       <DropdownMenu>
                         <DropdownMenuTrigger className="p-1 hover:bg-black/5 rounded-sm outline-none transition-colors data-[state=open]:bg-black/5">
@@ -271,7 +238,7 @@ export function MembersList({ organizationId }: { organizationId: string }) {
           isOpen={!!editingMember}
           onClose={() => {
             setEditingMember(null);
-            fetchMembers();
+            router.refresh();
           }}
           member={editingMember}
           contextWorkspaceId={currentWorkspace.id}
