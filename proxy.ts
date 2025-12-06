@@ -57,7 +57,10 @@ export async function proxy(request: NextRequest) {
   const firstSegment = pathSegments[0];
 
   // If first segment is not reserved, it's a workspace slug
-  if (firstSegment && !(RESERVED_SLUGS as readonly string[]).includes(firstSegment)) {
+  if (
+    firstSegment &&
+    !(RESERVED_SLUGS as readonly string[]).includes(firstSegment)
+  ) {
     // Valid workspace route: /:workspace/...
     // TODO: Optionally validate workspace exists and user has access
     return response;
@@ -88,7 +91,10 @@ export async function proxy(request: NextRequest) {
     });
 
     if (!contextResponse.ok) {
-      console.error("[Proxy] Failed to fetch user context:", contextResponse.status);
+      console.error(
+        "[Proxy] Failed to fetch user context:",
+        contextResponse.status
+      );
       return response;
     }
 
@@ -104,9 +110,10 @@ export async function proxy(request: NextRequest) {
     // Redirect to default workspace with path-based routing
     // / → /:workspace/dashboard
     // /any-page → /:workspace/any-page (if not reserved)
-    const newPath = pathname === "/"
-      ? `/${defaultWorkspaceSlug}/dashboard`
-      : `/${defaultWorkspaceSlug}${pathname}`;
+    const newPath =
+      pathname === "/"
+        ? `/${defaultWorkspaceSlug}/dashboard`
+        : `/${defaultWorkspaceSlug}${pathname}`;
 
     const redirectUrl = new URL(newPath, request.url);
     return NextResponse.redirect(redirectUrl);

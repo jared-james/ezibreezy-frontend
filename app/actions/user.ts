@@ -11,9 +11,6 @@ if (!BACKEND_URL) {
   throw new Error("BACKEND_URL is not defined in environment variables");
 }
 
-/**
- * Updates the display name in Supabase and syncs with the backend.
- */
 export async function updateDisplayName(newDisplayName: string) {
   const supabase = await createClient();
 
@@ -48,15 +45,9 @@ export async function updateDisplayName(newDisplayName: string) {
   }
 }
 
-/**
- * Synchronizes the current Supabase user with the backend.
- *
- * @param options Optional sync options (ex: inviteToken)
- */
 export async function syncUser(options?: { inviteToken?: string }) {
   const supabase = await createClient();
 
-  // Get user
   const {
     data: { user },
     error: userError,
@@ -74,7 +65,6 @@ export async function syncUser(options?: { inviteToken?: string }) {
     return { success: false, error: "User email is missing." };
   }
 
-  // Get session for access token
   const {
     data: { session },
   } = await supabase.auth.getSession();
@@ -83,12 +73,14 @@ export async function syncUser(options?: { inviteToken?: string }) {
     return { success: false, error: "Session not found." };
   }
 
-  // Resolve invite token
   const cookieStore = await cookies();
   const tokenToUse =
     options?.inviteToken || cookieStore.get("invite_token")?.value;
 
   try {
+    const startTime = Date.now();
+    console.log(`[Frontend] 📡 Syncing user ${email}...`);
+
     const response = await fetch(`${BACKEND_URL}/users/sync`, {
       method: "POST",
       headers: {
@@ -103,6 +95,9 @@ export async function syncUser(options?: { inviteToken?: string }) {
       }),
     });
 
+    const duration = Date.now() - startTime;
+    console.log(`[Frontend] 🏁 Sync Request finished in ${duration}ms`);
+
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
       return {
@@ -115,7 +110,6 @@ export async function syncUser(options?: { inviteToken?: string }) {
 
     const data = await response.json();
 
-    // Clear invite cookie if used
     if (tokenToUse) {
       cookieStore.delete("invite_token");
     }
@@ -124,8 +118,8 @@ export async function syncUser(options?: { inviteToken?: string }) {
 
     return {
       success: true,
-      targetWorkspaceId: data.targetWorkspaceId, // Keep for UUID fallback
-      targetWorkspaceSlug: data.targetWorkspaceSlug, // NEW: Prefer slug for redirects
+      targetWorkspaceId: data.targetWorkspaceId,
+      targetWorkspaceSlug: data.targetWorkspaceSlug,
       targetOrganizationId: data.targetOrganizationId,
       event: data.event,
     };

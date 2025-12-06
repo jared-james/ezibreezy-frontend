@@ -3,7 +3,7 @@
 "use client";
 
 import { createClient } from "@/lib/supabase/client";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, useRouter } from "next/navigation"; // Added useRouter
 import { useState, useEffect, Suspense } from "react";
 import Link from "next/link";
 import Image from "next/image";
@@ -19,6 +19,7 @@ function LoginForm() {
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const searchParams = useSearchParams();
+  const router = useRouter(); // Initialize router
   const supabase = createClient();
 
   useEffect(() => {
@@ -65,7 +66,6 @@ function LoginForm() {
           : "Unable to sign in. Please try again.";
 
         setError(errorMessage);
-
         posthog.captureException(authError);
         posthog.capture("auth_error_occurred", {
           error_type: "login",
@@ -99,14 +99,13 @@ function LoginForm() {
         return;
       }
 
-      // Use slug for path-based routing, fallback to UUID
-      if (syncResult.targetWorkspaceSlug) {
-        window.location.href = `/${syncResult.targetWorkspaceSlug}/dashboard?invite=success`;
-      } else if (syncResult.targetWorkspaceId) {
-        window.location.href = `/${syncResult.targetWorkspaceId}/dashboard?invite=success`;
-      } else {
-        window.location.href = "/dashboard"; // Proxy will redirect to default workspace
-      }
+      // 🚀 Performance: Prefetch and Soft Navigate
+      const targetSlug =
+        syncResult.targetWorkspaceSlug || syncResult.targetWorkspaceId;
+      const targetPath = targetSlug ? `/${targetSlug}/dashboard` : "/dashboard";
+
+      router.prefetch(targetPath);
+      router.push(`${targetPath}?invite=success`);
     } catch (err) {
       const errorMessage = "An unexpected error occurred";
       setError(errorMessage);
@@ -124,6 +123,7 @@ function LoginForm() {
     }
   };
 
+  // ... (JSX remains exactly the same) ...
   return (
     <div className="flex flex-col min-h-screen bg-background-editorial text-foreground">
       <MinimalHeader />

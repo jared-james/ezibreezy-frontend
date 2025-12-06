@@ -4,10 +4,12 @@
 
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
+import { cache } from "react"; // Added this
 
 const BACKEND_URL = process.env.BACKEND_URL;
 
-export async function getWorkspaceStructure() {
+// Wrapped in cache()
+export const getWorkspaceStructure = cache(async () => {
   if (!BACKEND_URL) {
     return { success: false, error: "Backend URL is not configured." };
   }
@@ -44,8 +46,9 @@ export async function getWorkspaceStructure() {
     console.error("Error fetching workspace structure:", error);
     return { success: false, error: "Connection failed." };
   }
-}
+});
 
+// ... (keep the rest of the file: createWorkspace, updateWorkspace, deleteWorkspace, etc.) ...
 export async function createWorkspace(data: {
   organizationId: string;
   name: string;
@@ -173,17 +176,11 @@ export async function deleteWorkspace(workspaceId: string) {
   }
 }
 
-// --- NEW INVITE LOGIC ---
-
 export interface WorkspaceInviteConfig {
   workspaceId: string;
   role: "admin" | "editor" | "viewer";
 }
 
-/**
- * Invites a user to the Organization associated with the contextWorkspaceId.
- * Allows bulk assignment of workspace access rights.
- */
 export async function inviteUserToOrganization(
   contextWorkspaceId: string,
   data: {
@@ -206,8 +203,6 @@ export async function inviteUserToOrganization(
   }
 
   try {
-    // We send the request to the workspace endpoint, but the backend resolves
-    // the organization from this ID and handles the invite at the Org level.
     const response = await fetch(
       `${BACKEND_URL}/workspaces/${contextWorkspaceId}/invites`,
       {
