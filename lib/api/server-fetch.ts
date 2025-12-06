@@ -1,82 +1,84 @@
-// lib/api/server-fetch.ts
-
-"use server";
-
 import { createClient } from "@/lib/supabase/server";
+import { redirect } from "next/navigation";
 
-const BACKEND_URL = process.env.BACKEND_URL;
+const BACKEND_URL = process.env.BACKEND_URL || "http://localhost:8000";
 
-interface FetchOptions extends RequestInit {
-  workspaceId?: string; // Can be either slug or UUID
-  skipWorkspaceHeader?: boolean;
-}
+type FetchOptions = RequestInit & {
+  workspaceId?: string; // Can be UUID or Slug
+  skipAuth?: boolean;
+};
 
-export async function serverFetch<T = unknown>(
+export async function serverFetch<T>(
   endpoint: string,
-  options: FetchOptions = {}
-): Promise<{ success: true; data: T } | { success: false; error: string }> {
-  const { workspaceId, skipWorkspaceHeader, ...fetchOptions } = options;
-
-  const supabase = await createClient();
-  const {
-    data: { session },
-  } = await supabase.auth.getSession();
-
-  if (!session) {
-    return { success: false, error: "Not authenticated" };
-  }
-
-  if (!BACKEND_URL) {
-    return { success: false, error: "Backend URL not configured" };
-  }
-
-  // Build headers
-  const headers: Record<string, string> = {
-    Authorization: `Bearer ${session.access_token}`,
-    "Content-Type": "application/json",
-  };
-
-  // Merge in any custom headers from fetchOptions
-  if (fetchOptions.headers) {
-    Object.assign(headers, fetchOptions.headers);
-  }
-
-  // Inject API key if available
-  const apiKey = process.env.NEXT_PUBLIC_API_KEY;
-  if (apiKey) {
-    headers["x-api-key"] = apiKey;
-  }
-
-  // Inject workspace header if provided and not skipped
-  if (workspaceId && !skipWorkspaceHeader) {
-    headers["x-workspace-id"] = workspaceId;
-  }
-
+  { workspaceId, skipAuth = false, ...options }: FetchOptions = {}
+): Promise<{ success: boolean; data?: T; error?: string }> {
   try {
+    const headers: Record<string, string> = {
+      "Content-Type": "application/json",
+      ...(options.headers as Record<string, string>),
+    };
+
+    // 1. Handle Authentication
+    if (!skipAuth) {
+      const supabase = await createClient();
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+
+      if (!session) {
+        return { success: false, error: "Unauthorized: No active session" };
+      }
+      headers["Authorization"] = `Bearer ${session.access_token}`;
+    }
+
+    // 2. Handle Workspace Context (The "Hybrid Routing" Magic)
+    // We pass whatever we have (Slug or UUID). The Backend WorkspaceGuard resolves it.
+    if (workspaceId) {
+      headers["x-workspace-id"] = workspaceId;
+    }
+
+    // 3. Make the Request
     const response = await fetch(`${BACKEND_URL}${endpoint}`, {
-      ...fetchOptions,
+      ...options,
       headers,
-      cache: "no-store", // Default for dynamic data
+      cache: options.cache || "no-store", // Default to no-store for dynamic data
     });
 
+    // 4. Handle Errors gracefully
     if (!response.ok) {
-      const error = await response.json().catch(() => ({
-        message: `HTTP ${response.status}: ${response.statusText}`,
-      }));
+      // Handle Authentication Errors (Token expired, etc)
+      if (response.status === 401) {
+        redirect("/auth/login"); // Next.js redirect throws, so this stops execution
+      }
 
+      const errorData = await response
+        .json()
+        .catch(() => ({ message: response.statusText }));
+
+      // Return structured error for UI to handle (toasts, alerts)
       return {
         success: false,
-        error: error.message || "Request failed",
+        error:
+          errorData.message || `Request failed with status ${response.status}`,
       };
     }
 
-    const data = await response.json();
+    // 5. Return Data
+    // Check if response has content before parsing JSON
+    const text = await response.text();
+    const data = text ? JSON.parse(text) : {};
+
     return { success: true, data };
   } catch (error) {
-    console.error(`[serverFetch] Error calling ${endpoint}:`, error);
+    // Catch network errors or JSON parse errors
+    if (error instanceof Error && error.message === "NEXT_REDIRECT") {
+      throw error; // Let Next.js handle the redirect
+    }
+
+    console.error(`[ServerFetch] Error calling ${endpoint}:`, error);
     return {
       success: false,
-      error: error instanceof Error ? error.message : "Network error",
+      error: "Network error or backend unreachable.",
     };
   }
 }
