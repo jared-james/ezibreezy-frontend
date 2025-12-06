@@ -1,6 +1,6 @@
 // components/settings/workspace/hooks/use-workspace-form.ts
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useWorkspaceStore } from "@/lib/store/workspace-store";
 import {
@@ -16,40 +16,51 @@ interface Workspace {
   timezone: string;
 }
 
-export function useWorkspaceForm(initialWorkspace: Workspace | null, workspaceIdFromUrl?: string) {
+export function useWorkspaceForm(
+  initialWorkspace: Workspace | null,
+  workspaceIdFromUrl?: string
+) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { setStructure, setCurrentWorkspace } = useWorkspaceStore();
 
-  // Track the last workspace ID to detect changes
   const [lastWorkspaceId, setLastWorkspaceId] = useState(initialWorkspace?.id);
 
-  // Initialize form state
   const [formData, setFormData] = useState({
     name: initialWorkspace?.name || "",
     timezone: initialWorkspace?.timezone || "UTC",
   });
+
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
 
-  // Reset form when workspace changes (render-phase update)
-  if (initialWorkspace?.id !== lastWorkspaceId) {
-    setLastWorkspaceId(initialWorkspace?.id);
-    if (initialWorkspace) {
-      setFormData({
-        name: initialWorkspace.name,
-        timezone: initialWorkspace.timezone,
-      });
+  // -------------------------------------------------------
+  // Reset form when workspace changes (safe effect)
+  // -------------------------------------------------------
+  useEffect(() => {
+    if (initialWorkspace?.id !== lastWorkspaceId) {
+      setLastWorkspaceId(initialWorkspace?.id);
+
+      if (initialWorkspace) {
+        setFormData({
+          name: initialWorkspace.name,
+          timezone: initialWorkspace.timezone,
+        });
+      }
     }
-  }
+  }, [initialWorkspace, lastWorkspaceId]);
 
   const hasChanges =
     formData.name !== (initialWorkspace?.name || "") ||
     formData.timezone !== (initialWorkspace?.timezone || "UTC");
 
+  // -------------------------------------------------------
+  // Submit Handler
+  // -------------------------------------------------------
   const handleUpdate = async (e: React.FormEvent) => {
     e.preventDefault();
+
     if (!initialWorkspace) {
       setError("No workspace selected");
       return;
@@ -59,26 +70,27 @@ export function useWorkspaceForm(initialWorkspace: Workspace | null, workspaceId
     setError("");
     setSuccess(false);
 
-    // Validate that the new name won't generate a reserved slug
+    // Validate slug impact from rename
     if (formData.name !== initialWorkspace.name) {
       const potentialSlug = formData.name
         .toLowerCase()
         .trim()
-        .replace(/[^a-z0-9]+/g, '-')
-        .replace(/^-+|-+$/g, '');
+        .replace(/[^a-z0-9]+/g, "-")
+        .replace(/^-+|-+$/g, "");
 
       const slugValidation = validateWorkspaceSlug(potentialSlug);
       if (!slugValidation.valid) {
-        setError(`Workspace name will generate a reserved URL (${potentialSlug}). ${slugValidation.error}`);
+        setError(
+          `Workspace name will generate a reserved URL (${potentialSlug}). ${slugValidation.error}`
+        );
         setLoading(false);
         return;
       }
     }
 
-    // Use slug if available, fallback to id, or use URL identifier as last resort
-    // The backend accepts both via WorkspaceGuard
-    // Priority: slug from workspace > id from workspace > id from URL
-    const workspaceIdentifier = initialWorkspace.slug || initialWorkspace.id || workspaceIdFromUrl;
+    // Slug > ID > URL fallback
+    const workspaceIdentifier =
+      initialWorkspace.slug || initialWorkspace.id || workspaceIdFromUrl;
 
     if (!workspaceIdentifier) {
       setError("Workspace identifier is missing. Please refresh the page.");
@@ -86,39 +98,30 @@ export function useWorkspaceForm(initialWorkspace: Workspace | null, workspaceId
       return;
     }
 
-    console.log("Updating workspace with identifier:", workspaceIdentifier, {
-      slug: initialWorkspace.slug,
-      id: initialWorkspace.id,
-      fromUrl: workspaceIdFromUrl
-    });
     const result = await updateWorkspace(workspaceIdentifier, formData);
 
     if (result.success && result.data) {
-      // Refresh workspace structure
       const structureResult = await getWorkspaceStructure();
+
       if (structureResult.success && structureResult.data) {
         setStructure(structureResult.data);
       }
 
-      // CRITICAL: Check if slug changed due to rename
-      // If the user renamed the workspace, the slug will be different
-      // and we need to update the URL immediately to prevent 404 on refresh
       const oldSlug = initialWorkspace.slug;
       const newSlug = result.data.slug;
 
+      // Redirect if slug changed
       if (newSlug && oldSlug !== newSlug) {
-        // Get current workspace from URL (support both new and legacy param)
-        const currentWorkspaceParam = searchParams.get("workspace") || searchParams.get("workspaceId");
+        const currentParam =
+          searchParams.get("workspace") || searchParams.get("workspaceId");
 
-        // Only redirect if we're currently viewing this workspace
-        if (currentWorkspaceParam === oldSlug || currentWorkspaceParam === initialWorkspace.id) {
-          // Update the store with the new slug
+        if (currentParam === oldSlug || currentParam === initialWorkspace.id) {
           setCurrentWorkspace(newSlug);
 
-          // Replace the URL (not push) to avoid back button going to 404
           const newParams = new URLSearchParams(searchParams.toString());
-          newParams.delete("workspaceId"); // Remove legacy param
-          newParams.set("workspace", newSlug); // Use new param with slug
+          newParams.delete("workspaceId");
+          newParams.set("workspace", newSlug);
+
           router.replace(`/settings/workspace?${newParams.toString()}`);
         }
       }
@@ -126,7 +129,6 @@ export function useWorkspaceForm(initialWorkspace: Workspace | null, workspaceId
       setSuccess(true);
       router.refresh();
 
-      // Clear success message after 3 seconds
       setTimeout(() => setSuccess(false), 3000);
     } else {
       setError(result.error || "Failed to update workspace");

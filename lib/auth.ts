@@ -44,55 +44,37 @@ export async function getCurrentUser(): Promise<CurrentUserSecure | null> {
   };
 }
 
-// ... remove types we don't need ...
-
 export async function getUserAndOrganization() {
   const user = await getCurrentUser();
 
-  console.log("[AUTH] getUserAndOrganization called");
-  console.log("[AUTH] User data:", user ? { userId: user.userId, email: user.email } : null);
-
   if (!user) {
-    console.log("[AUTH] No user found, returning null");
     return null;
   }
 
-  // Fetch workspace structure to get organization and default workspace context
+  // Fetch workspace structure for organization + workspace context
   const { serverFetch } = await import("@/lib/api/server-fetch");
-  const structureResult = await serverFetch<WorkspaceStructureOrg[]>("/workspaces/structure");
+  const structureResult = await serverFetch<WorkspaceStructureOrg[]>(
+    "/workspaces/structure"
+  );
 
-  if (!structureResult.success || !structureResult.data || structureResult.data.length === 0) {
-    console.error("[AUTH] Failed to fetch workspace structure:", structureResult.error);
-    // Return user data without organization context
-    const result = {
+  if (!structureResult.success || !structureResult.data?.length) {
+    return {
       ...user,
       organizationName: "",
       organizationId: "",
       defaultWorkspaceId: "",
       defaultWorkspaceSlug: "",
     };
-    return result;
   }
 
-  // Get the first organization and its first workspace as defaults
   const firstOrg = structureResult.data[0];
   const firstWorkspace = firstOrg.workspaces?.[0];
 
-  const result = {
+  return {
     ...user,
     organizationName: firstOrg.name || "",
     organizationId: firstOrg.id || "",
     defaultWorkspaceId: firstWorkspace?.id || "",
     defaultWorkspaceSlug: firstWorkspace?.slug || "",
   };
-
-  console.log("[AUTH] Returning user context:", {
-    userId: result.userId,
-    email: result.email,
-    organizationName: result.organizationName,
-    organizationId: result.organizationId,
-    defaultWorkspaceId: result.defaultWorkspaceId,
-  });
-
-  return result;
 }

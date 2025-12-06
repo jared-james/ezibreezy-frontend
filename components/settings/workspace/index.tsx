@@ -2,22 +2,24 @@
 
 "use client";
 
-import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useWorkspaceStore } from "@/lib/store/workspace-store";
 import {
   deleteWorkspace,
   getWorkspaceStructure,
 } from "@/app/actions/workspaces";
+
 import { WorkspaceHeader } from "./workspace-header";
 import { WorkspaceForm } from "./workspace-form";
 import { TeamOperationsCard } from "./team-operations-card";
 import { CreateWorkspaceCard } from "./create-workspace-card";
 import { DangerZone } from "./danger-zone";
+
 import { useWorkspaceModals } from "./hooks/use-workspace-modals";
 import { CreateWorkspaceModal } from "./modals/create-workspace-modal";
 import { InviteUserModal } from "./modals/invite-user-modal";
 import { DeleteWorkspaceModal } from "./modals/delete-workspace-modal";
+
 import { Briefcase, AlertTriangle } from "lucide-react";
 import { toast } from "sonner";
 
@@ -32,7 +34,7 @@ interface Workspace {
 interface WorkspaceSettingsProps {
   workspace: Workspace | null;
   workspaceIdFromUrl?: string;
-  userOrgRole?: string; // Passed from server
+  userOrgRole?: string;
 }
 
 export function WorkspaceSettings({
@@ -55,21 +57,14 @@ export function WorkspaceSettings({
     closeDeleteModal,
   } = useWorkspaceModals();
 
-  // Debugging permissions
-  useEffect(() => {
-    if (workspace) {
-      console.log(
-        `[WorkspaceSettings] WorkspaceRole: ${workspace.role}, OrgRole: ${userOrgRole}`
-      );
-    }
-  }, [workspace, userOrgRole]);
-
-  // 1. Loading State
+  // -------------------------------------------------------
+  // 1. No Workspace Selected
+  // -------------------------------------------------------
   if (!workspace) {
     return (
       <div className="flex h-64 items-center justify-center border-2 border-dashed border-border p-8 text-center">
         <div>
-          <Briefcase className="mx-auto h-8 w-8 text-muted-foreground mb-3" />
+          <Briefcase className="mx-auto mb-3 h-8 w-8 text-muted-foreground" />
           <p className="font-serif text-muted-foreground">
             No workspace selected
           </p>
@@ -78,29 +73,29 @@ export function WorkspaceSettings({
     );
   }
 
+  // -------------------------------------------------------
   // 2. Permission Check
-  // Allow access if explicitly a Workspace Admin OR implicitly an Org Owner/Admin
+  // -------------------------------------------------------
   const isWorkspaceAdmin = workspace.role === "admin";
   const isOrgAdmin = userOrgRole === "owner" || userOrgRole === "admin";
-
   const hasAccess = isWorkspaceAdmin || isOrgAdmin;
 
   if (!hasAccess) {
     return (
-      <div className="border border-error/50 bg-error/5 p-8 text-center rounded-sm">
-        <div className="flex justify-center mb-4">
-          <div className="h-12 w-12 rounded-full bg-error/10 flex items-center justify-center border border-error/20">
+      <div className="rounded-sm border border-error/50 bg-error/5 p-8 text-center">
+        <div className="mb-4 flex justify-center">
+          <div className="flex h-12 w-12 items-center justify-center rounded-full border border-error/20 bg-error/10">
             <AlertTriangle className="h-6 w-6 text-error" />
           </div>
         </div>
-        <h3 className="font-serif text-xl font-bold text-error mb-2">
+        <h3 className="mb-2 font-serif text-xl font-bold text-error">
           Access Restricted
         </h3>
-        <p className="font-serif text-muted-foreground max-w-md mx-auto">
+        <p className="mx-auto max-w-md font-serif text-muted-foreground">
           You don&apos;t have permission to manage this workspace. Only
           workspace admins can access these settings.
         </p>
-        <div className="mt-4 text-xs font-mono text-muted-foreground space-y-1">
+        <div className="mt-4 space-y-1 font-mono text-xs text-muted-foreground">
           <p>Workspace Role: {workspace.role}</p>
           <p>Organization Role: {userOrgRole}</p>
         </div>
@@ -108,30 +103,36 @@ export function WorkspaceSettings({
     );
   }
 
+  // -------------------------------------------------------
+  // 3. Delete Workspace
+  // -------------------------------------------------------
   const handleDelete = async () => {
     const result = await deleteWorkspace(workspace.id);
 
     if (result.success) {
       const structureResult = await getWorkspaceStructure();
+
       if (structureResult.success && structureResult.data) {
         setStructure(structureResult.data);
 
-        if (structureResult.data.length > 0) {
-          const firstWs = structureResult.data[0].workspaces[0];
-          if (firstWs) {
-            setCurrentWorkspace(firstWs.slug || firstWs.id);
-          }
+        const firstWs = structureResult.data[0]?.workspaces?.[0];
+        if (firstWs) {
+          setCurrentWorkspace(firstWs.slug || firstWs.id);
         }
       }
 
       router.push("/dashboard");
       router.refresh();
-    } else {
-      toast.error(result.error || "Failed to delete workspace");
-      throw new Error(result.error || "Failed to delete workspace");
+      return;
     }
+
+    toast.error(result.error || "Failed to delete workspace");
+    throw new Error(result.error || "Failed to delete workspace");
   };
 
+  // -------------------------------------------------------
+  // 4. Render
+  // -------------------------------------------------------
   return (
     <div className="max-w-4xl space-y-12">
       <WorkspaceHeader workspace={workspace} />
@@ -141,7 +142,7 @@ export function WorkspaceSettings({
         workspaceIdFromUrl={workspaceIdFromUrl}
       />
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
         <TeamOperationsCard onInviteClick={openInviteModal} />
         <CreateWorkspaceCard onCreateClick={openCreateModal} />
       </div>

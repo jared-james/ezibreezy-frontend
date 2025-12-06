@@ -4,17 +4,16 @@
 
 import { create } from "zustand";
 
-// Matches backend: src/auth/workspace.guard.ts
+// Backend-aligned types
 export interface Workspace {
   id: string;
   name: string;
-  slug: string; // Human-readable slug for URLs (e.g., "marketing-team")
+  slug: string;
   role: "admin" | "editor" | "viewer";
   timezone: string;
   organizationId: string;
 }
 
-// Matches backend: src/db/schemas/organization.schema.ts
 export interface Organization {
   id: string;
   name: string;
@@ -30,26 +29,18 @@ export interface OrganizationNode {
 }
 
 export interface WorkspaceState {
-  // Data cache (hydrated from server props, not persisted)
   structure: OrganizationNode[];
   currentWorkspace: Workspace | null;
   currentOrganization: Organization | null;
-
-  // UI-only state
   sidebarCollapsed: boolean;
   workspaceSwitcherOpen: boolean;
 }
 
 export interface WorkspaceActions {
-  // Data setters (for hydration from server)
   setStructure: (structure: OrganizationNode[]) => void;
-  setCurrentWorkspace: (workspaceSlugOrId: string) => void; // Accepts slug (preferred) or UUID (legacy)
-
-  // UI state setters
+  setCurrentWorkspace: (workspaceSlugOrId: string) => void;
   toggleSidebar: () => void;
   setWorkspaceSwitcherOpen: (open: boolean) => void;
-
-  // Keep clear for logout
   clearWorkspace: () => void;
 }
 
@@ -65,55 +56,60 @@ export const useWorkspaceStore = create<WorkspaceState & WorkspaceActions>()(
   (set, get) => ({
     ...initialState,
 
+    // ----------------------------------------------------------
+    // Set entire organization + workspace structure
+    // ----------------------------------------------------------
     setStructure: (structure) => {
-      console.log(
-        "🟡 [Store] setStructure called with length:",
-        structure.length
-      );
-      // Simply update structure - no auto-selection logic
       set({ structure });
     },
 
+    // ----------------------------------------------------------
+    // Set the active workspace by slug OR ID
+    // ----------------------------------------------------------
     setCurrentWorkspace: (workspaceSlugOrId) => {
       const { structure } = get();
-      let foundWorkspace: Workspace | null = null;
-      let foundOrg: Organization | null = null;
+      let selectedWorkspace: Workspace | null = null;
+      let selectedOrg: Organization | null = null;
 
       for (const node of structure) {
-        // Priority: match by slug first (preferred), then fall back to UUID (legacy support)
         const ws = node.workspaces.find(
           (w) => w.slug === workspaceSlugOrId || w.id === workspaceSlugOrId
         );
+
         if (ws) {
-          foundWorkspace = { ...ws, organizationId: node.organization.id };
-          foundOrg = node.organization;
+          selectedWorkspace = {
+            ...ws,
+            organizationId: node.organization.id,
+          };
+          selectedOrg = node.organization;
           break;
         }
       }
 
-      if (foundWorkspace && foundOrg) {
-        console.log(
-          `✅ [Store] Set current workspace: ${foundWorkspace.name} (${foundWorkspace.slug})`
-        );
+      if (selectedWorkspace && selectedOrg) {
         set({
-          currentWorkspace: foundWorkspace,
-          currentOrganization: foundOrg,
+          currentWorkspace: selectedWorkspace,
+          currentOrganization: selectedOrg,
         });
-      } else {
-        console.warn(
-          `❌ Workspace ${workspaceSlugOrId} not found in structure.`
-        );
       }
     },
 
+    // ----------------------------------------------------------
+    // UI state
+    // ----------------------------------------------------------
     toggleSidebar: () => {
-      set((state) => ({ sidebarCollapsed: !state.sidebarCollapsed }));
+      set((state) => ({
+        sidebarCollapsed: !state.sidebarCollapsed,
+      }));
     },
 
-    setWorkspaceSwitcherOpen: (open) => {
+    setWorkspaceSwitcherOpen: (open: boolean) => {
       set({ workspaceSwitcherOpen: open });
     },
 
+    // ----------------------------------------------------------
+    // Reset store (e.g., on logout)
+    // ----------------------------------------------------------
     clearWorkspace: () => {
       set(initialState);
     },

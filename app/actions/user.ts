@@ -78,9 +78,6 @@ export async function syncUser(options?: { inviteToken?: string }) {
     options?.inviteToken || cookieStore.get("invite_token")?.value;
 
   try {
-    const startTime = Date.now();
-    console.log(`[Frontend] 📡 Syncing user ${email}...`);
-
     const response = await fetch(`${BACKEND_URL}/users/sync`, {
       method: "POST",
       headers: {
@@ -94,9 +91,6 @@ export async function syncUser(options?: { inviteToken?: string }) {
         inviteToken: tokenToUse,
       }),
     });
-
-    const duration = Date.now() - startTime;
-    console.log(`[Frontend] 🏁 Sync Request finished in ${duration}ms`);
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
