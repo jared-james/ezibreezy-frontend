@@ -1,197 +1,72 @@
-// app/actions/workspaces.ts
-
 "use server";
 
-import { createClient } from "@/lib/supabase/server";
+import { serverFetch } from "@/lib/api/server-fetch";
 import { revalidatePath } from "next/cache";
 import { cache } from "react";
 
-const BACKEND_URL = process.env.BACKEND_URL;
+export interface WorkspaceInviteConfig {
+  workspaceId: string;
+  role: "admin" | "editor" | "viewer";
+}
 
-// Wrapped in cache()
+// Cached: Fetch the sidebar structure (Lightweight)
+// GET /workspaces/structure
 export const getWorkspaceStructure = cache(async () => {
-  if (!BACKEND_URL) {
-    console.error("[WorkspacesAction] BACKEND_URL not defined");
-    return { success: false, error: "Backend URL is not configured." };
-  }
-
-  const supabase = await createClient();
-  const {
-    data: { session },
-  } = await supabase.auth.getSession();
-
-  if (!session) {
-    console.warn("[WorkspacesAction] No active session found.");
-    return { success: false, error: "Not authenticated" };
-  }
-
-  try {
-    console.log(
-      `[WorkspacesAction] Fetching from ${BACKEND_URL}/workspaces/structure for User: ${session.user.id}`
-    );
-
-    const response = await fetch(`${BACKEND_URL}/workspaces/structure`, {
-      method: "GET",
-      headers: {
-        Authorization: `Bearer ${session.access_token}`,
-        "Content-Type": "application/json",
-      },
-      cache: "no-store",
-    });
-
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error(
-        `[WorkspacesAction] Fetch Failed: ${response.status} ${response.statusText} | Response: ${errorText}`
-      );
-      return { success: false, error: "Failed to load workspaces." };
-    }
-
-    const data = await response.json();
-    console.log(
-      `[WorkspacesAction] Fetch Success. Data count: ${
-        Array.isArray(data) ? data.length : "Not Array"
-      }`
-    );
-
-    return { success: true, data };
-  } catch (error) {
-    console.error("[WorkspacesAction] Exception:", error);
-    return { success: false, error: "Connection failed." };
-  }
+  return await serverFetch<any[]>("/workspaces/structure");
 });
 
-// ... (keep the rest of the file exactly as it was) ...
+// --- NEW: Fetch single workspace details (Fast & Specific) ---
+// GET /workspaces/:id
+export const getWorkspaceDetails = cache(async (workspaceIdOrSlug: string) => {
+  // We pass the slug/ID in options.workspaceId so serverFetch adds the
+  // x-workspace-id header. The backend Guard uses this to validate access.
+  return await serverFetch<any>(`/workspaces/${workspaceIdOrSlug}`, {
+    workspaceId: workspaceIdOrSlug,
+  });
+});
+
 export async function createWorkspace(data: {
   organizationId: string;
   name: string;
   timezone: string;
 }) {
-  const supabase = await createClient();
-  const {
-    data: { session },
-  } = await supabase.auth.getSession();
+  const result = await serverFetch<any>("/workspaces", {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
 
-  if (!session) {
-    return { success: false, error: "Not authenticated" };
-  }
-
-  if (!BACKEND_URL) {
-    return { success: false, error: "Backend URL not configured" };
-  }
-
-  try {
-    const response = await fetch(`${BACKEND_URL}/workspaces`, {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${session.access_token}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(data),
-    });
-
-    if (!response.ok) {
-      const error = await response.json().catch(() => ({}));
-      return {
-        success: false,
-        error: error.message || "Failed to create workspace",
-      };
-    }
-
-    const workspace = await response.json();
+  if (result.success) {
     revalidatePath("/", "layout");
-    return { success: true, data: workspace };
-  } catch (error) {
-    console.error("Error creating workspace:", error);
-    return { success: false, error: "Connection failed" };
   }
+  return result;
 }
 
 export async function updateWorkspace(
-  workspaceId: string,
+  workspaceId: string, // UUID
   updates: { name?: string; timezone?: string; settings?: any }
 ) {
-  const supabase = await createClient();
-  const {
-    data: { session },
-  } = await supabase.auth.getSession();
+  const result = await serverFetch<any>(`/workspaces/${workspaceId}`, {
+    method: "PATCH",
+    body: JSON.stringify(updates),
+    workspaceId, // Sets x-workspace-id header for security context
+  });
 
-  if (!session) {
-    return { success: false, error: "Not authenticated" };
-  }
-
-  if (!BACKEND_URL) {
-    return { success: false, error: "Backend URL not configured" };
-  }
-
-  try {
-    const response = await fetch(`${BACKEND_URL}/workspaces/${workspaceId}`, {
-      method: "PATCH",
-      headers: {
-        Authorization: `Bearer ${session.access_token}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(updates),
-    });
-
-    if (!response.ok) {
-      const error = await response.json().catch(() => ({}));
-      return {
-        success: false,
-        error: error.message || "Failed to update workspace",
-      };
-    }
-
-    const workspace = await response.json();
+  if (result.success) {
     revalidatePath("/", "layout");
-    return { success: true, data: workspace };
-  } catch (error) {
-    console.error("Error updating workspace:", error);
-    return { success: false, error: "Connection failed" };
   }
+  return result;
 }
 
 export async function deleteWorkspace(workspaceId: string) {
-  const supabase = await createClient();
-  const {
-    data: { session },
-  } = await supabase.auth.getSession();
+  const result = await serverFetch(`/workspaces/${workspaceId}`, {
+    method: "DELETE",
+    workspaceId,
+  });
 
-  if (!session) {
-    return { success: false, error: "Not authenticated" };
-  }
-
-  if (!BACKEND_URL) {
-    return { success: false, error: "Backend URL not configured" };
-  }
-
-  try {
-    const response = await fetch(`${BACKEND_URL}/workspaces/${workspaceId}`, {
-      method: "DELETE",
-      headers: {
-        Authorization: `Bearer ${session.access_token}`,
-      },
-    });
-
-    if (!response.ok) {
-      const error = await response.json().catch(() => ({}));
-      return {
-        success: false,
-        error: error.message || "Failed to delete workspace",
-      };
-    }
-
+  if (result.success) {
     revalidatePath("/", "layout");
-    return { success: true };
-  } catch (error) {
-    console.error("Error deleting workspace:", error);
-    return { success: false, error: "Connection failed" };
   }
-}
-
-export interface WorkspaceInviteConfig {
-  workspaceId: string;
-  role: "admin" | "editor" | "viewer";
+  return result;
 }
 
 export async function inviteUserToOrganization(
@@ -202,48 +77,13 @@ export async function inviteUserToOrganization(
     workspaces: WorkspaceInviteConfig[];
   }
 ) {
-  const supabase = await createClient();
-  const {
-    data: { session },
-  } = await supabase.auth.getSession();
-
-  if (!session) {
-    return { success: false, error: "Not authenticated" };
-  }
-
-  if (!BACKEND_URL) {
-    return { success: false, error: "Backend URL not configured" };
-  }
-
-  try {
-    const response = await fetch(
-      `${BACKEND_URL}/workspaces/${contextWorkspaceId}/invites`,
-      {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${session.access_token}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          email: data.email,
-          orgRole: data.orgRole,
-          workspaces: data.workspaces,
-        }),
-      }
-    );
-
-    if (!response.ok) {
-      const error = await response.json().catch(() => ({}));
-      return {
-        success: false,
-        error: error.message || "Failed to send invite",
-      };
-    }
-
-    const result = await response.json();
-    return { success: true, data: result };
-  } catch (error) {
-    console.error("Error sending invite:", error);
-    return { success: false, error: "Connection failed" };
-  }
+  return await serverFetch(`/workspaces/${contextWorkspaceId}/invites`, {
+    method: "POST",
+    body: JSON.stringify({
+      email: data.email,
+      orgRole: data.orgRole,
+      workspaces: data.workspaces,
+    }),
+    workspaceId: contextWorkspaceId,
+  });
 }
