@@ -13,6 +13,7 @@ import { ArrowRight, Loader2, CheckCircle2 } from "lucide-react";
 import posthog from "posthog-js";
 import { syncUser } from "@/app/actions/user";
 import { cn } from "@/lib/utils";
+import { login } from "@/app/actions/auth";
 
 // Define the stages of login for better UX feedback
 type LoginState = "idle" | "authenticating" | "syncing" | "redirecting";
@@ -49,37 +50,36 @@ function LoginForm() {
     setLoginState("authenticating");
 
     try {
-      // --- PHASE 1: Supabase Auth ---
-      const { data, error: authError } = await supabase.auth.signInWithPassword(
-        {
-          email,
-          password,
-        }
-      );
+      // --- PHASE 1: Server-Side Auth (NEW) ---
+      // We create a FormData object to pass to the server action
+      const formData = new FormData();
+      formData.append("email", email);
+      formData.append("password", password);
 
-      if (authError) {
-        setError(authError.message);
-        setLoginState("idle");
-        return;
-      }
+      const loginResult = await login(formData);
 
-      if (data.user && !data.user.email_confirmed_at) {
-        setError("Please verify your email address.");
+      if (!loginResult.success) {
+        setError(loginResult.error || "Authentication failed");
         setLoginState("idle");
         return;
       }
 
       // --- PHASE 2: UI Success Transition ---
-      // Immediate feedback to user while backend syncs
       setLoginState("syncing");
 
-      posthog.identify(email, { email });
-      posthog.capture("user_logged_in", {
-        email,
-        login_method: "email_password",
-      });
+      // Tracking (Client-side is fine for this)
+      if (loginResult.user?.email) {
+        posthog.identify(loginResult.user.email, {
+          email: loginResult.user.email,
+        });
+        posthog.capture("user_logged_in", {
+          email: loginResult.user.email,
+          login_method: "email_password",
+        });
+      }
 
-      // --- PHASE 3: Backend Sync ---
+      // --- PHASE 3: Backend Sync (Existing Server Action) ---
+      // This is already secure because it runs on the server!
       const syncResult = await syncUser();
 
       if (!syncResult.success) {
@@ -95,10 +95,8 @@ function LoginForm() {
         syncResult.targetWorkspaceSlug || syncResult.targetWorkspaceId;
       const targetPath = targetSlug ? `/${targetSlug}/dashboard` : "/dashboard";
 
-      // Prefetch for instant navigation
       router.prefetch(targetPath);
 
-      // Only show the welcome toast if this was an invite acceptance
       if (syncResult.event === "invite_accepted") {
         router.push(`${targetPath}?invite=success`);
       } else {

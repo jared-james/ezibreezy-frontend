@@ -107,7 +107,6 @@ export default function SidebarClient({
   initialStructure,
 }: SidebarClientProps) {
   const pathname = usePathname();
-  const router = useRouter();
   const [isConfirmingLogout, setIsConfirmingLogout] = useState(false);
 
   // Store hooks (WorkspaceHydrator now handles setStructure)
@@ -115,7 +114,6 @@ export default function SidebarClient({
 
   const executeLogout = async () => {
     await logout();
-    router.refresh();
   };
 
   return (
