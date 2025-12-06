@@ -19,6 +19,7 @@ import {
   LogOut,
   Users,
   Link2,
+  Loader2,
 } from "lucide-react";
 import { logout } from "@/app/actions/auth";
 import {
@@ -109,12 +110,18 @@ export default function SidebarClient({
 }: SidebarClientProps) {
   const pathname = usePathname();
   const [isConfirmingLogout, setIsConfirmingLogout] = useState(false);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
 
   // Store hooks (WorkspaceHydrator now handles setStructure)
   const { currentOrganization } = useWorkspaceStore();
 
   const executeLogout = async () => {
-    await logout();
+    setIsLoggingOut(true);
+    try {
+      await logout();
+    } catch (error) {
+      setIsLoggingOut(false);
+    }
   };
 
   return (
@@ -170,8 +177,13 @@ export default function SidebarClient({
                 <Button
                   className="flex-1 gap-1 font-serif uppercase tracking-[0.12em] bg-[--error] hover:bg-[--error-hover] text-[--error-foreground] border-[--error] hover:border-[--error-hover] py-2 text-xs"
                   onClick={executeLogout}
+                  disabled={isLoggingOut}
                 >
-                  <LogOut className="w-3 h-3" />
+                  {isLoggingOut ? (
+                    <Loader2 className="w-3 h-3 animate-spin" />
+                  ) : (
+                    <LogOut className="w-3 h-3" />
+                  )}
                   Exit
                 </Button>
               </div>
