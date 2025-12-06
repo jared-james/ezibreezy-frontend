@@ -1,5 +1,7 @@
 // app/(app)/[workspace]/dashboard/page.tsx
 
+import Image from "next/image";
+
 // Force dynamic rendering - no caching for dashboard
 export const dynamic = "force-dynamic";
 
@@ -9,32 +11,50 @@ interface PageProps {
 }
 
 export default async function DashboardPage({ params }: PageProps) {
-  // Extract workspace from URL route params
   const { workspace } = await params;
 
-  // For future: Fetch dashboard data using serverFetch
-  // const dashboardData = await serverFetch('/dashboard/summary', { workspaceId });
-
   return (
-    <div className="w-full flex items-center justify-center bg-[--background] px-4">
-      <div className="text-center space-y-6">
-        <div className="border-b-4 border-double border-[--foreground] pb-4">
-          <p className="eyebrow mb-2">Dashboard</p>
-          <h1 className="font-serif text-4xl md:text-5xl font-bold uppercase tracking-tight text-[--foreground]">
-            Coming Soon
-          </h1>
+    <div className="w-full h-full min-h-[85vh] flex items-center justify-center bg-[--background] px-4 relative overflow-hidden">
+      {/* Subtle Background Grid */}
+      <div
+        className="absolute inset-0 opacity-[0.03] pointer-events-none"
+        style={{
+          backgroundImage:
+            "linear-gradient(var(--foreground) 1px, transparent 1px), linear-gradient(90deg, var(--foreground) 1px, transparent 1px)",
+          backgroundSize: "40px 40px",
+        }}
+      />
+
+      {/* Main Container - FADE IN ONLY */}
+      <div className="relative z-10 flex flex-col items-center justify-center animate-in fade-in duration-1000 fill-mode-forwards">
+        {/* THE ANIMATION (Matched to Login Sync state) */}
+        <div className="relative w-32 h-32 mb-8">
+          {/* Rotating Ring - Primary Green */}
+          <div className="w-full h-full rounded-full border-2 border-dashed border-brand-primary/30 flex items-center justify-center animate-[spin_10s_linear_infinite]" />
+
+          {/* Static Center Logo */}
+          <div className="absolute inset-0 flex items-center justify-center">
+            <Image
+              src="/logo_smile.webp"
+              alt="Logo"
+              width={64}
+              height={64}
+              className="opacity-90 grayscale contrast-125"
+            />
+          </div>
         </div>
 
-        <p className="font-serif text-[--muted] italic text-lg">
-          Your command center for ideas, posts, analytics and insights.
-        </p>
+        {/* Text */}
+        <div className="text-center space-y-3">
+          <h1 className="font-serif text-5xl font-medium text-brand-primary tracking-tight">
+            Coming Soon
+          </h1>
 
-        {/* Debug info - remove in production */}
-        {process.env.NODE_ENV === "development" && workspace && (
-          <p className="text-xs text-[--muted-foreground] font-mono">
-            Workspace: {workspace}
+          <p className="font-serif text-[--muted] text-lg">
+            Workspace:{" "}
+            <span className="font-bold text-[--foreground]">{workspace}</span>
           </p>
-        )}
+        </div>
       </div>
     </div>
   );
