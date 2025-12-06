@@ -78,8 +78,8 @@ export async function inviteUserToOrganization(
     orgRole: "owner" | "admin" | "member";
     workspaces: WorkspaceInviteConfig[];
   }
-) {
-  return await serverFetch(`/workspaces/${contextWorkspaceId}/invites`, {
+): Promise<{ success: boolean; data?: { provisioned: boolean }; error?: string }> {
+  return await serverFetch<{ provisioned: boolean }>(`/workspaces/${contextWorkspaceId}/invites`, {
     method: "POST",
     body: JSON.stringify({
       email: data.email,

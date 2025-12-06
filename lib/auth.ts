@@ -11,6 +11,16 @@ interface CurrentUserSecure {
   accessToken: string;
 }
 
+interface WorkspaceStructureOrg {
+  id: string;
+  name: string;
+  workspaces?: Array<{
+    id: string;
+    slug: string;
+    name: string;
+  }>;
+}
+
 export async function getCurrentUser(): Promise<CurrentUserSecure | null> {
   const supabase = await createClient();
 
@@ -47,14 +57,33 @@ export async function getUserAndOrganization() {
     return null;
   }
 
-  // 🚀 OPTIMIZATION: Removed redundant backend fetch.
-  // The layout already fetches the workspace structure which contains all the context we need.
+  // Fetch workspace structure to get organization and default workspace context
+  const { serverFetch } = await import("@/lib/api/server-fetch");
+  const structureResult = await serverFetch<WorkspaceStructureOrg[]>("/workspaces/structure");
+
+  if (!structureResult.success || !structureResult.data || structureResult.data.length === 0) {
+    console.error("[AUTH] Failed to fetch workspace structure:", structureResult.error);
+    // Return user data without organization context
+    const result = {
+      ...user,
+      organizationName: "",
+      organizationId: "",
+      defaultWorkspaceId: "",
+      defaultWorkspaceSlug: "",
+    };
+    return result;
+  }
+
+  // Get the first organization and its first workspace as defaults
+  const firstOrg = structureResult.data[0];
+  const firstWorkspace = firstOrg.workspaces?.[0];
+
   const result = {
     ...user,
-    organizationName: "", // Deprecated: UI should use workspace structure
-    organizationId: "",
-    defaultWorkspaceId: "",
-    defaultWorkspaceSlug: "",
+    organizationName: firstOrg.name || "",
+    organizationId: firstOrg.id || "",
+    defaultWorkspaceId: firstWorkspace?.id || "",
+    defaultWorkspaceSlug: firstWorkspace?.slug || "",
   };
 
   console.log("[AUTH] Returning user context:", {
@@ -62,6 +91,7 @@ export async function getUserAndOrganization() {
     email: result.email,
     organizationName: result.organizationName,
     organizationId: result.organizationId,
+    defaultWorkspaceId: result.defaultWorkspaceId,
   });
 
   return result;

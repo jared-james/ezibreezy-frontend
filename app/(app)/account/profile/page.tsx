@@ -5,6 +5,8 @@ import { getUserAndOrganization } from "@/lib/auth";
 import ProfileForm from "@/components/settings/profile/profile-form";
 import { redirect } from "next/navigation";
 
+export const dynamic = 'force-dynamic';
+
 export default async function ProfileSettingsPage() {
   const userContext = await getUserAndOrganization();
 

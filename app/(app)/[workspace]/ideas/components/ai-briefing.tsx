@@ -1,3 +1,5 @@
+// app/(app)/[workspace]/ideas/components/ai-briefing.tsx
+
 // app/(app)/ideas/components/ai-briefing.tsx
 
 "use client";
@@ -9,7 +11,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { Clipping } from "@/lib/types/editorial";
-import { generateClippingsAction } from "@/app/actions/ideas";
+// import { generateClippingsAction } from "@/app/actions/ideas";
 
 interface AIBriefingProps {
   workspaceId: string;
@@ -24,12 +26,12 @@ export default function AIBriefing({
 
   const mutation = useMutation({
     mutationFn: async (prompt: string) => {
-      const result = await generateClippingsAction(prompt, workspaceId);
-      if (!result.success) throw new Error(result.error);
-      return result.data || [];
+      // const result = await generateClippingsAction(prompt, workspaceId);
+      // if (!result.success) throw new Error(result.error);
+      // return result.data || [];
     },
     onSuccess: (data) => {
-      onNewBriefingGenerated(data);
+      // onNewBriefingGenerated(data);
     },
     onError: (error: any) => {
       console.error("Error generating ideas:", error);

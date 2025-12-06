@@ -1,8 +1,5 @@
 // lib/tools/image-processing.ts
 
-import JSZip from "jszip";
-import { saveAs } from "file-saver";
-
 export type SplitMode = "carousel" | "grid";
 export type AspectRatio = "square" | "portrait" | "landscape" | "original";
 
@@ -25,8 +22,14 @@ export async function processAndDownload({
   gap,
   gapColor = "#FFFFFF",
 }: ProcessOptions) {
+  // Dynamically import heavy libraries only when download is triggered
+  const [JSZip, { saveAs }] = await Promise.all([
+    import("jszip"),
+    import("file-saver"),
+  ]);
+
   const image = await loadImage(file);
-  const zip = new JSZip();
+  const zip = new JSZip.default();
   const folder = zip.folder("split-images");
 
   if (mode === "carousel") {
@@ -50,7 +53,8 @@ function loadImage(file: File): Promise<HTMLImageElement> {
 
 async function processCarousel(
   img: HTMLImageElement,
-  folder: JSZip,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  folder: any,
   slides: number,
   ratioType: AspectRatio,
   marginPercent: number,
@@ -117,7 +121,8 @@ async function processCarousel(
 
 async function processGrid(
   img: HTMLImageElement,
-  folder: JSZip,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  folder: any,
   cols: number,
   rows: number,
   gapPercent: number,

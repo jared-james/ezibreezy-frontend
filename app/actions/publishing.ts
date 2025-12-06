@@ -53,7 +53,7 @@ export async function getContentLibraryAction(
     return { success: true, data: result.data?.items || [] };
   }
 
-  return result;
+  return { success: false, error: result.error };
 }
 
 export async function deletePostAction(

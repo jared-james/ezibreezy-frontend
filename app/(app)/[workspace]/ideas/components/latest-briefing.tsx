@@ -12,7 +12,7 @@ import {
 } from "lucide-react";
 // import EditClippingModal from "./edit-clipping-modal"; // COMMENTED OUT - refactoring modal functionality
 import type { Clipping as GeneratedClipping } from "@/lib/types/ideas";
-import { saveClippingAsDraftAction } from "@/app/actions/ideas";
+// import { saveClippingAsDraftAction } from "@/app/actions/ideas"; // COMMENTED OUT - ideas feature disabled
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { useClientData } from "@/lib/hooks/use-client-data"; // Updated import
@@ -30,19 +30,21 @@ export default function LatestBriefing({ clippings }: LatestBriefingProps) {
   // Consolidate user and connection fetching
   const { userId, organizationId, connections, workspaceId } = useClientData();
 
+  // COMMENTED OUT - ideas feature disabled
   const saveMutation = useMutation({
-    mutationFn: async (payload: {
+    mutationFn: async (_payload: {
       userId: string;
       integrationId: string;
       title?: string;
       content: string;
-    }) => {
-      if (!workspaceId) throw new Error("Workspace ID missing");
-      const result = await saveClippingAsDraftAction(payload, workspaceId);
-      if (!result.success || !result.data) {
-        throw new Error(result.error || "Failed to save clipping");
-      }
-      return result.data;
+    }): Promise<{ title?: string; content: string }> => {
+      // if (!workspaceId) throw new Error("Workspace ID missing");
+      // const result = await saveClippingAsDraftAction(payload, workspaceId);
+      // if (!result.success || !result.data) {
+      //   throw new Error(result.error || "Failed to save clipping");
+      // }
+      // return result.data;
+      throw new Error("Ideas feature is currently disabled");
     },
     onSuccess: (data) => {
       toast.success(
@@ -55,7 +57,11 @@ export default function LatestBriefing({ clippings }: LatestBriefingProps) {
     },
     onError: (error: Error) => {
       console.error("Error saving clipping:", error);
-      toast.error(`Failed to save clipping: ${error.message || "An unknown error occurred."}`);
+      toast.error(
+        `Failed to save clipping: ${
+          error.message || "An unknown error occurred."
+        }`
+      );
     },
   });
 
