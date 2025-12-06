@@ -13,7 +13,7 @@ import {
   type MediaFilters,
   type MediaListResponse,
   type MediaItemWithUsage,
-} from "@/lib/api/media";
+} from "@/lib/types/media";
 import {
   listMediaAction,
   getMediaAction,

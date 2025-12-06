@@ -4,7 +4,7 @@
 
 import CollaboratorSearchInput from "../../collaborator-search-input";
 import LocationSearchInput from "../../location-search-input";
-import { InstagramUserSearchResult } from "@/lib/api/integrations";
+import { InstagramUserSearchResult } from "@/lib/types/integrations";
 
 interface InstagramOptionsProps {
   integrationId: string | null;

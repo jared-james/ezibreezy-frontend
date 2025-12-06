@@ -6,7 +6,7 @@ import { useState, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Instagram, Youtube } from "lucide-react";
 import { useParams } from "next/navigation";
-import type { Connection } from "@/lib/api/integrations";
+import type { Connection } from "@/lib/types/integrations";
 import { getConnectionsAction } from "@/app/actions/integrations";
 import type {
   TimeRange,

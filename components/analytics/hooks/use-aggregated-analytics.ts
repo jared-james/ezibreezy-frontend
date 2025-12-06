@@ -2,7 +2,8 @@
 
 import { useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { getAggregatedAnalytics } from "@/lib/api/analytics";
+import { getAggregatedAnalyticsAction } from "@/app/actions/analytics";
+import { useParams } from "next/navigation";
 import type {
   AnalyticsMetric,
   TimeRange,
@@ -49,16 +50,24 @@ export function useAggregatedAnalytics({
   accounts,
   days,
 }: UseAggregatedAnalyticsProps): AggregatedData {
+  const params = useParams();
+  const workspaceId = params.workspace as string;
   const integrationIds = accounts.map((a) => a.id);
-  const isEnabled = integrationIds.length > 0;
+  const isEnabled = integrationIds.length > 0 && !!workspaceId;
 
   const {
     data: response,
     isLoading,
     error,
   } = useQuery({
-    queryKey: ["analytics", "aggregate", integrationIds, days],
-    queryFn: () => getAggregatedAnalytics(integrationIds, days),
+    queryKey: ["analytics", "aggregate", integrationIds, days, workspaceId],
+    queryFn: async () => {
+      const result = await getAggregatedAnalyticsAction(integrationIds, days, workspaceId);
+      if (!result.success || !result.data) {
+        throw new Error(result.error || "Failed to fetch aggregated analytics");
+      }
+      return result.data;
+    },
     enabled: isEnabled,
     staleTime: 5 * 60 * 1000,
   });

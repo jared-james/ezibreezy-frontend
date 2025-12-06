@@ -56,7 +56,7 @@ export interface DistributionMetadata {
   collaborators?: string;
   location?: string;
   firstComment?: string;
-  userTags?: import("@/lib/api/publishing").UserTagDto[];
+  userTags?: import("@/lib/types/publishing").UserTagDto[];
 }
 
 export interface ScheduleSettings {

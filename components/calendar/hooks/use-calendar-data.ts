@@ -5,7 +5,7 @@
 import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useParams } from "next/navigation";
-import { FullPostDetails } from "@/lib/api/publishing";
+import { FullPostDetails } from "@/lib/types/publishing";
 import {
   getContentLibraryAction,
   getPostDetailsAction,

@@ -2,7 +2,7 @@
 
 "use client";
 
-import { Connection } from "@/lib/api/integrations";
+import { Connection } from "@/lib/types/integrations";
 import { platformDefinitions } from "./constants";
 import { PlatformDefinition } from "./types";
 import { cn } from "@/lib/utils";

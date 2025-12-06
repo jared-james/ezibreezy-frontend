@@ -3,7 +3,8 @@
 "use client";
 
 import { useInfiniteQuery } from "@tanstack/react-query";
-import { getPostAnalytics } from "@/lib/api/analytics";
+import { getPostAnalyticsAction } from "@/app/actions/analytics";
+import { useParams } from "next/navigation";
 import type {
   PostAnalytics,
   AnalyticsResponse,
@@ -19,6 +20,9 @@ export function usePostAnalytics({
   integrationId,
   limit = 12,
 }: UsePostAnalyticsProps) {
+  const params = useParams();
+  const workspaceId = params.workspace as string;
+
   const {
     data,
     isLoading,
@@ -28,15 +32,25 @@ export function usePostAnalytics({
     hasNextPage,
     isFetchingNextPage,
   } = useInfiniteQuery<AnalyticsResponse<PostAnalytics[]>>({
-    queryKey: ["post-analytics", integrationId, limit],
-    queryFn: ({ pageParam = 0 }) =>
-      getPostAnalytics(integrationId!, limit, pageParam as number),
+    queryKey: ["post-analytics", integrationId, limit, workspaceId],
+    queryFn: async ({ pageParam = 0 }) => {
+      const result = await getPostAnalyticsAction(
+        integrationId!,
+        limit,
+        pageParam as number,
+        workspaceId
+      );
+      if (!result.success || !result.data) {
+        throw new Error(result.error || "Failed to fetch post analytics");
+      }
+      return result.data;
+    },
     initialPageParam: 0,
     getNextPageParam: (lastPage, allPages) => {
       if (lastPage.data.length < limit) return undefined;
       return allPages.flatMap((p) => p.data).length;
     },
-    enabled: !!integrationId,
+    enabled: !!integrationId && !!workspaceId,
     staleTime: 5 * 60 * 1000,
   });
 

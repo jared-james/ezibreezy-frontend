@@ -10,7 +10,7 @@ import {
   useDeleteFolder,
 } from "@/lib/hooks/use-media";
 import { useMediaRoomStore } from "@/lib/store/media-room-store";
-import type { MediaFolder } from "@/lib/api/media";
+import type { MediaFolder } from "@/lib/types/media";
 import {
   AlertDialog,
   AlertDialogAction,

@@ -1,7 +1,6 @@
-// lib/api/publishing.ts
+// lib/types/publishing.ts
 
 import { PlatformCrops } from "../utils/crop-utils";
-import apiClient from "./index";
 
 export interface ThreadMessagePayload {
   content: string;
@@ -111,7 +110,7 @@ export interface FullPostDetails {
   userId: string;
   scheduledAt: string | null;
   recycleInterval: number | null;
-  settings: any;
+  settings: PostSettings | null;
   status: string;
   error?: string | null;
   mediaIds: string[];
@@ -131,7 +130,7 @@ export interface FullPostDetails {
   };
 }
 
-interface PaginatedLibraryResponse {
+export interface PaginatedLibraryResponse {
   items: ScheduledPostResponse[];
   pagination: {
     total: number;
@@ -140,46 +139,3 @@ interface PaginatedLibraryResponse {
     hasMore: boolean;
   };
 }
-
-export const createPost = async (
-  payload: CreatePostPayload
-): Promise<CreatePostResponse> => {
-  const response = await apiClient.post<CreatePostResponse>(
-    "/publishing/post",
-    payload
-  );
-  return response.data;
-};
-
-export const reschedulePostOnly = async (
-  postId: string,
-  payload: RescheduleOnlyPayload
-): Promise<CreatePostResponse> => {
-  console.time("[API] reschedulePostOnly execution time");
-  const response = await apiClient.patch<CreatePostResponse>(
-    `/publishing/post/${postId}/schedule`,
-    payload
-  );
-  console.timeEnd("[API] reschedulePostOnly execution time");
-  return response.data;
-};
-
-export const getContentLibrary = async (): Promise<ScheduledPostResponse[]> => {
-  const response = await apiClient.get<PaginatedLibraryResponse>(
-    "/publishing/library"
-  );
-  return response.data?.items || [];
-};
-
-export const deletePost = async (postId: string): Promise<void> => {
-  await apiClient.delete(`/publishing/post/${postId}`);
-};
-
-export const getPostDetails = async (
-  postId: string
-): Promise<FullPostDetails> => {
-  const response = await apiClient.get<FullPostDetails>(
-    `/publishing/post/${postId}`
-  );
-  return response.data;
-};

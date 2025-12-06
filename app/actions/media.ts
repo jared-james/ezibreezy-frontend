@@ -12,7 +12,7 @@ import type {
   MediaFolderWithChildren,
   MediaTag,
   BreadcrumbItem,
-} from "@/lib/api/media";
+} from "@/lib/types/media";
 
 // ============================================================================
 // Media Assets

@@ -8,7 +8,7 @@ import type {
   InstagramUserSearchResult,
   PinterestBoard,
   CreatePinterestBoardPayload,
-} from "@/lib/api/integrations";
+} from "@/lib/types/integrations";
 
 export async function getConnectionsAction(
   workspaceId: string

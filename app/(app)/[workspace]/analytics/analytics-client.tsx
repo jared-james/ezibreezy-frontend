@@ -5,7 +5,7 @@
 import { useState } from "react";
 import { useAnalyticsFilters } from "@/components/analytics/hooks/use-analytics-filters";
 import { useAggregatedAnalytics } from "@/components/analytics/hooks/use-aggregated-analytics";
-import type { Connection } from "@/lib/api/integrations";
+import type { Connection } from "@/lib/types/integrations";
 
 import AnalyticsHeader from "@/components/analytics/components/analytics-header";
 import AnalyticsTabs from "@/components/analytics/components/analytics-tabs";

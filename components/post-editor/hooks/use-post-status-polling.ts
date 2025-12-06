@@ -1,12 +1,15 @@
 // components/post-editor/use-post-status-polling.ts
 
 import { useState, useRef, useCallback, useEffect } from "react";
-import { getPostDetails } from "@/lib/api/publishing";
+import { getPostDetailsAction } from "@/app/actions/publishing";
 import { toast } from "sonner";
+import { useParams } from "next/navigation";
 
 export function usePostStatusPolling() {
   const [isPolling, setIsPolling] = useState(false);
   const stopPollingRef = useRef(false);
+  const params = useParams();
+  const workspaceId = params.workspace as string;
 
   useEffect(() => {
     return () => {
@@ -36,7 +39,13 @@ export function usePostStatusPolling() {
 
         try {
           const mainPostId = postIds[0];
-          const post = await getPostDetails(mainPostId);
+          const result = await getPostDetailsAction(mainPostId, workspaceId);
+
+          if (!result.success || !result.data) {
+            throw new Error(result.error || "Failed to fetch post details");
+          }
+
+          const post = result.data;
 
           if (post.status === "sent") {
             setIsPolling(false);
@@ -71,7 +80,7 @@ export function usePostStatusPolling() {
 
       setTimeout(checkStatus, POLLING_INTERVAL);
     },
-    []
+    [workspaceId]
   );
 
   const stopPolling = useCallback(() => {

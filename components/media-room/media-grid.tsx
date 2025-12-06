@@ -7,7 +7,7 @@ import { Loader2, ImageOff } from "lucide-react";
 import { useMediaList } from "@/lib/hooks/use-media";
 import { useMediaRoomStore } from "@/lib/store/media-room-store";
 import { useClientData } from "@/lib/hooks/use-client-data";
-import type { MediaFilters } from "@/lib/api/media";
+import type { MediaFilters } from "@/lib/types/media";
 import MediaCard from "./media-card";
 import MediaListItem from "./media-list-item";
 

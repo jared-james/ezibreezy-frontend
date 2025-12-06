@@ -6,9 +6,10 @@ import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Loader2, AlertCircle, Plus, X, Check } from "lucide-react";
 import {
-  getPinterestBoards,
-  createPinterestBoard,
-} from "@/lib/api/integrations";
+  getPinterestBoardsAction,
+  createPinterestBoardAction,
+} from "@/app/actions/integrations";
+import { useParams } from "next/navigation";
 import {
   Select,
   SelectContent,
@@ -31,6 +32,8 @@ export function PinterestBoardSelector({
   selectedBoardId,
   onBoardSelect,
 }: PinterestBoardSelectorProps) {
+  const params = useParams();
+  const workspaceId = params.workspace as string;
   const queryClient = useQueryClient();
   const [isCreating, setIsCreating] = useState(false);
   const [newBoardName, setNewBoardName] = useState("");
@@ -41,9 +44,16 @@ export function PinterestBoardSelector({
     isLoading,
     isError,
   } = useQuery({
-    queryKey: ["pinterest-boards", integrationId],
-    queryFn: () => (integrationId ? getPinterestBoards(integrationId) : []),
-    enabled: !!integrationId,
+    queryKey: ["pinterest-boards", integrationId, workspaceId],
+    queryFn: async () => {
+      if (!integrationId || !workspaceId) return [];
+      const result = await getPinterestBoardsAction(integrationId, workspaceId);
+      if (!result.success || !result.data) {
+        throw new Error(result.error || "Failed to fetch boards");
+      }
+      return result.data;
+    },
+    enabled: !!integrationId && !!workspaceId,
     staleTime: 1000 * 60 * 5,
   });
 
@@ -51,17 +61,27 @@ export function PinterestBoardSelector({
     mutationFn: async () => {
       if (!integrationId) throw new Error("No account selected");
       if (!newBoardName.trim()) throw new Error("Board name is required");
+      if (!workspaceId) throw new Error("No workspace selected");
 
-      return createPinterestBoard({
-        integrationId,
-        name: newBoardName.trim(),
-        privacy: isSecret ? "SECRET" : "PUBLIC",
-      });
+      const result = await createPinterestBoardAction(
+        {
+          integrationId,
+          name: newBoardName.trim(),
+          privacy: isSecret ? "SECRET" : "PUBLIC",
+        },
+        workspaceId
+      );
+
+      if (!result.success || !result.data) {
+        throw new Error(result.error || "Failed to create board");
+      }
+
+      return result.data;
     },
     onSuccess: (newBoard) => {
       toast.success("Board created successfully");
       queryClient.invalidateQueries({
-        queryKey: ["pinterest-boards", integrationId],
+        queryKey: ["pinterest-boards", integrationId, workspaceId],
       });
       onBoardSelect(newBoard.id);
       setIsCreating(false);
@@ -69,11 +89,7 @@ export function PinterestBoardSelector({
       setIsSecret(false);
     },
     onError: (error: any) => {
-      toast.error(
-        error.response?.data?.message ||
-          error.message ||
-          "Failed to create board"
-      );
+      toast.error(error.message || "Failed to create board");
     },
   });
 

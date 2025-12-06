@@ -18,7 +18,7 @@ import {
 import { useClientData } from "@/lib/hooks/use-client-data";
 import MediaSourceModal from "../../modals/media-source-modal";
 import MediaRoomModal from "../../modals/media-room-modal";
-import type { MediaItem as LibraryMediaItem } from "@/lib/api/media";
+import type { MediaItem as LibraryMediaItem } from "@/lib/types/media";
 
 const YOUTUBE_CATEGORIES = [
   { id: "22", name: "People & Blogs" },

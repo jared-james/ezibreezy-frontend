@@ -6,8 +6,8 @@ import { useState, useRef, useEffect } from "react";
 import { ChevronLeft, ChevronRight, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { MediaItem } from "@/lib/store/editorial/draft-store";
-import { UserTagDto, ProductTagDto } from "@/lib/api/publishing";
-import { Product } from "@/lib/api/commerce";
+import { UserTagDto, ProductTagDto } from "@/lib/types/publishing";
+import { Product } from "@/lib/types/commerce";
 
 interface InstagramCarouselProps {
   mediaItems: MediaItem[];

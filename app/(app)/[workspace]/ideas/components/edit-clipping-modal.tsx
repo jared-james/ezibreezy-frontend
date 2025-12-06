@@ -9,7 +9,7 @@ import { useRouter } from "next/navigation";
 import {
   type Clipping as GeneratedClipping,
   saveClippingAsDraft,
-} from "@/lib/api/ideas";
+} from "@/lib/types/ideas";
 import { type EditorialDraft } from "@/lib/types/editorial";
 import { useEditorialStore } from "@/lib/store/editorial-store";
 import ModalHeader from "@/components/post-editor/modal-header";
@@ -193,7 +193,7 @@ export default function EditClippingModal({
 */
 
 // Temporary stub to prevent build errors
-import type { Clipping as GeneratedClipping } from "@/lib/api/ideas";
+import type { Clipping as GeneratedClipping } from "@/lib/types/ideas";
 
 interface EditClippingModalProps {
   isOpen: boolean;

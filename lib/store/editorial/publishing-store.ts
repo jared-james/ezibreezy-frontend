@@ -4,8 +4,8 @@
 
 import { create } from "zustand";
 import { SelectedAccounts } from "@/lib/types/editorial";
-import { InstagramUserSearchResult } from "@/lib/api/integrations";
-import { FullPostDetails } from "@/lib/api/publishing";
+import { InstagramUserSearchResult } from "@/lib/types/integrations";
+import { FullPostDetails } from "@/lib/types/publishing";
 
 export interface LocationState {
   id: string | null;

@@ -3,7 +3,7 @@
 "use client";
 
 import { create } from "zustand";
-import type { MediaFilters } from "@/lib/api/media";
+import type { MediaFilters } from "@/lib/types/media";
 
 export type MediaViewMode = "grid" | "list";
 export type MediaSortBy = "createdAt" | "filename" | "fileSize";

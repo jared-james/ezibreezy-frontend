@@ -11,7 +11,7 @@ import {
 } from "@/lib/store/editorial/draft-store";
 import { usePublishingStore } from "@/lib/store/editorial/publishing-store";
 import { useEditorialUIStore } from "@/lib/store/editorial/ui-store";
-import type { FullPostDetails } from "@/lib/api/publishing";
+import type { FullPostDetails } from "@/lib/types/publishing";
 import type { ScheduledPost } from "../types";
 
 interface UsePostEditorWorkflowProps {

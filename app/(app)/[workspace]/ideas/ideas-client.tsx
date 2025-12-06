@@ -9,7 +9,7 @@ import AIBriefing from "./components/ai-briefing";
 import LatestBriefing from "./components/latest-briefing";
 import NewClipping from "./components/new-clipping";
 import IdeaClippings from "./components/idea-clippings";
-import type { Clipping as GeneratedClipping } from "@/lib/api/ideas";
+import type { Clipping as GeneratedClipping } from "@/lib/types/ideas";
 import { cn } from "@/lib/utils";
 
 type MainTab = "ai" | "manual" | "archive";

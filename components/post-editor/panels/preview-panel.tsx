@@ -31,7 +31,7 @@ import {
 } from "@/lib/store/editorial/draft-store";
 import { usePublishingStore } from "@/lib/store/editorial/publishing-store";
 import { useEditorialUIStore } from "@/lib/store/editorial/ui-store";
-import { UserTagDto, ProductTagDto } from "@/lib/api/publishing";
+import { UserTagDto, ProductTagDto } from "@/lib/types/publishing";
 import { useQuery } from "@tanstack/react-query";
 
 const platformIcons: Record<string, React.ElementType> = {

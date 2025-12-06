@@ -22,7 +22,7 @@ import { useEditorialDraftStore } from "@/lib/store/editorial/draft-store";
 import { usePublishingStore } from "@/lib/store/editorial/publishing-store";
 import { useEditorialUIStore } from "@/lib/store/editorial/ui-store";
 
-import type { CreatePostPayload, PostSettings } from "@/lib/api/publishing";
+import type { CreatePostPayload, PostSettings } from "@/lib/types/publishing";
 import { PlatformCrops } from "@/lib/utils/crop-utils";
 import { usePostStatusPolling } from "./hooks/use-post-status-polling";
 import { getAutoSelectionForPlatform } from "@/lib/utils/media-validation";

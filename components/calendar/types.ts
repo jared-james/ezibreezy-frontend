@@ -1,6 +1,6 @@
 // components/calendar/types.ts
 
-import type { CalendarMediaItem } from "@/lib/api/publishing";
+import type { CalendarMediaItem } from "@/lib/types/publishing";
 
 export type ScheduledPost = {
   id: string;

@@ -4,7 +4,7 @@
 
 import { create } from "zustand";
 import { PlatformPostType, ThreadMessage } from "@/lib/types/editorial";
-import { UserTagDto, ProductTagDto, FullPostDetails } from "@/lib/api/publishing";
+import { UserTagDto, ProductTagDto, FullPostDetails } from "@/lib/types/publishing";
 import { PlatformCrops, SocialPlatform } from "@/lib/utils/crop-utils";
 import { PLATFORM_RULES } from "@/lib/utils/media-validation";
 

@@ -6,10 +6,8 @@ import { useState, useCallback } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { isSameDay, isBefore, parseISO, format } from "date-fns";
 import { toast } from "sonner";
-import {
-  reschedulePostOnly,
-  RescheduleOnlyPayload,
-} from "@/lib/api/publishing";
+import type { RescheduleOnlyPayload } from "@/lib/types/publishing";
+import { reschedulePostOnlyAction } from "@/app/actions/publishing";
 import { useClientData } from "@/lib/hooks/use-client-data";
 import type { ScheduledPost } from "../types";
 
@@ -21,13 +19,24 @@ export function usePostReschedule() {
   } | null>(null);
 
   const queryClient = useQueryClient();
-  const { userId } = useClientData();
+  const { userId, workspaceId } = useClientData();
 
   const rescheduleMutation = useMutation({
-    mutationFn: (variables: {
+    mutationFn: async (variables: {
       postId: string;
       payload: RescheduleOnlyPayload;
-    }) => reschedulePostOnly(variables.postId, variables.payload),
+    }) => {
+      if (!workspaceId) throw new Error("Workspace ID missing");
+      const result = await reschedulePostOnlyAction(
+        variables.postId,
+        variables.payload,
+        workspaceId
+      );
+      if (!result.success || !result.data) {
+        throw new Error(result.error || "Failed to reschedule post");
+      }
+      return result.data;
+    },
 
     onMutate: async (variables) => {
       await queryClient.cancelQueries({ queryKey: ["contentLibrary"] });

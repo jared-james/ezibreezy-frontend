@@ -2,26 +2,12 @@
 "use server";
 
 import { serverFetch } from "@/lib/api/server-fetch";
-import type { Clipping } from "@/lib/types/editorial";
-
-interface BriefingResponse {
-  prompt: string;
-  clippings: Clipping[];
-}
-
-export interface SaveDraftPayload {
-  userId: string;
-  integrationId: string;
-  title?: string;
-  content: string;
-}
-
-export interface SaveDraftResponse {
-  id: string;
-  status: "draft";
-  title?: string;
-  content: string;
-}
+import type {
+  Clipping,
+  BriefingResponse,
+  SaveDraftPayload,
+  SaveDraftResponse,
+} from "@/lib/types/ideas";
 
 export async function generateClippingsAction(
   prompt: string,

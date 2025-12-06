@@ -6,7 +6,7 @@ import { useState, KeyboardEvent } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { UserPlus, X, Loader2, AlertCircle } from "lucide-react";
 import { useParams } from "next/navigation";
-import { InstagramUserSearchResult } from "@/lib/api/integrations";
+import { InstagramUserSearchResult } from "@/lib/types/integrations";
 import { searchInstagramUserAction } from "@/app/actions/integrations";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";

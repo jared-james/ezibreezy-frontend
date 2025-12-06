@@ -8,7 +8,7 @@ import {
   MediaItem,
 } from "@/lib/store/editorial/draft-store";
 import { usePublishingStore } from "@/lib/store/editorial/publishing-store";
-import { type Connection } from "@/lib/api/integrations";
+import { type Connection } from "@/lib/types/integrations";
 import type { Platform, ThreadMessageAugmented } from "@/lib/types/editorial";
 import {
   Twitter,
@@ -20,7 +20,7 @@ import {
   Music2,
   Pin,
 } from "lucide-react";
-import { type CreatePostPayload } from "@/lib/api/publishing";
+import { type CreatePostPayload } from "@/lib/types/publishing";
 import { generateVideoThumbnail } from "@/lib/utils/video-thumbnail";
 import { getAutoSelectionForPlatform } from "@/lib/utils/media-validation";
 import { getClientDataForEditor } from "@/app/actions/data";

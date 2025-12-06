@@ -7,7 +7,7 @@ import { useRouter, useSearchParams, useParams } from "next/navigation";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import posthog from "posthog-js";
-import { type Connection } from "@/lib/api/integrations";
+import { type Connection } from "@/lib/types/integrations";
 import {
   getConnectionsAction,
   disconnectAccountAction,

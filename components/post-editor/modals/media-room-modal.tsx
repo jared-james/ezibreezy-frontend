@@ -17,7 +17,7 @@ import MediaFolderBar from "@/components/media-room/media-folder-bar";
 import MediaToolbar from "@/components/media-room/media-toolbar";
 import MediaGrid from "@/components/media-room/media-grid";
 import { useFolderActions } from "@/components/media-room/folder-actions";
-import type { MediaItem, MediaFilters, MediaFolder } from "@/lib/api/media";
+import type { MediaItem, MediaFilters, MediaFolder } from "@/lib/types/media";
 
 interface MediaRoomModalProps {
   isOpen: boolean;

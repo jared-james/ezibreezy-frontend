@@ -7,14 +7,11 @@ import Link from "next/link";
 import { Tag, Loader2, PenLine, Clock } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useQuery } from "@tanstack/react-query";
-import {
-  getContentLibrary,
-  getPostDetails,
-  FullPostDetails,
-} from "@/lib/api/publishing";
-import type { ScheduledPostResponse } from "@/lib/api/publishing";
+import type { FullPostDetails, ScheduledPostResponse } from "@/lib/types/publishing";
+import { getContentLibraryAction, getPostDetailsAction } from "@/app/actions/publishing";
 import { format } from "date-fns";
 import { toast } from "sonner";
+import { useParams } from "next/navigation";
 import EditorialModal from "@/components/calendar/modals/editorial-modal";
 import { useEditorialDraftStore } from "@/lib/store/editorial/draft-store";
 import { usePublishingStore } from "@/lib/store/editorial/publishing-store";
@@ -30,6 +27,8 @@ const ideaLifecycleFilters = [
 ];
 
 export default function IdeaClippings() {
+  const params = useParams();
+  const workspaceId = params.workspace as string;
   const [activeFilterTab, setActiveFilterTab] = useState("Saved");
   const [postIdToDevelop, setPostIdToDevelop] = useState<string | null>(null);
   const [isEditorialModalOpen, setIsEditorialModalOpen] = useState(false);
@@ -44,8 +43,16 @@ export default function IdeaClippings() {
     error,
     refetch,
   } = useQuery<ScheduledPostResponse[]>({
-    queryKey: ["contentLibrary"],
-    queryFn: getContentLibrary,
+    queryKey: ["contentLibrary", workspaceId],
+    queryFn: async () => {
+      if (!workspaceId) throw new Error("Workspace ID missing");
+      const result = await getContentLibraryAction(workspaceId);
+      if (!result.success || !result.data) {
+        throw new Error(result.error || "Failed to fetch content library");
+      }
+      return result.data;
+    },
+    enabled: !!workspaceId,
     staleTime: 60000,
   });
 
@@ -65,9 +72,16 @@ export default function IdeaClippings() {
     isError: isErrorFullPost,
     error: errorFullPost,
   } = useQuery<FullPostDetails>({
-    queryKey: ["fullPostDetails", postIdToDevelop],
-    queryFn: () => getPostDetails(postIdToDevelop!),
-    enabled: !!postIdToDevelop,
+    queryKey: ["fullPostDetails", postIdToDevelop, workspaceId],
+    queryFn: async () => {
+      if (!postIdToDevelop || !workspaceId) throw new Error("Missing parameters");
+      const result = await getPostDetailsAction(postIdToDevelop, workspaceId);
+      if (!result.success || !result.data) {
+        throw new Error(result.error || "Failed to fetch post details");
+      }
+      return result.data;
+    },
+    enabled: !!postIdToDevelop && !!workspaceId,
     staleTime: Infinity,
   });
 

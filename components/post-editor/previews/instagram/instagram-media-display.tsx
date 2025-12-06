@@ -3,8 +3,8 @@
 import { useRef, useState } from "react";
 import { cn } from "@/lib/utils";
 import { ImageIcon, X } from "lucide-react";
-import { UserTagDto, ProductTagDto } from "@/lib/api/publishing";
-import { Product } from "@/lib/api/commerce";
+import { UserTagDto, ProductTagDto } from "@/lib/types/publishing";
+import { Product } from "@/lib/types/commerce";
 
 interface InstagramMediaDisplayProps {
   displayMediaSrc?: string;

@@ -3,8 +3,8 @@
 "use client";
 
 import { memo, useState, useRef, useEffect } from "react";
-import { UserTagDto, ProductTagDto } from "@/lib/api/publishing";
-import { Product } from "@/lib/api/commerce";
+import { UserTagDto, ProductTagDto } from "@/lib/types/publishing";
+import { Product } from "@/lib/types/commerce";
 import { ImageCropperModal } from "../../modals/image-cropper-modal";
 import { AltTextModal } from "../../modals/alt-text-modal";
 import { ProductSelectorModal } from "../../modals/product-selector-modal";

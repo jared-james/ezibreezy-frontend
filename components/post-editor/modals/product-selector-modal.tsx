@@ -7,12 +7,9 @@ import { X, Search, Loader2, ShoppingBag, Package } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import Image from "next/image";
-import {
-  getCatalogs,
-  getProducts,
-  type Catalog,
-  type Product,
-} from "@/lib/api/commerce";
+import type { Catalog, Product } from "@/lib/types/commerce";
+import { getCatalogsAction, getProductsAction } from "@/app/actions/commerce";
+import { useParams } from "next/navigation";
 import { toast } from "sonner";
 
 interface ProductSelectorModalProps {
@@ -28,6 +25,8 @@ export function ProductSelectorModal({
   onSelectProduct,
   integrationId, // <--- ADDED PROP
 }: ProductSelectorModalProps) {
+  const params = useParams();
+  const workspaceId = params.workspace as string;
   const [catalogs, setCatalogs] = useState<Catalog[]>([]);
   const [selectedCatalog, setSelectedCatalog] = useState<Catalog | null>(null);
   const [products, setProducts] = useState<Product[]>([]);
@@ -51,17 +50,20 @@ export function ProductSelectorModal({
   }, [selectedCatalog, searchQuery, integrationId]);
 
   const fetchCatalogs = async () => {
-    if (!integrationId) return; // <--- Guard clause
+    if (!integrationId || !workspaceId) return;
 
     setIsLoadingCatalogs(true);
     try {
-      // <--- FIXED: Passing integrationId
-      const response = await getCatalogs(integrationId);
-      setCatalogs(response.catalogs);
+      const result = await getCatalogsAction(integrationId, workspaceId);
+      if (result.success && result.data) {
+        setCatalogs(result.data.catalogs);
 
-      // Auto-select first catalog if available
-      if (response.catalogs.length > 0) {
-        setSelectedCatalog(response.catalogs[0]);
+        // Auto-select first catalog if available
+        if (result.data.catalogs.length > 0) {
+          setSelectedCatalog(result.data.catalogs[0]);
+        }
+      } else {
+        throw new Error(result.error || "Failed to fetch catalogs");
       }
     } catch (error) {
       console.error("Failed to fetch catalogs:", error);
@@ -72,16 +74,21 @@ export function ProductSelectorModal({
   };
 
   const fetchProducts = async () => {
-    if (!selectedCatalog || !integrationId) return;
+    if (!selectedCatalog || !integrationId || !workspaceId) return;
 
     setIsLoadingProducts(true);
     try {
-      const response = await getProducts(
-        integrationId, // <--- Passing integrationId
+      const result = await getProductsAction(
+        integrationId,
         selectedCatalog.id,
+        workspaceId,
         searchQuery || undefined
       );
-      setProducts(response.products);
+      if (result.success && result.data) {
+        setProducts(result.data.products);
+      } else {
+        throw new Error(result.error || "Failed to fetch products");
+      }
     } catch (error) {
       console.error("Failed to fetch products:", error);
       toast.error("Failed to load products");

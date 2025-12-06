@@ -5,7 +5,7 @@
 import { useState, useMemo } from "react";
 import { Loader2, ImageOff, Check, Video } from "lucide-react";
 import { useMediaList } from "@/lib/hooks/use-media";
-import type { MediaFilters, MediaItem } from "@/lib/api/media";
+import type { MediaFilters, MediaItem } from "@/lib/types/media";
 import { cn } from "@/lib/utils";
 
 interface MediaLibrarySelectorProps {

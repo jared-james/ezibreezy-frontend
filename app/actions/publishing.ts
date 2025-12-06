@@ -8,17 +8,8 @@ import type {
   RescheduleOnlyPayload,
   ScheduledPostResponse,
   FullPostDetails,
-} from "@/lib/api/publishing";
-
-interface PaginatedLibraryResponse {
-  items: ScheduledPostResponse[];
-  pagination: {
-    total: number;
-    limit: number;
-    offset: number;
-    hasMore: boolean;
-  };
-}
+  PaginatedLibraryResponse,
+} from "@/lib/types/publishing";
 
 export async function createPostAction(
   payload: CreatePostPayload,

@@ -34,7 +34,7 @@ import {
   useFolderList,
 } from "@/lib/hooks/use-media";
 import { useMediaRoomStore } from "@/lib/store/media-room-store";
-import type { MediaItemWithUsage } from "@/lib/api/media";
+import type { MediaItemWithUsage } from "@/lib/types/media";
 import { getMediaDownloadUrlAction } from "@/app/actions/media";
 import { useWorkspaceStore } from "@/lib/store/workspace-store";
 import {

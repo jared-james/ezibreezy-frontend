@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useQuery } from "@tanstack/react-query";
 import { getClientDataForEditor } from "@/app/actions/data";
-import { listHashtagGroups } from "@/lib/api/hashtags";
+import { listHashtagGroupsAction } from "@/app/actions/hashtags";
 import { useClientData } from "@/lib/hooks/use-client-data";
 
 interface HashtagSelectorModalProps {
@@ -44,7 +44,14 @@ export default function HashtagSelectorModal({
   // Fetch hashtag groups from library
   const { data: hashtagGroups = [] } = useQuery({
     queryKey: ["hashtag-groups", workspaceId],
-    queryFn: () => listHashtagGroups(),
+    queryFn: async () => {
+      if (!workspaceId) throw new Error("Workspace ID missing");
+      const result = await listHashtagGroupsAction(workspaceId);
+      if (!result.success || !result.data) {
+        throw new Error(result.error || "Failed to fetch hashtag groups");
+      }
+      return result.data;
+    },
     enabled: !!workspaceId && isOpen,
   });
 

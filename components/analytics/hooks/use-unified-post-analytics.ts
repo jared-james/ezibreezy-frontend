@@ -1,7 +1,8 @@
 // components/analytics/hooks/use-unified-post-analytics.ts
 
 import { useInfiniteQuery } from "@tanstack/react-query";
-import { getAggregatedPosts } from "@/lib/api/analytics";
+import { getAggregatedPostsAction } from "@/app/actions/analytics";
+import { useParams } from "next/navigation";
 import type { PostAnalytics, Account } from "@/lib/types/analytics";
 
 interface UseUnifiedPostAnalyticsProps {
@@ -23,8 +24,10 @@ export function useUnifiedPostAnalytics({
   accounts,
   limit = 12,
 }: UseUnifiedPostAnalyticsProps): UnifiedPostData {
+  const params = useParams();
+  const workspaceId = params.workspace as string;
   const integrationIds = accounts.map((a) => a.id);
-  const isEnabled = integrationIds.length > 0;
+  const isEnabled = integrationIds.length > 0 && !!workspaceId;
 
   const {
     data,
@@ -35,9 +38,19 @@ export function useUnifiedPostAnalytics({
     hasNextPage,
     isFetchingNextPage,
   } = useInfiniteQuery({
-    queryKey: ["aggregated-posts", integrationIds, limit],
-    queryFn: ({ pageParam = 0 }) =>
-      getAggregatedPosts(integrationIds, limit, pageParam as number),
+    queryKey: ["aggregated-posts", integrationIds, limit, workspaceId],
+    queryFn: async ({ pageParam = 0 }) => {
+      const result = await getAggregatedPostsAction(
+        integrationIds,
+        limit,
+        pageParam as number,
+        workspaceId
+      );
+      if (!result.success || !result.data) {
+        throw new Error(result.error || "Failed to fetch aggregated posts");
+      }
+      return result.data;
+    },
     initialPageParam: 0,
     getNextPageParam: (lastPage, allPages) => {
       if (!lastPage.data || lastPage.data.length < limit) return undefined;

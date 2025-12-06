@@ -4,7 +4,7 @@
 
 import { Play, Check, Film, Pencil, Archive } from "lucide-react";
 import { cn } from "@/lib/utils";
-import type { MediaItem } from "@/lib/api/media";
+import type { MediaItem } from "@/lib/types/media";
 import { useMediaRoomStore } from "@/lib/store/media-room-store";
 
 interface MediaCardProps {
