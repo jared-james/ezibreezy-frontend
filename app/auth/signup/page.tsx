@@ -1,18 +1,15 @@
 // app/auth/signup/page.tsx
 
-"use client";
-
 import { Suspense } from "react";
 import ComingSoonSignUp from "./ComingSoonSignUp";
 import FullSignUp from "./FullSignUp";
 
-export default function SignUp() {
-  const isProdDomain =
-    typeof window !== "undefined" &&
-    (window.location.hostname === "www.ezibreezy.com" ||
-      window.location.hostname === "ezibreezy.com");
+// Control signup mode via environment variable instead of window check
+// This prevents hydration mismatches between server and client
+const ENABLE_WAITLIST_MODE = process.env.NEXT_PUBLIC_ENABLE_WAITLIST === "true";
 
-  if (isProdDomain) {
+export default function SignUp() {
+  if (ENABLE_WAITLIST_MODE) {
     return <ComingSoonSignUp />;
   }
 
