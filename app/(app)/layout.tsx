@@ -2,9 +2,9 @@
 
 import { redirect } from "next/navigation";
 import { Suspense } from "react";
-import { getCurrentUser } from "@/lib/auth";
-import SidebarClient from "@/components/sidebar/sidebar-client";
+import { createClient } from "@/lib/supabase/server";
 import { getWorkspaceStructure } from "@/app/actions/workspaces";
+import SidebarClient from "@/components/sidebar/sidebar-client";
 import { InviteToast } from "@/components/auth/invite-toast";
 import { WorkspaceHydrator } from "@/components/workspace/workspace-hydrator";
 
@@ -13,46 +13,52 @@ export default async function AppLayout({
 }: {
   children: React.ReactNode;
 }) {
-  // 1. Server-side Auth Check
-  const user = await getCurrentUser();
+  // Auth check
+  const supabase = await createClient();
+  const {
+    data: { user },
+    error,
+  } = await supabase.auth.getUser();
 
-  if (!user) {
+  if (error || !user) {
     redirect("/auth/login");
   }
 
-  // 2. Fetch workspace structure server-side
+  // Fetch workspace structure
   const workspaceResult = await getWorkspaceStructure();
   const workspaceStructure = workspaceResult.success
-    ? (workspaceResult.data ?? [])
+    ? workspaceResult.data ?? []
     : [];
+
+  // No workspaces? Send to onboarding
+  if (workspaceStructure.length === 0) {
+    redirect("/onboarding");
+  }
+
+  // Resolve display name
+  const displayName =
+    user.user_metadata?.displayName ||
+    user.user_metadata?.full_name ||
+    user.email ||
+    "Editor";
 
   return (
     <div className="flex h-screen w-full bg-[--background] overflow-hidden">
-      {/*
-        This component watches the URL for ?invite=success
-        and triggers a toast notification when appropriate
-      */}
+      {/* Invite toast for ?invite=success */}
       <InviteToast />
 
-      {/*
-        Workspace Hydrator
-        Synchronizes server-fetched workspace data and URL params into Zustand store
-      */}
+      {/* Hydrate workspace store from server data + URL */}
       <Suspense fallback={null}>
         <WorkspaceHydrator structure={workspaceStructure} />
       </Suspense>
 
-      {/*
-        Sidebar
-        We pass both the user's name and the workspace structure.
-        The sidebar will initialize the Zustand store with this data immediately.
-      */}
+      {/* Sidebar with user + workspace structure */}
       <SidebarClient
-        displayName={user.displayName}
+        displayName={displayName}
         initialStructure={workspaceStructure}
       />
 
-      {/* Main Scrollable Content Area */}
+      {/* Main content */}
       <main className="flex-1 flex flex-col min-w-0 overflow-hidden relative">
         <div className="flex-1 overflow-y-auto scroll-smooth">{children}</div>
       </main>

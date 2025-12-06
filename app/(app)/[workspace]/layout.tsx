@@ -10,34 +10,25 @@ interface WorkspaceLayoutProps {
   params: Promise<{ workspace: string }>;
 }
 
-/**
- * Workspace Layout
- *
- * This layout wraps all workspace-scoped routes (/:workspace/...)
- * It validates that the workspace slug exists and the user has access
- * BEFORE rendering children, preventing flash of unauthorized content.
- */
+// Validates that the current workspace slug is accessible to the user
 export default async function WorkspaceLayout({
   children,
   params,
 }: WorkspaceLayoutProps) {
   const { workspace } = await params;
 
-  // Server-side validation: Check if user has access to this workspace
+  // Fetch user's accessible workspaces
   const workspaceResult = await getWorkspaceStructure();
   const workspaceStructure: OrganizationNode[] = workspaceResult.success
-    ? (workspaceResult.data ?? [])
+    ? workspaceResult.data ?? []
     : [];
 
-  // Validate workspace exists in user's accessible workspaces
+  // Check if requested workspace is accessible
   const hasAccess = workspaceStructure.some((node) =>
-    node.workspaces.some(
-      (ws) => ws.slug === workspace || ws.id === workspace
-    )
+    node.workspaces.some((ws) => ws.slug === workspace || ws.id === workspace)
   );
 
   if (!hasAccess) {
-    // Workspace not found or user doesn't have access
     notFound();
   }
 

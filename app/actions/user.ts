@@ -3,51 +3,28 @@
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
+import { authenticatedFetch } from "@/app/actions/billing";
 import { revalidatePath } from "next/cache";
 import { cookies } from "next/headers";
 import type { CompleteOnboardingRequest } from "@/lib/types/onboarding";
 
 const BACKEND_URL = process.env.BACKEND_URL;
+const API_KEY = process.env.API_KEY || process.env.NEXT_PUBLIC_API_KEY;
+
 if (!BACKEND_URL) {
   throw new Error("BACKEND_URL is not defined in environment variables");
 }
 
-const API_KEY = process.env.NEXT_PUBLIC_API_KEY;
-
-export async function updateDisplayName(newDisplayName: string) {
-  const supabase = await createClient();
-
-  const {
-    data: { user },
-    error: sessionError,
-  } = await supabase.auth.getUser();
-
-  if (sessionError || !user) {
-    return { success: false, error: "User not authenticated." };
-  }
-
-  try {
-    const { error: updateError } = await supabase.auth.updateUser({
-      data: { displayName: newDisplayName },
-    });
-
-    if (updateError) {
-      return { success: false, error: updateError.message };
-    }
-
-    await syncUser();
-    revalidatePath("/", "layout");
-
-    return { success: true };
-  } catch (error) {
-    const message =
-      error instanceof Error
-        ? error.message
-        : "An unknown error occurred during update.";
-    return { success: false, error: message };
-  }
+// Get user context (default workspace + permissions)
+export async function getUserContext() {
+  return await authenticatedFetch("/users/me/context", {
+    headers: {
+      "x-api-key": API_KEY || "",
+    },
+  });
 }
 
+// Sync user to backend (handles invite token if present)
 export async function syncUser(options?: { inviteToken?: string }) {
   const supabase = await createClient();
 
@@ -127,10 +104,7 @@ export async function syncUser(options?: { inviteToken?: string }) {
   }
 }
 
-/**
- * Complete onboarding by creating organization and workspace
- * POST /users/onboarding/complete
- */
+// Complete onboarding (create org + workspace)
 export async function completeOnboarding(data: CompleteOnboardingRequest) {
   const supabase = await createClient();
 
@@ -166,9 +140,7 @@ export async function completeOnboarding(data: CompleteOnboardingRequest) {
       const errorData = await response.json().catch(() => ({}));
       return {
         success: false,
-        error: `Onboarding failed: ${
-          errorData.message || response.statusText
-        }`,
+        error: `Onboarding failed: ${errorData.message || response.statusText}`,
         statusCode: response.status,
       };
     }
@@ -189,5 +161,42 @@ export async function completeOnboarding(data: CompleteOnboardingRequest) {
       success: false,
       error: "Failed to connect to backend service.",
     };
+  }
+}
+
+// Update display name in Supabase and backend
+export async function updateDisplayName(newDisplayName: string) {
+  const supabase = await createClient();
+
+  const {
+    data: { user },
+    error: sessionError,
+  } = await supabase.auth.getUser();
+
+  if (sessionError || !user) {
+    return { success: false, error: "User not authenticated." };
+  }
+
+  try {
+    const { error: updateError } = await supabase.auth.updateUser({
+      data: { displayName: newDisplayName },
+    });
+
+    if (updateError) {
+      return { success: false, error: updateError.message };
+    }
+
+    // Sync backend with new profile data
+    await syncUser();
+
+    revalidatePath("/", "layout");
+
+    return { success: true };
+  } catch (error) {
+    const message =
+      error instanceof Error
+        ? error.message
+        : "An unknown error occurred during update.";
+    return { success: false, error: message };
   }
 }
