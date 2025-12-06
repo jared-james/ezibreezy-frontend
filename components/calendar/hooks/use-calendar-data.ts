@@ -4,11 +4,12 @@
 
 import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { useParams } from "next/navigation";
+import { FullPostDetails } from "@/lib/api/publishing";
 import {
-  getContentLibrary,
-  getPostDetails,
-  FullPostDetails,
-} from "@/lib/api/publishing";
+  getContentLibraryAction,
+  getPostDetailsAction,
+} from "@/app/actions/publishing";
 import type { ScheduledPost, CalendarFilters, CalendarView } from "../types";
 
 interface UseCalendarDataProps {
@@ -24,6 +25,9 @@ export function useCalendarData({
   activeView,
   currentDate,
 }: UseCalendarDataProps) {
+  const params = useParams();
+  const workspaceId = params.workspace as string;
+
   const {
     data: allContent = [],
     isLoading: isLoadingList,
@@ -31,8 +35,12 @@ export function useCalendarData({
     error: errorList,
     refetch,
   } = useQuery<ScheduledPost[]>({
-    queryKey: ["contentLibrary"],
-    queryFn: getContentLibrary,
+    queryKey: ["contentLibrary", workspaceId],
+    queryFn: async () => {
+      const result = await getContentLibraryAction(workspaceId);
+      if (!result.success) throw new Error(result.error);
+      return result.data!;
+    },
     // === ADD HYDRATION CONFIG ===
     staleTime: 60000,
   });
@@ -96,8 +104,12 @@ export function useCalendarData({
     error: errorFullPost,
     isFetching: isFetchingFullPost,
   } = useQuery<FullPostDetails>({
-    queryKey: ["fullPostDetails", postIdToEdit],
-    queryFn: () => getPostDetails(postIdToEdit!),
+    queryKey: ["fullPostDetails", postIdToEdit, workspaceId],
+    queryFn: async () => {
+      const result = await getPostDetailsAction(postIdToEdit!, workspaceId);
+      if (!result.success) throw new Error(result.error);
+      return result.data!;
+    },
     enabled: !!postIdToEdit,
     staleTime: 5 * 60 * 1000,
   });

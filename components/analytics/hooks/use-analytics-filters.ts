@@ -4,9 +4,10 @@
 
 import { useState, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { getConnections } from "@/lib/api/integrations";
 import { Instagram, Youtube } from "lucide-react";
+import { useParams } from "next/navigation";
 import type { Connection } from "@/lib/api/integrations";
+import { getConnectionsAction } from "@/app/actions/integrations";
 import type {
   TimeRange,
   AnalyticsPlatform,
@@ -83,10 +84,17 @@ function migrateOldFormat(
 }
 
 export function useAnalyticsFilters(): UseAnalyticsFiltersReturn {
+  const params = useParams();
+  const workspaceId = params.workspace as string;
+
   const { data: allConnections = [], isLoading: isLoadingIntegrations } =
     useQuery<Connection[]>({
-      queryKey: ["connections"],
-      queryFn: getConnections,
+      queryKey: ["connections", workspaceId],
+      queryFn: async () => {
+        const result = await getConnectionsAction(workspaceId);
+        if (!result.success) throw new Error(result.error);
+        return result.data!;
+      },
       staleTime: 10 * 60 * 1000,
     });
 

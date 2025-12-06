@@ -5,7 +5,8 @@
 import { useState, useRef } from "react";
 import { Settings, Upload, Trash2, Loader2, Info } from "lucide-react";
 import { toast } from "sonner";
-import { uploadMedia } from "@/lib/api/media";
+import { uploadMediaAction } from "@/app/actions/media";
+import { useWorkspaceStore } from "@/lib/store/workspace-store";
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -59,6 +60,7 @@ export function YouTubeOptions({
   thumbnailUrl,
   onThumbnailChange,
 }: YouTubeOptionsProps) {
+  const { currentWorkspace } = useWorkspaceStore();
   const [isUploadingThumb, setIsUploadingThumb] = useState(false);
   const [isSourceModalOpen, setIsSourceModalOpen] = useState(false);
   const [isMediaRoomOpen, setIsMediaRoomOpen] = useState(false);
@@ -70,15 +72,18 @@ export function YouTubeOptions({
     const file = e.target.files?.[0];
     if (!file) return;
 
-    if (!integrationId) {
+    if (!integrationId || !currentWorkspace) {
       toast.error("Please select a YouTube account first.");
       return;
     }
 
     try {
       setIsUploadingThumb(true);
-      const response = await uploadMedia(file);
-      onThumbnailChange(response.url);
+      const formData = new FormData();
+      formData.append("file", file);
+      const result = await uploadMediaAction(formData, currentWorkspace.id);
+      if (!result.success) throw new Error(result.error);
+      onThumbnailChange(result.data!.url);
       toast.success("Thumbnail uploaded");
     } catch (error) {
       toast.error("Failed to upload thumbnail");

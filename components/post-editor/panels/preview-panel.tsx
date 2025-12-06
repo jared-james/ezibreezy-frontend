@@ -15,7 +15,8 @@ import {
   Pin,
 } from "lucide-react";
 import Image from "next/image";
-import { getConnections } from "@/lib/api/integrations";
+import { useParams } from "next/navigation";
+import { getConnectionsAction } from "@/app/actions/integrations";
 import XPreview from "../previews/x";
 import InstagramPreview from "../previews/instagram";
 import LinkedInPreview from "../previews/linkedin";
@@ -56,6 +57,9 @@ const platformNames: Record<string, string> = {
 };
 
 function PreviewPanel() {
+  const params = useParams();
+  const workspaceId = params.workspace as string;
+
   const mainCaption = useEditorialDraftStore((state) => state.mainCaption);
   const platformCaptions = useEditorialDraftStore(
     (state) => state.platformCaptions
@@ -102,8 +106,12 @@ function PreviewPanel() {
   );
 
   const { data: connections = [] } = useQuery({
-    queryKey: ["connections"],
-    queryFn: getConnections,
+    queryKey: ["connections", workspaceId],
+    queryFn: async () => {
+      const result = await getConnectionsAction(workspaceId);
+      if (!result.success) throw new Error(result.error);
+      return result.data!;
+    },
   });
 
   const activePlatforms = useMemo(

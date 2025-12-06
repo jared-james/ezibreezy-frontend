@@ -5,7 +5,9 @@
 import { useState, KeyboardEvent } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { UserPlus, X, Loader2, AlertCircle } from "lucide-react";
-import { searchInstagramUser, InstagramUserSearchResult } from "@/lib/api/integrations";
+import { useParams } from "next/navigation";
+import { InstagramUserSearchResult } from "@/lib/api/integrations";
+import { searchInstagramUserAction } from "@/app/actions/integrations";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 
@@ -22,6 +24,9 @@ export default function CollaboratorSearchInput({
   onCollaboratorsChange,
   integrationId,
 }: CollaboratorSearchInputProps) {
+  const params = useParams();
+  const workspaceId = params.workspace as string;
+
   const [username, setUsername] = useState("");
   const [error, setError] = useState<string | null>(null);
 
@@ -30,7 +35,13 @@ export default function CollaboratorSearchInput({
       if (!integrationId) {
         throw new Error("Instagram account not selected");
       }
-      return searchInstagramUser(usernameToSearch, integrationId);
+      const result = await searchInstagramUserAction(
+        usernameToSearch,
+        integrationId,
+        workspaceId
+      );
+      if (!result.success) throw new Error(result.error);
+      return result.data!;
     },
     onSuccess: (data) => {
       // Check if already selected

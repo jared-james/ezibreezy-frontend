@@ -4,13 +4,19 @@
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { deletePost } from "@/lib/api/publishing";
+import { useParams } from "next/navigation";
+import { deletePostAction } from "@/app/actions/publishing";
 
 export function useDeletePost() {
   const queryClient = useQueryClient();
+  const params = useParams();
+  const workspaceId = params.workspace as string;
 
   const deleteMutation = useMutation({
-    mutationFn: deletePost,
+    mutationFn: async (postId: string) => {
+      const result = await deletePostAction(postId, workspaceId);
+      if (!result.success) throw new Error(result.error);
+    },
     onSuccess: () => {
       toast.success("Post successfully deleted.");
       queryClient.invalidateQueries({ queryKey: ["contentLibrary"] });

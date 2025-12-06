@@ -3,15 +3,15 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams, useParams } from "next/navigation";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import posthog from "posthog-js";
+import { type Connection } from "@/lib/api/integrations";
 import {
-  getConnections,
-  type Connection,
-  disconnectAccount,
-} from "@/lib/api/integrations";
+  getConnectionsAction,
+  disconnectAccountAction,
+} from "@/app/actions/integrations";
 import { AvailableChannelsSection } from "./available-channels-section";
 import { ConnectedChannelsSection } from "./connected-channels-section";
 import { platformDefinitions } from "./constants";
@@ -27,13 +27,19 @@ export function IntegrationsSettings() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const queryClient = useQueryClient();
+  const params = useParams();
+  const workspaceId = params.workspace as string;
 
   const {
     data: connections = [],
     error,
   } = useQuery<Connection[]>({
-    queryKey: ["connections"],
-    queryFn: getConnections,
+    queryKey: ["connections", workspaceId],
+    queryFn: async () => {
+      const result = await getConnectionsAction(workspaceId);
+      if (!result.success) throw new Error(result.error);
+      return result.data!;
+    },
   });
 
   useEffect(() => {
@@ -48,7 +54,7 @@ export function IntegrationsSettings() {
         platform: platform || connected,
         connection_status: "success",
       });
-      queryClient.invalidateQueries({ queryKey: ["connections"] });
+      queryClient.invalidateQueries({ queryKey: ["connections", workspaceId] });
       router.replace("/settings/integrations", { scroll: false });
     }
 
@@ -60,7 +66,7 @@ export function IntegrationsSettings() {
         error_message: errorParam,
         connection_status: "failed",
       });
-      queryClient.invalidateQueries({ queryKey: ["connections"] });
+      queryClient.invalidateQueries({ queryKey: ["connections", workspaceId] });
       router.replace("/settings/integrations", { scroll: false });
     }
   }, [searchParams, router, queryClient]);
@@ -77,14 +83,17 @@ export function IntegrationsSettings() {
 
   const handleDisconnect = async (platformId: string, accountId: string) => {
     try {
-      await disconnectAccount(platformId, accountId);
+      const result = await disconnectAccountAction(platformId, accountId, workspaceId);
+      if (!result.success) {
+        throw new Error(result.error);
+      }
       toast.success("Account disconnected.");
       // Track social account disconnection
       posthog.capture("social_account_disconnected", {
         platform: platformId,
         account_id: accountId,
       });
-      queryClient.invalidateQueries({ queryKey: ["connections"] });
+      queryClient.invalidateQueries({ queryKey: ["connections", workspaceId] });
     } catch (err) {
       toast.error("Failed to disconnect account.");
       console.error("Disconnect error:", err);

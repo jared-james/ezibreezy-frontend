@@ -16,7 +16,8 @@ import { Input } from "@/components/ui/input";
 import { PinterestBoardSelector } from "./pinterest-board-selector";
 import { MediaItem } from "@/lib/store/editorial/draft-store";
 import { toast } from "sonner";
-import { uploadMedia } from "@/lib/api/media";
+import { uploadMediaAction } from "@/app/actions/media";
+import { useWorkspaceStore } from "@/lib/store/workspace-store";
 import { useClientData } from "@/lib/hooks/use-client-data";
 import MediaSourceModal from "../../modals/media-source-modal";
 import MediaRoomModal from "../../modals/media-room-modal";
@@ -47,6 +48,7 @@ export function PinterestOptions({
   coverUrl,
   onCoverChange,
 }: PinterestOptionsProps) {
+  const { currentWorkspace } = useWorkspaceStore();
   const [isUploadingCover, setIsUploadingCover] = useState(false);
   const [isSourceModalOpen, setIsSourceModalOpen] = useState(false);
   const [isMediaRoomOpen, setIsMediaRoomOpen] = useState(false);
@@ -59,15 +61,18 @@ export function PinterestOptions({
     const file = e.target.files?.[0];
     if (!file) return;
 
-    if (!integrationId) {
+    if (!integrationId || !currentWorkspace) {
       toast.error("Please select a Pinterest account first.");
       return;
     }
 
     try {
       setIsUploadingCover(true);
-      const response = await uploadMedia(file);
-      onCoverChange?.(response.url);
+      const formData = new FormData();
+      formData.append("file", file);
+      const result = await uploadMediaAction(formData, currentWorkspace.id);
+      if (!result.success) throw new Error(result.error);
+      onCoverChange?.(result.data!.url);
       toast.success("Cover image uploaded");
     } catch (error) {
       toast.error("Failed to upload cover image");

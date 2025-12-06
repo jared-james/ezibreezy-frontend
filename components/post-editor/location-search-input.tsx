@@ -7,7 +7,8 @@ import { createPortal } from "react-dom";
 import { useQuery } from "@tanstack/react-query";
 import { MapPin, X, Loader2, Search } from "lucide-react";
 import { useDebounce } from "use-debounce";
-import { searchLocations } from "@/lib/api/integrations";
+import { useParams } from "next/navigation";
+import { searchLocationsAction } from "@/app/actions/integrations";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 
@@ -24,6 +25,9 @@ export default function LocationSearchInput({
   integrationId,
   isEnabled,
 }: LocationSearchInputProps) {
+  const params = useParams();
+  const workspaceId = params.workspace as string;
+
   const [query, setQuery] = useState(initialLocation.name);
   const [debouncedQuery] = useDebounce(query, 300);
   const [isFocused, setIsFocused] = useState(false);
@@ -60,14 +64,18 @@ export default function LocationSearchInput({
     isLoading,
     isError,
   } = useQuery({
-    queryKey: ["locations", debouncedQuery, integrationId],
+    queryKey: ["locations", debouncedQuery, integrationId, workspaceId],
     queryFn: async () => {
       if (!debouncedQuery || !integrationId || selectedLocation.id) {
         return [];
       }
-      const results = await searchLocations(debouncedQuery, integrationId);
-
-      return results;
+      const result = await searchLocationsAction(
+        debouncedQuery,
+        integrationId,
+        workspaceId
+      );
+      if (!result.success) throw new Error(result.error);
+      return result.data!;
     },
     enabled: !!debouncedQuery && !!integrationId && !selectedLocation.id,
   });

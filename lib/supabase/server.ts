@@ -15,9 +15,20 @@ export async function createClient() {
           return cookieStore.getAll();
         },
         setAll(cookiesToSet) {
-          cookiesToSet.forEach(({ name, value, options }) =>
-            cookieStore.set(name, value, options)
-          );
+          try {
+            cookiesToSet.forEach(({ name, value, options }) =>
+              cookieStore.set(name, value, {
+                ...options,
+                // 🔒 FORCE SECURITY FLAGS
+                httpOnly: true,
+                secure: process.env.NODE_ENV === "production",
+                sameSite: "lax",
+              })
+            );
+          } catch {
+            // This ignores errors if a Server Component tries to set cookies
+            // (which isn't allowed, but Supabase SDK sometimes tries)
+          }
         },
       },
     }

@@ -6,7 +6,8 @@ import { useState } from "react";
 import { Clock, Loader2, Trash2 } from "lucide-react";
 import { format, isToday, isTomorrow } from "date-fns";
 import type { ScheduledPost } from "../types";
-import { deletePost } from "@/lib/api/publishing";
+import { deletePostAction } from "@/app/actions/publishing";
+import { useWorkspaceStore } from "@/lib/store/workspace-store";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -19,6 +20,7 @@ interface ListViewProps {
 }
 
 export default function ListView({ posts, onEditPost }: ListViewProps) {
+  const { currentWorkspace } = useWorkspaceStore();
   const queryClient = useQueryClient();
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -49,7 +51,11 @@ export default function ListView({ posts, onEditPost }: ListViewProps) {
   });
 
   const deleteMutation = useMutation({
-    mutationFn: deletePost,
+    mutationFn: async (postId: string) => {
+      if (!currentWorkspace) throw new Error("No workspace selected");
+      const result = await deletePostAction(postId, currentWorkspace.id);
+      if (!result.success) throw new Error(result.error);
+    },
     onMutate: (postId) => {
       setDeletingId(postId);
     },
@@ -60,14 +66,8 @@ export default function ListView({ posts, onEditPost }: ListViewProps) {
       setShowDeleteModal(false);
       setPostToDelete(null);
     },
-    onError: (
-      error: Error & { response?: { data?: { message?: string } } }
-    ) => {
-      toast.error(
-        `Failed to cancel post: ${
-          error?.response?.data?.message || "Please try again."
-        }`
-      );
+    onError: (error: Error) => {
+      toast.error(`Failed to cancel post: ${error.message || "Please try again."}`);
       setDeletingId(null);
     },
   });

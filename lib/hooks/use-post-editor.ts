@@ -8,8 +8,7 @@ import {
   MediaItem,
 } from "@/lib/store/editorial/draft-store";
 import { usePublishingStore } from "@/lib/store/editorial/publishing-store";
-import { uploadMedia } from "@/lib/api/media";
-import { getConnections, type Connection } from "@/lib/api/integrations";
+import { type Connection } from "@/lib/api/integrations";
 import type { Platform, ThreadMessageAugmented } from "@/lib/types/editorial";
 import {
   Twitter,
@@ -21,10 +20,14 @@ import {
   Music2,
   Pin,
 } from "lucide-react";
-import { createPost, type CreatePostPayload } from "@/lib/api/publishing";
+import { type CreatePostPayload } from "@/lib/api/publishing";
 import { generateVideoThumbnail } from "@/lib/utils/video-thumbnail";
 import { getAutoSelectionForPlatform } from "@/lib/utils/media-validation";
 import { getClientDataForEditor } from "@/app/actions/data";
+import { uploadMediaAction } from "@/app/actions/media";
+import { getConnectionsAction } from "@/app/actions/integrations";
+import { createPostAction } from "@/app/actions/publishing";
+import { useParams } from "next/navigation";
 
 interface UsePostEditorOptions {
   mode?: "editorial" | "clipping";
@@ -33,6 +36,8 @@ interface UsePostEditorOptions {
 export function usePostEditor(options: UsePostEditorOptions = {}) {
   const { mode = "editorial" } = options;
   const queryClient = useQueryClient();
+  const params = useParams();
+  const workspaceId = params.workspace as string;
 
   // Draft Store (Content)
   const setDraftState = useEditorialDraftStore((state) => state.setDraftState);
@@ -72,12 +77,20 @@ export function usePostEditor(options: UsePostEditorOptions = {}) {
   const organizationId = clientData?.organizationId;
 
   const { data: connections = [] } = useQuery({
-    queryKey: ["connections"],
-    queryFn: getConnections,
+    queryKey: ["connections", workspaceId],
+    queryFn: async () => {
+      const result = await getConnectionsAction(workspaceId);
+      if (!result.success) throw new Error(result.error);
+      return result.data!;
+    },
   });
 
   const postMutation = useMutation({
-    mutationFn: (payload: CreatePostPayload) => createPost(payload),
+    mutationFn: async (payload: CreatePostPayload) => {
+      const result = await createPostAction(payload, workspaceId);
+      if (!result.success) throw new Error(result.error);
+      return result.data!;
+    },
     onError: (error: any) => {
       console.error("Failed to create post:", error);
       toast.error(
@@ -104,7 +117,15 @@ export function usePostEditor(options: UsePostEditorOptions = {}) {
         }
       }
 
-      return uploadMedia(variables.file, thumbnail);
+      const formData = new FormData();
+      formData.append("file", variables.file);
+      if (thumbnail) {
+        formData.append("thumbnail", thumbnail);
+      }
+
+      const result = await uploadMediaAction(formData, workspaceId);
+      if (!result.success) throw new Error(result.error);
+      return result.data!;
     },
     onSuccess: (data, variables) => {
       const currentItems = useEditorialDraftStore.getState().stagedMediaItems;

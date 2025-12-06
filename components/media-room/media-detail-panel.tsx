@@ -34,7 +34,9 @@ import {
   useFolderList,
 } from "@/lib/hooks/use-media";
 import { useMediaRoomStore } from "@/lib/store/media-room-store";
-import { getMediaDownloadUrl, type MediaItemWithUsage } from "@/lib/api/media";
+import type { MediaItemWithUsage } from "@/lib/api/media";
+import { getMediaDownloadUrlAction } from "@/app/actions/media";
+import { useWorkspaceStore } from "@/lib/store/workspace-store";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -133,16 +135,19 @@ function MediaItemEditor({
     }
   };
 
+  const { currentWorkspace } = useWorkspaceStore();
+
   const handleDownload = async (e: React.MouseEvent) => {
     e.preventDefault();
-    if (media.isArchived) return;
+    if (media.isArchived || !currentWorkspace) return;
 
     setIsDownloading(true);
     try {
-      const { downloadUrl } = await getMediaDownloadUrl(media.id);
+      const result = await getMediaDownloadUrlAction(media.id, currentWorkspace.id);
+      if (!result.success) throw new Error(result.error);
 
       const link = document.createElement("a");
-      link.href = downloadUrl;
+      link.href = result.data!.downloadUrl;
       link.download = media.filename || "download";
       link.style.display = "none";
       document.body.appendChild(link);

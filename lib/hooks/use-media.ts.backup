@@ -49,14 +49,8 @@ export function useMediaList(filters: MediaFilters = {}) {
 
   return useInfiniteQuery({
     queryKey: ["media", currentWorkspace?.id, filters],
-    queryFn: async ({ pageParam = 0 }) => {
-      const result = await listMediaAction(currentWorkspace!.id, {
-        ...filters,
-        offset: pageParam as number,
-      });
-      if (!result.success) throw new Error(result.error);
-      return result.data!;
-    },
+    queryFn: ({ pageParam = 0 }) =>
+      listMedia({ ...filters, offset: pageParam as number }),
     initialPageParam: 0,
     getNextPageParam: (lastPage) => {
       if (lastPage.pagination.hasMore) {
@@ -76,11 +70,7 @@ export function useMediaItem(id: string | null) {
 
   return useQuery({
     queryKey: ["media", id, currentWorkspace?.id],
-    queryFn: async () => {
-      const result = await getMediaAction(id!, currentWorkspace!.id);
-      if (!result.success) throw new Error(result.error);
-      return result.data!;
-    },
+    queryFn: () => getMedia(id!),
     enabled: !!id && !!currentWorkspace,
     staleTime: 30000,
     initialData: () => {
@@ -130,15 +120,7 @@ export function useUploadMedia() {
         }
       }
 
-      const formData = new FormData();
-      formData.append("file", file);
-      if (thumbnail) {
-        formData.append("thumbnail", thumbnail);
-      }
-
-      const result = await uploadMediaAction(formData, currentWorkspace!.id);
-      if (!result.success) throw new Error(result.error);
-      return result.data!;
+      return uploadMedia(file, thumbnail);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({
@@ -154,20 +136,15 @@ export function useUploadMedia() {
 
 export function useUpdateMedia() {
   const queryClient = useQueryClient();
-  const { currentWorkspace } = useWorkspaceStore();
 
   return useMutation({
-    mutationFn: async ({
+    mutationFn: ({
       id,
       data,
     }: {
       id: string;
       data: { filename?: string; altText?: string; folderId?: string | null };
-    }) => {
-      const result = await updateMediaAction(id, currentWorkspace!.id, data);
-      if (!result.success) throw new Error(result.error);
-      return result.data!;
-    },
+    }) => updateMedia(id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["media"] });
       toast.success("Media updated");
@@ -180,13 +157,9 @@ export function useUpdateMedia() {
 
 export function useDeleteMedia() {
   const queryClient = useQueryClient();
-  const { currentWorkspace } = useWorkspaceStore();
 
   return useMutation({
-    mutationFn: async (id: string) => {
-      const result = await deleteMediaAction(id, currentWorkspace!.id);
-      if (!result.success) throw new Error(result.error);
-    },
+    mutationFn: (id: string) => deleteMedia(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["media"] });
       toast.success("Media deleted");
@@ -199,14 +172,9 @@ export function useDeleteMedia() {
 
 export function useArchiveMedia() {
   const queryClient = useQueryClient();
-  const { currentWorkspace } = useWorkspaceStore();
 
   return useMutation({
-    mutationFn: async (id: string) => {
-      const result = await archiveMediaAction(id, currentWorkspace!.id);
-      if (!result.success) throw new Error(result.error);
-      return result.data!;
-    },
+    mutationFn: (id: string) => archiveMedia(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["media"] });
       toast.success("Media archived successfully");
@@ -219,14 +187,9 @@ export function useArchiveMedia() {
 
 export function useBulkDeleteMedia() {
   const queryClient = useQueryClient();
-  const { currentWorkspace } = useWorkspaceStore();
 
   return useMutation({
-    mutationFn: async (mediaIds: string[]) => {
-      const result = await bulkDeleteMediaAction(mediaIds, currentWorkspace!.id);
-      if (!result.success) throw new Error(result.error);
-      return result.data!;
-    },
+    mutationFn: (mediaIds: string[]) => bulkDeleteMedia(mediaIds),
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["media"] });
       toast.success(`Deleted ${data.deleted} items`);
@@ -239,14 +202,9 @@ export function useBulkDeleteMedia() {
 
 export function useBulkArchiveMedia() {
   const queryClient = useQueryClient();
-  const { currentWorkspace } = useWorkspaceStore();
 
   return useMutation({
-    mutationFn: async (mediaIds: string[]) => {
-      const result = await bulkArchiveMediaAction(mediaIds, currentWorkspace!.id);
-      if (!result.success) throw new Error(result.error);
-      return result.data!;
-    },
+    mutationFn: (mediaIds: string[]) => bulkArchiveMedia(mediaIds),
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["media"] });
       toast.success(`Archived ${data.archived} items`);
@@ -259,19 +217,15 @@ export function useBulkArchiveMedia() {
 
 export function useBulkMoveMedia() {
   const queryClient = useQueryClient();
-  const { currentWorkspace } = useWorkspaceStore();
 
   return useMutation({
-    mutationFn: async ({
+    mutationFn: ({
       mediaIds,
       folderId,
     }: {
       mediaIds: string[];
       folderId: string | null;
-    }) => {
-      const result = await bulkMoveMediaAction(mediaIds, folderId, currentWorkspace!.id);
-      if (!result.success) throw new Error(result.error);
-    },
+    }) => bulkMoveMedia(mediaIds, folderId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["media"] });
       toast.success("Media moved");
@@ -284,19 +238,15 @@ export function useBulkMoveMedia() {
 
 export function useBulkTagMedia() {
   const queryClient = useQueryClient();
-  const { currentWorkspace } = useWorkspaceStore();
 
   return useMutation({
-    mutationFn: async ({
+    mutationFn: ({
       mediaIds,
       tagIds,
     }: {
       mediaIds: string[];
       tagIds: string[];
-    }) => {
-      const result = await bulkTagMediaAction(mediaIds, tagIds, currentWorkspace!.id);
-      if (!result.success) throw new Error(result.error);
-    },
+    }) => bulkTagMedia(mediaIds, tagIds),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["media"] });
       toast.success("Tags added");
@@ -309,19 +259,15 @@ export function useBulkTagMedia() {
 
 export function useBulkUntagMedia() {
   const queryClient = useQueryClient();
-  const { currentWorkspace } = useWorkspaceStore();
 
   return useMutation({
-    mutationFn: async ({
+    mutationFn: ({
       mediaIds,
       tagIds,
     }: {
       mediaIds: string[];
       tagIds: string[];
-    }) => {
-      const result = await bulkUntagMediaAction(mediaIds, tagIds, currentWorkspace!.id);
-      if (!result.success) throw new Error(result.error);
-    },
+    }) => bulkUntagMedia(mediaIds, tagIds),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["media"] });
       toast.success("Tags removed");
@@ -342,11 +288,7 @@ export function useFolderList(parentId?: string | "root") {
 
   return useQuery({
     queryKey: ["folders", currentWorkspace?.id, validParentId],
-    queryFn: async () => {
-      const result = await listFoldersAction(currentWorkspace!.id, validParentId);
-      if (!result.success) throw new Error(result.error);
-      return result.data!;
-    },
+    queryFn: () => listFolders(validParentId),
     enabled: !!currentWorkspace,
     staleTime: 60000,
   });
@@ -357,11 +299,7 @@ export function useFolder(id: string | null) {
 
   return useQuery({
     queryKey: ["folder", id, currentWorkspace?.id],
-    queryFn: async () => {
-      const result = await getFolderAction(id!, currentWorkspace!.id);
-      if (!result.success) throw new Error(result.error);
-      return result.data!;
-    },
+    queryFn: () => getFolder(id!),
     enabled: !!id && !!currentWorkspace,
     staleTime: 60000,
   });
@@ -372,11 +310,7 @@ export function useFolderBreadcrumb(id: string | null) {
 
   return useQuery({
     queryKey: ["folderBreadcrumb", id, currentWorkspace?.id],
-    queryFn: async () => {
-      const result = await getFolderBreadcrumbAction(id!, currentWorkspace!.id);
-      if (!result.success) throw new Error(result.error);
-      return result.data!;
-    },
+    queryFn: () => getFolderBreadcrumb(id!),
     enabled: !!id && !!currentWorkspace,
     staleTime: 60000,
   });
@@ -384,14 +318,10 @@ export function useFolderBreadcrumb(id: string | null) {
 
 export function useCreateFolder() {
   const queryClient = useQueryClient();
-  const { currentWorkspace } = useWorkspaceStore();
 
   return useMutation({
-    mutationFn: async ({ name, parentId }: { name: string; parentId?: string }) => {
-      const result = await createFolderAction(name, currentWorkspace!.id, parentId);
-      if (!result.success) throw new Error(result.error);
-      return result.data!;
-    },
+    mutationFn: ({ name, parentId }: { name: string; parentId?: string }) =>
+      createFolder(name, parentId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["folders"] });
       toast.success("Folder created");
@@ -404,14 +334,10 @@ export function useCreateFolder() {
 
 export function useRenameFolder() {
   const queryClient = useQueryClient();
-  const { currentWorkspace } = useWorkspaceStore();
 
   return useMutation({
-    mutationFn: async ({ id, name }: { id: string; name: string }) => {
-      const result = await renameFolderAction(id, name, currentWorkspace!.id);
-      if (!result.success) throw new Error(result.error);
-      return result.data!;
-    },
+    mutationFn: ({ id, name }: { id: string; name: string }) =>
+      renameFolder(id, name),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["folders"] });
       toast.success("Folder renamed");
@@ -424,13 +350,10 @@ export function useRenameFolder() {
 
 export function useMoveFolder() {
   const queryClient = useQueryClient();
-  const { currentWorkspace } = useWorkspaceStore();
 
   return useMutation({
-    mutationFn: async ({ id, parentId }: { id: string; parentId: string | null }) => {
-      const result = await moveFolderAction(id, parentId, currentWorkspace!.id);
-      if (!result.success) throw new Error(result.error);
-    },
+    mutationFn: ({ id, parentId }: { id: string; parentId: string | null }) =>
+      moveFolder(id, parentId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["folders"] });
       toast.success("Folder moved");
@@ -443,13 +366,9 @@ export function useMoveFolder() {
 
 export function useDeleteFolder() {
   const queryClient = useQueryClient();
-  const { currentWorkspace } = useWorkspaceStore();
 
   return useMutation({
-    mutationFn: async (id: string) => {
-      const result = await deleteFolderAction(id, currentWorkspace!.id);
-      if (!result.success) throw new Error(result.error);
-    },
+    mutationFn: (id: string) => deleteFolder(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["folders"] });
       queryClient.invalidateQueries({ queryKey: ["media"] });
@@ -466,11 +385,7 @@ export function useTagList(search?: string) {
 
   return useQuery({
     queryKey: ["tags", currentWorkspace?.id, search],
-    queryFn: async () => {
-      const result = await listTagsAction(currentWorkspace!.id, search);
-      if (!result.success) throw new Error(result.error);
-      return result.data!;
-    },
+    queryFn: () => listTags(search),
     enabled: !!currentWorkspace,
     staleTime: 60000,
   });
@@ -478,14 +393,10 @@ export function useTagList(search?: string) {
 
 export function useCreateTag() {
   const queryClient = useQueryClient();
-  const { currentWorkspace } = useWorkspaceStore();
 
   return useMutation({
-    mutationFn: async ({ name, color }: { name: string; color?: string }) => {
-      const result = await createTagAction(name, currentWorkspace!.id, color);
-      if (!result.success) throw new Error(result.error);
-      return result.data!;
-    },
+    mutationFn: ({ name, color }: { name: string; color?: string }) =>
+      createTag(name, color),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["tags"] });
       toast.success("Tag created");
@@ -498,20 +409,15 @@ export function useCreateTag() {
 
 export function useUpdateTag() {
   const queryClient = useQueryClient();
-  const { currentWorkspace } = useWorkspaceStore();
 
   return useMutation({
-    mutationFn: async ({
+    mutationFn: ({
       id,
       data,
     }: {
       id: string;
       data: { name?: string; color?: string };
-    }) => {
-      const result = await updateTagAction(id, data, currentWorkspace!.id);
-      if (!result.success) throw new Error(result.error);
-      return result.data!;
-    },
+    }) => updateTag(id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["tags"] });
       queryClient.invalidateQueries({ queryKey: ["media"] });
@@ -525,13 +431,9 @@ export function useUpdateTag() {
 
 export function useDeleteTag() {
   const queryClient = useQueryClient();
-  const { currentWorkspace } = useWorkspaceStore();
 
   return useMutation({
-    mutationFn: async (id: string) => {
-      const result = await deleteTagAction(id, currentWorkspace!.id);
-      if (!result.success) throw new Error(result.error);
-    },
+    mutationFn: (id: string) => deleteTag(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["tags"] });
       queryClient.invalidateQueries({ queryKey: ["media"] });
@@ -545,13 +447,10 @@ export function useDeleteTag() {
 
 export function useAttachTags() {
   const queryClient = useQueryClient();
-  const { currentWorkspace } = useWorkspaceStore();
 
   return useMutation({
-    mutationFn: async ({ mediaId, tagIds }: { mediaId: string; tagIds: string[] }) => {
-      const result = await attachTagsToMediaAction(mediaId, tagIds, currentWorkspace!.id);
-      if (!result.success) throw new Error(result.error);
-    },
+    mutationFn: ({ mediaId, tagIds }: { mediaId: string; tagIds: string[] }) =>
+      attachTagsToMedia(mediaId, tagIds),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["media"] });
     },
@@ -563,13 +462,10 @@ export function useAttachTags() {
 
 export function useDetachTags() {
   const queryClient = useQueryClient();
-  const { currentWorkspace } = useWorkspaceStore();
 
   return useMutation({
-    mutationFn: async ({ mediaId, tagIds }: { mediaId: string; tagIds: string[] }) => {
-      const result = await detachTagsFromMediaAction(mediaId, tagIds, currentWorkspace!.id);
-      if (!result.success) throw new Error(result.error);
-    },
+    mutationFn: ({ mediaId, tagIds }: { mediaId: string; tagIds: string[] }) =>
+      detachTagsFromMedia(mediaId, tagIds),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["media"] });
     },

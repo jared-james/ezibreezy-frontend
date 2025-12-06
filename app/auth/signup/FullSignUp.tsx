@@ -2,7 +2,6 @@
 
 "use client";
 
-import { createClient } from "@/lib/supabase/client";
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
@@ -12,6 +11,7 @@ import { ArrowRight, Loader2, Mail, ArrowLeft, UserPlus } from "lucide-react";
 import posthog from "posthog-js";
 import { useSearchParams } from "next/navigation";
 import { getInviteDetails } from "@/app/actions/invites";
+import { signup } from "@/app/actions/auth";
 
 export default function FullSignUp() {
   const [name, setName] = useState(""); // <--- New State
@@ -30,7 +30,6 @@ export default function FullSignUp() {
   } | null>(null);
   const [verifyingInvite, setVerifyingInvite] = useState(false);
 
-  const supabase = createClient();
   const searchParams = useSearchParams();
   const inviteToken = searchParams.get("token");
 
@@ -56,37 +55,37 @@ export default function FullSignUp() {
     setError(null);
     setIsLoading(true);
 
-    let redirectUrl = `${window.location.origin}/auth/callback`;
-    if (inviteToken) {
-      redirectUrl += `?invite_token=${inviteToken}`;
-    }
+    // Track signup attempt
+    posthog.capture("signup_attempt", {
+      email: email,
+      has_invite: !!inviteToken,
+    });
 
     try {
-      const { error } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          emailRedirectTo: redirectUrl,
-          // We attach the name here. Your syncUser action will pick this up automatically.
-          data: {
-            displayName: name,
-          },
-        },
-      });
+      // Prepare form data for Server Action
+      const formData = new FormData();
+      formData.append("email", email);
+      formData.append("password", password);
+      formData.append("name", name);
+      if (inviteToken) {
+        formData.append("inviteToken", inviteToken);
+      }
 
-      if (error) {
-        setError(error.message);
-        posthog.captureException(error);
+      // Call the signup Server Action
+      const result = await signup(formData);
+
+      if (result.error) {
+        setError(result.error);
         posthog.capture("auth_error_occurred", {
           error_type: "signup",
-          error_message: error.message,
+          error_message: result.error,
           email: email,
         });
       } else {
         setIsSubmitted(true);
         posthog.identify(email, {
           email: email,
-          name: name, // Tracking name in PostHog too
+          name: name,
         });
         posthog.capture("user_signed_up", {
           email: email,
