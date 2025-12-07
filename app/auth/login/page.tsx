@@ -3,6 +3,7 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { getUserContext } from "@/app/actions/user";
+import { getWorkspaceStructure } from "@/app/actions/workspaces";
 import LoginForm from "@/components/auth/login-form";
 
 export default async function LoginPage() {
@@ -15,22 +16,43 @@ export default async function LoginPage() {
   } = await supabase.auth.getUser();
 
   if (user && !error) {
-    // Ask backend for default workspace
+    // Strategy 1: Use backend user context (preferred)
     try {
-      const result = await getUserContext();
+      const contextResult = await getUserContext();
 
-      if (result.success && result.data?.defaultWorkspaceSlug) {
-        redirect(`/${result.data.defaultWorkspaceSlug}/dashboard`);
+      if (contextResult.success && contextResult.data?.defaultWorkspaceSlug) {
+        redirect(`/${contextResult.data.defaultWorkspaceSlug}/dashboard`);
       }
     } catch (e) {
-      // Let Next.js redirect errors pass through
+      // Allow Next.js redirects to pass through
       if (e instanceof Error && e.message === "NEXT_REDIRECT") {
         throw e;
       }
-      console.error("Failed to determine workspace context:", e);
+      console.warn("Strategy 1 failed: could not get default workspace", e);
     }
 
-    // Fallback: no workspace, go to onboarding
+    // Strategy 2: Fallback to first workspace from structure
+    try {
+      const structureResult = await getWorkspaceStructure();
+      const structure = structureResult.success
+        ? structureResult.data ?? []
+        : [];
+
+      const firstAvailableWorkspace = structure
+        .flatMap((org: any) => org.workspaces || [])
+        .find((ws: any) => ws.slug);
+
+      if (firstAvailableWorkspace) {
+        redirect(`/${firstAvailableWorkspace.slug}/dashboard`);
+      }
+    } catch (e) {
+      if (e instanceof Error && e.message === "NEXT_REDIRECT") {
+        throw e;
+      }
+      console.error("Strategy 2 failed: could not read workspace structure", e);
+    }
+
+    // Strategy 3: No workspaces — send to onboarding
     redirect("/onboarding");
   }
 

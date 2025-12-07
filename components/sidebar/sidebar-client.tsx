@@ -1,7 +1,5 @@
 // components/sidebar/sidebar-client.tsx
 
-// components/sidebar-client.tsx
-
 "use client";
 
 import Link from "next/link";
