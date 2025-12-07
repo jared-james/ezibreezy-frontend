@@ -18,12 +18,10 @@ export default async function CalendarPage({ params }: PageProps) {
 
   const queryClient = getQueryClient();
 
-  // Calculate default view range (Current Month) to prefetch
   const now = new Date();
   const monthStart = startOfMonth(now);
   const monthEnd = endOfMonth(now);
 
-  // Match the grid logic: start of week for the 1st, end of week for the last
   const gridStart = subDays(monthStart, getDay(monthStart));
   const gridEnd = addDays(monthEnd, 6 - getDay(monthEnd));
 
@@ -31,8 +29,8 @@ export default async function CalendarPage({ params }: PageProps) {
   const endStr = gridEnd.toISOString();
 
   await queryClient.prefetchQuery({
-    // Key must match exactly what useCalendarData generates for the default view
-    queryKey: ["contentLibrary", workspaceId, "Month", startStr, endStr],
+    // === CHANGE: Removed "Month" string from key to match client hook ===
+    queryKey: ["contentLibrary", workspaceId, startStr, endStr],
     queryFn: async () => {
       const queryString = new URLSearchParams({
         startDate: startStr,

@@ -3,13 +3,15 @@
 "use client";
 
 import { useMemo, useEffect } from "react";
-import { useQuery, keepPreviousData, useQueryClient } from "@tanstack/react-query";
+import {
+  useQuery,
+  keepPreviousData,
+  useQueryClient,
+} from "@tanstack/react-query";
 import { useParams } from "next/navigation";
 import {
   startOfMonth,
   endOfMonth,
-  startOfWeek,
-  endOfWeek,
   subDays,
   addDays,
   getDay,
@@ -26,7 +28,7 @@ import type { ScheduledPost, CalendarFilters, CalendarView } from "../types";
 interface UseCalendarDataProps {
   postIdToEdit: string | null;
   filters?: CalendarFilters;
-  activeView?: CalendarView;
+  activeView?: CalendarView; // Kept in props if needed later, but removed from fetch logic
   currentDate?: Date;
 }
 
@@ -40,39 +42,22 @@ export function useCalendarData({
   const workspaceId = params.workspace as string;
   const queryClient = useQueryClient();
 
-  // Calculate Date Range for Fetching
+  // === CHANGE 1: Unified Date Range Calculation ===
+  // Regardless of View (Month/Week/List), we always fetch the full visual month grid.
+  // This allows us to switch views without changing the dataset.
   const dateRange = useMemo(() => {
-    // For List view, we treat it like Month view for data fetching purposes
-    // so pagination works within the context of the selected month
-    if (activeView === "Month" || activeView === "List") {
-      const monthStart = startOfMonth(currentDate);
-      const monthEnd = endOfMonth(currentDate);
+    const monthStart = startOfMonth(currentDate);
+    const monthEnd = endOfMonth(currentDate);
 
-      // Expand to cover the full visual grid (start of week / end of week)
-      const gridStart = subDays(monthStart, getDay(monthStart));
-      const gridEnd = addDays(monthEnd, 6 - getDay(monthEnd));
+    // Expand to cover the full visual grid (Sunday start - Saturday end)
+    const gridStart = subDays(monthStart, getDay(monthStart));
+    const gridEnd = addDays(monthEnd, 6 - getDay(monthEnd));
 
-      return {
-        start: gridStart.toISOString(),
-        end: gridEnd.toISOString(),
-      };
-    }
-
-    if (activeView === "Week") {
-      const weekStart = startOfWeek(currentDate, { weekStartsOn: 0 });
-      const weekEnd = endOfWeek(currentDate, { weekStartsOn: 0 });
-      return {
-        start: weekStart.toISOString(),
-        end: weekEnd.toISOString(),
-      };
-    }
-
-    // Fallback
     return {
-      start: new Date().toISOString(),
-      end: new Date().toISOString(),
+      start: gridStart.toISOString(),
+      end: gridEnd.toISOString(),
     };
-  }, [activeView, currentDate]);
+  }, [currentDate]); // Removed activeView from dependency
 
   const {
     data: allContent = [],
@@ -82,11 +67,12 @@ export function useCalendarData({
     error: errorList,
     refetch,
   } = useQuery<ScheduledPost[]>({
-    // Include date range in query key to trigger refetch on navigation
+    // === CHANGE 2: Stable Query Key ===
+    // Removed 'activeView' from the key.
     queryKey: [
       "contentLibrary",
       workspaceId,
-      activeView,
+      // Key now depends ONLY on the grid range, not the view type
       dateRange.start,
       dateRange.end,
     ],
@@ -99,7 +85,6 @@ export function useCalendarData({
       return result.data!;
     },
     staleTime: 60000,
-    // THIS FIXES THE UX FLASH: Keeps old data visible while fetching new data
     placeholderData: keepPreviousData,
   });
 
@@ -138,12 +123,14 @@ export function useCalendarData({
     return posts;
   }, [allContent, filters]);
 
-  // Prefetch adjacent months for instant navigation
+  // === CHANGE 3: Update Prefetch Logic ===
+  // Ensure prefetching also uses the simplified key structure
   useEffect(() => {
-    if (activeView !== "Month" && activeView !== "List") return;
-
     const prefetchAdjacentMonth = (monthOffset: number) => {
-      const targetDate = monthOffset > 0 ? addMonths(currentDate, monthOffset) : subMonths(currentDate, Math.abs(monthOffset));
+      const targetDate =
+        monthOffset > 0
+          ? addMonths(currentDate, monthOffset)
+          : subMonths(currentDate, Math.abs(monthOffset));
       const monthStart = startOfMonth(targetDate);
       const monthEnd = endOfMonth(targetDate);
       const gridStart = subDays(monthStart, getDay(monthStart));
@@ -152,12 +139,11 @@ export function useCalendarData({
       const queryKey = [
         "contentLibrary",
         workspaceId,
-        activeView,
+        // Match the main query key structure exactly
         gridStart.toISOString(),
         gridEnd.toISOString(),
       ];
 
-      // Prefetch if not already cached
       queryClient.prefetchQuery({
         queryKey,
         queryFn: async () => {
@@ -172,12 +158,11 @@ export function useCalendarData({
       });
     };
 
-    // Prefetch previous and next month
-    prefetchAdjacentMonth(-1); // Previous month
-    prefetchAdjacentMonth(1);  // Next month
-  }, [currentDate, activeView, workspaceId, queryClient]);
+    prefetchAdjacentMonth(-1);
+    prefetchAdjacentMonth(1);
+  }, [currentDate, workspaceId, queryClient]); // Removed activeView dep
 
-  // Background Fetch logic
+  // Background Fetch logic for Details (Unchanged)
   const {
     data: fullPostData,
     isLoading: isLoadingFullPost,
