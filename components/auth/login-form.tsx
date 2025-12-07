@@ -10,11 +10,10 @@ import MinimalHeader from "@/components/shared/minimal-header";
 import LandingPageFooter from "@/components/landing-page/landing-page-footer";
 import { ArrowRight, Loader2, CheckCircle2 } from "lucide-react";
 import posthog from "posthog-js";
-import { syncUser } from "@/app/actions/user";
 import { cn } from "@/lib/utils";
 import { login } from "@/app/actions/auth";
 
-type LoginState = "idle" | "authenticating" | "syncing" | "redirecting";
+type LoginState = "idle" | "authenticating" | "redirecting";
 
 function LoginFormInner() {
   const [email, setEmail] = useState("");
@@ -51,6 +50,7 @@ function LoginFormInner() {
       formData.append("email", email);
       formData.append("password", password);
 
+      // Perform Auth + Sync in one server round-trip
       const loginResult = await login(formData);
 
       if (!loginResult.success) {
@@ -59,8 +59,9 @@ function LoginFormInner() {
         return;
       }
 
-      setLoginState("syncing");
+      setLoginState("redirecting");
 
+      // Analytics
       if (loginResult.user?.email) {
         posthog.identify(loginResult.user.email, {
           email: loginResult.user.email,
@@ -71,28 +72,20 @@ function LoginFormInner() {
         });
       }
 
-      const syncResult = await syncUser();
-
-      if (!syncResult.success) {
-        setError(syncResult.error || "Failed to setup workspace");
-        setLoginState("idle");
-        return;
-      }
-
-      setLoginState("redirecting");
-
-      if (syncResult.event === "onboarding_required") {
+      // Check for onboarding requirement
+      if (loginResult.event === "onboarding_required") {
         router.push("/onboarding");
         return;
       }
 
+      // Determine destination from server response
       const targetSlug =
-        syncResult.targetWorkspaceSlug || syncResult.targetWorkspaceId;
+        loginResult.targetWorkspaceSlug || loginResult.targetWorkspaceId;
       const targetPath = targetSlug ? `/${targetSlug}/dashboard` : "/dashboard";
 
       router.prefetch(targetPath);
 
-      if (syncResult.event === "invite_accepted") {
+      if (loginResult.event === "invite_accepted") {
         router.push(`${targetPath}?invite=success`);
       } else {
         router.push(targetPath);
@@ -152,7 +145,7 @@ function LoginFormInner() {
                 <div
                   className={cn(
                     "absolute top-8 right-8 pointer-events-none select-none transition-all duration-700",
-                    loginState === "syncing" || loginState === "redirecting"
+                    loginState === "redirecting"
                       ? "scale-125 opacity-100 rotate-12"
                       : "opacity-80 rotate-3"
                   )}
@@ -169,7 +162,7 @@ function LoginFormInner() {
                     <div
                       className={cn(
                         "absolute inset-0 transition-colors duration-500",
-                        loginState === "syncing" || loginState === "redirecting"
+                        loginState === "redirecting"
                           ? "bg-green-500/10 mix-blend-multiply"
                           : "bg-transparent"
                       )}
@@ -265,11 +258,11 @@ function LoginFormInner() {
                     </form>
                   </div>
 
-                  {/* --- STATE 2: SUCCESS / SYNCING --- */}
+                  {/* --- STATE 2: SUCCESS / REDIRECTING --- */}
                   <div
                     className={cn(
                       "transition-all duration-700 delay-100 absolute inset-0 flex flex-col items-center justify-center text-center space-y-6",
-                      loginState === "syncing" || loginState === "redirecting"
+                      loginState === "redirecting"
                         ? "opacity-100 translate-x-0 transform scale-100"
                         : "opacity-0 translate-x-8 transform scale-95 pointer-events-none"
                     )}
@@ -288,9 +281,7 @@ function LoginFormInner() {
                         Access Granted
                       </h3>
                       <p className="font-mono text-xs uppercase tracking-widest text-foreground/50 animate-pulse">
-                        {loginState === "syncing"
-                          ? "Retrieving Workspace..."
-                          : "Redirecting..."}
+                        Redirecting...
                       </p>
                     </div>
 

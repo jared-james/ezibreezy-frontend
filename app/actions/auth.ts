@@ -4,7 +4,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
-import { headers } from "next/headers"; // Import headers
+import { headers } from "next/headers";
 import { syncUser } from "./user";
 
 // --- 1. SETUP SIMPLE RATE LIMITER ---
@@ -16,9 +16,6 @@ interface RateLimitRecord {
   firstAttempt: number;
 }
 
-// Note: In serverless (Vercel), this Map resets when the lambda spins down.
-// For "easiest" implementation, this is usually sufficient.
-// For strict production, use Redis (e.g., Upstash).
 const rateLimitMap = new Map<string, RateLimitRecord>();
 
 function checkRateLimit(ip: string): boolean {
@@ -31,7 +28,6 @@ function checkRateLimit(ip: string): boolean {
   }
 
   if (now - record.firstAttempt > RATE_LIMIT_DURATION) {
-    // Reset if duration passed
     rateLimitMap.set(ip, { count: 1, firstAttempt: now });
     return true;
   }
@@ -49,6 +45,10 @@ interface LoginResult {
   success: boolean;
   error?: string;
   user?: { email: string };
+  // New fields to pass sync context back to client
+  targetWorkspaceSlug?: string;
+  targetWorkspaceId?: string;
+  event?: "login" | "invite_accepted" | "onboarded" | "onboarding_required";
 }
 
 export async function login(formData: FormData): Promise<LoginResult> {
@@ -62,7 +62,6 @@ export async function login(formData: FormData): Promise<LoginResult> {
       error: "Too many login attempts. Please try again in a minute.",
     };
   }
-  // ------------------------------------
 
   const email = formData.get("email") as string;
   const password = formData.get("password") as string;
@@ -75,7 +74,6 @@ export async function login(formData: FormData): Promise<LoginResult> {
   });
 
   if (error) {
-    // Optional: Return a specific error if Supabase rate limits you (HTTP 429)
     if (error.status === 429) {
       return { success: false, error: "Too many requests. Please wait." };
     }
@@ -87,12 +85,13 @@ export async function login(formData: FormData): Promise<LoginResult> {
     return { success: false, error: "Please verify your email address." };
   }
 
+  // Perform the Sync server-side immediately after login
   const syncResult = await syncUser();
 
   if (!syncResult.success) {
     console.error("Login sync failed:", syncResult.error);
-    // Optional: Decide if you want to block login if sync fails,
-    // or just let them through and hope a subsequent page load fixes it.
+    // We optionally continue, or could return an error here.
+    // For now, we proceed but return no workspace data, which might trigger fallback logic on client.
   }
 
   revalidatePath("/", "layout");
@@ -100,13 +99,20 @@ export async function login(formData: FormData): Promise<LoginResult> {
   return {
     success: true,
     user: { email: data.user.email || "" },
+    // Pass the sync data back so the client doesn't need to fetch it again
+    targetWorkspaceSlug: syncResult.targetWorkspaceSlug,
+    targetWorkspaceId: syncResult.targetWorkspaceId,
+    event: syncResult.event as LoginResult["event"],
   };
 }
 
 export async function logout() {
   const supabase = await createClient();
   await supabase.auth.signOut();
+
+  // Clear layout cache to prevent sidebar ghosting
   revalidatePath("/", "layout");
+
   redirect("/auth/login");
 }
 
@@ -116,7 +122,6 @@ interface SignupResult {
 }
 
 export async function signup(formData: FormData): Promise<SignupResult> {
-  // Apply rate limit check
   const headerStore = await headers();
   const ip = headerStore.get("x-forwarded-for") || "unknown";
 
@@ -134,7 +139,6 @@ export async function signup(formData: FormData): Promise<SignupResult> {
 
   const supabase = await createClient();
 
-  // Construct emailRedirectTo URL
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
   let emailRedirectTo = `${siteUrl}/auth/callback`;
 
@@ -154,7 +158,6 @@ export async function signup(formData: FormData): Promise<SignupResult> {
   });
 
   if (error) {
-    // Handle Supabase rate limiting
     if (error.status === 429) {
       return { success: false, error: "Too many requests. Please wait." };
     }
