@@ -3,7 +3,7 @@
 "use client";
 
 import { useMemo } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, keepPreviousData } from "@tanstack/react-query"; // Import keepPreviousData
 import { useParams } from "next/navigation";
 import {
   startOfMonth,
@@ -46,8 +46,6 @@ export function useCalendarData({
       const monthEnd = endOfMonth(currentDate);
 
       // Expand to cover the full visual grid (start of week / end of week)
-      // This matches MonthView logic: start = subDays(monthStart, getDay(monthStart))
-      // This ensures posts in the "grey" days of the previous/next month are loaded
       const gridStart = subDays(monthStart, getDay(monthStart));
       const gridEnd = addDays(monthEnd, 6 - getDay(monthEnd));
 
@@ -97,6 +95,8 @@ export function useCalendarData({
       return result.data!;
     },
     staleTime: 60000,
+    // THIS FIXES THE UX FLASH: Keeps old data visible while fetching new data
+    placeholderData: keepPreviousData,
   });
 
   const filteredPosts = useMemo(() => {

@@ -2,11 +2,11 @@
 
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react"; // Removed useEffect since we use the hook now
 import { FileText } from "lucide-react";
 import { toast } from "sonner";
 import { showError } from "@/components/ui/sonner";
-import { createClient } from "@/lib/supabase/client";
+// Removed createClient import as we don't need ad-hoc auth checks
 
 import ChannelSelector from "./panels/channel-selector";
 import CaptionEditor from "./caption/caption-editor";
@@ -21,6 +21,7 @@ import { usePostEditor } from "@/lib/hooks/use-post-editor";
 import { useEditorialDraftStore } from "@/lib/store/editorial/draft-store";
 import { usePublishingStore } from "@/lib/store/editorial/publishing-store";
 import { useEditorialUIStore } from "@/lib/store/editorial/ui-store";
+import { useClientData } from "@/lib/hooks/use-client-data"; // Import the hook
 
 import type { CreatePostPayload, PostSettings } from "@/lib/types/publishing";
 import { PlatformCrops } from "@/lib/utils/crop-utils";
@@ -40,7 +41,9 @@ export default function EditorialCore({
   onPostSuccess,
   mode = "editorial",
 }: EditorialCoreProps) {
-  const [user, setUser] = useState<any>(null);
+  // Use the robust client data hook instead of local state
+  const { userId: clientUserId } = useClientData();
+
   const [confirmationStatus, setConfirmationStatus] = useState<
     "sent" | "scheduled" | null
   >(null);
@@ -103,17 +106,6 @@ export default function EditorialCore({
       facebookPostType,
       postType: platformPostType,
     });
-
-  useEffect(() => {
-    const supabase = createClient();
-    const fetchUser = async () => {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      setUser(user);
-    };
-    fetchUser();
-  }, []);
 
   const resetAll = () => {
     resetDraft();
@@ -182,13 +174,17 @@ export default function EditorialCore({
   };
 
   const handlePublish = async () => {
+    // Rely on cached client data for user ID
+    if (!clientUserId) {
+      // Small fallback: if we truly lost the ID, the app likely needs a hard refresh or login
+      return showError("User identity missing. Please refresh the page.");
+    }
+
     const draft = useEditorialDraftStore.getState();
     const pub = usePublishingStore.getState();
 
     const finalMainCaption = localMainCaption;
     const finalPlatformCaptions = localPlatformCaptions;
-
-    if (!user) return showError("You must be logged in to post.");
 
     const integrationsToPost = Object.values(pub.selectedAccounts).flat();
     if (integrationsToPost.length === 0) {
@@ -334,7 +330,7 @@ export default function EditorialCore({
           }
 
           const payload: CreatePostPayload = {
-            userId: user.id,
+            userId: clientUserId, // Authenticated via Hook
             integrationId,
             content: contentToSend,
             settings: {
