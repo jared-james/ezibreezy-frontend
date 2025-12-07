@@ -39,36 +39,55 @@ export function usePostReschedule() {
     },
 
     onMutate: async (variables) => {
+      // Cancel all contentLibrary queries to prevent race conditions
       await queryClient.cancelQueries({ queryKey: ["contentLibrary"] });
 
-      const previousContent = queryClient.getQueryData<ScheduledPost[]>([
-        "contentLibrary",
-      ]);
+      // Store previous data from all matching queries for rollback
+      const previousQueries: Array<{
+        queryKey: unknown[];
+        data: ScheduledPost[];
+      }> = [];
 
-      queryClient.setQueryData<ScheduledPost[]>(["contentLibrary"], (old) => {
-        if (!old) return previousContent || [];
+      // Update all contentLibrary queries optimistically
+      queryClient.setQueriesData<ScheduledPost[]>(
+        { queryKey: ["contentLibrary"] },
+        (old) => {
+          if (!old) return old;
 
-        return old.map((post) => {
-          if (post.id === variables.postId) {
-            return {
-              ...post,
-              scheduledAt: variables.payload.scheduledAt,
-            };
-          }
-          return post;
-        });
-      });
+          // Store the previous data for potential rollback
+          previousQueries.push({
+            queryKey: ["contentLibrary"],
+            data: old,
+          });
 
-      return { previousContent };
+          // Return updated data with the rescheduled post
+          return old.map((post) => {
+            if (post.id === variables.postId) {
+              return {
+                ...post,
+                scheduledAt: variables.payload.scheduledAt,
+              };
+            }
+            return post;
+          });
+        }
+      );
+
+      return { previousQueries };
     },
 
     onSuccess: () => {
+      // Invalidate all contentLibrary queries to refetch with updated data
+      queryClient.invalidateQueries({ queryKey: ["contentLibrary"] });
       toast.success("Post successfully rescheduled!");
     },
 
     onError: (error: Error, _variables, context) => {
-      if (context?.previousContent) {
-        queryClient.setQueryData(["contentLibrary"], context.previousContent);
+      // Rollback optimistic updates on error
+      if (context?.previousQueries) {
+        context.previousQueries.forEach(({ queryKey, data }) => {
+          queryClient.setQueryData(queryKey, data);
+        });
       }
       toast.error(`Rescheduling failed: ${error.message}`);
     },
