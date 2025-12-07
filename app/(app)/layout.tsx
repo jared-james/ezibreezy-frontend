@@ -26,9 +26,17 @@ export default async function AppLayout({
 
   // Fetch workspace structure
   const workspaceResult = await getWorkspaceStructure();
-  const workspaceStructure = workspaceResult.success
-    ? workspaceResult.data ?? []
-    : [];
+
+  // If backend sync failed, sign out and force login
+  if (!workspaceResult.success) {
+    console.error(
+      "User has valid session but failed backend sync. Logging out."
+    );
+    await supabase.auth.signOut();
+    redirect("/auth/login?error=sync_failed");
+  }
+
+  const workspaceStructure = workspaceResult.data ?? [];
 
   // No workspaces? Send to onboarding
   if (workspaceStructure.length === 0) {
@@ -44,21 +52,17 @@ export default async function AppLayout({
 
   return (
     <div className="flex h-screen w-full bg-[--background] overflow-hidden">
-      {/* Invite toast for ?invite=success */}
       <InviteToast />
 
-      {/* Hydrate workspace store from server data + URL */}
       <Suspense fallback={null}>
         <WorkspaceHydrator structure={workspaceStructure} />
       </Suspense>
 
-      {/* Sidebar with user + workspace structure */}
       <SidebarClient
         displayName={displayName}
         initialStructure={workspaceStructure}
       />
 
-      {/* Main content */}
       <main className="flex-1 flex flex-col min-w-0 overflow-hidden relative">
         <div className="flex-1 overflow-y-auto scroll-smooth">{children}</div>
       </main>
