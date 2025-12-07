@@ -19,17 +19,19 @@ export function ProfileView({
   const [showDeleteModal, setShowDeleteModal] = useState(false);
 
   return (
-    <div className="max-w-4xl space-y-12">
-      {/* 1. Main Profile Form (Name, Email, Password) */}
-      <ProfileForm
-        initialDisplayName={initialDisplayName}
-        initialEmail={initialEmail}
-      />
+    <div className="w-full max-w-5xl mx-auto animate-in fade-in duration-500 pb-16">
+      {/*
+        Using space-y-12 (3rem) for tighter spacing between sections
+      */}
+      <div className="space-y-12">
+        <ProfileForm
+          initialDisplayName={initialDisplayName}
+          initialEmail={initialEmail}
+        />
 
-      {/* 2. Danger Zone (Delete Account) */}
-      <ProfileDangerZone onDeleteClick={() => setShowDeleteModal(true)} />
+        <ProfileDangerZone onDeleteClick={() => setShowDeleteModal(true)} />
+      </div>
 
-      {/* 3. Modal Layer */}
       <DeleteAccountModal
         isOpen={showDeleteModal}
         onClose={() => setShowDeleteModal(false)}

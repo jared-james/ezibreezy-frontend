@@ -57,22 +57,24 @@ export default async function OrganizationSettingsPage({ params }: Props) {
   }
 
   return (
-    <div className="space-y-12">
-      <OrganizationForm
-        initialOrgName={organizationName}
-        organizationId={organizationId}
-        initialRole={currentUserRole}
-      />
+    <div className="w-full max-w-5xl mx-auto animate-in fade-in duration-500 pb-16">
+      <div className="space-y-12">
+        <OrganizationForm
+          initialOrgName={organizationName}
+          organizationId={organizationId}
+          initialRole={currentUserRole}
+        />
 
-      <div className="border-t border-dashed border-border pt-12">
+        <div className="w-full border-t border-dashed border-border" />
+
         <MembersList organizationId={organizationId} initialMembers={members} />
-      </div>
 
-      <OrganizationSecuritySection
-        organizationId={organizationId}
-        organizationName={organizationName}
-        userRole={currentUserRole}
-      />
+        <OrganizationSecuritySection
+          organizationId={organizationId}
+          organizationName={organizationName}
+          userRole={currentUserRole}
+        />
+      </div>
     </div>
   );
 }

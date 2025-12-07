@@ -9,7 +9,6 @@ import {
   getWorkspaceStructure,
 } from "@/app/actions/workspaces";
 
-import { WorkspaceHeader } from "./workspace-header";
 import { WorkspaceForm } from "./workspace-form";
 import { TeamOperationsCard } from "./team-operations-card";
 import { CreateWorkspaceCard } from "./create-workspace-card";
@@ -134,23 +133,25 @@ export function WorkspaceSettings({
   // 4. Render
   // -------------------------------------------------------
   return (
-    <div className="max-w-4xl space-y-12">
-      <WorkspaceHeader workspace={workspace} />
+    <div className="w-full max-w-5xl mx-auto animate-in fade-in duration-500 pb-16">
+      <div className="space-y-12">
+        <WorkspaceForm
+          workspace={workspace}
+          workspaceIdFromUrl={workspaceIdFromUrl}
+        />
 
-      <WorkspaceForm
-        workspace={workspace}
-        workspaceIdFromUrl={workspaceIdFromUrl}
-      />
+        <div className="w-full border-t border-dashed border-border" />
 
-      <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-        <TeamOperationsCard onInviteClick={openInviteModal} />
-        <CreateWorkspaceCard onCreateClick={openCreateModal} />
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+          <TeamOperationsCard onInviteClick={openInviteModal} />
+          <CreateWorkspaceCard onCreateClick={openCreateModal} />
+        </div>
+
+        <DangerZone
+          workspaceName={workspace.name}
+          onDeleteClick={openDeleteModal}
+        />
       </div>
-
-      <DangerZone
-        workspaceName={workspace.name}
-        onDeleteClick={openDeleteModal}
-      />
 
       {showCreateModal && (
         <CreateWorkspaceModal

@@ -43,22 +43,20 @@ export function WorkspaceForm({ workspace, workspaceIdFromUrl }: WorkspaceFormPr
   } = useWorkspaceForm(workspace, workspaceIdFromUrl);
 
   return (
-    <div className="relative">
-      <div className="absolute -top-3 left-4 bg-surface px-2 z-10">
-        <span className="eyebrow text-foreground bg-brand-accent/10 px-2 py-0.5 border border-brand-accent/20">
-          Identity Card
-        </span>
+    <section>
+      <div className="max-w-2xl mb-8">
+        <h3 className="font-serif text-xl font-bold text-foreground tracking-tight">
+          Workspace Details
+        </h3>
+        <p className="font-serif text-sm text-muted-foreground mt-2 leading-relaxed max-w-lg">
+          Manage your workspace's basic information and settings.
+        </p>
       </div>
 
-      <form
-        onSubmit={handleUpdate}
-        className="border-1 border-border p-6 md:p-8 space-y-6 bg-surface"
-      >
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="space-y-2">
-            <label className="text-xs font-bold uppercase tracking-wider flex items-center gap-2 text-muted-foreground">
-              <Briefcase className="w-3.5 h-3.5" /> Workspace Name
-            </label>
+      <div className="space-y-8 max-w-3xl">
+        <div className="space-y-4">
+          <label className="eyebrow block">Workspace Name</label>
+          <div className="flex items-center gap-4 border-b border-border hover:border-foreground/30 transition-colors pb-2">
             <input
               type="text"
               value={formData.name}
@@ -67,22 +65,22 @@ export function WorkspaceForm({ workspace, workspaceIdFromUrl }: WorkspaceFormPr
               }
               maxLength={50}
               required
-              className="w-full px-4 py-3 bg-background border border-border focus:border-foreground focus:ring-1 focus:ring-foreground transition-all font-serif"
               placeholder="e.g. Editorial Team"
+              className="flex-1 h-auto py-2 bg-transparent border-none rounded-none text-xl font-serif text-foreground placeholder:text-muted-foreground/20 px-0 focus-visible:ring-0 shadow-none outline-none"
             />
           </div>
+        </div>
 
-          <div className="space-y-2">
-            <label className="text-xs font-bold uppercase tracking-wider flex items-center gap-2 text-muted-foreground">
-              <Globe className="w-3.5 h-3.5" /> Timezone
-            </label>
+        <div className="space-y-4">
+          <label className="eyebrow block">Timezone</label>
+          <div className="border-b border-border hover:border-foreground/30 transition-colors pb-2">
             <Select
               value={formData.timezone}
               onValueChange={(value) =>
                 setFormData({ ...formData, timezone: value })
               }
             >
-              <SelectTrigger className="w-full h-[50px] px-4 bg-background border-border font-serif text-base focus:ring-foreground/20">
+              <SelectTrigger className="w-full h-auto py-2 bg-transparent border-none rounded-none px-0 font-serif text-xl focus:ring-0 shadow-none">
                 <SelectValue placeholder="Select Timezone" />
               </SelectTrigger>
               <SelectContent className="max-h-[300px] bg-[#fdfbf7] border border-black/10 shadow-xl font-serif">
@@ -145,41 +143,39 @@ export function WorkspaceForm({ workspace, workspaceIdFromUrl }: WorkspaceFormPr
           </div>
         </div>
 
-        <div className="pt-4 border-t border-dashed border-border flex items-center justify-between">
-          <div className="text-sm">
-            {error && (
-              <span className="flex items-center gap-2 text-error font-medium animate-in fade-in">
-                <AlertTriangle className="w-4 h-4" /> {error}
-              </span>
-            )}
-            {success && (
-              <span className="flex items-center gap-2 text-brand-primary font-medium animate-in fade-in">
-                <Check className="w-4 h-4" /> Saved Successfully
-              </span>
-            )}
+        {error && (
+          <div className="border border-red-200 bg-red-50 p-3 flex items-start gap-3 rounded-sm animate-in fade-in">
+            <AlertTriangle className="w-4 h-4 text-red-600 mt-0.5 shrink-0" />
+            <p className="font-mono text-xs text-red-700 leading-relaxed">
+              <span className="font-bold">ERROR:</span> {error}
+            </p>
           </div>
+        )}
 
+        <div className="flex items-center gap-4">
           <button
-            type="submit"
+            type="button"
+            onClick={handleUpdate}
             disabled={loading || !hasChanges}
-            className={`btn btn-primary transition-all duration-200 ${
-              !hasChanges || loading
-                ? "opacity-50 cursor-not-allowed grayscale"
-                : ""
+            className={`btn btn-primary h-8 px-4 transition-all duration-300 ${
+              hasChanges
+                ? "opacity-100 translate-x-0"
+                : "opacity-0 pointer-events-none translate-x-4"
             }`}
           >
             {loading ? (
-              <>
-                <Loader2 className="w-4 h-4 animate-spin" /> Saving...
-              </>
+              <Loader2 className="w-3 h-3 animate-spin" />
             ) : (
-              <>
-                <Save className="w-4 h-4" /> Save Changes
-              </>
+              "Save"
             )}
           </button>
+          {success && (
+            <span className="flex items-center gap-2 text-brand-primary font-medium text-sm animate-in fade-in">
+              <Check className="w-4 h-4" /> Saved Successfully
+            </span>
+          )}
         </div>
-      </form>
-    </div>
+      </div>
+    </section>
   );
 }

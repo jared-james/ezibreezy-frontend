@@ -62,61 +62,47 @@ export default function OrganizationForm({
     orgName.trim() !== initialOrgName && orgName.trim().length > 0;
 
   return (
-    <div className="relative">
-      <div className="absolute -top-3 left-4 bg-surface px-2 z-10">
-        <span className="font-mono text-[10px] uppercase tracking-widest font-bold text-foreground bg-brand-primary/10 px-2 py-0.5 border border-brand-primary/20 rounded-sm">
-          Organization Profile
-        </span>
+    <section>
+      <div className="max-w-2xl mb-8">
+        <h3 className="font-serif text-xl font-bold text-foreground tracking-tight">
+          Organization Details
+        </h3>
+        <p className="font-serif text-sm text-muted-foreground mt-2 leading-relaxed max-w-lg">
+          Manage your organization's basic information and settings.
+        </p>
       </div>
 
-      <form
-        onSubmit={handleOrgNameSubmit}
-        className="border border-border p-6 md:p-8 space-y-6 bg-surface rounded-sm"
-      >
-        <div className="grid grid-cols-1 gap-6">
-          <div className="space-y-2">
-            <label className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground flex items-center gap-2 pl-1">
-              <Building2 className="w-3.5 h-3.5" /> Legal Name
-            </label>
+      <div className="space-y-8 max-w-3xl">
+        <div className="space-y-4">
+          <label className="eyebrow block">Organization Name</label>
+          <div className="flex items-center gap-4 border-b border-border hover:border-foreground/30 transition-colors pb-2">
             <input
               type="text"
               value={orgName}
               onChange={(e) => setOrgName(e.target.value)}
               placeholder="Your Organization Name"
-              className="w-full px-4 py-3 bg-background border border-border focus:border-foreground focus:ring-1 focus:ring-foreground transition-all font-serif rounded-sm"
+              className="flex-1 h-auto py-2 bg-transparent border-none rounded-none text-xl font-serif text-foreground placeholder:text-muted-foreground/20 px-0 focus-visible:ring-0 shadow-none outline-none"
               disabled={isUpdatingOrg}
             />
-            <p className="font-serif text-xs text-muted-foreground mt-2 pl-1">
-              This name is shown in the sidebar and is visible to all members of
-              your organization.
-            </p>
+            <button
+              type="button"
+              onClick={handleOrgNameSubmit}
+              disabled={isUpdatingOrg || !isOrgDirty}
+              className={`btn btn-primary h-8 px-4 transition-all duration-300 ${
+                isOrgDirty
+                  ? "opacity-100 translate-x-0"
+                  : "opacity-0 pointer-events-none translate-x-4"
+              }`}
+            >
+              {isUpdatingOrg ? (
+                <Loader2 className="w-3 h-3 animate-spin" />
+              ) : (
+                "Save"
+              )}
+            </button>
           </div>
         </div>
-
-        <div className="pt-4 border-t border-dashed border-border flex items-center justify-between">
-          <div className="text-sm min-h-[20px]"></div>
-
-          <button
-            type="submit"
-            disabled={isUpdatingOrg || !isOrgDirty}
-            className={`btn btn-primary transition-all duration-200 ${
-              !isOrgDirty || isUpdatingOrg
-                ? "opacity-50 cursor-not-allowed grayscale"
-                : ""
-            }`}
-          >
-            {isUpdatingOrg ? (
-              <>
-                <Loader2 className="w-4 h-4 animate-spin mr-2" /> Saving...
-              </>
-            ) : (
-              <>
-                <Save className="w-4 h-4 mr-2" /> Save Changes
-              </>
-            )}
-          </button>
-        </div>
-      </form>
-    </div>
+      </div>
+    </section>
   );
 }

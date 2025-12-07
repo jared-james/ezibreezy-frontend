@@ -55,34 +55,34 @@ export function MembersList({
   });
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h3 className="font-serif text-lg font-bold text-foreground flex items-center gap-2">
+    <section>
+      <div className="max-w-2xl mb-8">
+        <h3 className="font-serif text-xl font-bold text-foreground tracking-tight">
           Team Members
         </h3>
-        <span className="text-[10px] font-mono border border-foreground/20 px-2 py-1 rounded-sm uppercase tracking-wider text-muted-foreground font-bold">
-          {sortedMembers.length} Active
-        </span>
+        <p className="font-serif text-sm text-muted-foreground mt-2 leading-relaxed max-w-lg">
+          Manage team members and their permissions across workspaces.
+        </p>
       </div>
 
-      <div className="border border-border rounded-sm bg-surface overflow-hidden shadow-sm">
+      <div className="max-w-5xl space-y-3">
         <div className="overflow-x-auto">
           <table className="w-full text-left">
-            <thead className="bg-surface-hover border-b border-border">
+            <thead>
               <tr>
-                <th className="p-4 font-mono text-[10px] uppercase tracking-widest text-muted-foreground w-[300px]">
+                <th className="pb-3 font-mono text-[10px] uppercase tracking-widest text-muted-foreground w-[300px]">
                   User Identity
                 </th>
-                <th className="p-4 font-mono text-[10px] uppercase tracking-widest text-muted-foreground w-[120px]">
+                <th className="pb-3 font-mono text-[10px] uppercase tracking-widest text-muted-foreground w-[120px]">
                   Clearance
                 </th>
-                <th className="p-4 font-mono text-[10px] uppercase tracking-widest text-muted-foreground">
+                <th className="pb-3 font-mono text-[10px] uppercase tracking-widest text-muted-foreground">
                   Workspace Access
                 </th>
-                <th className="p-4 w-10"></th>
+                <th className="pb-3 w-10"></th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-border">
+            <tbody className="space-y-3">
               {sortedMembers.map((member) => {
                 const memberWorkspaces = member.workspaces || [];
                 const visibleWorkspaces = memberWorkspaces.slice(
@@ -97,9 +97,9 @@ export function MembersList({
                 return (
                   <tr
                     key={member.userId}
-                    className="group hover:bg-surface-hover transition-colors"
+                    className="group bg-surface border-y border-border hover:border-foreground/30 transition-all"
                   >
-                    <td className="p-4">
+                    <td className="py-4 pr-4">
                       <div className="flex items-center gap-3">
                         <Avatar className="h-8 w-8 border border-border">
                           <AvatarImage src={member.avatarUrl} />
@@ -118,7 +118,7 @@ export function MembersList({
                       </div>
                     </td>
 
-                    <td className="p-4">
+                    <td className="py-4 pr-4">
                       <span
                         className={cn(
                           "inline-flex items-center px-2 py-0.5 rounded-sm text-[9px] font-bold uppercase tracking-wider border",
@@ -133,7 +133,7 @@ export function MembersList({
                       </span>
                     </td>
 
-                    <td className="p-4 align-middle">
+                    <td className="py-4 pr-4 align-middle">
                       <div className="flex items-center gap-1.5 flex-nowrap overflow-hidden">
                         {memberWorkspaces.length === 0 && (
                           <span className="text-xs text-muted-foreground italic opacity-50 font-serif">
@@ -200,7 +200,7 @@ export function MembersList({
                       </div>
                     </td>
 
-                    <td className="p-4 text-right">
+                    <td className="py-4 pr-4 text-right">
                       <DropdownMenu>
                         <DropdownMenuTrigger className="p-1 hover:bg-black/5 rounded-sm outline-none transition-colors data-[state=open]:bg-black/5">
                           <MoreHorizontal className="w-4 h-4 text-muted-foreground" />
@@ -244,6 +244,6 @@ export function MembersList({
           contextWorkspaceId={currentWorkspace.id}
         />
       )}
-    </div>
+    </section>
   );
 }
