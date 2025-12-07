@@ -235,3 +235,77 @@ export async function updateEmail(newEmail: string) {
     return { success: false, error: message };
   }
 }
+
+// 1. Send Password Reset Email (The Security Trigger)
+export async function triggerPasswordReset(workspaceSlug: string) {
+  const supabase = await createClient();
+
+  const {
+    data: { user },
+    error: sessionError,
+  } = await supabase.auth.getUser();
+
+  if (sessionError || !user || !user.email) {
+    return {
+      success: false,
+      error: "User not authenticated or email missing.",
+    };
+  }
+
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
+
+  // Redirect back to the Profile Settings page, but with a flag enabled
+  // We use the workspaceSlug to ensure they land back in the correct context
+  const redirectTo = `${siteUrl}/auth/callback?next=/${workspaceSlug}/settings/profile?recovery=true`;
+
+  try {
+    const { error } = await supabase.auth.resetPasswordForEmail(user.email, {
+      redirectTo,
+    });
+
+    if (error) {
+      return { success: false, error: error.message };
+    }
+
+    return { success: true };
+  } catch (error) {
+    const message =
+      error instanceof Error
+        ? error.message
+        : "An unknown error occurred sending reset email.";
+    return { success: false, error: message };
+  }
+}
+
+// 2. Update Password (The Final Step)
+// This is only called after the user has clicked the email link
+export async function updatePassword(newPassword: string) {
+  const supabase = await createClient();
+
+  const {
+    data: { user },
+    error: sessionError,
+  } = await supabase.auth.getUser();
+
+  if (sessionError || !user) {
+    return { success: false, error: "User not authenticated." };
+  }
+
+  try {
+    const { error } = await supabase.auth.updateUser({
+      password: newPassword,
+    });
+
+    if (error) {
+      return { success: false, error: error.message };
+    }
+
+    return { success: true };
+  } catch (error) {
+    const message =
+      error instanceof Error
+        ? error.message
+        : "An unknown error occurred during password update.";
+    return { success: false, error: message };
+  }
+}

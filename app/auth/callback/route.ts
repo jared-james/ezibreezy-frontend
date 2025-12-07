@@ -42,6 +42,7 @@ export async function GET(request: NextRequest) {
       );
     }
 
+    // Run the sync to ensure Backend DB is up to date
     const syncResult = await syncUser({
       inviteToken: urlInviteToken || undefined,
     });
@@ -55,28 +56,36 @@ export async function GET(request: NextRequest) {
       cookieStore.delete("invite_token");
     }
 
+    // --- PRIORITY 1: Specific Redirect (Password Reset / Email Change) ---
+    // If we have a specific 'next' URL, use it immediately.
+    if (nextParam && nextParam.startsWith("/")) {
+      return NextResponse.redirect(`${origin}${nextParam}`);
+    }
+
+    // --- PRIORITY 2: Standard App Routing ---
+
     // Handle onboarding_required event - redirect to onboarding
     if (syncResult.event === "onboarding_required") {
       return NextResponse.redirect(`${origin}/onboarding`);
     }
 
-    // Handle invite_accepted or login - redirect to workspace
+    // Handle invite_accepted or login - redirect to workspace dashboard
     if (syncResult.targetWorkspaceSlug) {
-      const inviteParam = syncResult.event === "invite_accepted" ? "?invite=success" : "";
+      const inviteParam =
+        syncResult.event === "invite_accepted" ? "?invite=success" : "";
       return NextResponse.redirect(
         `${origin}/${syncResult.targetWorkspaceSlug}/dashboard${inviteParam}`
       );
     } else if (syncResult.targetWorkspaceId) {
-      const inviteParam = syncResult.event === "invite_accepted" ? "?invite=success" : "";
+      const inviteParam =
+        syncResult.event === "invite_accepted" ? "?invite=success" : "";
       return NextResponse.redirect(
         `${origin}/${syncResult.targetWorkspaceId}/dashboard${inviteParam}`
       );
     }
 
-    // Fallback: If we have a next parameter and it's a relative path, use it
-    // Otherwise default to /dashboard
-    const fallbackPath = nextParam && nextParam.startsWith('/') ? nextParam : '/dashboard';
-    return NextResponse.redirect(`${origin}${fallbackPath}`);
+    // Final Fallback
+    return NextResponse.redirect(`${origin}/dashboard`);
   }
 
   return NextResponse.redirect(
