@@ -324,12 +324,26 @@ export default function FullSignUp() {
 
                       <div className="text-center space-y-4">
                         <p className="font-serif text-xs text-foreground/50 italic">
-                          By signing up, you agree to our Terms & Privacy.
+                          By signing up, you agree to our{" "}
+                          <Link
+                            href="/terms"
+                            className="underline hover:text-foreground transition-colors"
+                          >
+                            Terms
+                          </Link>{" "}
+                          &{" "}
+                          <Link
+                            href="/privacy"
+                            className="underline hover:text-foreground transition-colors"
+                          >
+                            Privacy
+                          </Link>
+                          .
                         </p>
 
                         <div className="border-t border-dashed border-foreground/20 pt-4">
                           <p className="font-mono text-[10px] uppercase tracking-wider text-foreground/60">
-                            Already have a pass?{" "}
+                            Already have an account?{" "}
                             <Link
                               href="/auth/login"
                               className="font-bold text-foreground border-b border-foreground hover:text-brand-primary hover:border-brand-primary transition-colors"
