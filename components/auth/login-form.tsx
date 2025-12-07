@@ -199,9 +199,18 @@ function LoginFormInner() {
                         </div>
 
                         <div className="group">
-                          <label className="block font-mono text-[10px] uppercase tracking-widest text-foreground/50 mb-2">
-                            Password
-                          </label>
+                          <div className="flex items-center justify-between mb-2">
+                            <label className="block font-mono text-[10px] uppercase tracking-widest text-foreground/50">
+                              Password
+                            </label>
+                            <Link
+                              href="/auth/forgot-password"
+                              className="font-mono text-[9px] uppercase tracking-wider text-foreground/40 hover:text-brand-primary transition-colors hover:underline decoration-dotted underline-offset-2"
+                              tabIndex={-1}
+                            >
+                              Forgot Password?
+                            </Link>
+                          </div>
                           <input
                             type="password"
                             required

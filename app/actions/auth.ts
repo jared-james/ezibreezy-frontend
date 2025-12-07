@@ -166,3 +166,24 @@ export async function signup(formData: FormData): Promise<SignupResult> {
 
   return { success: true };
 }
+
+// NEW: Request Password Reset (Public)
+export async function requestPasswordReset(email: string) {
+  const supabase = await createClient();
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
+
+  // Redirect to the dedicated Reset Password page
+  const redirectTo = `${siteUrl}/auth/callback?next=/auth/reset-password`;
+
+  const { error } = await supabase.auth.resetPasswordForEmail(email, {
+    redirectTo,
+  });
+
+  if (error) {
+    console.error("Reset password error:", error.message);
+    // Security: Do not reveal if the email exists or not.
+    // Always return success to the UI.
+  }
+
+  return { success: true };
+}
