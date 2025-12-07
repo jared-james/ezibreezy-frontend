@@ -1,4 +1,4 @@
-// app/auth/signup/FullSignUp.tsx
+// components/sign-up/full-sign-up.tsx
 
 "use client";
 

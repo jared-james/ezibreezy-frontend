@@ -1,11 +1,11 @@
-// app/auth/signup/ComingSoonSignUp.tsx
+// components/sign-up/coming-soon-sign-up.tsx
 
 "use client";
 
 import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { ArrowRight, Loader2, Check, Scissors } from "lucide-react";
+import { ArrowRight, Loader2, Check } from "lucide-react";
 import { signupForWaitlist } from "@/app/actions/early-access";
 import LandingPageFooter from "@/components/landing-page/landing-page-footer";
 import MinimalHeader from "@/components/shared/minimal-header";
@@ -41,12 +41,15 @@ export default function ComingSoonSignUp() {
         setIsSuccess(true);
         toast.success("Dispatched successfully.");
       } else {
-        const errorMessage = result.error || "Signup failed due to an unknown error.";
+        const errorMessage =
+          result.error || "Signup failed due to an unknown error.";
         setError(errorMessage);
 
         // Show user-friendly toast messages
-        if (errorMessage.toLowerCase().includes("already on the waitlist") ||
-            errorMessage.toLowerCase().includes("already exists")) {
+        if (
+          errorMessage.toLowerCase().includes("already on the waitlist") ||
+          errorMessage.toLowerCase().includes("already exists")
+        ) {
           toast.info("You're already on the list! We'll be in touch soon.");
         } else {
           toast.error(errorMessage);

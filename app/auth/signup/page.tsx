@@ -1,11 +1,9 @@
 // app/auth/signup/page.tsx
 
 import { Suspense } from "react";
-import ComingSoonSignUp from "./ComingSoonSignUp";
-import FullSignUp from "./FullSignUp";
+import ComingSoonSignUp from "@/components/sign-up/coming-soon-sign-up";
+import FullSignUp from "@/components/sign-up/full-sign-up";
 
-// Control signup mode via environment variable instead of window check
-// This prevents hydration mismatches between server and client
 const ENABLE_WAITLIST_MODE = process.env.NEXT_PUBLIC_ENABLE_WAITLIST === "true";
 
 export default function SignUp() {
