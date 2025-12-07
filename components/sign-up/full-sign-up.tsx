@@ -6,7 +6,15 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import MinimalHeader from "@/components/shared/minimal-header";
 import LandingPageFooter from "@/components/landing-page/landing-page-footer";
-import { ArrowRight, Loader2, ArrowLeft, UserPlus, CheckCircle2 } from "lucide-react";
+import {
+  ArrowRight,
+  Loader2,
+  ArrowLeft,
+  UserPlus,
+  CheckCircle2,
+  Eye, // Imported
+  EyeOff, // Imported
+} from "lucide-react";
 import posthog from "posthog-js";
 import { useSearchParams } from "next/navigation";
 import { getInviteDetails } from "@/app/actions/invites";
@@ -14,9 +22,12 @@ import { signup } from "@/app/actions/auth";
 import { cn } from "@/lib/utils";
 
 export default function FullSignUp() {
-  const [name, setName] = useState(""); // <--- New State
+  const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+
+  // New state for toggling visibility
+  const [showPassword, setShowPassword] = useState(false);
 
   // Auth state
   const [error, setError] = useState<string | null>(null);
@@ -62,7 +73,6 @@ export default function FullSignUp() {
     });
 
     try {
-      // Prepare form data for Server Action
       const formData = new FormData();
       formData.append("email", email);
       formData.append("password", password);
@@ -71,7 +81,6 @@ export default function FullSignUp() {
         formData.append("inviteToken", inviteToken);
       }
 
-      // Call the signup Server Action
       const result = await signup(formData);
 
       if (result.error) {
@@ -126,92 +135,84 @@ export default function FullSignUp() {
         <div className="w-full max-w-5xl relative z-10">
           <div className="bg-surface border border-foreground shadow-2xl relative overflow-hidden transition-all duration-500">
             <div className="grid md:grid-cols-2 min-h-[600px]">
-                {/* LEFT COLUMN: Context Aware Message */}
-                <div className="p-8 md:p-12 flex flex-col relative border-b md:border-b-0 md:border-r border-dashed border-foreground/30 bg-surface">
-                  <div className="mb-8">
-                    <span className="font-mono text-[10px] uppercase tracking-widest text-foreground/40 border border-foreground/20 px-2 py-1">
-                      {inviteInfo
-                        ? "Team Invitation"
-                        : "New Member Registration"}
-                    </span>
-                  </div>
-
-                  <div className="flex-1 flex flex-col justify-center space-y-6">
-                    {verifyingInvite ? (
-                      /* Skeleton Loading for Invite Info */
-                      <div className="space-y-4 opacity-50">
-                        <div className="h-12 w-3/4 bg-foreground/10 animate-pulse" />
-                        <div className="h-20 w-full bg-foreground/10 animate-pulse" />
-                      </div>
-                    ) : inviteInfo ? (
-                      /* INVITE CONTEXT */
-                      <>
-                        <div className="inline-flex items-center gap-2 text-brand-primary mb-2">
-                          <UserPlus className="w-5 h-5" />
-                          <span className="font-mono text-xs uppercase tracking-wider">
-                            Incoming Request
-                          </span>
-                        </div>
-                        <h1 className="font-serif text-4xl md:text-5xl font-light leading-[1.1]">
-                          Join <br />
-                          <span className="font-bold italic">
-                            {inviteInfo.workspaceName}
-                          </span>
-                        </h1>
-                        <p className="font-serif text-lg text-foreground/70 leading-relaxed max-w-sm">
-                          <span className="font-semibold text-foreground">
-                            {inviteInfo.inviterName}
-                          </span>{" "}
-                          has invited you to collaborate on the desk.
-                        </p>
-                      </>
-                    ) : (
-                      /* DEFAULT CONTEXT */
-                      <>
-                        <h1 className="font-serif text-4xl md:text-5xl font-light leading-[1.1]">
-                          Join the <br />
-                          <span className="font-bold italic">
-                            Editorial Desk.
-                          </span>
-                        </h1>
-                        <p className="font-serif text-lg text-foreground/70 leading-relaxed max-w-sm">
-                          Stop managing your content like a spreadsheet. Start
-                          curating it like a publication.
-                        </p>
-                      </>
-                    )}
-                  </div>
-
-                  <div className="mt-auto pt-12">
-                    <p className="font-serif text-xs font-bold uppercase tracking-[0.2em] opacity-30">
-                      EziBreezy Systems · Est. 2025
-                    </p>
-                  </div>
+              {/* LEFT COLUMN: Context Aware Message */}
+              <div className="p-8 md:p-12 flex flex-col relative border-b md:border-b-0 md:border-r border-dashed border-foreground/30 bg-surface">
+                <div className="mb-8">
+                  <span className="font-mono text-[10px] uppercase tracking-widest text-foreground font-bold border border-foreground/20 px-2 py-1">
+                    {inviteInfo ? "Team Invitation" : "New Member Registration"}
+                  </span>
                 </div>
 
-                {/* RIGHT COLUMN: Form */}
-                <div className="p-8 md:p-12 flex flex-col relative bg-surface-hover/30 justify-center">
-                  {/* CONTENT SWITCHER */}
-                  <div className="max-w-sm w-full mx-auto relative min-h-[400px] flex flex-col justify-center">
-                    {/* --- STATE 1: SIGNUP FORM --- */}
-                    <div
-                      className={cn(
-                        "transition-all duration-500 absolute inset-0 flex flex-col justify-center",
-                        !isSubmitted
-                          ? "opacity-100 translate-x-0 pointer-events-auto"
-                          : "opacity-0 -translate-x-8 pointer-events-none"
-                      )}
-                    >
-                      <form
-                        onSubmit={handleSignUp}
-                        className="space-y-8"
-                      >
+                <div className="flex-1 flex flex-col justify-center space-y-6">
+                  {verifyingInvite ? (
+                    <div className="space-y-4 opacity-50">
+                      <div className="h-12 w-3/4 bg-foreground/10 animate-pulse" />
+                      <div className="h-20 w-full bg-foreground/10 animate-pulse" />
+                    </div>
+                  ) : inviteInfo ? (
+                    <>
+                      <div className="inline-flex items-center gap-2 text-brand-primary mb-2">
+                        <UserPlus className="w-5 h-5" />
+                        <span className="font-mono text-xs uppercase tracking-wider">
+                          Incoming Request
+                        </span>
+                      </div>
+                      <h1 className="font-serif text-4xl md:text-5xl font-light leading-[1.1]">
+                        Join <br />
+                        <span className="font-bold italic">
+                          {inviteInfo.workspaceName}
+                        </span>
+                      </h1>
+                      <p className="font-serif text-lg text-foreground/70 leading-relaxed max-w-sm">
+                        <span className="font-semibold text-foreground">
+                          {inviteInfo.inviterName}
+                        </span>{" "}
+                        has invited you to collaborate on the desk.
+                      </p>
+                    </>
+                  ) : (
+                    <>
+                      <h1 className="font-serif text-4xl md:text-5xl font-light leading-[1.1]">
+                        Join the <br />
+                        <span className="font-bold italic">
+                          Editorial Desk.
+                        </span>
+                      </h1>
+                      <p className="font-serif text-lg text-foreground/70 leading-relaxed max-w-sm">
+                        Stop managing your content like a spreadsheet. Start
+                        curating it like a publication.
+                      </p>
+                    </>
+                  )}
+                </div>
+
+                <div className="mt-auto pt-12">
+                  <p className="font-serif text-xs font-bold uppercase tracking-[0.2em] opacity-30">
+                    EziBreezy Systems · Est. 2025
+                  </p>
+                </div>
+              </div>
+
+              {/* RIGHT COLUMN: Form */}
+              <div className="p-8 md:p-12 flex flex-col relative bg-surface-hover/30 justify-center">
+                {/* CONTENT SWITCHER */}
+                <div className="max-w-sm w-full mx-auto relative min-h-[400px] flex flex-col justify-center">
+                  {/* --- STATE 1: SIGNUP FORM --- */}
+                  <div
+                    className={cn(
+                      "transition-all duration-500 absolute inset-0 flex flex-col justify-center",
+                      !isSubmitted
+                        ? "opacity-100 translate-x-0 pointer-events-auto"
+                        : "opacity-0 -translate-x-8 pointer-events-none"
+                    )}
+                  >
+                    <form onSubmit={handleSignUp} className="space-y-8">
                       <div className="space-y-8">
                         {/* NAME INPUT */}
                         <div className="group">
                           <label
                             htmlFor="name"
-                            className="block font-mono text-[10px] uppercase tracking-widest text-foreground/50 mb-2"
+                            className="block font-mono text-[10px] uppercase tracking-widest text-foreground font-bold mb-2"
                           >
                             Name
                           </label>
@@ -222,7 +223,7 @@ export default function FullSignUp() {
                             required
                             value={name}
                             onChange={(e) => setName(e.target.value)}
-                            placeholder="Ernest Hemingway"
+                            placeholder="Bilbo Baggins"
                             className="w-full bg-transparent border-b-2 border-dotted border-foreground/30 py-2 font-serif text-xl text-foreground placeholder:text-foreground/20 focus:outline-none focus:border-foreground transition-colors"
                             disabled={isLoading}
                           />
@@ -232,7 +233,7 @@ export default function FullSignUp() {
                         <div className="group">
                           <label
                             htmlFor="email"
-                            className="block font-mono text-[10px] uppercase tracking-widest text-foreground/50 mb-2"
+                            className="block font-mono text-[10px] uppercase tracking-widest text-foreground font-bold mb-2"
                           >
                             Email Address
                           </label>
@@ -243,32 +244,48 @@ export default function FullSignUp() {
                             required
                             value={email}
                             onChange={(e) => setEmail(e.target.value)}
-                            placeholder="writer@example.com"
+                            placeholder="GoViral@everyday.com"
                             className="w-full bg-transparent border-b-2 border-dotted border-foreground/30 py-2 font-serif text-xl text-foreground placeholder:text-foreground/20 focus:outline-none focus:border-foreground transition-colors"
                             disabled={isLoading}
                           />
                         </div>
 
-                        {/* PASSWORD INPUT */}
-                        <div className="group">
+                        {/* PASSWORD INPUT - UPDATED WITH EYE */}
+                        <div className="group relative">
                           <label
                             htmlFor="password"
-                            className="block font-mono text-[10px] uppercase tracking-widest text-foreground/50 mb-2"
+                            className="block font-mono text-[10px] uppercase tracking-widest text-foreground font-bold mb-2"
                           >
                             Password
                           </label>
-                          <input
-                            id="password"
-                            name="password"
-                            type="password"
-                            required
-                            minLength={6}
-                            value={password}
-                            onChange={(e) => setPassword(e.target.value)}
-                            placeholder="••••••••"
-                            className="w-full bg-transparent border-b-2 border-dotted border-foreground/30 py-2 font-serif text-xl text-foreground placeholder:text-foreground/20 focus:outline-none focus:border-foreground transition-colors"
-                            disabled={isLoading}
-                          />
+                          <div className="relative">
+                            <input
+                              id="password"
+                              name="password"
+                              // 1. Dynamic Type
+                              type={showPassword ? "text" : "password"}
+                              required
+                              minLength={6}
+                              value={password}
+                              onChange={(e) => setPassword(e.target.value)}
+                              placeholder="••••••••"
+                              // 2. Added pr-10 to prevent text hitting the icon
+                              className="w-full bg-transparent border-b-2 border-dotted border-foreground/30 py-2 pr-10 font-serif text-xl text-foreground placeholder:text-foreground/20 focus:outline-none focus:border-foreground transition-colors"
+                              disabled={isLoading}
+                            />
+                            {/* 3. The Toggle Button */}
+                            <button
+                              type="button"
+                              onClick={() => setShowPassword(!showPassword)}
+                              className="absolute right-0 top-1/2 -translate-y-1/2 text-foreground/40 hover:text-foreground transition-colors"
+                            >
+                              {showPassword ? (
+                                <EyeOff className="w-5 h-5" />
+                              ) : (
+                                <Eye className="w-5 h-5" />
+                              )}
+                            </button>
+                          </div>
                           <p className="mt-1 text-[10px] text-foreground/40 font-mono text-right">
                             Min. 6 chars
                           </p>
@@ -354,10 +371,12 @@ export default function FullSignUp() {
 
                     <div className="max-w-md space-y-3 font-serif text-sm text-foreground/70">
                       <p>
-                        We have sent a confirmation link to <strong>{email}</strong>.
+                        We have sent a confirmation link to{" "}
+                        <strong>{email}</strong>.
                       </p>
                       <p className="italic text-xs">
-                        Please check your inbox (and spam folder) to validate your credentials.
+                        Please check your inbox (and spam folder) to validate
+                        your credentials.
                       </p>
                     </div>
 
