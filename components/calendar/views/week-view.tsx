@@ -18,12 +18,14 @@ import { Plus, Clock } from "lucide-react";
 import type { ScheduledPost } from "../types";
 import { cn } from "@/lib/utils";
 import PlatformIcon from "../components/platform-icon";
+import { PostSkeleton } from "../components/post-skeleton";
 
 interface WeekViewProps {
   currentDate: Date;
   posts: ScheduledPost[];
   onEditPost: (post: ScheduledPost) => void;
   onNewPost: (date: Date) => void;
+  isLoading?: boolean;
 }
 
 const HOURS = Array.from({ length: 24 }, (_, i) => i);
@@ -33,6 +35,7 @@ export default function WeekView({
   posts,
   onEditPost,
   onNewPost,
+  isLoading = false,
 }: WeekViewProps) {
   const weekDays = useMemo(() => {
     const start = startOfWeek(currentDate, { weekStartsOn: 0 });
@@ -127,74 +130,78 @@ export default function WeekView({
                           title={`Add post at ${format(slotDate, "h:mm a")}`}
                         />
 
-                        {/* Render Posts Stacked */}
-                        {postsForHour.map((post) => {
-                          const isSent = post.status === "sent";
-                          const firstMedia = post.media?.[0];
-                          const mediaUrl =
-                            firstMedia?.thumbnailUrl || firstMedia?.url;
+                        {/* Render Posts Stacked or Skeleton */}
+                        {isLoading ? (
+                          <PostSkeleton count={2} />
+                        ) : (
+                          postsForHour.map((post) => {
+                            const isSent = post.status === "sent";
+                            const firstMedia = post.media?.[0];
+                            const mediaUrl =
+                              firstMedia?.thumbnailUrl || firstMedia?.url;
 
-                          return (
-                            <button
-                              key={post.id}
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                onEditPost(post);
-                              }}
-                              className={cn(
-                                "relative z-10 flex w-full items-center rounded-md border border-border bg-white text-left shadow-sm transition-all hover:border-brand-primary hover:shadow-md active:scale-[0.98]",
-                                // Responsive padding and gap (2xl breakpoint)
-                                "p-1.5 gap-2 2xl:p-2 2xl:gap-3",
-                                isSent &&
-                                  "opacity-75 bg-muted/30 border-muted-foreground/20 hover:border-muted-foreground/40"
-                              )}
-                            >
-                              <div className="flex shrink-0 items-center justify-center rounded-full bg-muted/50 h-6 w-6 2xl:h-8 2xl:w-8">
-                                <PlatformIcon
-                                  platform={post.platform}
-                                  className={cn(
-                                    isSent
-                                      ? "text-muted-foreground/70"
-                                      : "text-muted-foreground",
-                                    "w-3 h-3 2xl:w-4 2xl:h-4"
-                                  )}
-                                  size={16}
-                                />
-                              </div>
-
-                              {mediaUrl && (
-                                <div
-                                  className={cn(
-                                    "relative shrink-0 overflow-hidden rounded-md bg-muted border border-border/50",
-                                    "h-6 w-6 2xl:h-8 2xl:w-8",
-                                    isSent && "opacity-80 grayscale-[0.2]"
-                                  )}
-                                >
-                                  <img
-                                    src={mediaUrl}
-                                    alt=""
-                                    className="h-full w-full object-cover"
-                                    loading="lazy"
+                            return (
+                              <button
+                                key={post.id}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  onEditPost(post);
+                                }}
+                                className={cn(
+                                  "relative z-10 flex w-full items-center rounded-md border border-border bg-white text-left shadow-sm transition-all hover:border-brand-primary hover:shadow-md active:scale-[0.98]",
+                                  // Responsive padding and gap (2xl breakpoint)
+                                  "p-1.5 gap-2 2xl:p-2 2xl:gap-3",
+                                  isSent &&
+                                    "opacity-75 bg-muted/30 border-muted-foreground/20 hover:border-muted-foreground/40"
+                                )}
+                              >
+                                <div className="flex shrink-0 items-center justify-center rounded-full bg-muted/50 h-6 w-6 2xl:h-8 2xl:w-8">
+                                  <PlatformIcon
+                                    platform={post.platform}
+                                    className={cn(
+                                      isSent
+                                        ? "text-muted-foreground/70"
+                                        : "text-muted-foreground",
+                                      "w-3 h-3 2xl:w-4 2xl:h-4"
+                                    )}
+                                    size={16}
                                   />
                                 </div>
-                              )}
 
-                              <div className="flex min-w-0 flex-1 flex-row items-center justify-between gap-2 2xl:flex-col 2xl:justify-center 2xl:gap-0.5 2xl:items-start">
-                                <span
-                                  className={cn(
-                                    "truncate font-medium text-foreground leading-tight text-xs",
-                                    isSent && "text-muted-foreground"
-                                  )}
-                                >
-                                  {post.content || "Untitled"}
-                                </span>
-                                <span className="font-serif text-[9px] 2xl:text-[10px] font-bold text-muted-foreground shrink-0 leading-none">
-                                  {format(new Date(post.scheduledAt), "h:mm a")}
-                                </span>
-                              </div>
-                            </button>
-                          );
-                        })}
+                                {mediaUrl && (
+                                  <div
+                                    className={cn(
+                                      "relative shrink-0 overflow-hidden rounded-md bg-muted border border-border/50",
+                                      "h-6 w-6 2xl:h-8 2xl:w-8",
+                                      isSent && "opacity-80 grayscale-[0.2]"
+                                    )}
+                                  >
+                                    <img
+                                      src={mediaUrl}
+                                      alt=""
+                                      className="h-full w-full object-cover"
+                                      loading="lazy"
+                                    />
+                                  </div>
+                                )}
+
+                                <div className="flex min-w-0 flex-1 flex-row items-center justify-between gap-2 2xl:flex-col 2xl:justify-center 2xl:gap-0.5 2xl:items-start">
+                                  <span
+                                    className={cn(
+                                      "truncate font-medium text-foreground leading-tight text-xs",
+                                      isSent && "text-muted-foreground"
+                                    )}
+                                  >
+                                    {post.content || "Untitled"}
+                                  </span>
+                                  <span className="font-serif text-[9px] 2xl:text-[10px] font-bold text-muted-foreground shrink-0 leading-none">
+                                    {format(new Date(post.scheduledAt), "h:mm a")}
+                                  </span>
+                                </div>
+                              </button>
+                            );
+                          })
+                        )}
 
                         {/* Hover Add Button */}
                         <div className="absolute right-1 bottom-1 z-0 opacity-0 transition-opacity group-hover:opacity-100 pointer-events-none">

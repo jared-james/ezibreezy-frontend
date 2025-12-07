@@ -33,6 +33,7 @@ import {
 } from "@dnd-kit/core";
 import { CSS } from "@dnd-kit/utilities";
 import PlatformIcon from "../components/platform-icon";
+import { DaySlotSkeleton } from "../components/post-skeleton";
 
 interface MonthViewProps {
   currentDate: Date;
@@ -42,6 +43,7 @@ interface MonthViewProps {
   onDropPost: (postId: string, newDate: Date) => void;
   onOpenDayView: (date: Date, posts: ScheduledPost[]) => void;
   lockedPostId?: string | null;
+  isLoading?: boolean;
 }
 
 interface DraggablePostProps {
@@ -216,6 +218,7 @@ interface DroppableDayProps {
   onNewPost: (date: Date) => void;
   children: React.ReactNode;
   postCount: number;
+  isLoading?: boolean;
 }
 
 function DroppableDay({
@@ -224,6 +227,7 @@ function DroppableDay({
   onNewPost,
   children,
   postCount,
+  isLoading = false,
 }: DroppableDayProps) {
   const dayId = format(day, "yyyy-MM-dd");
 
@@ -284,7 +288,7 @@ function DroppableDay({
       </div>
 
       <div className="relative z-10 flex-1 space-y-2 overflow-y-auto overflow-x-hidden scrollbar-thin scrollbar-thumb-border scrollbar-track-transparent pr-1">
-        {children}
+        {isLoading ? <DaySlotSkeleton /> : children}
       </div>
 
       <div
@@ -303,6 +307,7 @@ export default function MonthView({
   onNewPost,
   onDropPost,
   lockedPostId,
+  isLoading = false,
 }: MonthViewProps) {
   const [activeDragPost, setActiveDragPost] = useState<ScheduledPost | null>(
     null
@@ -397,6 +402,7 @@ export default function MonthView({
                     isCurrentMonth={isCurrentMonth}
                     onNewPost={onNewPost}
                     postCount={postsForDay.length}
+                    isLoading={isLoading}
                   >
                     {postsForDay.map((post) => (
                       <DraggablePost

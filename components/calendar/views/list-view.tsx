@@ -13,13 +13,15 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import PlatformIcon from "../components/platform-icon";
 import DeleteConfirmationModal from "../modals/delete-confirmation-modal";
+import { PostSkeleton } from "../components/post-skeleton";
 
 interface ListViewProps {
   posts: ScheduledPost[];
   onEditPost: (post: ScheduledPost) => void;
+  isLoading?: boolean;
 }
 
-export default function ListView({ posts, onEditPost }: ListViewProps) {
+export default function ListView({ posts, onEditPost, isLoading = false }: ListViewProps) {
   const { currentWorkspace } = useWorkspaceStore();
   const queryClient = useQueryClient();
   const [deletingId, setDeletingId] = useState<string | null>(null);
@@ -88,6 +90,38 @@ export default function ListView({ posts, onEditPost }: ListViewProps) {
     setShowDeleteModal(false);
     setPostToDelete(null);
   };
+
+  if (isLoading) {
+    return (
+      <div className="mx-auto max-w-5xl py-8 px-4">
+        <div className="space-y-4">
+          {Array.from({ length: 5 }).map((_, i) => (
+            <div key={i} className="flex items-stretch gap-6 rounded-lg border border-border bg-white p-1">
+              {/* Date Block Skeleton */}
+              <div className="flex w-24 shrink-0 flex-col items-center justify-center rounded-md bg-surface-hover/50 border-r border-border/50 py-4">
+                <div className="h-3 w-12 rounded bg-muted/70 mb-1" />
+                <div className="h-8 w-10 rounded bg-muted my-1" />
+                <div className="h-3 w-12 rounded bg-muted/70" />
+              </div>
+
+              {/* Thumbnail Skeleton (50% chance) */}
+              {i % 2 === 0 && (
+                <div className="hidden sm:flex shrink-0 w-24 items-center justify-center bg-muted/20 my-1 rounded-md" />
+              )}
+
+              {/* Content Block Skeleton */}
+              <div className="flex flex-1 flex-col justify-center py-3 pr-4 gap-2">
+                <div className="h-4 w-32 rounded bg-muted/70" />
+                <div className="h-5 w-3/4 rounded bg-muted" />
+                <div className="h-5 w-1/2 rounded bg-muted/70" />
+                <div className="h-3 w-24 rounded bg-muted/50 mt-1" />
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
 
   if (sortedPosts.length === 0) {
     return (

@@ -2,8 +2,8 @@
 
 "use client";
 
-import { useMemo } from "react";
-import { useQuery, keepPreviousData } from "@tanstack/react-query"; // Import keepPreviousData
+import { useMemo, useEffect } from "react";
+import { useQuery, keepPreviousData, useQueryClient } from "@tanstack/react-query";
 import { useParams } from "next/navigation";
 import {
   startOfMonth,
@@ -13,6 +13,8 @@ import {
   subDays,
   addDays,
   getDay,
+  addMonths,
+  subMonths,
 } from "date-fns";
 import { FullPostDetails } from "@/lib/types/publishing";
 import {
@@ -36,6 +38,7 @@ export function useCalendarData({
 }: UseCalendarDataProps) {
   const params = useParams();
   const workspaceId = params.workspace as string;
+  const queryClient = useQueryClient();
 
   // Calculate Date Range for Fetching
   const dateRange = useMemo(() => {
@@ -74,6 +77,7 @@ export function useCalendarData({
   const {
     data: allContent = [],
     isLoading: isLoadingList,
+    isFetching: isFetchingList,
     isError: isErrorList,
     error: errorList,
     refetch,
@@ -134,6 +138,45 @@ export function useCalendarData({
     return posts;
   }, [allContent, filters]);
 
+  // Prefetch adjacent months for instant navigation
+  useEffect(() => {
+    if (activeView !== "Month" && activeView !== "List") return;
+
+    const prefetchAdjacentMonth = (monthOffset: number) => {
+      const targetDate = monthOffset > 0 ? addMonths(currentDate, monthOffset) : subMonths(currentDate, Math.abs(monthOffset));
+      const monthStart = startOfMonth(targetDate);
+      const monthEnd = endOfMonth(targetDate);
+      const gridStart = subDays(monthStart, getDay(monthStart));
+      const gridEnd = addDays(monthEnd, 6 - getDay(monthEnd));
+
+      const queryKey = [
+        "contentLibrary",
+        workspaceId,
+        activeView,
+        gridStart.toISOString(),
+        gridEnd.toISOString(),
+      ];
+
+      // Prefetch if not already cached
+      queryClient.prefetchQuery({
+        queryKey,
+        queryFn: async () => {
+          const result = await getContentLibraryAction(workspaceId, {
+            startDate: gridStart.toISOString(),
+            endDate: gridEnd.toISOString(),
+          });
+          if (!result.success) throw new Error(result.error);
+          return result.data!;
+        },
+        staleTime: 60000,
+      });
+    };
+
+    // Prefetch previous and next month
+    prefetchAdjacentMonth(-1); // Previous month
+    prefetchAdjacentMonth(1);  // Next month
+  }, [currentDate, activeView, workspaceId, queryClient]);
+
   // Background Fetch logic
   const {
     data: fullPostData,
@@ -156,6 +199,7 @@ export function useCalendarData({
     allContent,
     scheduledPosts: filteredPosts,
     isLoading: isLoadingList,
+    isFetching: isFetchingList,
     isError: isErrorList,
     error: errorList,
     refetch,

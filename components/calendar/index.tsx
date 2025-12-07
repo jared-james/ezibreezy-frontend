@@ -39,6 +39,7 @@ export default function CalendarContainer({
   const {
     scheduledPosts,
     isLoading,
+    isFetching,
     isError,
     error,
     refetch,
@@ -102,8 +103,9 @@ export default function CalendarContainer({
   };
 
   // === UPDATED LOADING CHECK ===
-  // If we have initialData, we are not "loading" visually, even if fetching in bg
-  const showLoading = isLoading && !initialPosts;
+  // Only show spinner on initial load when we have no data at all
+  // When navigating months, placeholderData keeps previous data visible
+  const showLoading = isLoading && scheduledPosts.length === 0 && !initialPosts;
 
   if (showLoading) {
     return (
@@ -161,6 +163,7 @@ export default function CalendarContainer({
               onDropPost={handleDropPost}
               onOpenDayView={() => {}}
               lockedPostId={reschedule.lockedPostId}
+              isLoading={isFetching && scheduledPosts.length === 0}
             />
           )}
 
@@ -170,6 +173,7 @@ export default function CalendarContainer({
               posts={scheduledPosts}
               onEditPost={editor.handleEditPost}
               onNewPost={editor.handleNewPost}
+              isLoading={isFetching && scheduledPosts.length === 0}
             />
           )}
 
@@ -177,6 +181,7 @@ export default function CalendarContainer({
             <ListView
               posts={scheduledPosts}
               onEditPost={editor.handleEditPost}
+              isLoading={isFetching && scheduledPosts.length === 0}
             />
           )}
         </div>
