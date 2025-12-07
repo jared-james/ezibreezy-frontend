@@ -56,7 +56,7 @@ export interface PostSettings {
 }
 
 export interface CreatePostPayload {
-  userId: string;
+  userId?: string; // Optional - backend extracts from session token
   integrationId: string;
   content: string;
   title?: string;

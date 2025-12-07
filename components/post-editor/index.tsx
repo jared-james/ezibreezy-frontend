@@ -41,7 +41,7 @@ export default function EditorialCore({
   onPostSuccess,
   mode = "editorial",
 }: EditorialCoreProps) {
-  // Use the robust client data hook instead of local state
+  // Get userId from client data if available (optional - backend uses session token)
   const { userId: clientUserId } = useClientData();
 
   const [confirmationStatus, setConfirmationStatus] = useState<
@@ -174,12 +174,6 @@ export default function EditorialCore({
   };
 
   const handlePublish = async () => {
-    // Rely on cached client data for user ID
-    if (!clientUserId) {
-      // Small fallback: if we truly lost the ID, the app likely needs a hard refresh or login
-      return showError("User identity missing. Please refresh the page.");
-    }
-
     const draft = useEditorialDraftStore.getState();
     const pub = usePublishingStore.getState();
 
@@ -330,7 +324,7 @@ export default function EditorialCore({
           }
 
           const payload: CreatePostPayload = {
-            userId: clientUserId, // Authenticated via Hook
+            userId: clientUserId ?? undefined, // Optional - backend extracts from session token
             integrationId,
             content: contentToSend,
             settings: {

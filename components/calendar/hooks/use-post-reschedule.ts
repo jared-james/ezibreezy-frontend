@@ -19,7 +19,7 @@ export function usePostReschedule() {
   } | null>(null);
 
   const queryClient = useQueryClient();
-  const { userId, workspaceId } = useClientData();
+  const { workspaceId } = useClientData();
 
   const rescheduleMutation = useMutation({
     mutationFn: async (variables: {
@@ -94,11 +94,6 @@ export function usePostReschedule() {
     async (postId: string, newDate: Date, allContent: ScheduledPost[]) => {
       if (rescheduleMutation.isPending) return;
 
-      if (!userId) {
-        toast.error("Authentication error: User ID not found.");
-        return;
-      }
-
       const originalPost = allContent.find((p) => p.id === postId);
 
       if (!originalPost || originalPost.status === "sent") {
@@ -149,7 +144,7 @@ export function usePostReschedule() {
 
       await executeReschedule(postId, payload);
     },
-    [rescheduleMutation.isPending, userId, executeReschedule]
+    [rescheduleMutation.isPending, executeReschedule]
   );
 
   const confirmPendingReschedule = useCallback(() => {
