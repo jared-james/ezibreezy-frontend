@@ -4,6 +4,7 @@ import { dehydrate, HydrationBoundary } from "@tanstack/react-query";
 import getQueryClient from "@/lib/utils/get-query-client";
 import CalendarClient from "./calendar-client";
 import { serverFetch } from "@/lib/api/server-fetch";
+import { startOfMonth, endOfMonth, subDays, addDays, getDay } from "date-fns";
 
 export const dynamic = "force-dynamic";
 
@@ -17,21 +18,39 @@ export default async function CalendarPage({ params }: PageProps) {
 
   const queryClient = getQueryClient();
 
+  // Calculate default view range (Current Month) to prefetch
+  const now = new Date();
+  const monthStart = startOfMonth(now);
+  const monthEnd = endOfMonth(now);
+
+  // Match the grid logic: start of week for the 1st, end of week for the last
+  const gridStart = subDays(monthStart, getDay(monthStart));
+  const gridEnd = addDays(monthEnd, 6 - getDay(monthEnd));
+
+  const startStr = gridStart.toISOString();
+  const endStr = gridEnd.toISOString();
+
   await queryClient.prefetchQuery({
-    queryKey: ["contentLibrary"],
+    // Key must match exactly what useCalendarData generates for the default view
+    queryKey: ["contentLibrary", workspaceId, "Month", startStr, endStr],
     queryFn: async () => {
-      // We manually use serverFetch here to ensure headers/cookies are passed
-      const result = await serverFetch<any>("/publishing/library", {
-        workspaceId,
-      });
+      const queryString = new URLSearchParams({
+        startDate: startStr,
+        endDate: endStr,
+      }).toString();
+
+      const result = await serverFetch<any>(
+        `/publishing/library?${queryString}`,
+        {
+          workspaceId,
+        }
+      );
       return result.success ? result.data?.items || [] : [];
     },
   });
 
-  // 2. Dehydrate the state (serialize it)
   const dehydratedState = dehydrate(queryClient);
 
-  // 3. Wrap Client Component in Boundary
   return (
     <HydrationBoundary state={dehydratedState}>
       <CalendarClient workspaceId={workspaceId} />

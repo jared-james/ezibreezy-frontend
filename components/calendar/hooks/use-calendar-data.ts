@@ -5,6 +5,15 @@
 import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useParams } from "next/navigation";
+import {
+  startOfMonth,
+  endOfMonth,
+  startOfWeek,
+  endOfWeek,
+  subDays,
+  addDays,
+  getDay,
+} from "date-fns";
 import { FullPostDetails } from "@/lib/types/publishing";
 import {
   getContentLibraryAction,
@@ -22,11 +31,47 @@ interface UseCalendarDataProps {
 export function useCalendarData({
   postIdToEdit,
   filters,
-  activeView,
-  currentDate,
+  activeView = "Month",
+  currentDate = new Date(),
 }: UseCalendarDataProps) {
   const params = useParams();
   const workspaceId = params.workspace as string;
+
+  // Calculate Date Range for Fetching
+  const dateRange = useMemo(() => {
+    // For List view, we treat it like Month view for data fetching purposes
+    // so pagination works within the context of the selected month
+    if (activeView === "Month" || activeView === "List") {
+      const monthStart = startOfMonth(currentDate);
+      const monthEnd = endOfMonth(currentDate);
+
+      // Expand to cover the full visual grid (start of week / end of week)
+      // This matches MonthView logic: start = subDays(monthStart, getDay(monthStart))
+      // This ensures posts in the "grey" days of the previous/next month are loaded
+      const gridStart = subDays(monthStart, getDay(monthStart));
+      const gridEnd = addDays(monthEnd, 6 - getDay(monthEnd));
+
+      return {
+        start: gridStart.toISOString(),
+        end: gridEnd.toISOString(),
+      };
+    }
+
+    if (activeView === "Week") {
+      const weekStart = startOfWeek(currentDate, { weekStartsOn: 0 });
+      const weekEnd = endOfWeek(currentDate, { weekStartsOn: 0 });
+      return {
+        start: weekStart.toISOString(),
+        end: weekEnd.toISOString(),
+      };
+    }
+
+    // Fallback
+    return {
+      start: new Date().toISOString(),
+      end: new Date().toISOString(),
+    };
+  }, [activeView, currentDate]);
 
   const {
     data: allContent = [],
@@ -35,21 +80,28 @@ export function useCalendarData({
     error: errorList,
     refetch,
   } = useQuery<ScheduledPost[]>({
-    queryKey: ["contentLibrary", workspaceId],
+    // Include date range in query key to trigger refetch on navigation
+    queryKey: [
+      "contentLibrary",
+      workspaceId,
+      activeView,
+      dateRange.start,
+      dateRange.end,
+    ],
     queryFn: async () => {
-      const result = await getContentLibraryAction(workspaceId);
+      const result = await getContentLibraryAction(workspaceId, {
+        startDate: dateRange.start,
+        endDate: dateRange.end,
+      });
       if (!result.success) throw new Error(result.error);
       return result.data!;
     },
-    // === ADD HYDRATION CONFIG ===
     staleTime: 60000,
   });
 
   const filteredPosts = useMemo(() => {
-    // Ensure allContent is always an array
     let posts = Array.isArray(allContent) ? allContent : [];
 
-    // Apply filter-based filtering
     if (filters) {
       posts = posts.filter((post) => {
         // 1. Status Filter
@@ -79,22 +131,8 @@ export function useCalendarData({
       });
     }
 
-    // Apply date filtering for List view
-    if (activeView === "List" && currentDate) {
-      const targetMonth = currentDate.getMonth();
-      const targetYear = currentDate.getFullYear();
-
-      posts = posts.filter((post) => {
-        const postDate = new Date(post.scheduledAt);
-        return (
-          postDate.getMonth() === targetMonth &&
-          postDate.getFullYear() === targetYear
-        );
-      });
-    }
-
     return posts;
-  }, [allContent, filters, activeView, currentDate]);
+  }, [allContent, filters]);
 
   // Background Fetch logic
   const {

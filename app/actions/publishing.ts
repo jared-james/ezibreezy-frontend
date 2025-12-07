@@ -38,16 +38,33 @@ export async function reschedulePostOnlyAction(
 }
 
 export async function getContentLibraryAction(
-  workspaceId: string
+  workspaceId: string,
+  options?: {
+    startDate?: string;
+    endDate?: string;
+    limit?: number;
+    offset?: number;
+  }
 ): Promise<{
   success: boolean;
   data?: ScheduledPostResponse[];
   error?: string;
 }> {
-  const result = await serverFetch<PaginatedLibraryResponse>(
-    "/publishing/library",
-    { workspaceId }
-  );
+  const params = new URLSearchParams();
+
+  if (options?.startDate) params.set("startDate", options.startDate);
+  if (options?.endDate) params.set("endDate", options.endDate);
+  if (options?.limit) params.set("limit", options.limit.toString());
+  if (options?.offset) params.set("offset", options.offset.toString());
+
+  const queryString = params.toString();
+  const url = queryString
+    ? `/publishing/library?${queryString}`
+    : "/publishing/library";
+
+  const result = await serverFetch<PaginatedLibraryResponse>(url, {
+    workspaceId,
+  });
 
   if (result.success) {
     return { success: true, data: result.data?.items || [] };
