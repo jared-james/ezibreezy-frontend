@@ -12,14 +12,21 @@ import {
   ArrowLeft,
   UserPlus,
   CheckCircle2,
-  Eye, // Imported
-  EyeOff, // Imported
+  Eye,
+  EyeOff,
 } from "lucide-react";
 import posthog from "posthog-js";
 import { useSearchParams } from "next/navigation";
 import { getInviteDetails } from "@/app/actions/invites";
 import { signup } from "@/app/actions/auth";
 import { cn } from "@/lib/utils";
+
+// Interface matches the response from your new backend service
+interface InviteContext {
+  organizationName: string;
+  inviterName: string;
+  workspaceNames: string[];
+}
 
 export default function FullSignUp() {
   const [name, setName] = useState("");
@@ -34,11 +41,8 @@ export default function FullSignUp() {
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
-  // Invite Context state
-  const [inviteInfo, setInviteInfo] = useState<{
-    workspaceName: string;
-    inviterName: string;
-  } | null>(null);
+  // Invite Context state - Updated to match backend structure
+  const [inviteInfo, setInviteInfo] = useState<InviteContext | null>(null);
   const [verifyingInvite, setVerifyingInvite] = useState(false);
 
   const searchParams = useSearchParams();
@@ -118,6 +122,19 @@ export default function FullSignUp() {
     }
   };
 
+  // Helper to determine what name to display in the header
+  const getDisplayEntityName = () => {
+    if (!inviteInfo) return "";
+
+    // If specifically invited to exactly one workspace, show that workspace name
+    if (inviteInfo.workspaceNames && inviteInfo.workspaceNames.length === 1) {
+      return inviteInfo.workspaceNames[0];
+    }
+
+    // Otherwise (Org invite or Multi-workspace invite), show the Organization name
+    return inviteInfo.organizationName;
+  };
+
   return (
     <div className="flex flex-col min-h-screen bg-background-editorial text-foreground">
       <MinimalHeader />
@@ -160,14 +177,14 @@ export default function FullSignUp() {
                       <h1 className="font-serif text-4xl md:text-5xl font-light leading-[1.1]">
                         Join <br />
                         <span className="font-bold italic">
-                          {inviteInfo.workspaceName}
+                          {getDisplayEntityName()}
                         </span>
                       </h1>
                       <p className="font-serif text-lg text-foreground/70 leading-relaxed max-w-sm">
                         <span className="font-semibold text-foreground">
                           {inviteInfo.inviterName}
                         </span>{" "}
-                        has invited you to collaborate on the desk.
+                        has invited you to collaborate.
                       </p>
                     </>
                   ) : (
@@ -262,18 +279,15 @@ export default function FullSignUp() {
                             <input
                               id="password"
                               name="password"
-                              // 1. Dynamic Type
                               type={showPassword ? "text" : "password"}
                               required
                               minLength={6}
                               value={password}
                               onChange={(e) => setPassword(e.target.value)}
                               placeholder="••••••••"
-                              // 2. Added pr-10 to prevent text hitting the icon
                               className="w-full bg-transparent border-b-2 border-dotted border-foreground/30 py-2 pr-10 font-serif text-xl text-foreground placeholder:text-foreground/20 focus:outline-none focus:border-foreground transition-colors"
                               disabled={isLoading}
                             />
-                            {/* 3. The Toggle Button */}
                             <button
                               type="button"
                               onClick={() => setShowPassword(!showPassword)}

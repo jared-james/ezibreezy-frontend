@@ -3,14 +3,13 @@
 "use server";
 
 const BACKEND_URL = process.env.BACKEND_URL;
-// We use the server-side API key. Ensure this is set in your .env.local
-// You might be using NEXT_PUBLIC_API_KEY in other files, but for server-to-server
-// it's safer to use a dedicated secret if you have one, or reuse the existing one.
 const API_KEY = process.env.API_KEY || process.env.NEXT_PUBLIC_API_KEY;
 
+// Updated interface to match the actual Backend response
 interface InviteInfo {
-  workspaceName: string;
+  organizationName: string;
   inviterName: string;
+  workspaceNames: string[];
 }
 
 export async function getInviteDetails(
@@ -26,13 +25,12 @@ export async function getInviteDetails(
       method: "GET",
       headers: {
         "Content-Type": "application/json",
-        "x-api-key": API_KEY, // The secret handshake
+        "x-api-key": API_KEY,
       },
-      cache: "no-store", // Ensure we don't cache stale invites
+      cache: "no-store",
     });
 
     if (!response.ok) {
-      // If 404, it means token is invalid or expired
       if (response.status === 404) {
         return { success: false, error: "Invite not found or expired." };
       }
@@ -40,6 +38,8 @@ export async function getInviteDetails(
     }
 
     const data = await response.json();
+
+    // The backend returns: { organizationName, inviterName, workspaceNames }
     return { success: true, data };
   } catch (error) {
     console.error("Error fetching invite details:", error);
