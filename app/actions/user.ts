@@ -6,6 +6,7 @@ import { createClient } from "@/lib/supabase/server";
 import { authenticatedFetch } from "@/app/actions/billing";
 import { revalidatePath } from "next/cache";
 import { cookies } from "next/headers";
+import { redirect } from "next/navigation";
 import type { CompleteOnboardingRequest } from "@/lib/types/onboarding";
 
 const BACKEND_URL = process.env.BACKEND_URL;
@@ -215,9 +216,6 @@ export async function updateEmail(newEmail: string) {
   }
 
   try {
-    // Supabase "Secure Email Change":
-    // This will send two emails: one to the old address, one to the new address.
-    // The user must click BOTH to finalize the change.
     const { error: updateError } = await supabase.auth.updateUser({
       email: newEmail,
     });
@@ -255,7 +253,6 @@ export async function triggerPasswordReset(workspaceSlug: string) {
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
 
   // Redirect back to the Profile Settings page, but with a flag enabled
-  // We use the workspaceSlug to ensure they land back in the correct context
   const redirectTo = `${siteUrl}/auth/callback?next=/${workspaceSlug}/settings/profile?recovery=true`;
 
   try {
@@ -278,7 +275,6 @@ export async function triggerPasswordReset(workspaceSlug: string) {
 }
 
 // 2. Update Password (The Final Step)
-// This is only called after the user has clicked the email link
 export async function updatePassword(newPassword: string) {
   const supabase = await createClient();
 
@@ -308,4 +304,26 @@ export async function updatePassword(newPassword: string) {
         : "An unknown error occurred during password update.";
     return { success: false, error: message };
   }
+}
+
+// NEW: Delete Account (Danger Zone)
+export async function deleteAccount() {
+  // 1. Backend Deletion (Checks ownership, deletes data)
+  const result = await authenticatedFetch("/users/me", {
+    method: "DELETE",
+  });
+
+  if (!result.success) {
+    return { success: false, error: result.error };
+  }
+
+  // 2. Supabase Auth Deletion (Sign out locally)
+  // Note: We don't delete from Supabase Admin API here because the backend handles the critical data.
+  // The user remains in Supabase Auth but is orphaned/disabled effectively.
+  // Ideally, the Backend would use the Service Role key to delete the user from Supabase entirely,
+  // but for now, signing them out is the immediate frontend step.
+  const supabase = await createClient();
+  await supabase.auth.signOut();
+
+  return { success: true };
 }

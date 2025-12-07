@@ -1,13 +1,12 @@
 // app/(app)/[workspace]/settings/profile/page.tsx
 
 import { getUserAndOrganization } from "@/lib/auth";
-import ProfileForm from "@/components/settings/profile/profile-form";
+import { ProfileView } from "@/components/settings/profile/profile-view";
 import { redirect } from "next/navigation";
 
 export const dynamic = "force-dynamic";
 
 export default async function WorkspaceProfilePage() {
-  // We reuse the existing auth utility to get user details
   const userContext = await getUserAndOrganization();
 
   if (!userContext) {
@@ -25,7 +24,7 @@ export default async function WorkspaceProfilePage() {
         </p>
       </div>
 
-      <ProfileForm
+      <ProfileView
         initialDisplayName={userContext.displayName}
         initialEmail={userContext.email}
       />
