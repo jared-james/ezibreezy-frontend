@@ -5,7 +5,7 @@
 import { ReactNode } from "react";
 import Link from "next/link";
 import { useParams, usePathname } from "next/navigation";
-import { Link2, Briefcase, Building2 } from "lucide-react";
+import { Link2, Briefcase, Building2, User } from "lucide-react";
 import { useWorkspaceStore } from "@/lib/store/workspace-store";
 import { cn } from "@/lib/utils";
 
@@ -38,6 +38,11 @@ export default function WorkspaceSettingsLayout({
       name: "Workspace",
       href: `/${workspace}/settings`,
       icon: Briefcase,
+    },
+    {
+      name: "Profile",
+      href: `/${workspace}/settings/profile`,
+      icon: User,
     },
     {
       name: "Manage Channels",

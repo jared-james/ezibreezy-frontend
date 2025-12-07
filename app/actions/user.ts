@@ -200,3 +200,38 @@ export async function updateDisplayName(newDisplayName: string) {
     return { success: false, error: message };
   }
 }
+
+// Initiate email change
+export async function updateEmail(newEmail: string) {
+  const supabase = await createClient();
+
+  const {
+    data: { user },
+    error: sessionError,
+  } = await supabase.auth.getUser();
+
+  if (sessionError || !user) {
+    return { success: false, error: "User not authenticated." };
+  }
+
+  try {
+    // Supabase "Secure Email Change":
+    // This will send two emails: one to the old address, one to the new address.
+    // The user must click BOTH to finalize the change.
+    const { error: updateError } = await supabase.auth.updateUser({
+      email: newEmail,
+    });
+
+    if (updateError) {
+      return { success: false, error: updateError.message };
+    }
+
+    return { success: true };
+  } catch (error) {
+    const message =
+      error instanceof Error
+        ? error.message
+        : "An unknown error occurred during email update.";
+    return { success: false, error: message };
+  }
+}
