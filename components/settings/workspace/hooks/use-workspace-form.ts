@@ -1,7 +1,7 @@
 // components/settings/workspace/hooks/use-workspace-form.ts
 
 import { useState, useEffect } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import { useWorkspaceStore } from "@/lib/store/workspace-store";
 import {
   updateWorkspace,
@@ -22,6 +22,7 @@ export function useWorkspaceForm(
 ) {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const pathname = usePathname();
   const { setStructure, setCurrentWorkspace } = useWorkspaceStore();
 
   const [lastWorkspaceId, setLastWorkspaceId] = useState(initialWorkspace?.id);
@@ -110,8 +111,22 @@ export function useWorkspaceForm(
       const oldSlug = initialWorkspace.slug;
       const newSlug = result.data.slug;
 
-      // Redirect if slug changed
+      // Handle Redirection if slug changed
       if (newSlug && oldSlug !== newSlug) {
+        // 1. Path-based routing (e.g. /chicken-fish/settings -> /chicken-nuggie/settings)
+        if (
+          pathname &&
+          (pathname === `/${oldSlug}` || pathname.startsWith(`/${oldSlug}/`))
+        ) {
+          const newPath = pathname.replace(`/${oldSlug}`, `/${newSlug}`);
+          setCurrentWorkspace(newSlug);
+          router.replace(newPath);
+          setSuccess(true);
+          setLoading(false);
+          return; // Stop here to prevent refreshing on invalid old URL
+        }
+
+        // 2. Query-param based routing (Legacy fallback)
         const currentParam =
           searchParams.get("workspace") || searchParams.get("workspaceId");
 
@@ -123,6 +138,9 @@ export function useWorkspaceForm(
           newParams.set("workspace", newSlug);
 
           router.replace(`/settings/workspace?${newParams.toString()}`);
+          setSuccess(true);
+          setLoading(false);
+          return;
         }
       }
 

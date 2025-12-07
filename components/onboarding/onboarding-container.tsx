@@ -7,13 +7,13 @@ import { useRouter } from "next/navigation";
 import posthog from "posthog-js";
 import { completeOnboarding } from "@/app/actions/user";
 import { cn } from "@/lib/utils";
-import Image from "next/image";
 import OnboardingBranding from "./onboarding-branding";
 import OnboardingForm from "./onboarding-form";
+import OnboardingConnect from "./onboarding-connect";
 import SubmittingState from "./submitting-state";
 import SuccessState from "./success-state";
 
-type OnboardingState = "form" | "submitting" | "success";
+type OnboardingState = "form" | "submitting" | "connect" | "success";
 
 const TIMEZONE_OPTIONS = [
   { value: "UTC", label: "UTC (Universal Time)" },
@@ -41,11 +41,16 @@ export default function OnboardingContainer() {
   const [workspaceName, setWorkspaceName] = useState("");
   const [timezone, setTimezone] = useState("");
 
+  const [createdWorkspace, setCreatedWorkspace] = useState<{
+    id: string;
+    slug: string;
+  } | null>(null);
+
   // Auto-detect timezone on mount
   useState(() => {
     try {
       const detectedTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-      if (TIMEZONE_OPTIONS.some(opt => opt.value === detectedTimezone)) {
+      if (TIMEZONE_OPTIONS.some((opt) => opt.value === detectedTimezone)) {
         setTimezone(detectedTimezone);
       } else {
         setTimezone("UTC");
@@ -60,7 +65,6 @@ export default function OnboardingContainer() {
     setError(null);
     setState("submitting");
 
-    // Validation
     if (organizationName.trim().length < 3) {
       setError("Organization name must be at least 3 characters");
       setState("form");
@@ -79,7 +83,6 @@ export default function OnboardingContainer() {
       return;
     }
 
-    // Track onboarding attempt
     posthog.capture("onboarding_attempt", {
       organizationName,
       workspaceName,
@@ -102,19 +105,21 @@ export default function OnboardingContainer() {
         return;
       }
 
-      // Track success
-      posthog.capture("onboarding_completed", {
+      posthog.capture("onboarding_workspace_created", {
         organizationName,
         workspaceName,
         timezone,
       });
 
-      setState("success");
-
-      // Redirect to workspace dashboard
       const targetSlug = result.targetWorkspaceSlug || result.targetWorkspaceId;
+      setCreatedWorkspace({
+        id: result.targetWorkspaceId,
+        slug: targetSlug,
+      });
+
+      // Transition to Connect step
       setTimeout(() => {
-        router.push(`/${targetSlug}/dashboard`);
+        setState("connect");
       }, 1500);
     } catch (err) {
       setError("An unexpected error occurred");
@@ -125,10 +130,23 @@ export default function OnboardingContainer() {
     }
   };
 
+  const handleSkipConnection = () => {
+    if (!createdWorkspace) return;
+
+    posthog.capture("onboarding_connection_skipped");
+    setState("success");
+
+    // Redirect to dashboard
+    setTimeout(() => {
+      router.push(`/${createdWorkspace.slug}/dashboard`);
+    }, 1500);
+  };
+
+  const isExpandedMode = state === "connect" || state === "success";
+
   return (
     <div className="flex flex-col min-h-screen bg-background-editorial text-foreground transition-colors duration-500">
-      <main className="grow flex items-center justify-center py-16 px-4 relative">
-        {/* Grid Background */}
+      <main className="grow flex items-center justify-center py-8 md:py-16 px-4 relative">
         <div
           className="absolute inset-0 pointer-events-none opacity-[0.03]"
           style={{
@@ -138,45 +156,43 @@ export default function OnboardingContainer() {
           }}
         />
 
-        <div className="w-full max-w-5xl relative z-10">
-          <div className="bg-surface border border-foreground shadow-2xl relative overflow-hidden transition-all duration-500">
-            <div className="grid md:grid-cols-2 min-h-[600px]">
-              {/* LEFT COLUMN: BRANDING */}
-              <OnboardingBranding />
+        <div className="w-full max-w-6xl relative z-10">
+          <div className="bg-surface border border-foreground shadow-2xl relative overflow-hidden transition-all duration-500 rounded-sm">
+            {/* Increased min-height to 700px to prevent crunching */}
+            <div className="flex flex-col md:flex-row min-h-[700px] w-full relative">
+              {/* LEFT COLUMN */}
+              <div
+                className={cn(
+                  "relative border-b md:border-b-0 md:border-r border-dashed border-foreground/30 bg-surface overflow-hidden transition-all duration-700 ease-[cubic-bezier(0.76,0,0.24,1)]",
+                  isExpandedMode
+                    ? "md:w-0 md:opacity-0 md:border-r-0 h-0 md:h-auto py-0"
+                    : "w-full md:w-1/2 opacity-100"
+                )}
+              >
+                <div className="absolute inset-0 w-full h-full min-w-[500px]">
+                  <OnboardingBranding organizationName={organizationName} />
+                </div>
+              </div>
 
-              {/* RIGHT COLUMN: FORM */}
-              <div className="p-8 md:p-12 flex flex-col relative bg-surface-hover/30 justify-center">
-                {/* DECORATIVE STAMP */}
+              {/* RIGHT COLUMN */}
+              <div
+                className={cn(
+                  "relative bg-surface-hover/30 flex flex-col transition-all duration-700 ease-[cubic-bezier(0.76,0,0.24,1)]",
+                  // Only center vertically if NOT expanded (form state).
+                  // If expanded, align to top (via default flex-start) and add padding top.
+                  !isExpandedMode && "justify-center",
+                  isExpandedMode
+                    ? "w-full md:w-full p-6 md:p-10 pt-12 md:pt-16"
+                    : "w-full md:w-1/2 p-8 md:p-12"
+                )}
+              >
                 <div
                   className={cn(
-                    "absolute top-8 right-8 pointer-events-none select-none transition-all duration-700",
-                    state === "success"
-                      ? "scale-125 opacity-100 rotate-12"
-                      : "opacity-80 rotate-3"
+                    "w-full mx-auto relative min-h-[400px] flex flex-col transition-all duration-700",
+                    !isExpandedMode && "justify-center", // Also un-center the inner wrapper
+                    isExpandedMode ? "max-w-4xl h-full" : "max-w-sm"
                   )}
                 >
-                  <div className="relative w-24 h-28 border-[3px] border-dotted border-foreground/20 bg-background-editorial flex items-center justify-center shadow-sm">
-                    <Image
-                      src="/logo_smile.webp"
-                      alt="Stamp"
-                      width={60}
-                      height={60}
-                      className="grayscale contrast-125"
-                    />
-                    {/* Green overlay on success */}
-                    <div
-                      className={cn(
-                        "absolute inset-0 transition-colors duration-500",
-                        state === "success"
-                          ? "bg-green-500/10 mix-blend-multiply"
-                          : "bg-transparent"
-                      )}
-                    />
-                  </div>
-                </div>
-
-                {/* CONTENT SWITCHER */}
-                <div className="max-w-sm w-full mx-auto relative min-h-[400px] flex flex-col justify-center">
                   {/* --- STATE 1: FORM --- */}
                   <div
                     className={cn(
@@ -193,14 +209,18 @@ export default function OnboardingContainer() {
                       setWorkspaceName={setWorkspaceName}
                       timezone={timezone}
                       setTimezone={setTimezone}
-                      state={state}
+                      state={
+                        state === "form" || state === "submitting"
+                          ? state
+                          : "form"
+                      }
                       error={error}
                       onSubmit={handleSubmit}
                       timezoneOptions={TIMEZONE_OPTIONS}
                     />
                   </div>
 
-                  {/* --- STATE 2: SUBMITTING / PROCESSING --- */}
+                  {/* --- STATE 2: SUBMITTING --- */}
                   <div
                     className={cn(
                       "transition-all duration-500 absolute inset-0 flex flex-col items-center justify-center text-center space-y-6",
@@ -212,7 +232,27 @@ export default function OnboardingContainer() {
                     <SubmittingState />
                   </div>
 
-                  {/* --- STATE 3: SUCCESS --- */}
+                  {/* --- STATE 3: CONNECT --- */}
+                  <div
+                    className={cn(
+                      "transition-all duration-700 delay-200 absolute inset-0 flex flex-col",
+                      state === "connect"
+                        ? "opacity-100 translate-x-0 transform scale-100 pointer-events-auto"
+                        : state === "success"
+                        ? "opacity-0 -translate-x-8 transform scale-95 pointer-events-none"
+                        : "opacity-0 translate-x-8 transform scale-95 pointer-events-none"
+                    )}
+                  >
+                    {createdWorkspace && (
+                      <OnboardingConnect
+                        workspaceId={createdWorkspace.id}
+                        workspaceSlug={createdWorkspace.slug}
+                        onSkip={handleSkipConnection}
+                      />
+                    )}
+                  </div>
+
+                  {/* --- STATE 4: SUCCESS --- */}
                   <div
                     className={cn(
                       "transition-all duration-700 delay-100 absolute inset-0 flex flex-col items-center justify-center text-center space-y-6",

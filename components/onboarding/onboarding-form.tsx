@@ -43,8 +43,8 @@ export default function OnboardingForm({
       <div className="space-y-8">
         {/* ORGANIZATION NAME */}
         <div className="group">
-          <label className="flex items-center gap-2 font-mono text-[10px] uppercase tracking-widest text-foreground/50 mb-2">
-            <Building2 className="w-3 h-3" />
+          <label className="flex items-center gap-2 font-mono text-xs uppercase tracking-wider text-foreground font-bold mb-2">
+            <Building2 className="w-4 h-4" />
             Organization Name
           </label>
           <input
@@ -53,7 +53,7 @@ export default function OnboardingForm({
             minLength={3}
             value={organizationName}
             onChange={(e) => setOrganizationName(e.target.value)}
-            placeholder="Acme Publishing Co."
+            placeholder="Midnight Briefs Club"
             className="w-full bg-transparent border-b-2 border-dotted border-foreground/30 py-2 font-serif text-xl text-foreground placeholder:text-foreground/20 focus:outline-none focus:border-foreground transition-colors"
             disabled={state !== "form"}
           />
@@ -64,8 +64,8 @@ export default function OnboardingForm({
 
         {/* WORKSPACE NAME */}
         <div className="group">
-          <label className="flex items-center gap-2 font-mono text-[10px] uppercase tracking-widest text-foreground/50 mb-2">
-            <Briefcase className="w-3 h-3" />
+          <label className="flex items-center gap-2 font-mono text-xs uppercase tracking-wider text-foreground font-bold mb-2">
+            <Briefcase className="w-4 h-4" />
             Workspace Name
           </label>
           <input
@@ -74,7 +74,7 @@ export default function OnboardingForm({
             minLength={3}
             value={workspaceName}
             onChange={(e) => setWorkspaceName(e.target.value)}
-            placeholder="Main Desk"
+            placeholder="Chicken Nuggie"
             className="w-full bg-transparent border-b-2 border-dotted border-foreground/30 py-2 font-serif text-xl text-foreground placeholder:text-foreground/20 focus:outline-none focus:border-foreground transition-colors"
             disabled={state !== "form"}
           />
@@ -85,8 +85,8 @@ export default function OnboardingForm({
 
         {/* TIMEZONE */}
         <div className="group">
-          <label className="flex items-center gap-2 font-mono text-[10px] uppercase tracking-widest text-foreground/50 mb-2">
-            <Globe className="w-3 h-3" />
+          <label className="flex items-center gap-2 font-mono text-xs uppercase tracking-wider text-foreground font-bold mb-2">
+            <Globe className="w-4 h-4" />
             Timezone
           </label>
           <Select
@@ -114,9 +114,7 @@ export default function OnboardingForm({
 
       {error && (
         <div className="p-3 border border-red-200 bg-red-50 text-center animate-in fade-in slide-in-from-top-2">
-          <p className="font-serif text-sm text-red-600">
-            {error}
-          </p>
+          <p className="font-serif text-sm text-red-600">{error}</p>
         </div>
       )}
 
