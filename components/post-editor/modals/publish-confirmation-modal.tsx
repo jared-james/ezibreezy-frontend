@@ -100,7 +100,7 @@ export default function PublishConfirmationModal({
   const getHeaderContent = () => {
     if (isSubmitting)
       return {
-        label: "System // Processing",
+        label: "Processing",
         title: "Deploying...",
       };
     if (isFinished)
@@ -109,7 +109,7 @@ export default function PublishConfirmationModal({
         title: isScheduled ? "Confirmed" : "Deployed",
       };
     return {
-      label: "System // Verification",
+      label: "Verification",
       title: "Final Check",
     };
   };
@@ -151,17 +151,17 @@ export default function PublishConfirmationModal({
             <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
               <div
                 className={cn(
-                  "p-6 border rounded-sm flex gap-4 items-start",
+                  "p-6 rounded-sm flex gap-4 items-start",
                   isScheduled
-                    ? "bg-blue-50/50 border-blue-100"
-                    : "bg-green-50/50 border-green-100"
+                    ? "border-2 border-dotted bg-brand-primary/5 border-brand-primary/40" // Dotted Green Border
+                    : "border bg-green-50/50 border-green-100" // Standard Green for "Published"
                 )}
               >
                 <div
                   className={cn(
                     "p-3 rounded-full shrink-0 border",
                     isScheduled
-                      ? "bg-blue-100/50 text-blue-700 border-blue-200"
+                      ? "bg-brand-primary/10 text-brand-primary border-brand-primary/20" // Green Icon
                       : "bg-green-100/50 text-green-700 border-green-200"
                   )}
                 >
@@ -200,10 +200,10 @@ export default function PublishConfirmationModal({
               {/* Timing Badge */}
               <div
                 className={cn(
-                  "p-4 border rounded-sm flex gap-3 items-center",
+                  "p-4 border-2 border-dotted rounded-sm flex gap-3 items-center",
                   timing.isScheduled
-                    ? "bg-brand-primary/5 border-brand-primary/20"
-                    : "bg-orange-50/50 border-orange-100"
+                    ? "bg-brand-primary/5 border-brand-primary/40"
+                    : "bg-orange-50/50 border-orange-300"
                 )}
               >
                 <div
@@ -350,7 +350,7 @@ export default function PublishConfirmationModal({
                 className="btn btn-primary w-full flex items-center justify-center gap-2"
               >
                 <CheckCircle2 className="w-4 h-4" />
-                <span>Return to Feed</span>
+                <span>Return</span>
               </button>
             ) : (
               <>
