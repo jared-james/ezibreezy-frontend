@@ -23,7 +23,7 @@ import {
 import { type CreatePostPayload } from "@/lib/types/publishing";
 import { generateVideoThumbnail } from "@/lib/utils/video-thumbnail";
 import { getAutoSelectionForPlatform } from "@/lib/utils/media-validation";
-import { uploadMediaAction } from "@/app/actions/media";
+import { uploadMediaDirect } from "@/lib/api/media-upload";
 import { getConnectionsAction } from "@/app/actions/integrations";
 import { createPostAction } from "@/app/actions/publishing";
 import { useParams } from "next/navigation";
@@ -116,15 +116,8 @@ export function usePostEditor(options: UsePostEditorOptions = {}) {
         }
       }
 
-      const formData = new FormData();
-      formData.append("file", variables.file);
-      if (thumbnail) {
-        formData.append("thumbnail", thumbnail);
-      }
-
-      const result = await uploadMediaAction(formData, workspaceId);
-      if (!result.success) throw new Error(result.error);
-      return result.data!;
+      // Upload directly to backend API, bypassing Next.js server action
+      return uploadMediaDirect(variables.file, workspaceId, thumbnail);
     },
     onSuccess: (data, variables) => {
       const currentItems = useEditorialDraftStore.getState().stagedMediaItems;

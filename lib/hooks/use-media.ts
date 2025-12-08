@@ -38,11 +38,11 @@ import {
   deleteTagAction,
   attachTagsToMediaAction,
   detachTagsFromMediaAction,
-  uploadMediaAction,
 } from "@/app/actions/media";
 import { toast } from "sonner";
 import { generateVideoThumbnail } from "@/lib/utils/video-thumbnail";
 import { useWorkspaceStore } from "@/lib/store/workspace-store";
+import { uploadMediaDirect } from "@/lib/api/media-upload";
 
 export function useMediaList(filters: MediaFilters = {}) {
   const { currentWorkspace } = useWorkspaceStore();
@@ -130,15 +130,8 @@ export function useUploadMedia() {
         }
       }
 
-      const formData = new FormData();
-      formData.append("file", file);
-      if (thumbnail) {
-        formData.append("thumbnail", thumbnail);
-      }
-
-      const result = await uploadMediaAction(formData, currentWorkspace!.id);
-      if (!result.success) throw new Error(result.error);
-      return result.data!;
+      // Upload directly to backend API, bypassing Next.js server action
+      return uploadMediaDirect(file, currentWorkspace!.id, thumbnail);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({

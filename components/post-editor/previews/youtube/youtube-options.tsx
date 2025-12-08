@@ -5,7 +5,7 @@
 import { useState, useRef } from "react";
 import { Settings, Upload, Trash2, Loader2, Info } from "lucide-react";
 import { toast } from "sonner";
-import { uploadMediaAction } from "@/app/actions/media";
+import { uploadMediaDirect } from "@/lib/api/media-upload";
 import { useWorkspaceStore } from "@/lib/store/workspace-store";
 import { Input } from "@/components/ui/input";
 import {
@@ -79,11 +79,8 @@ export function YouTubeOptions({
 
     try {
       setIsUploadingThumb(true);
-      const formData = new FormData();
-      formData.append("file", file);
-      const result = await uploadMediaAction(formData, currentWorkspace.id);
-      if (!result.success) throw new Error(result.error);
-      onThumbnailChange(result.data!.url);
+      const result = await uploadMediaDirect(file, currentWorkspace.id);
+      onThumbnailChange(result.url);
       toast.success("Thumbnail uploaded");
     } catch (error) {
       toast.error("Failed to upload thumbnail");

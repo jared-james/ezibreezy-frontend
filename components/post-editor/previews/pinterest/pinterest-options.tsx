@@ -16,7 +16,7 @@ import { Input } from "@/components/ui/input";
 import { PinterestBoardSelector } from "./pinterest-board-selector";
 import { MediaItem } from "@/lib/store/editorial/draft-store";
 import { toast } from "sonner";
-import { uploadMediaAction } from "@/app/actions/media";
+import { uploadMediaDirect } from "@/lib/api/media-upload";
 import { useWorkspaceStore } from "@/lib/store/workspace-store";
 import { useClientData } from "@/lib/hooks/use-client-data";
 import MediaSourceModal from "../../modals/media-source-modal";
@@ -68,11 +68,8 @@ export function PinterestOptions({
 
     try {
       setIsUploadingCover(true);
-      const formData = new FormData();
-      formData.append("file", file);
-      const result = await uploadMediaAction(formData, currentWorkspace.id);
-      if (!result.success) throw new Error(result.error);
-      onCoverChange?.(result.data!.url);
+      const result = await uploadMediaDirect(file, currentWorkspace.id);
+      onCoverChange?.(result.url);
       toast.success("Cover image uploaded");
     } catch (error) {
       toast.error("Failed to upload cover image");

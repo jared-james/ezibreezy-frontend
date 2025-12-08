@@ -14,7 +14,10 @@ const nextConfig: NextConfig = {
   },
   experimental: {
     serverActions: {
-      bodySizeLimit: "50mb", // Increase this
+      // Kept at 50mb for potential future server actions that handle large payloads.
+      // Note: Media uploads now bypass server actions and go directly to the backend API
+      // to avoid double-uploading. See lib/api/media-upload.ts
+      bodySizeLimit: "50mb",
     },
   },
 };

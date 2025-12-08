@@ -7,7 +7,6 @@ import type {
   MediaItemWithUsage,
   MediaListResponse,
   MediaFilters,
-  UploadMediaResponse,
   MediaFolder,
   MediaFolderWithChildren,
   MediaTag,
@@ -17,50 +16,8 @@ import type {
 // ============================================================================
 // Media Assets
 // ============================================================================
-
-export async function uploadMediaAction(
-  formData: FormData,
-  workspaceId: string
-): Promise<{ success: boolean; data?: UploadMediaResponse; error?: string }> {
-  const supabase = await (await import("@/lib/supabase/server")).createClient();
-  const {
-    data: { session },
-  } = await supabase.auth.getSession();
-
-  if (!session) {
-    return { success: false, error: "Not authenticated" };
-  }
-
-  const BACKEND_URL = process.env.BACKEND_URL;
-  const apiKey = process.env.NEXT_PUBLIC_API_KEY;
-
-  try {
-    const response = await fetch(`${BACKEND_URL}/media/upload`, {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${session.access_token}`,
-        "x-api-key": apiKey || "",
-        "x-workspace-id": workspaceId,
-      },
-      body: formData, // Don't set Content-Type, let browser handle multipart boundary
-    });
-
-    if (!response.ok) {
-      const error = await response.json().catch(() => ({
-        message: `Upload failed: ${response.statusText}`,
-      }));
-      return { success: false, error: error.message };
-    }
-
-    const data = await response.json();
-    return { success: true, data };
-  } catch (error) {
-    return {
-      success: false,
-      error: error instanceof Error ? error.message : "Upload failed",
-    };
-  }
-}
+// NOTE: Media upload is now handled directly from the client via uploadMediaDirect()
+// in lib/api/media-upload.ts to avoid double-uploading large files through server actions.
 
 export async function listMediaAction(
   workspaceId: string,
