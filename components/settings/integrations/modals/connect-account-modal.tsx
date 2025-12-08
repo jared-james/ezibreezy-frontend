@@ -1,3 +1,5 @@
+// components/settings/integrations/modals/connect-account-modal.tsx
+
 // app/(app)/settings/integrations/components/connect-account-modal.tsx
 
 "use client";
@@ -45,7 +47,10 @@ export default function ConnectAccountModal({
     } catch (e) {
       console.error("Could not save to sessionStorage", e);
     }
-    window.location.href = `/api/integrations/${platformId}/connect?workspaceId=${currentWorkspace.id}`;
+
+    // NEW: Use the workspace slug in the URL path
+    const workspaceParam = currentWorkspace.slug || currentWorkspace.id;
+    window.location.href = `/api/${workspaceParam}/integrations/${platformId}/connect`;
   };
 
   return (

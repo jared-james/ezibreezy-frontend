@@ -1,4 +1,4 @@
-// app/api/integrations/[platform]/connect/route.ts
+// app/api/[workspace]/integrations/[platform]/connect/route.ts
 
 import { createClient } from "@/lib/supabase/server";
 import { NextResponse } from "next/server";
@@ -8,7 +8,7 @@ const BACKEND_URL = process.env.BACKEND_URL;
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<{ platform: string }> }
+  { params }: { params: Promise<{ workspace: string; platform: string }> }
 ) {
   const supabase = await createClient();
 
@@ -20,22 +20,12 @@ export async function GET(
     return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
   }
 
-  const { platform } = await params;
+  // Extract workspace and platform from the dynamic route segments
+  const { workspace, platform } = await params;
 
-  if (!platform) {
+  if (!platform || !workspace) {
     return NextResponse.json(
-      { error: "Platform parameter is required" },
-      { status: 400 }
-    );
-  }
-
-  // Get workspace from query params (supports both new 'workspace' and legacy 'workspaceId')
-  const { searchParams } = new URL(request.url);
-  const workspaceId = searchParams.get("workspace") || searchParams.get("workspaceId");
-
-  if (!workspaceId) {
-    return NextResponse.json(
-      { error: "Workspace parameter is required" },
+      { error: "Missing required parameters" },
       { status: 400 }
     );
   }
@@ -46,7 +36,8 @@ export async function GET(
     const response = await fetch(backendUrl, {
       headers: {
         Authorization: `Bearer ${session.access_token}`,
-        "x-workspace-id": workspaceId,
+        // Pass the slug directly; backend WorkspaceGuard handles resolution
+        "x-workspace-id": workspace,
       },
       redirect: "manual",
     });

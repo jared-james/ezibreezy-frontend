@@ -19,14 +19,16 @@ export const InstagramConnectOptionsModal: React.FC<
 > = ({ isOpen, onClose, platform, workspaceIdOverride, nextUrl }) => {
   const { currentWorkspace } = useWorkspaceStore();
 
-  const targetWorkspaceId = workspaceIdOverride || currentWorkspace?.id;
+  // Prefer slug, fallback to ID. If override is provided, use that.
+  const workspaceParam =
+    workspaceIdOverride || currentWorkspace?.slug || currentWorkspace?.id;
 
   if (!isOpen) return null;
 
   const handleConnect = (
     authType: "facebook_business" | "instagram_business"
   ) => {
-    if (!targetWorkspaceId) {
+    if (!workspaceParam) {
       console.error("No workspace selected");
       return;
     }
@@ -42,10 +44,12 @@ export const InstagramConnectOptionsModal: React.FC<
         ? "instagram-direct"
         : "instagram-facebook";
 
-    let connectUrl = `/api/integrations/${routePlatformId}/connect?workspaceId=${targetWorkspaceId}`;
+    // NEW URL STRUCTURE
+    let connectUrl = `/api/${workspaceParam}/integrations/${routePlatformId}/connect`;
 
     if (nextUrl) {
-      connectUrl += `&next=${encodeURIComponent(nextUrl)}`;
+      // Use '?' here because it's the first query param now
+      connectUrl += `?next=${encodeURIComponent(nextUrl)}`;
     }
 
     window.location.href = connectUrl;
