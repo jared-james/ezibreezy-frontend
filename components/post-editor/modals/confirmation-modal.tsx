@@ -2,8 +2,8 @@
 
 "use client";
 
-import { Button } from "@/components/ui/button";
-import { X } from "lucide-react";
+import { X, Scissors, CheckCircle2, CalendarClock, Send } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 interface ConfirmationModalProps {
   isOpen: boolean;
@@ -21,52 +21,91 @@ export default function ConfirmationModal({
   if (!isOpen || !status) return null;
 
   const isScheduled = status === "scheduled";
-
   const isMultiple = count > 1;
-  const postLabel = isMultiple ? `${count} posts` : "Your post";
-  const message = isScheduled
-    ? `${postLabel} will be published at the scheduled time.`
-    : `${postLabel} ${
-        isMultiple ? "are" : "is"
-      } now live across your channels.`;
+  const postLabel = isMultiple ? `${count} posts` : "Post";
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
-      <div className="relative w-full max-w-lg bg-surface border border-foreground shadow-2xl">
-        <button
-          onClick={onClose}
-          className="absolute top-4 right-4 text-muted-foreground hover:text-foreground transition-colors z-10"
-          aria-label="Close"
-        >
-          <X className="w-5 h-5" />
-        </button>
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#e5e5e0]/80 backdrop-blur-sm animate-in fade-in duration-200">
+      <div className="relative w-full max-w-lg bg-[#fdfbf7] border border-black/10 shadow-2xl rounded-lg flex flex-col overflow-hidden max-h-[90vh]">
+        {/* Header */}
+        <div className="p-8 border-b border-black/5 pb-6 bg-[#fdfbf7] shrink-0">
+          <div className="flex items-start justify-between">
+            <div>
+              <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-muted-foreground mb-2">
+                Content // {isScheduled ? "Scheduling" : "Distribution"}
+              </p>
+              <h2 className="headline text-3xl font-bold tracking-tight text-foreground">
+                {isScheduled ? "Confirmed" : "Deployed"}
+              </h2>
+            </div>
+            <button
+              onClick={onClose}
+              className="text-muted-foreground hover:text-foreground transition-colors p-1"
+            >
+              <X className="w-6 h-6" />
+            </button>
+          </div>
+        </div>
 
-        <div className="p-8 text-center">
-          <p className="eyebrow mb-2">
-            {isScheduled ? "All Set" : "Published"}
-          </p>
+        {/* Content */}
+        <div className="p-8 pt-6">
+          <div className="space-y-6">
+            {/* Status Indicator Box */}
+            <div
+              className={cn(
+                "p-4 border rounded-sm flex gap-4 items-start animate-in fade-in slide-in-from-bottom-2 duration-300",
+                isScheduled
+                  ? "bg-blue-50/50 border-blue-100"
+                  : "bg-green-50/50 border-green-100"
+              )}
+            >
+              <div
+                className={cn(
+                  "p-2 rounded-full shrink-0 border",
+                  isScheduled
+                    ? "bg-blue-100/50 text-blue-700 border-blue-200"
+                    : "bg-green-100/50 text-green-700 border-green-200"
+                )}
+              >
+                {isScheduled ? (
+                  <CalendarClock className="w-5 h-5" />
+                ) : (
+                  <Send className="w-5 h-5" />
+                )}
+              </div>
 
-          {/* Line under eyebrow */}
-          <div className="border-b border-foreground mb-6 mx-auto w-16" />
+              <div>
+                <h3 className="font-serif font-bold text-foreground text-lg">
+                  {isScheduled
+                    ? "Scheduled Successfully"
+                    : "Published Successfully"}
+                </h3>
+                <p className="font-serif text-sm text-muted-foreground mt-1 leading-relaxed">
+                  {isScheduled
+                    ? `Your ${postLabel.toLowerCase()} has been added to the queue and will be published automatically at the selected time.`
+                    : `Your ${postLabel.toLowerCase()} is now live. It may take a few moments to appear on the destination platforms.`}
+                </p>
+              </div>
+            </div>
 
-          <h2 className="font-serif text-4xl font-bold uppercase tracking-tight text-foreground">
-            {isScheduled ? "Scheduled" : "Live"}
-          </h2>
+            {/* "Cut Line" Separator */}
+            <div className="flex items-center gap-2 text-black/20 py-2">
+              <Scissors className="h-4 w-4 -rotate-90" />
+              <div className="flex-1 border-b-2 border-dashed border-black/10" />
+            </div>
 
-          {/* Double rule divider */}
-          <div className="border-b-4 border-double border-foreground my-5 mx-8" />
-
-          <p className="font-serif text-sm text-muted-foreground leading-relaxed mb-8">
-            {message}
-          </p>
-
-          <Button
-            variant="primary"
-            onClick={onClose}
-            className="w-full font-serif uppercase tracking-[0.12em]"
-          >
-            Done
-          </Button>
+            {/* Actions */}
+            <div className="flex gap-3">
+              <button
+                type="button"
+                onClick={onClose}
+                className="btn btn-primary flex-1 flex items-center justify-center gap-2"
+              >
+                <CheckCircle2 className="w-4 h-4" />
+                <span>Return to Feed</span>
+              </button>
+            </div>
+          </div>
         </div>
       </div>
     </div>
