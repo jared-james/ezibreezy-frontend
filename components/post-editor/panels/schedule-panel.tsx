@@ -50,7 +50,7 @@ export default function ScheduleCard({
     setPublishingState({ scheduleTime: time });
 
   React.useEffect(() => {
-    onSchedulingChange(true);
+    onSchedulingChange(false);
   }, []);
 
   const selectedDate = React.useMemo(
@@ -97,19 +97,6 @@ export default function ScheduleCard({
         <div className="flex gap-2">
           <button
             type="button"
-            onClick={() => onSchedulingChange(true)}
-            className={cn(
-              "flex flex-1 cursor-pointer items-center justify-center px-4 py-3 text-sm font-serif rounded-md transition-all",
-              isScheduling
-                ? "border-2 border-brand-primary bg-[--surface] font-bold text-brand-primary shadow-sm"
-                : "border border-[--border] bg-transparent text-[--muted-foreground] hover:bg-[--surface-hover]"
-            )}
-          >
-            {isScheduling && <Check className="mr-2 h-4 w-4" />}
-            Schedule
-          </button>
-          <button
-            type="button"
             onClick={() => onSchedulingChange(false)}
             className={cn(
               "flex flex-1 cursor-pointer items-center justify-center px-4 py-3 text-sm font-serif rounded-md transition-all",
@@ -120,6 +107,19 @@ export default function ScheduleCard({
           >
             {!isScheduling && <Check className="mr-2 h-4 w-4" />}
             Post Now
+          </button>
+          <button
+            type="button"
+            onClick={() => onSchedulingChange(true)}
+            className={cn(
+              "flex flex-1 cursor-pointer items-center justify-center px-4 py-3 text-sm font-serif rounded-md transition-all",
+              isScheduling
+                ? "border-2 border-brand-primary bg-[--surface] font-bold text-brand-primary shadow-sm"
+                : "border border-[--border] bg-transparent text-[--muted-foreground] hover:bg-[--surface-hover]"
+            )}
+          >
+            {isScheduling && <Check className="mr-2 h-4 w-4" />}
+            Schedule
           </button>
         </div>
 
