@@ -127,6 +127,7 @@ export function usePostEditorWorkflow({
         selectedAccounts: {
           [platform]: [summary.integrationId],
         },
+        sourceDraftId: summary.id,
         ...(summary.status === "scheduled" && summary.scheduledAt
           ? {
               isScheduling: true,
@@ -253,6 +254,7 @@ export function usePostEditorWorkflow({
       // Publishing State Updates
       const publishingUpdates: any = {
         recycleInterval: fullPost.recycleInterval,
+        sourceDraftId: fullPost.id,
       };
 
       if (!isEnrichment) {
@@ -324,6 +326,9 @@ export function usePostEditorWorkflow({
 
       populateStoreFromSummary(post);
 
+      // Set sourceDraftId so backend knows to update existing post instead of creating new one
+      setPublishingState({ sourceDraftId: post.id });
+
       setSelectedPost(post);
       openEditorialModal();
     },
@@ -332,6 +337,7 @@ export function usePostEditorWorkflow({
       resetPublishing,
       resetUI,
       populateStoreFromSummary,
+      setPublishingState,
       setSelectedPost,
       openEditorialModal,
     ]
