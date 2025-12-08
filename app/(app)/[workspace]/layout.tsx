@@ -32,5 +32,10 @@ export default async function WorkspaceLayout({
     notFound();
   }
 
-  return <>{children}</>;
+  return (
+    <>
+      {" "}
+      <div className="p-8">{children}</div>
+    </>
+  );
 }
