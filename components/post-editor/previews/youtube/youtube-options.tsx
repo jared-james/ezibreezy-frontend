@@ -170,6 +170,17 @@ export function YouTubeOptions({
         <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
           Custom Thumbnail
         </label>
+        <p className="text-xs text-yellow-600 dark:text-yellow-500 leading-tight">
+          Note: Custom thumbnails require a verified phone number on your YouTube account.{" "}
+          <a
+            href="https://www.youtube.com/verify"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="underline hover:text-yellow-700 dark:hover:text-yellow-300"
+          >
+            Verify here
+          </a>
+        </p>
         <div className="flex gap-4 items-start">
           <div className="relative w-24 aspect-video bg-muted border border-border rounded-md overflow-hidden shrink-0 flex items-center justify-center">
             {thumbnailUrl ? (
