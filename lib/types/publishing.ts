@@ -95,10 +95,26 @@ export interface ScheduledPostResponse {
   title?: string | null;
   content: string;
   scheduledAt: string;
-  status: "draft" | "scheduled" | "sent" | "failed" | "cancelled";
+  status:
+    | "draft"
+    | "scheduled"
+    | "sent"
+    | "failed"
+    | "cancelled"
+    | "pending_approval"
+    | "rejected";
   platform: string;
   platformUsername: string;
   media: CalendarMediaItem[];
+
+  // === NEW FIELDS FROM BACKEND ===
+  integrationId: string;
+  postType: string;
+  mediaCrops: Record<string, any>;
+  threadSize: number;
+  labels?: string[];
+  requestedApproverIds?: string[];
+  approvedByIds?: string[];
 }
 
 export interface FullPostDetails {
@@ -106,7 +122,7 @@ export interface FullPostDetails {
   title: string | null;
   content: string;
   integrationId: string;
-  workspaceId: string;
+  organizationId: string;
   userId: string;
   scheduledAt: string | null;
   recycleInterval: number | null;

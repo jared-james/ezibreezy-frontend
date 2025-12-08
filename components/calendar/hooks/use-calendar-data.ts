@@ -28,7 +28,7 @@ import type { ScheduledPost, CalendarFilters, CalendarView } from "../types";
 interface UseCalendarDataProps {
   postIdToEdit: string | null;
   filters?: CalendarFilters;
-  activeView?: CalendarView; // Kept in props if needed later, but removed from fetch logic
+  activeView?: CalendarView;
   currentDate?: Date;
 }
 
@@ -42,14 +42,10 @@ export function useCalendarData({
   const workspaceId = params.workspace as string;
   const queryClient = useQueryClient();
 
-  // === CHANGE 1: Unified Date Range Calculation ===
-  // Regardless of View (Month/Week/List), we always fetch the full visual month grid.
-  // This allows us to switch views without changing the dataset.
   const dateRange = useMemo(() => {
     const monthStart = startOfMonth(currentDate);
     const monthEnd = endOfMonth(currentDate);
 
-    // Expand to cover the full visual grid (Sunday start - Saturday end)
     const gridStart = subDays(monthStart, getDay(monthStart));
     const gridEnd = addDays(monthEnd, 6 - getDay(monthEnd));
 
@@ -57,7 +53,7 @@ export function useCalendarData({
       start: gridStart.toISOString(),
       end: gridEnd.toISOString(),
     };
-  }, [currentDate]); // Removed activeView from dependency
+  }, [currentDate]);
 
   const {
     data: allContent = [],
@@ -67,15 +63,7 @@ export function useCalendarData({
     error: errorList,
     refetch,
   } = useQuery<ScheduledPost[]>({
-    // === CHANGE 2: Stable Query Key ===
-    // Removed 'activeView' from the key.
-    queryKey: [
-      "contentLibrary",
-      workspaceId,
-      // Key now depends ONLY on the grid range, not the view type
-      dateRange.start,
-      dateRange.end,
-    ],
+    queryKey: ["contentLibrary", workspaceId, dateRange.start, dateRange.end],
     queryFn: async () => {
       const result = await getContentLibraryAction(workspaceId, {
         startDate: dateRange.start,
@@ -93,38 +81,25 @@ export function useCalendarData({
 
     if (filters) {
       posts = posts.filter((post) => {
-        // 1. Status Filter
-        if (filters.status !== "all" && post.status !== filters.status) {
+        if (filters.status !== "all" && post.status !== filters.status)
           return false;
-        }
-
         if (
           filters.status === "all" &&
           (post.status === "cancelled" || post.status === "failed")
-        ) {
+        )
           return false;
-        }
-
-        // 2. Channel Filter
-        if (filters.channel !== "all" && post.platform !== filters.channel) {
+        if (filters.channel !== "all" && post.platform !== filters.channel)
           return false;
-        }
-
-        // 3. Label Filter
         if (filters.label !== "all") {
           const hasLabel = post.labels?.includes(filters.label);
           if (!hasLabel) return false;
         }
-
         return true;
       });
     }
-
     return posts;
   }, [allContent, filters]);
 
-  // === CHANGE 3: Update Prefetch Logic ===
-  // Ensure prefetching also uses the simplified key structure
   useEffect(() => {
     const prefetchAdjacentMonth = (monthOffset: number) => {
       const targetDate =
@@ -139,7 +114,6 @@ export function useCalendarData({
       const queryKey = [
         "contentLibrary",
         workspaceId,
-        // Match the main query key structure exactly
         gridStart.toISOString(),
         gridEnd.toISOString(),
       ];
@@ -160,9 +134,20 @@ export function useCalendarData({
 
     prefetchAdjacentMonth(-1);
     prefetchAdjacentMonth(1);
-  }, [currentDate, workspaceId, queryClient]); // Removed activeView dep
+  }, [currentDate, workspaceId, queryClient]);
 
-  // Background Fetch logic for Details (Unchanged)
+  // === SMART SKIP LOGIC ===
+  const cachedPost = useMemo(() => {
+    return allContent.find((p) => p.id === postIdToEdit);
+  }, [allContent, postIdToEdit]);
+
+  // We fetch details ONLY if:
+  // 1. We have an ID
+  // 2. AND we either don't have it in cache (deep link) OR it has threads (missing content)
+  // If it's a simple post, we skip the fetch entirely because `populateStoreFromSummary` handles it.
+  const shouldFetchDetails =
+    !!postIdToEdit && (!cachedPost || (cachedPost.threadSize || 0) > 0);
+
   const {
     data: fullPostData,
     isLoading: isLoadingFullPost,
@@ -172,11 +157,24 @@ export function useCalendarData({
   } = useQuery<FullPostDetails>({
     queryKey: ["fullPostDetails", postIdToEdit, workspaceId],
     queryFn: async () => {
+      console.log(
+        `[Calendar Debug] 🚀 START fetching full details for post: ${postIdToEdit}`
+      );
+      const startTime = performance.now();
+
       const result = await getPostDetailsAction(postIdToEdit!, workspaceId);
+
+      const duration = performance.now() - startTime;
+      console.log(
+        `[Calendar Debug] ✅ FINISHED fetching full details for post: ${postIdToEdit} (${duration.toFixed(
+          2
+        )}ms)`
+      );
+
       if (!result.success) throw new Error(result.error);
       return result.data!;
     },
-    enabled: !!postIdToEdit,
+    enabled: shouldFetchDetails,
     staleTime: 5 * 60 * 1000,
   });
 

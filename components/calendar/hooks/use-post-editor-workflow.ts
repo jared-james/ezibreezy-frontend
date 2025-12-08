@@ -1,10 +1,9 @@
-// components/calendar/hooks/use-post-editor-workflow.ts
-
 "use client";
 
 import { useEffect, useCallback } from "react";
 import { format } from "date-fns";
 import { toast } from "sonner";
+import { useQueryClient } from "@tanstack/react-query"; // Import QueryClient
 import {
   useEditorialDraftStore,
   MediaItem,
@@ -13,6 +12,7 @@ import { usePublishingStore } from "@/lib/store/editorial/publishing-store";
 import { useEditorialUIStore } from "@/lib/store/editorial/ui-store";
 import type { FullPostDetails } from "@/lib/types/publishing";
 import type { ScheduledPost } from "../types";
+import { useParams } from "next/navigation";
 
 interface UsePostEditorWorkflowProps {
   fullPostData: FullPostDetails | undefined;
@@ -35,6 +35,10 @@ export function usePostEditorWorkflow({
   openEditorialModal,
   closeEditorialModal,
 }: UsePostEditorWorkflowProps) {
+  const params = useParams();
+  const workspaceId = params.workspace as string;
+  const queryClient = useQueryClient();
+
   const setDraftState = useEditorialDraftStore((state) => state.setDraftState);
   const setStagedMediaItems = useEditorialDraftStore(
     (state) => state.setStagedMediaItems
@@ -48,8 +52,83 @@ export function usePostEditorWorkflow({
 
   const resetUI = useEditorialUIStore((state) => state.resetUI);
 
+  const populateStoreFromSummary = useCallback(
+    (summary: ScheduledPost) => {
+      console.log(
+        `[Calendar Debug] ⚡ Applying SUMMARY data to store for post: ${summary.id}`
+      );
+
+      // === PRE-SEED CONNECTION CACHE ===
+      // This ensures PreviewPanel renders immediately without waiting for /integrations/connections
+      queryClient.setQueryData<any[]>(["connections", workspaceId], (old) => {
+        const existing = old || [];
+        const exists = existing.find((c) => c.id === summary.integrationId);
+        if (exists) return existing;
+
+        // Create a temporary connection object based on summary data
+        const tempConnection = {
+          id: summary.integrationId,
+          platform: summary.platform,
+          platformUsername: summary.platformUsername,
+          name: summary.platformUsername, // Fallback since we don't have Display Name in summary
+          avatarUrl: null, // We don't have avatar in summary yet, but that's okay
+          // If you add avatarUrl to mapPostToResponse, you can add it here too
+        };
+
+        return [...existing, tempConnection];
+      });
+
+      const mediaItems: MediaItem[] = (summary.media || []).map((m) => ({
+        uid: crypto.randomUUID(),
+        id: m.id,
+        file: null,
+        preview: m.thumbnailUrl || m.url,
+        mediaUrl: m.url,
+        isUploading: false,
+        type: m.type.startsWith("video") ? "video" : "image",
+      }));
+
+      setStagedMediaItems(mediaItems);
+
+      const platform = summary.platform;
+      const mediaUids = mediaItems.map((m) => m.uid);
+
+      setDraftState({
+        mainCaption: summary.content,
+        platformMediaSelections: {
+          [platform]: mediaUids,
+        },
+        postType: (summary.postType as any) || "post",
+      });
+
+      setPublishingState({
+        selectedAccounts: {
+          [platform]: [summary.integrationId],
+        },
+        ...(summary.status === "scheduled" && summary.scheduledAt
+          ? {
+              isScheduling: true,
+              scheduleDate: format(new Date(summary.scheduledAt), "yyyy-MM-dd"),
+              scheduleTime: format(new Date(summary.scheduledAt), "HH:mm"),
+            }
+          : {}),
+      });
+    },
+    [
+      setStagedMediaItems,
+      setDraftState,
+      setPublishingState,
+      queryClient,
+      workspaceId,
+    ]
+  );
+
   const populateStoreFromFullDetails = useCallback(
     (fullPost: FullPostDetails) => {
+      console.log(
+        `[Calendar Debug] 📦 Applying FULL DETAILS to store for post: ${fullPost.id}`
+      );
+
       const newMediaItems: MediaItem[] = [];
       const mediaMap = fullPost.allMedia || {};
       const idToUidMap = new Map<string, string>();
@@ -101,7 +180,6 @@ export function usePostEditorWorkflow({
           [platform]: threadMessages,
         },
         threadMessages: threadMessages,
-        // Hydrate other settings
         postType: fullPost.settings?.postType || "post",
         userTags: fullPost.settings?.userTags || {},
         productTags: fullPost.settings?.productTags || {},
@@ -112,7 +190,6 @@ export function usePostEditorWorkflow({
           [platform]: [fullPost.integrationId],
         },
         recycleInterval: fullPost.recycleInterval,
-        // If editing a scheduled post, hydrate schedule data
         ...(fullPost.status === "scheduled" && fullPost.scheduledAt
           ? {
               isScheduling: true,
@@ -128,22 +205,19 @@ export function usePostEditorWorkflow({
     [setStagedMediaItems, setDraftState, setPublishingState]
   );
 
-  // Effect to populate stores when post data is loaded (Edit Mode)
   useEffect(() => {
     if (
       fullPostData &&
       !isFetchingFullPost &&
       selectedPost &&
-      selectedPost.status !== "sent" && // Only populate for editable posts
+      selectedPost.status !== "sent" &&
       selectedPost.id === fullPostData.id
     ) {
       populateStoreFromFullDetails(fullPostData);
     }
 
     if (isErrorFullPost && selectedPost?.status !== "sent") {
-      toast.error(`Failed to load post for editing: ${errorFullPost?.message}`);
-      setSelectedPost(null);
-      closeEditorialModal();
+      toast.error(`Failed to load post details: ${errorFullPost?.message}`);
     }
   }, [
     fullPostData,
@@ -152,20 +226,29 @@ export function usePostEditorWorkflow({
     errorFullPost,
     selectedPost,
     populateStoreFromFullDetails,
-    setSelectedPost,
-    closeEditorialModal,
   ]);
 
   const handleEditPost = useCallback(
     (post: ScheduledPost) => {
+      console.log(`[Calendar Debug] 🖱️ User clicked edit post: ${post.id}`);
+
       resetDraft();
       resetPublishing();
       resetUI();
 
+      populateStoreFromSummary(post);
+
       setSelectedPost(post);
       openEditorialModal();
     },
-    [resetDraft, resetPublishing, resetUI, openEditorialModal, setSelectedPost]
+    [
+      resetDraft,
+      resetPublishing,
+      resetUI,
+      populateStoreFromSummary,
+      setSelectedPost,
+      openEditorialModal,
+    ]
   );
 
   const handleNewPost = useCallback(
@@ -193,55 +276,26 @@ export function usePostEditorWorkflow({
   const handleReusePost = useCallback(() => {
     if (!selectedPost) return;
 
-    // If we have the full details loaded (e.g. background fetch completed), use them
     if (fullPostData && fullPostData.id === selectedPost.id) {
       populateStoreFromFullDetails(fullPostData);
     } else {
-      // Fallback: Populate from the summary available in selectedPost
-      // This loses crop data and precise settings, but works for basic reuse
-      const mediaItems: MediaItem[] = selectedPost.media.map((m) => ({
-        uid: crypto.randomUUID(),
-        id: null, // Reset ID for new post
-        file: null,
-        preview: m.thumbnailUrl || m.url,
-        mediaUrl: m.url,
-        isUploading: false,
-        type: m.type.startsWith("video") ? "video" : "image",
-      }));
-
-      setStagedMediaItems(mediaItems);
-
-      const platform = selectedPost.platform;
-      const mediaUids = mediaItems.map((m) => m.uid);
-
-      setDraftState({
-        mainCaption: selectedPost.content,
-        platformMediaSelections: {
-          [platform]: mediaUids,
-        },
-      });
-
-      // Note: Integration ID is missing in summary, so selectedAccounts can't be set accurately
-      // without fullPostData. User will need to re-select account or we rely on fullPostData fetch.
+      populateStoreFromSummary(selectedPost);
     }
 
-    // Crucial: Clear the "selectedPost" so the Modal switches to Edit Mode (Create State)
     setSelectedPost(null);
 
-    // Clear scheduling so it defaults to draft/now
     setPublishingState({
       isScheduling: false,
       scheduleDate: format(new Date(), "yyyy-MM-dd"),
       scheduleTime: "12:00",
     });
 
-    toast.success("Post reused. You can now edit it as a new draft.");
+    toast.success("Post reused as new draft.");
   }, [
     selectedPost,
     fullPostData,
     populateStoreFromFullDetails,
-    setStagedMediaItems,
-    setDraftState,
+    populateStoreFromSummary,
     setPublishingState,
     setSelectedPost,
   ]);

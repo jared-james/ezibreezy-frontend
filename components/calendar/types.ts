@@ -7,11 +7,26 @@ export type ScheduledPost = {
   title?: string | null;
   content: string;
   scheduledAt: string;
-  status: "draft" | "scheduled" | "sent" | "failed" | "cancelled";
+  status:
+    | "draft"
+    | "scheduled"
+    | "sent"
+    | "failed"
+    | "cancelled"
+    | "pending_approval"
+    | "rejected";
   platform: string;
   platformUsername: string;
   media: CalendarMediaItem[];
-  labels?: string[]; // Added for the new label filter
+  labels?: string[];
+  requestedApproverIds?: string[];
+  approvedByIds?: string[];
+
+  // === NEW FIELDS from Backend ===
+  integrationId: string;
+  postType: string;
+  mediaCrops: Record<string, any>;
+  threadSize: number;
 };
 
 export type CalendarView = "Month" | "Week" | "List";

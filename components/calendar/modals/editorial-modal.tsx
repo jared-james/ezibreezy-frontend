@@ -3,7 +3,7 @@
 "use client";
 
 import { useState } from "react";
-import { X, Loader2, Trash2, FileDown } from "lucide-react";
+import { X, Loader2, Trash2, FileDown, RefreshCw } from "lucide-react";
 import { useEditorialDraftStore } from "@/lib/store/editorial/draft-store";
 import { usePublishingStore } from "@/lib/store/editorial/publishing-store";
 import { useEditorialUIStore } from "@/lib/store/editorial/ui-store";
@@ -12,6 +12,7 @@ import ReadOnlyPostViewer from "../components/read-only-post-viewer";
 import DeleteConfirmationModal from "./delete-confirmation-modal";
 import type { ScheduledPost } from "../types";
 import { toast } from "sonner";
+import { cn } from "@/lib/utils";
 
 interface EditorialModalProps {
   isOpen: boolean;
@@ -76,6 +77,11 @@ export default function EditorialModal({
   // Check if we are editing an existing post (not creating a new one)
   const isExistingPost = !!selectedPost;
 
+  // === CRITICAL CHANGE: ===
+  // Only show the blocking spinner if we are loading AND we don't have the summary data.
+  // If selectedPost exists, we show the editor immediately (optimistic UI).
+  const showBlockingSpinner = isLoading && !selectedPost;
+
   return (
     <>
       <div className="fixed inset-0 z-50 flex items-center justify-center overflow-hidden bg-black/50 backdrop-blur-sm animate-in fade-in duration-200">
@@ -94,7 +100,16 @@ export default function EditorialModal({
               {/* Editor Header */}
               <div className="z-10 flex shrink-0 items-center justify-between border-b border-border bg-surface p-6">
                 <div>
-                  <p className="eyebrow mb-1">Editorial Desk</p>
+                  <p className="eyebrow mb-1 flex items-center gap-2">
+                    Editorial Desk
+                    {/* Subtle Loading Indicator for "Upgrading" Data */}
+                    {isLoading && selectedPost && (
+                      <span className="flex items-center gap-1 text-[10px] text-muted-foreground animate-pulse">
+                        <RefreshCw className="w-3 h-3 animate-spin" />
+                        Syncing details...
+                      </span>
+                    )}
+                  </p>
                   <h2 className="font-serif text-2xl font-bold uppercase tracking-tight text-foreground md:text-3xl">
                     {title}
                   </h2>
@@ -142,8 +157,8 @@ export default function EditorialModal({
               </div>
 
               {/* Editor Body */}
-              <div className="flex-1 overflow-y-auto p-6">
-                {isLoading ? (
+              <div className="flex-1 overflow-y-auto p-6 relative">
+                {showBlockingSpinner ? (
                   <div className="flex items-center justify-center min-h-[400px]">
                     <div className="flex flex-col items-center gap-4">
                       <Loader2 className="h-8 w-8 animate-spin text-brand-primary" />
@@ -153,8 +168,14 @@ export default function EditorialModal({
                     </div>
                   </div>
                 ) : (
+                  // We render the editor immediately using the data populated from `selectedPost`
+                  // The background fetches for /media and /integrations will happen here,
+                  // but the user will see the post content immediately.
                   <EditorialCore mode="editorial" onPostSuccess={handleClose} />
                 )}
+
+                {/* Optional: Add a subtle overlay if strictly required during syncing, 
+                    but usually better to let user read/interact */}
               </div>
             </>
           )}

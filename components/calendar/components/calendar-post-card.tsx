@@ -3,10 +3,11 @@
 "use client";
 
 import { format } from "date-fns";
-import { Loader2 } from "lucide-react";
+import { Loader2, AlertCircle, CheckCircle2, Clock } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { ScheduledPost } from "../types";
 import PlatformIcon from "./platform-icon";
+import { useClientData } from "@/lib/hooks/use-client-data";
 
 interface CalendarPostCardProps {
   post: ScheduledPost;
@@ -23,9 +24,21 @@ export default function CalendarPostCard({
   variant = "default",
   showTime = true,
 }: CalendarPostCardProps) {
+  const { userId } = useClientData();
   const isCompact = variant === "compact";
   const isList = variant === "list";
+
+  // Status flags
   const isSent = post.status === "sent";
+  const isDraft = post.status === "draft";
+  const isFailed = post.status === "failed";
+  const isPendingApproval = post.status === "pending_approval";
+  const isRejected = post.status === "rejected";
+
+  // Approval Logic
+  const amIRequested = userId && post.requestedApproverIds?.includes(userId);
+  const haveIApproved = userId && post.approvedByIds?.includes(userId);
+  const waitingOnMe = isPendingApproval && amIRequested && !haveIApproved;
 
   // Resolve media URL (prefer thumbnail, fallback to raw URL)
   const firstMedia = post.media?.[0];
@@ -36,21 +49,41 @@ export default function CalendarPostCard({
       type="button"
       onClick={onClick}
       className={cn(
-        "group/item relative flex w-full items-center gap-2 rounded-sm border border-border bg-white text-left shadow-sm transition-all hover:border-brand-primary hover:shadow-md active:scale-[0.98]",
+        "group/item relative flex w-full items-center gap-2 rounded-sm border bg-white text-left shadow-sm transition-all hover:shadow-md active:scale-[0.98]",
+
+        // Base Layout & Spacing
+        isCompact ? "p-1.5 text-xs" : isList ? "p-3 text-sm" : "p-2 text-sm",
         disabled ? "cursor-default opacity-70" : "cursor-pointer",
-        // Visual distinction for sent posts, but NOT cursor-not-allowed
+
+        // Border Colors based on Status
+        isFailed
+          ? "border-error/50 bg-error/5 hover:border-error"
+          : waitingOnMe
+          ? "border-amber-400 bg-amber-50/50 hover:border-amber-500 ring-1 ring-amber-400/20"
+          : isPendingApproval
+          ? "border-blue-200 bg-blue-50/30 hover:border-blue-300"
+          : isRejected
+          ? "border-red-200 bg-red-50/30 hover:border-red-300"
+          : isDraft
+          ? "border-border border-dashed bg-muted/20 hover:border-muted-foreground/50"
+          : "border-border hover:border-brand-primary", // Scheduled/Default
+
+        // Sent State
         isSent &&
-          "opacity-75 bg-muted/30 border-muted-foreground/20 hover:border-muted-foreground/40",
-        isCompact ? "p-1.5 text-xs" : isList ? "p-3 text-sm" : "p-2 text-sm"
+          "opacity-75 bg-muted/30 border-muted-foreground/20 hover:border-muted-foreground/40"
       )}
-      // Only disable if explicitly told to (e.g. during loading), NOT because it's sent
       disabled={disabled}
     >
       {/* Platform Icon */}
       <div
         className={cn(
-          "flex shrink-0 items-center justify-center rounded-full bg-muted/50",
-          isCompact ? "h-4 w-4" : "h-5 w-5"
+          "flex shrink-0 items-center justify-center rounded-full",
+          isCompact ? "h-4 w-4" : "h-5 w-5",
+          isFailed
+            ? "bg-error/10 text-error"
+            : waitingOnMe
+            ? "bg-amber-100 text-amber-600"
+            : "bg-muted/50"
         )}
       >
         {disabled ? (
@@ -64,7 +97,13 @@ export default function CalendarPostCard({
           <PlatformIcon
             platform={post.platform}
             className={cn(
-              isSent ? "text-muted-foreground/70" : "text-muted-foreground"
+              isFailed
+                ? "text-error"
+                : waitingOnMe
+                ? "text-amber-600"
+                : isSent
+                ? "text-muted-foreground/70"
+                : "text-muted-foreground"
             )}
             size={isCompact ? 10 : 12}
           />
@@ -89,21 +128,47 @@ export default function CalendarPostCard({
         </div>
       )}
 
-      {/* Content & Time */}
+      {/* Content & Status Indicators */}
       <div className="flex min-w-0 flex-1 items-center gap-2">
-        <span
-          className={cn(
-            "truncate font-medium text-foreground leading-tight",
-            isSent && "text-muted-foreground",
-            isList && "text-base"
+        <div className="flex flex-col min-w-0 flex-1">
+          <span
+            className={cn(
+              "truncate font-medium leading-tight",
+              isSent ? "text-muted-foreground" : "text-foreground",
+              isList && "text-base"
+            )}
+          >
+            {post.content || "Untitled Post"}
+          </span>
+
+          {/* Status Subtext for special states */}
+          {!isCompact && (
+            <div className="flex items-center gap-1.5 mt-0.5">
+              {waitingOnMe ? (
+                <span className="flex items-center gap-1 text-[9px] font-bold uppercase tracking-wider text-amber-600">
+                  <AlertCircle className="w-2.5 h-2.5" />
+                  Review Needed
+                </span>
+              ) : isPendingApproval ? (
+                <span className="flex items-center gap-1 text-[9px] font-bold uppercase tracking-wider text-blue-600">
+                  <Clock className="w-2.5 h-2.5" />
+                  Pending
+                </span>
+              ) : isRejected ? (
+                <span className="flex items-center gap-1 text-[9px] font-bold uppercase tracking-wider text-red-600">
+                  <AlertCircle className="w-2.5 h-2.5" />
+                  Changes Requested
+                </span>
+              ) : null}
+            </div>
           )}
-        >
-          {post.content || "Untitled Post"}
-        </span>
+        </div>
+
+        {/* Time */}
         {showTime && (
           <span
             className={cn(
-              "ml-auto font-serif font-bold text-muted-foreground shrink-0",
+              "ml-auto font-serif font-bold text-muted-foreground shrink-0 self-start",
               isCompact ? "text-[9px]" : "text-[10px]"
             )}
           >

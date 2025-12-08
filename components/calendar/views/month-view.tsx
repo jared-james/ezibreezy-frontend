@@ -16,7 +16,7 @@ import {
   addDays,
   subDays,
 } from "date-fns";
-import { Plus, Loader2 } from "lucide-react";
+import { Plus, Loader2, AlertCircle, Clock, CheckCircle2 } from "lucide-react";
 import type { ScheduledPost } from "../types";
 import { cn } from "@/lib/utils";
 import {
@@ -34,6 +34,7 @@ import {
 import { CSS } from "@dnd-kit/utilities";
 import PlatformIcon from "../components/platform-icon";
 import { DaySlotSkeleton } from "../components/post-skeleton";
+import { useClientData } from "@/lib/hooks/use-client-data";
 
 interface MonthViewProps {
   currentDate: Date;
@@ -59,8 +60,20 @@ function DraggablePost({
   hidden,
   disabled,
 }: DraggablePostProps) {
+  const { userId } = useClientData();
   const startDayId = format(new Date(post.scheduledAt), "yyyy-MM-dd");
+
+  // Status Flags
   const isSent = post.status === "sent";
+  const isDraft = post.status === "draft";
+  const isFailed = post.status === "failed";
+  const isPendingApproval = post.status === "pending_approval";
+  const isRejected = post.status === "rejected";
+
+  // Approval Logic
+  const amIRequested = userId && post.requestedApproverIds?.includes(userId);
+  const haveIApproved = userId && post.approvedByIds?.includes(userId);
+  const waitingOnMe = isPendingApproval && amIRequested && !haveIApproved;
 
   const { attributes, listeners, setNodeRef, transform, isDragging } =
     useDraggable({
@@ -96,37 +109,61 @@ function DraggablePost({
         onEditPost(post);
       }}
       className={cn(
-        // LAYOUT STRATEGY:
-        // < 2xl: Stacked (flex-col). Visuals on top row (left aligned), Text on bottom row.
-        // >= 2xl: Inline (flex-row). Visuals left, Text right.
-        "group/item relative flex w-full flex-col items-start rounded-md border border-border bg-white text-left shadow-sm transition-all hover:border-brand-primary hover:shadow-md active:scale-[0.98]",
+        // BASE LAYOUT
+        "group/item relative flex w-full flex-col items-start rounded-sm border text-left shadow-sm transition-all hover:shadow-md active:scale-[0.98]",
         "2xl:flex-row 2xl:items-center",
-
-        // Spacing
         "p-1.5 gap-2 2xl:p-2 2xl:gap-3",
 
+        // STATE STYLING
         disabled ? "cursor-default opacity-70" : "cursor-pointer",
+        !isSent && !disabled && "cursor-grab active:cursor-grabbing",
+
+        // STATUS COLORS
+        isFailed
+          ? "border-error/50 bg-error/5 hover:border-error"
+          : waitingOnMe
+          ? "border-amber-400 bg-amber-50/50 hover:border-amber-500 ring-1 ring-amber-400/20"
+          : isPendingApproval
+          ? "border-blue-200 bg-blue-50/30 hover:border-blue-300"
+          : isRejected
+          ? "border-red-200 bg-red-50/30 hover:border-red-300"
+          : isDraft
+          ? "border-border border-dashed bg-muted/20 hover:border-muted-foreground/50"
+          : // Default Scheduled
+            "border-border bg-white hover:border-brand-primary",
+
+        // SENT OVERRIDE
         isSent &&
-          "opacity-75 bg-muted/30 border-muted-foreground/20 hover:border-muted-foreground/40",
-        !isSent && !disabled && "cursor-grab active:cursor-grabbing"
+          "opacity-75 bg-muted/30 border-muted-foreground/20 hover:border-muted-foreground/40"
       )}
       disabled={disabled}
     >
-      {/* 
-        VISUALS CONTAINER 
-        < 2xl: justify-start gap-2 (Icon and Image sit next to each other on left)
-        >= 2xl: w-auto gap-3 (Standard horizontal spacing)
-      */}
+      {/* VISUALS CONTAINER */}
       <div className="flex w-full items-center justify-start gap-2 2xl:w-auto 2xl:gap-3">
         {/* Icon */}
-        <div className="flex shrink-0 items-center justify-center rounded-full bg-muted/50 h-5 w-5 2xl:h-8 2xl:w-8">
+        <div
+          className={cn(
+            "flex shrink-0 items-center justify-center rounded-full h-5 w-5 2xl:h-8 2xl:w-8",
+            isFailed
+              ? "bg-error/10 text-error"
+              : waitingOnMe
+              ? "bg-amber-100 text-amber-600"
+              : "bg-muted/50"
+          )}
+        >
           {disabled ? (
             <Loader2 className="h-3 w-3 2xl:h-4 2xl:w-4 animate-spin text-brand-primary" />
           ) : (
             <PlatformIcon
               platform={post.platform}
               className={cn(
-                isSent ? "text-muted-foreground/70" : "text-muted-foreground",
+                isFailed
+                  ? "text-error"
+                  : waitingOnMe
+                  ? "text-amber-600"
+                  : isSent
+                  ? "text-muted-foreground/70"
+                  : "text-muted-foreground",
                 "w-3 h-3 2xl:w-4 2xl:h-4"
               )}
               size={16}
@@ -153,23 +190,48 @@ function DraggablePost({
         )}
       </div>
 
-      {/* 
-        TEXT CONTAINER
-        < 2xl: Stacked below visuals
-        >= 2xl: To the right of visuals (flex-1)
-      */}
+      {/* TEXT CONTAINER */}
       <div className="flex w-full min-w-0 flex-col gap-0.5 2xl:flex-1">
-        <span
-          className={cn(
-            "w-full truncate font-medium text-foreground leading-tight text-[10px] 2xl:text-xs",
-            isSent && "text-muted-foreground"
-          )}
-        >
-          {post.content || "Untitled Post"}
-        </span>
-        <span className="font-serif text-[9px] 2xl:text-[10px] font-bold text-muted-foreground shrink-0 leading-none">
-          {format(new Date(post.scheduledAt), "h:mm a")}
-        </span>
+        <div className="flex w-full justify-between items-start gap-1">
+          <span
+            className={cn(
+              "w-full truncate font-medium leading-tight text-[10px] 2xl:text-xs",
+              isSent ? "text-muted-foreground" : "text-foreground"
+            )}
+          >
+            {post.content || "Untitled Post"}
+          </span>
+
+          {/* Mobile Time (Top Right) */}
+          <span className="2xl:hidden font-serif text-[9px] font-bold text-muted-foreground shrink-0 leading-none">
+            {format(new Date(post.scheduledAt), "h:mm")}
+          </span>
+        </div>
+
+        {/* Desktop Time + Badges */}
+        <div className="flex items-center gap-2 mt-0.5">
+          {waitingOnMe ? (
+            <span className="flex items-center gap-1 text-[8px] font-bold uppercase tracking-wider text-amber-600">
+              <AlertCircle className="w-2 h-2" />
+              Review
+            </span>
+          ) : isPendingApproval ? (
+            <span className="flex items-center gap-1 text-[8px] font-bold uppercase tracking-wider text-blue-600">
+              <Clock className="w-2 h-2" />
+              Pending
+            </span>
+          ) : isRejected ? (
+            <span className="flex items-center gap-1 text-[8px] font-bold uppercase tracking-wider text-red-600">
+              <AlertCircle className="w-2 h-2" />
+              Changes
+            </span>
+          ) : null}
+
+          {/* Desktop Time */}
+          <span className="hidden 2xl:block ml-auto font-serif text-[10px] font-bold text-muted-foreground shrink-0 leading-none">
+            {format(new Date(post.scheduledAt), "h:mm a")}
+          </span>
+        </div>
       </div>
     </button>
   );
