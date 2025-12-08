@@ -52,11 +52,17 @@ export interface PublishingActions {
 
 const getTodayString = () => new Date().toISOString().split("T")[0];
 
+const getDefaultScheduleDate = () => {
+  const tomorrow = new Date();
+  tomorrow.setDate(tomorrow.getDate() + 1);
+  return tomorrow.toISOString().split("T")[0];
+};
+
 const initialPublishingState: PublishingState = {
   selectedAccounts: {},
   isScheduling: false,
-  scheduleDate: getTodayString(),
-  scheduleTime: "12:00",
+  scheduleDate: getDefaultScheduleDate(),
+  scheduleTime: "08:00",
   location: { id: null, name: "" },
   labels: "",
   collaborators: "",
@@ -95,8 +101,8 @@ export const usePublishingStore = create<PublishingState & PublishingActions>(
 
       // Check if post is scheduled
       const isScheduled = !!fullPost.scheduledAt;
-      let scheduleDate = getTodayString();
-      let scheduleTime = "12:00";
+      let scheduleDate = getDefaultScheduleDate();
+      let scheduleTime = "08:00";
 
       if (isScheduled && fullPost.scheduledAt) {
         const scheduledDate = new Date(fullPost.scheduledAt);
