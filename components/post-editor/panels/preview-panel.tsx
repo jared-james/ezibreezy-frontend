@@ -2,7 +2,7 @@
 
 "use client";
 
-import { useMemo, memo } from "react";
+import { useMemo, memo, useEffect } from "react"; // Added useEffect
 import {
   Twitter,
   Instagram,
@@ -105,10 +105,18 @@ function PreviewPanel() {
     (state) => state.activeCaptionFilter
   );
 
-  const { data: connections = [] } = useQuery({
+  // === DEBUG LOGGING FOR FETCH ===
+  const { data: connections = [], isFetching } = useQuery({
     queryKey: ["connections", workspaceId],
     queryFn: async () => {
+      console.log(`[Preview Debug] 📡 Starting fetch for connections...`);
+      const start = performance.now();
       const result = await getConnectionsAction(workspaceId);
+      console.log(
+        `[Preview Debug] ✅ Connections fetched in ${(
+          performance.now() - start
+        ).toFixed(2)}ms`
+      );
       if (!result.success) throw new Error(result.error);
       return result.data!;
     },
@@ -139,10 +147,23 @@ function PreviewPanel() {
 
   const activeAccount = useMemo(() => {
     if (validActiveTab === "empty") return null;
+
+    // Log the selection state
     const integrationId = selectedAccounts[validActiveTab]?.[0];
-    if (!integrationId) return null;
-    return connections.find((conn) => conn.id === integrationId) || null;
-  }, [validActiveTab, selectedAccounts, connections]);
+
+    // Try to find the account
+    const found = connections.find((conn) => conn.id === integrationId) || null;
+
+    console.log(`[Preview Debug] 🔍 Resolving Active Account:`, {
+      tab: validActiveTab,
+      selectedId: integrationId,
+      connectionsCount: connections.length,
+      isFetchingConnections: isFetching,
+      foundAccount: !!found,
+    });
+
+    return found;
+  }, [validActiveTab, selectedAccounts, connections, isFetching]);
 
   const currentCaption = useMemo(
     () => platformCaptions[validActiveTab] || mainCaption,
@@ -184,12 +205,20 @@ function PreviewPanel() {
 
   const renderPreview = () => {
     if (!activeAccount) {
+      console.log(
+        `[Preview Debug] ⚠️ Rendering FALLBACK because activeAccount is missing.`
+      );
       return (
         <div className="flex h-full items-center justify-center p-8 text-[--muted-foreground] italic font-serif">
           No account selected for preview.
         </div>
       );
     }
+
+    // Log when we actually render the preview component
+    console.log(
+      `[Preview Debug] 🖼️ Rendering Platform Preview for ${validActiveTab}`
+    );
 
     const mediaPostType = activeMediaItems.some((item) => item.type === "video")
       ? "video"

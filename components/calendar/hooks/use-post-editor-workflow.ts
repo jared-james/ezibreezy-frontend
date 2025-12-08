@@ -1,9 +1,11 @@
+// components/calendar/hooks/use-post-editor-workflow.ts
+
 "use client";
 
-import { useEffect, useCallback } from "react";
+import { useEffect, useCallback, useRef } from "react";
 import { format } from "date-fns";
 import { toast } from "sonner";
-import { useQueryClient } from "@tanstack/react-query"; // Import QueryClient
+import { useQueryClient } from "@tanstack/react-query";
 import {
   useEditorialDraftStore,
   MediaItem,
@@ -39,6 +41,9 @@ export function usePostEditorWorkflow({
   const workspaceId = params.workspace as string;
   const queryClient = useQueryClient();
 
+  // Track if we have already populated from summary to prevent aggressive overwrites
+  const hasInitializedFromSummary = useRef<string | null>(null);
+
   const setDraftState = useEditorialDraftStore((state) => state.setDraftState);
   const setStagedMediaItems = useEditorialDraftStore(
     (state) => state.setStagedMediaItems
@@ -49,35 +54,45 @@ export function usePostEditorWorkflow({
     (state) => state.setPublishingState
   );
   const resetPublishing = usePublishingStore((state) => state.resetPublishing);
-
   const resetUI = useEditorialUIStore((state) => state.resetUI);
 
+  // 1. FAST PATH: Populate store immediately from Calendar Card data
   const populateStoreFromSummary = useCallback(
     (summary: ScheduledPost) => {
       console.log(
-        `[Calendar Debug] ⚡ Applying SUMMARY data to store for post: ${summary.id}`
+        `[Calendar Debug] ⚡ FAST START: Populating from summary for ${summary.id}`
       );
 
-      // === PRE-SEED CONNECTION CACHE ===
-      // This ensures PreviewPanel renders immediately without waiting for /integrations/connections
+      hasInitializedFromSummary.current = summary.id;
+
+      // === PRE-SEED CONNECTION CACHE (Kill the 3s delay) ===
+      // We explicitly construct the connection object the PreviewPanel expects.
       queryClient.setQueryData<any[]>(["connections", workspaceId], (old) => {
         const existing = old || [];
         const exists = existing.find((c) => c.id === summary.integrationId);
+
+        // If we already have it, don't touch cache to preserve referential identity
         if (exists) return existing;
+
+        console.log(
+          `[Calendar Debug] 💉 Injecting connection into cache: ${summary.platformUsername}`
+        );
 
         // Create a temporary connection object based on summary data
         const tempConnection = {
           id: summary.integrationId,
           platform: summary.platform,
           platformUsername: summary.platformUsername,
-          name: summary.platformUsername, // Fallback since we don't have Display Name in summary
-          avatarUrl: null, // We don't have avatar in summary yet, but that's okay
-          // If you add avatarUrl to mapPostToResponse, you can add it here too
+          name: summary.platformUsername, // Fallback if name is missing
+          avatarUrl: summary.avatarUrl,
+          connected: true, // Assume connected since we are editing a post
+          workspaceId: workspaceId,
         };
 
         return [...existing, tempConnection];
       });
 
+      // Map Media
       const mediaItems: MediaItem[] = (summary.media || []).map((m) => ({
         uid: crypto.randomUUID(),
         id: m.id,
@@ -86,6 +101,8 @@ export function usePostEditorWorkflow({
         mediaUrl: m.url,
         isUploading: false,
         type: m.type.startsWith("video") ? "video" : "image",
+        // Crops are available in summary, apply them early if present
+        crops: summary.mediaCrops?.[m.id] || undefined,
       }));
 
       setStagedMediaItems(mediaItems);
@@ -93,14 +110,18 @@ export function usePostEditorWorkflow({
       const platform = summary.platform;
       const mediaUids = mediaItems.map((m) => m.uid);
 
+      // Set Content
       setDraftState({
         mainCaption: summary.content,
         platformMediaSelections: {
           [platform]: mediaUids,
         },
         postType: (summary.postType as any) || "post",
+        // If we have thread size but no details yet, we can at least prep the UI
+        // (Detailed thread content will come in the full fetch)
       });
 
+      // Set Scheduling/Publishing Settings
       setPublishingState({
         selectedAccounts: {
           [platform]: [summary.integrationId],
@@ -123,11 +144,25 @@ export function usePostEditorWorkflow({
     ]
   );
 
+  // 2. SLOW PATH: Enrich with full details (Silent Sync)
   const populateStoreFromFullDetails = useCallback(
     (fullPost: FullPostDetails) => {
+      const isEnrichment = hasInitializedFromSummary.current === fullPost.id;
+
       console.log(
-        `[Calendar Debug] 📦 Applying FULL DETAILS to store for post: ${fullPost.id}`
+        `[Calendar Debug] 📦 Full details arrived for: ${fullPost.id} | Mode: ${
+          isEnrichment ? "ENRICH (Merge)" : "INIT (Overwrite)"
+        }`
       );
+
+      // If this is an enrichment (we already showed summary data),
+      // we strictly avoid overwriting things the user might have already touched (like caption).
+      // We only fill in "Missing" deep data (settings, tags, specific crops).
+
+      // Map Media IDs to the UIDs we generated in summary step
+      // If we are initializing from scratch (deep link), we generate new UIDs.
+      const currentDraftState = useEditorialDraftStore.getState();
+      const currentStagedItems = currentDraftState.stagedMediaItems;
 
       const newMediaItems: MediaItem[] = [];
       const mediaMap = fullPost.allMedia || {};
@@ -141,24 +176,38 @@ export function usePostEditorWorkflow({
       );
 
       allMediaIds.forEach((mediaId) => {
-        const mediaRecord = mediaMap[mediaId];
-        if (mediaRecord) {
-          const uid = crypto.randomUUID();
-          idToUidMap.set(mediaId, uid);
+        // Try to find existing UID from summary initialization
+        const existingItem = currentStagedItems.find(
+          (item) => item.id === mediaId
+        );
 
-          newMediaItems.push({
-            uid,
-            id: mediaId,
-            file: null,
-            preview: mediaRecord.url,
-            mediaUrl: mediaRecord.url,
-            isUploading: false,
-            type: mediaRecord.type.startsWith("video") ? "video" : "image",
-          });
+        if (existingItem) {
+          idToUidMap.set(mediaId, existingItem.uid);
+          // Update existing item with high-res url or metadata if needed
+          newMediaItems.push(existingItem);
+        } else {
+          // New item (maybe from a hidden thread message not in summary)
+          const mediaRecord = mediaMap[mediaId];
+          if (mediaRecord) {
+            const uid = crypto.randomUUID();
+            idToUidMap.set(mediaId, uid);
+            newMediaItems.push({
+              uid,
+              id: mediaId,
+              file: null,
+              preview: mediaRecord.url,
+              mediaUrl: mediaRecord.url,
+              isUploading: false,
+              type: mediaRecord.type.startsWith("video") ? "video" : "image",
+            });
+          }
         }
       });
 
-      setStagedMediaItems(newMediaItems);
+      // Only update media items if we found new ones or are initializing
+      if (!isEnrichment || newMediaItems.length > currentStagedItems.length) {
+        setStagedMediaItems(newMediaItems);
+      }
 
       const threadMessages = (fullPost.threadMessages || []).map((msg) => ({
         content: msg.content,
@@ -169,43 +218,61 @@ export function usePostEditorWorkflow({
 
       const platform = fullPost.integration.platform;
 
-      setDraftState({
-        mainCaption: fullPost.settings?.canonicalContent || fullPost.content,
-        platformMediaSelections: {
-          [platform]: fullPost.mediaIds
-            .map((id) => idToUidMap.get(id))
-            .filter(Boolean) as string[],
-        },
+      // Prepare Draft Updates
+      const draftUpdates: any = {
         platformThreadMessages: {
           [platform]: threadMessages,
         },
         threadMessages: threadMessages,
-        postType: fullPost.settings?.postType || "post",
+        // Always sync deep settings that aren't in summary
         userTags: fullPost.settings?.userTags || {},
         productTags: fullPost.settings?.productTags || {},
-      });
+      };
 
-      setPublishingState({
-        selectedAccounts: {
-          [platform]: [fullPost.integrationId],
-        },
+      // Only overwrite main attributes if we are NOT enriching (i.e. deep link load)
+      if (!isEnrichment) {
+        draftUpdates.mainCaption =
+          fullPost.settings?.canonicalContent || fullPost.content;
+        draftUpdates.platformMediaSelections = {
+          [platform]: fullPost.mediaIds
+            .map((id) => idToUidMap.get(id))
+            .filter(Boolean) as string[],
+        };
+        draftUpdates.postType = fullPost.settings?.postType || "post";
+      }
+
+      setDraftState(draftUpdates);
+
+      // Publishing State Updates
+      const publishingUpdates: any = {
         recycleInterval: fullPost.recycleInterval,
-        ...(fullPost.status === "scheduled" && fullPost.scheduledAt
-          ? {
-              isScheduling: true,
-              scheduleDate: format(
-                new Date(fullPost.scheduledAt),
-                "yyyy-MM-dd"
-              ),
-              scheduleTime: format(new Date(fullPost.scheduledAt), "HH:mm"),
-            }
-          : {}),
-      });
+      };
+
+      if (!isEnrichment) {
+        publishingUpdates.selectedAccounts = {
+          [platform]: [fullPost.integrationId],
+        };
+
+        if (fullPost.status === "scheduled" && fullPost.scheduledAt) {
+          publishingUpdates.isScheduling = true;
+          publishingUpdates.scheduleDate = format(
+            new Date(fullPost.scheduledAt),
+            "yyyy-MM-dd"
+          );
+          publishingUpdates.scheduleTime = format(
+            new Date(fullPost.scheduledAt),
+            "HH:mm"
+          );
+        }
+      }
+
+      setPublishingState(publishingUpdates);
     },
     [setStagedMediaItems, setDraftState, setPublishingState]
   );
 
   useEffect(() => {
+    // If full data arrives and matches the selected post
     if (
       fullPostData &&
       !isFetchingFullPost &&
@@ -232,6 +299,9 @@ export function usePostEditorWorkflow({
     (post: ScheduledPost) => {
       console.log(`[Calendar Debug] 🖱️ User clicked edit post: ${post.id}`);
 
+      // Clear previous tracking
+      hasInitializedFromSummary.current = null;
+
       resetDraft();
       resetPublishing();
       resetUI();
@@ -253,6 +323,7 @@ export function usePostEditorWorkflow({
 
   const handleNewPost = useCallback(
     (date: Date) => {
+      hasInitializedFromSummary.current = null;
       resetDraft();
       resetPublishing();
       resetUI();
@@ -276,9 +347,15 @@ export function usePostEditorWorkflow({
   const handleReusePost = useCallback(() => {
     if (!selectedPost) return;
 
+    // When reusing, we treat it as a new init, so reset the tracker
+    hasInitializedFromSummary.current = null;
+
     if (fullPostData && fullPostData.id === selectedPost.id) {
+      // If we have full data, reuse that (it's richer)
+      // Force "INIT" mode by clearing the ref before calling
       populateStoreFromFullDetails(fullPostData);
     } else {
+      // Fallback to summary reuse
       populateStoreFromSummary(selectedPost);
     }
 

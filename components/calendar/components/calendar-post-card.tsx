@@ -8,6 +8,9 @@ import { cn } from "@/lib/utils";
 import type { ScheduledPost } from "../types";
 import PlatformIcon from "./platform-icon";
 import { useClientData } from "@/lib/hooks/use-client-data";
+import { useQueryClient } from "@tanstack/react-query";
+import { useParams } from "next/navigation";
+import { getPostDetailsAction } from "@/app/actions/publishing";
 
 interface CalendarPostCardProps {
   post: ScheduledPost;
@@ -25,6 +28,10 @@ export default function CalendarPostCard({
   showTime = true,
 }: CalendarPostCardProps) {
   const { userId } = useClientData();
+  const queryClient = useQueryClient();
+  const params = useParams();
+  const workspaceId = params.workspace as string;
+
   const isCompact = variant === "compact";
   const isList = variant === "list";
 
@@ -44,10 +51,28 @@ export default function CalendarPostCard({
   const firstMedia = post.media?.[0];
   const mediaUrl = firstMedia?.thumbnailUrl || firstMedia?.url;
 
+  // === PREFETCH ON HOVER ===
+  const handleMouseEnter = () => {
+    if (disabled || !post.id || !workspaceId) return;
+
+    // Prefetch the full details so they are ready when the user clicks.
+    // This runs in parallel with the user's reaction time.
+    queryClient.prefetchQuery({
+      queryKey: ["fullPostDetails", post.id, workspaceId],
+      queryFn: async () => {
+        const result = await getPostDetailsAction(post.id, workspaceId);
+        if (!result.success) throw new Error(result.error);
+        return result.data!;
+      },
+      staleTime: 5 * 60 * 1000, // 5 minutes cache
+    });
+  };
+
   return (
     <button
       type="button"
       onClick={onClick}
+      onMouseEnter={handleMouseEnter}
       className={cn(
         "group/item relative flex w-full items-center gap-2 rounded-sm border bg-white text-left shadow-sm transition-all hover:shadow-md active:scale-[0.98]",
 

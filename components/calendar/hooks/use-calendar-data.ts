@@ -136,17 +136,11 @@ export function useCalendarData({
     prefetchAdjacentMonth(1);
   }, [currentDate, workspaceId, queryClient]);
 
-  // === SMART SKIP LOGIC ===
-  const cachedPost = useMemo(() => {
-    return allContent.find((p) => p.id === postIdToEdit);
-  }, [allContent, postIdToEdit]);
-
-  // We fetch details ONLY if:
-  // 1. We have an ID
-  // 2. AND we either don't have it in cache (deep link) OR it has threads (missing content)
-  // If it's a simple post, we skip the fetch entirely because `populateStoreFromSummary` handles it.
-  const shouldFetchDetails =
-    !!postIdToEdit && (!cachedPost || (cachedPost.threadSize || 0) > 0);
+  // === BACKGROUND SYNC LOGIC ===
+  // We ALWAYS fetch details if a post is selected.
+  // Why? Because summary data lacks deep fields like 'settings' (Pinterest boards, etc).
+  // The UI won't block because we use Optimistic UI in the modal.
+  const shouldFetchDetails = !!postIdToEdit;
 
   const {
     data: fullPostData,

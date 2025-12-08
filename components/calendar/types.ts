@@ -27,6 +27,7 @@ export type ScheduledPost = {
   postType: string;
   mediaCrops: Record<string, any>;
   threadSize: number;
+  avatarUrl?: string | null;
 };
 
 export type CalendarView = "Month" | "Week" | "List";

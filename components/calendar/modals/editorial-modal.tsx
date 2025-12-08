@@ -2,7 +2,7 @@
 
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { X, Loader2, Trash2, FileDown, RefreshCw } from "lucide-react";
 import { useEditorialDraftStore } from "@/lib/store/editorial/draft-store";
 import { usePublishingStore } from "@/lib/store/editorial/publishing-store";
@@ -27,7 +27,7 @@ interface EditorialModalProps {
 export default function EditorialModal({
   isOpen,
   onClose,
-  title = "Create New Post",
+  title: parentTitle = "Create New Post",
   isLoading = false,
   selectedPost,
   onReuse,
@@ -70,6 +70,18 @@ export default function EditorialModal({
     toast.info("Convert to draft functionality coming soon.");
   };
 
+  // === INSTANT TITLE LOGIC ===
+  // We derive the title immediately from selectedPost to avoid "Loading..." flash
+  const displayTitle = useMemo(() => {
+    if (selectedPost) {
+      return selectedPost.status === "draft"
+        ? "Develop Idea"
+        : "Edit Scheduled Post";
+    }
+    // Fallback to parent title (usually "Loading Post..." or "Create New Post")
+    return parentTitle;
+  }, [selectedPost, parentTitle]);
+
   if (!isOpen) return null;
 
   const isSent = selectedPost?.status === "sent";
@@ -77,9 +89,9 @@ export default function EditorialModal({
   // Check if we are editing an existing post (not creating a new one)
   const isExistingPost = !!selectedPost;
 
-  // === CRITICAL CHANGE: ===
-  // Only show the blocking spinner if we are loading AND we don't have the summary data.
-  // If selectedPost exists, we show the editor immediately (optimistic UI).
+  // === OPTIMISTIC LOADING LOGIC ===
+  // We only block the UI if we have absolutely NO data (e.g. deep link without cache).
+  // If selectedPost exists (clicked from calendar), we render immediately.
   const showBlockingSpinner = isLoading && !selectedPost;
 
   return (
@@ -100,18 +112,20 @@ export default function EditorialModal({
               {/* Editor Header */}
               <div className="z-10 flex shrink-0 items-center justify-between border-b border-border bg-surface p-6">
                 <div>
-                  <p className="eyebrow mb-1 flex items-center gap-2">
-                    Editorial Desk
-                    {/* Subtle Loading Indicator for "Upgrading" Data */}
+                  <div className="flex items-center gap-2 mb-1">
+                    <p className="eyebrow">Editorial Desk</p>
+
+                    {/* Sync Indicator - Visible while background fetch runs */}
                     {isLoading && selectedPost && (
-                      <span className="flex items-center gap-1 text-[10px] text-muted-foreground animate-pulse">
+                      <span className="flex items-center gap-1.5 rounded-full bg-brand-primary/10 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider text-brand-primary animate-pulse border border-brand-primary/20">
                         <RefreshCw className="w-3 h-3 animate-spin" />
-                        Syncing details...
+                        Syncing Details
                       </span>
                     )}
-                  </p>
+                  </div>
+
                   <h2 className="font-serif text-2xl font-bold uppercase tracking-tight text-foreground md:text-3xl">
-                    {title}
+                    {displayTitle}
                   </h2>
                 </div>
 
@@ -168,14 +182,10 @@ export default function EditorialModal({
                     </div>
                   </div>
                 ) : (
-                  // We render the editor immediately using the data populated from `selectedPost`
-                  // The background fetches for /media and /integrations will happen here,
-                  // but the user will see the post content immediately.
+                  // Optimistic UI: Render Editor immediately.
+                  // Background enrichment from usePostEditorWorkflow handles the rest.
                   <EditorialCore mode="editorial" onPostSuccess={handleClose} />
                 )}
-
-                {/* Optional: Add a subtle overlay if strictly required during syncing, 
-                    but usually better to let user read/interact */}
               </div>
             </>
           )}

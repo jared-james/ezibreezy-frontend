@@ -115,6 +115,9 @@ export interface ScheduledPostResponse {
   labels?: string[];
   requestedApproverIds?: string[];
   approvedByIds?: string[];
+  // === AVATAR DATA ===
+  avatarUrl?: string | null;
+  platformName?: string | null;
 }
 
 export interface FullPostDetails {

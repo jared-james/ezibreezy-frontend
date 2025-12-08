@@ -311,13 +311,14 @@ export default function MediaUpload({
         onUploadClick={handleUploadClick}
         onLibraryClick={() => setIsMediaRoomOpen(true)}
       />
-
-      <MediaRoomModal
-        isOpen={isMediaRoomOpen}
-        onClose={() => setIsMediaRoomOpen(false)}
-        onConfirmSelection={handleLibraryConfirm}
-        preSelectedIds={selectedLibraryMediaIds}
-      />
+      {isMediaRoomOpen && (
+        <MediaRoomModal
+          isOpen={isMediaRoomOpen}
+          onClose={() => setIsMediaRoomOpen(false)}
+          onConfirmSelection={handleLibraryConfirm}
+          preSelectedIds={selectedLibraryMediaIds}
+        />
+      )}
     </>
   );
 }
