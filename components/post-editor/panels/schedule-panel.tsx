@@ -22,6 +22,7 @@ interface ScheduleCardProps {
   isPublishing: boolean;
   isUploading: boolean;
   hasMediaConflicts?: boolean;
+  hasMinimumContent?: boolean;
 }
 
 const formatToAmPm = (time24: string) => {
@@ -34,6 +35,7 @@ export default function ScheduleCard({
   isPublishing,
   isUploading,
   hasMediaConflicts = false,
+  hasMinimumContent = true,
 }: ScheduleCardProps) {
   const isScheduling = usePublishingStore((state) => state.isScheduling);
   const scheduleDate = usePublishingStore((state) => state.scheduleDate);
@@ -182,6 +184,7 @@ export default function ScheduleCard({
           variant="primary"
           size="lg"
           disabled={
+            !hasMinimumContent ||
             isPublishing ||
             isUploading ||
             hasMediaConflicts ||

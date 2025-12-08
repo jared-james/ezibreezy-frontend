@@ -2,11 +2,11 @@
 
 "use client";
 
-import { useState } from "react"; // Removed useEffect since we use the hook now
+import { useState, useMemo } from "react";
 import { FileText } from "lucide-react";
 import { toast } from "sonner";
 import { showError } from "@/components/ui/sonner";
-// Removed createClient import as we don't need ad-hoc auth checks
+import { format } from "date-fns";
 
 import ChannelSelector from "./panels/channel-selector";
 import CaptionEditor from "./caption/caption-editor";
@@ -16,12 +16,13 @@ import MediaUpload from "./media/media-upload";
 import SchedulePanel from "./panels/schedule-panel";
 import ConfirmationModal from "./modals/confirmation-modal";
 import ValidationErrorModal from "./modals/validation-error-modal";
+import PublishConfirmationModal from "./modals/publish-confirmation-modal";
 
 import { usePostEditor } from "@/lib/hooks/use-post-editor";
 import { useEditorialDraftStore } from "@/lib/store/editorial/draft-store";
 import { usePublishingStore } from "@/lib/store/editorial/publishing-store";
 import { useEditorialUIStore } from "@/lib/store/editorial/ui-store";
-import { useClientData } from "@/lib/hooks/use-client-data"; // Import the hook
+import { useClientData } from "@/lib/hooks/use-client-data";
 
 import type { CreatePostPayload, PostSettings } from "@/lib/types/publishing";
 import { PlatformCrops } from "@/lib/utils/crop-utils";
@@ -48,6 +49,13 @@ export default function EditorialCore({
     "sent" | "scheduled" | null
   >(null);
   const [confirmationCount, setConfirmationCount] = useState(0);
+
+  // Publish confirmation modal state
+  const [showPublishConfirmation, setShowPublishConfirmation] = useState(false);
+  const [publishSummaryData, setPublishSummaryData] = useState<any | null>(
+    null
+  );
+  const [confirmationGiven, setConfirmationGiven] = useState(false);
 
   const [localMainCaption, setLocalMainCaption] = useState("");
   const [localPlatformCaptions, setLocalPlatformCaptions] = useState<
@@ -173,7 +181,155 @@ export default function EditorialCore({
     setPublishingState({ selectedAccounts: newSelected });
   };
 
+  // Prepare summary data for confirmation modal
+  const prepareSummaryData = () => {
+    const draft = useEditorialDraftStore.getState();
+    const pub = usePublishingStore.getState();
+
+    const finalCaption = localMainCaption || draft.mainCaption;
+
+    // Map platforms: selectedAccounts → platform objects with names, icons, accounts
+    const platforms = Object.entries(pub.selectedAccounts)
+      .map(([platformId, integrationIds]) => {
+        const platformDef = availablePlatforms.find((p) => p.id === platformId);
+        if (!platformDef || integrationIds.length === 0) return null;
+
+        const accounts = integrationIds
+          .map((intId) => platformDef.accounts.find((acc) => acc.id === intId))
+          .filter(Boolean)
+          .map((acc) => ({
+            id: acc!.id,
+            name: acc!.name || "",
+            avatarUrl: acc!.img || "",
+          }));
+
+        return {
+          platformId,
+          platformName: platformDef.name,
+          icon: platformDef.icon,
+          accounts,
+        };
+      })
+      .filter(Boolean);
+
+    // Count media
+    const imageCount = draft.stagedMediaItems.filter(
+      (m) => m.type === "image"
+    ).length;
+    const videoCount = draft.stagedMediaItems.filter(
+      (m) => m.type === "video"
+    ).length;
+    const previews = draft.stagedMediaItems
+      .slice(0, 4)
+      .map((m) => ({ url: m.preview, type: m.type }));
+
+    const media = {
+      count: draft.stagedMediaItems.length,
+      types: { images: imageCount, videos: videoCount },
+      previews,
+    };
+
+    // Format timing
+    let timingText = "Going live immediately ⚡";
+    if (pub.isScheduling && pub.scheduleDate && pub.scheduleTime) {
+      try {
+        const scheduleDateTime = new Date(
+          `${pub.scheduleDate}T${pub.scheduleTime}`
+        );
+        timingText = `Scheduled for ${format(
+          scheduleDateTime,
+          "EEE, MMM d 'at' h:mm a"
+        )}`;
+      } catch (e) {
+        timingText = `Scheduled for ${pub.scheduleDate} at ${pub.scheduleTime}`;
+      }
+    }
+
+    const timing = {
+      isScheduled: pub.isScheduling,
+      displayText: timingText,
+    };
+
+    // Detect features
+    const features: any = {};
+    if (draft.threadMessages.length > 1) {
+      features.isThread = true;
+      features.threadLength = draft.threadMessages.length;
+    }
+    if (pub.location?.name) {
+      features.hasLocation = true;
+      features.locationName = pub.location.name;
+    }
+    if (draft.firstComment || draft.facebookFirstComment) {
+      features.hasFirstComment = true;
+    }
+    if (pub.instagramCollaborators && pub.instagramCollaborators.length > 0) {
+      features.hasCollaborators = true;
+      features.collaboratorCount = pub.instagramCollaborators.length;
+    }
+    if (pub.labels) {
+      features.hasLabels = true;
+      features.labels = pub.labels
+        .split(",")
+        .map((l) => l.trim())
+        .filter(Boolean);
+    }
+    if (
+      pub.youtubeThumbnailUrl ||
+      pub.pinterestCoverUrl ||
+      draft.instagramCoverUrl
+    ) {
+      features.hasCustomThumbnail = true;
+    }
+    if (pub.selectedAccounts["youtube"] && pub.youtubePrivacy) {
+      features.youtubePrivacy = pub.youtubePrivacy;
+    }
+
+    return {
+      caption: finalCaption,
+      captionLength: finalCaption.length,
+      platforms,
+      media,
+      timing,
+      features: Object.keys(features).length > 0 ? features : undefined,
+    };
+  };
+
+  // Handlers for confirmation modal
+  const handleConfirmPublish = () => {
+    setShowPublishConfirmation(false);
+    setConfirmationGiven(true);
+    setTimeout(() => handlePublish(), 0);
+  };
+
+  const handleCancelPublish = () => {
+    setShowPublishConfirmation(false);
+    setPublishSummaryData(null);
+    setConfirmationGiven(false);
+  };
+
+  // Check if user has minimum content to publish (performant - just checks counts)
+  const hasMinimumContent = useMemo(() => {
+    // Check if at least one platform is selected
+    const hasSelectedChannels = Object.keys(selectedAccounts).length > 0;
+
+    // Check if there's any content (caption OR media)
+    const hasCaption = localMainCaption.trim().length > 0;
+    const hasMedia = stagedMediaItems.length > 0;
+    const hasContent = hasCaption || hasMedia;
+
+    return hasSelectedChannels && hasContent;
+  }, [selectedAccounts, localMainCaption, stagedMediaItems.length]);
+
   const handlePublish = async () => {
+    // If confirmation not yet given, prepare data and show modal
+    if (!confirmationGiven) {
+      const summary = prepareSummaryData();
+      setPublishSummaryData(summary);
+      setShowPublishConfirmation(true);
+      return;
+    }
+
     const draft = useEditorialDraftStore.getState();
     const pub = usePublishingStore.getState();
 
@@ -486,6 +642,9 @@ export default function EditorialCore({
       const results = await Promise.all(postPromises);
       const createdPostIds = results.map((r) => r.id);
 
+      // Reset confirmation state after successful publish
+      setConfirmationGiven(false);
+
       if (pub.isScheduling) {
         setConfirmationStatus("scheduled");
         setConfirmationCount(postPromises.length);
@@ -578,11 +737,21 @@ export default function EditorialCore({
               onPublish={handlePublish}
               isPublishing={postMutation.isPending || isPollingStatus}
               isUploading={isGlobalUploading}
+              hasMinimumContent={hasMinimumContent}
             />
           )}
         </div>
       </div>
       <div className="pb-64" />
+
+      {publishSummaryData && (
+        <PublishConfirmationModal
+          isOpen={showPublishConfirmation}
+          onConfirm={handleConfirmPublish}
+          onCancel={handleCancelPublish}
+          summaryData={publishSummaryData}
+        />
+      )}
 
       <ConfirmationModal
         isOpen={!!confirmationStatus}

@@ -3,7 +3,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import React, { useState } from "react";
 import {
   LayoutDashboard,
@@ -48,22 +48,6 @@ interface SidebarClientProps {
   organizationName?: string;
   displayName?: string;
   initialStructure: OrganizationNode[];
-}
-
-function NewPostButton() {
-  const router = useRouter();
-  const newPostPath = useWorkspacePath("editorial");
-
-  return (
-    <Button
-      variant="primary"
-      className="w-full gap-2 font-serif uppercase tracking-[0.12em]"
-      onClick={() => router.push(newPostPath)}
-    >
-      <Pencil className="w-4 h-4" />
-      New Post
-    </Button>
-  );
 }
 
 function NavItem({
@@ -124,12 +108,8 @@ export default function SidebarClient({
 
   return (
     <aside className="w-64 bg-[--background] border-r-2 border-[--foreground] flex flex-col">
-      {/* 1. Replaced Static Header with Switcher */}
+      {/* 1. Switcher */}
       <WorkspaceSwitcher initialStructure={initialStructure} />
-
-      <div className="p-4 border-b-2 border-[--foreground] shrink-0">
-        <NewPostButton />
-      </div>
 
       <nav className="shrink-0 px-4 py-6 space-y-2 border-b border-[--border]">
         <p className="eyebrow px-3 pb-2 text-[--muted-foreground]">Features</p>
