@@ -23,7 +23,6 @@ import {
 import { type CreatePostPayload } from "@/lib/types/publishing";
 import { generateVideoThumbnail } from "@/lib/utils/video-thumbnail";
 import { getAutoSelectionForPlatform } from "@/lib/utils/media-validation";
-import { getClientDataForEditor } from "@/app/actions/data";
 import { uploadMediaAction } from "@/app/actions/media";
 import { getConnectionsAction } from "@/app/actions/integrations";
 import { createPostAction } from "@/app/actions/publishing";
@@ -68,13 +67,14 @@ export function usePostEditor(options: UsePostEditorOptions = {}) {
     (state) => state.selectedAccounts
   );
 
-  const { data: clientData } = useQuery({
-    queryKey: ["clientEditorData"],
-    queryFn: getClientDataForEditor,
-    staleTime: Infinity,
-  });
+  // No longer needed - workspaceId from params is sufficient
+  // const { data: clientData } = useQuery({
+  //   queryKey: ["clientEditorData"],
+  //   queryFn: getClientDataForEditor,
+  //   staleTime: Infinity,
+  // });
 
-  const organizationId = clientData?.organizationId;
+  // const organizationId = clientData?.organizationId;
 
   const { data: connections = [] } = useQuery({
     queryKey: ["connections", workspaceId],
@@ -104,7 +104,6 @@ export function usePostEditor(options: UsePostEditorOptions = {}) {
   const uploadMediaMutation = useMutation({
     mutationFn: async (variables: {
       file: File;
-      organizationId: string;
       uid: string;
     }) => {
       let thumbnail: File | undefined;
@@ -252,11 +251,6 @@ export function usePostEditor(options: UsePostEditorOptions = {}) {
 
   const handleMediaChange = useCallback(
     (files: File[], previews: string[]) => {
-      if (files.length > 0 && !organizationId) {
-        toast.error("Organization context missing. Please refresh.");
-        return;
-      }
-
       const newMediaItems: MediaItem[] = files.map((file, index) => ({
         uid: crypto.randomUUID(),
         file,
@@ -307,7 +301,6 @@ export function usePostEditor(options: UsePostEditorOptions = {}) {
         newMediaItems.forEach((item) => {
           uploadMediaMutation.mutate({
             file: item.file!,
-            organizationId: organizationId!,
             uid: item.uid,
           });
         });
@@ -324,7 +317,6 @@ export function usePostEditor(options: UsePostEditorOptions = {}) {
       setStagedMediaItems,
       uploadMediaMutation,
       mode,
-      organizationId,
     ]
   );
 
