@@ -65,10 +65,23 @@ export function useCalendarData({
   } = useQuery<ScheduledPost[]>({
     queryKey: ["contentLibrary", workspaceId, dateRange.start, dateRange.end],
     queryFn: async () => {
+      console.log(
+        `[Perf Audit] 🚀 CLIENT FETCH START: Content Library (${dateRange.start} - ${dateRange.end})`
+      );
+      const startTime = performance.now();
+
       const result = await getContentLibraryAction(workspaceId, {
         startDate: dateRange.start,
         endDate: dateRange.end,
       });
+
+      const duration = performance.now() - startTime;
+      console.log(
+        `[Perf Audit] ✅ CLIENT FETCH COMPLETE: Content Library (${duration.toFixed(
+          2
+        )}ms) | Items: ${result.data?.length || 0}`
+      );
+
       if (!result.success) throw new Error(result.error);
       return result.data!;
     },
@@ -121,6 +134,7 @@ export function useCalendarData({
       queryClient.prefetchQuery({
         queryKey,
         queryFn: async () => {
+          // Note: We don't log prefetches to avoid console noise, but you could add them if needed
           const result = await getContentLibraryAction(workspaceId, {
             startDate: gridStart.toISOString(),
             endDate: gridEnd.toISOString(),
@@ -152,7 +166,7 @@ export function useCalendarData({
     queryKey: ["fullPostDetails", postIdToEdit, workspaceId],
     queryFn: async () => {
       console.log(
-        `[Calendar Debug] 🚀 START fetching full details for post: ${postIdToEdit}`
+        `[Perf Audit] 🚀 CLIENT FETCH START: Post Details ${postIdToEdit}`
       );
       const startTime = performance.now();
 
@@ -160,7 +174,7 @@ export function useCalendarData({
 
       const duration = performance.now() - startTime;
       console.log(
-        `[Calendar Debug] ✅ FINISHED fetching full details for post: ${postIdToEdit} (${duration.toFixed(
+        `[Perf Audit] ✅ CLIENT FETCH COMPLETE: Post Details ${postIdToEdit} (${duration.toFixed(
           2
         )}ms)`
       );

@@ -2,7 +2,7 @@
 
 "use client";
 
-import { useMemo, memo, useEffect } from "react"; // Added useEffect
+import { useMemo, memo, useEffect } from "react";
 import {
   Twitter,
   Instagram,
@@ -105,7 +105,7 @@ function PreviewPanel() {
     (state) => state.activeCaptionFilter
   );
 
-  // === DEBUG LOGGING FOR FETCH ===
+  // === CONNECTIONS QUERY ===
   const { data: connections = [], isFetching } = useQuery({
     queryKey: ["connections", workspaceId],
     queryFn: async () => {
@@ -120,6 +120,11 @@ function PreviewPanel() {
       if (!result.success) throw new Error(result.error);
       return result.data!;
     },
+    // === CRITICAL FIX ===
+    // Trust the cache for 5 minutes.
+    // Since we pre-seed this cache in usePostEditorWorkflow, this prevents
+    // the component from immediately hitting the network again.
+    staleTime: 5 * 60 * 1000,
   });
 
   const activePlatforms = useMemo(
@@ -154,13 +159,16 @@ function PreviewPanel() {
     // Try to find the account
     const found = connections.find((conn) => conn.id === integrationId) || null;
 
-    console.log(`[Preview Debug] 🔍 Resolving Active Account:`, {
-      tab: validActiveTab,
-      selectedId: integrationId,
-      connectionsCount: connections.length,
-      isFetchingConnections: isFetching,
-      foundAccount: !!found,
-    });
+    // Only log if we are actually debugging connection issues to reduce noise
+    if (isFetching && !found) {
+      console.log(`[Preview Debug] 🔍 Resolving Active Account:`, {
+        tab: validActiveTab,
+        selectedId: integrationId,
+        connectionsCount: connections.length,
+        isFetchingConnections: isFetching,
+        foundAccount: !!found,
+      });
+    }
 
     return found;
   }, [validActiveTab, selectedAccounts, connections, isFetching]);
@@ -205,20 +213,18 @@ function PreviewPanel() {
 
   const renderPreview = () => {
     if (!activeAccount) {
-      console.log(
-        `[Preview Debug] ⚠️ Rendering FALLBACK because activeAccount is missing.`
-      );
+      // Only log if expected to have account
+      if (!isFetching) {
+        console.log(
+          `[Preview Debug] ⚠️ Rendering FALLBACK because activeAccount is missing.`
+        );
+      }
       return (
         <div className="flex h-full items-center justify-center p-8 text-[--muted-foreground] italic font-serif">
           No account selected for preview.
         </div>
       );
     }
-
-    // Log when we actually render the preview component
-    console.log(
-      `[Preview Debug] 🖼️ Rendering Platform Preview for ${validActiveTab}`
-    );
 
     const mediaPostType = activeMediaItems.some((item) => item.type === "video")
       ? "video"

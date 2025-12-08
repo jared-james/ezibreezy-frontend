@@ -59,8 +59,9 @@ export function usePostEditorWorkflow({
   // 1. FAST PATH: Populate store immediately from Calendar Card data
   const populateStoreFromSummary = useCallback(
     (summary: ScheduledPost) => {
+      const start = performance.now();
       console.log(
-        `[Calendar Debug] ⚡ FAST START: Populating from summary for ${summary.id}`
+        `[Perf Audit] ⚡ STORE ACTION: Populating from Summary for ${summary.id}`
       );
 
       hasInitializedFromSummary.current = summary.id;
@@ -75,7 +76,7 @@ export function usePostEditorWorkflow({
         if (exists) return existing;
 
         console.log(
-          `[Calendar Debug] 💉 Injecting connection into cache: ${summary.platformUsername}`
+          `[Perf Audit] 💉 CACHE INJECTION: Seeding connection for ${summary.platformUsername}`
         );
 
         // Create a temporary connection object based on summary data
@@ -134,6 +135,13 @@ export function usePostEditorWorkflow({
             }
           : {}),
       });
+
+      const duration = performance.now() - start;
+      console.log(
+        `[Perf Audit] ✅ STORE COMPLETE: Summary Applied in ${duration.toFixed(
+          2
+        )}ms`
+      );
     },
     [
       setStagedMediaItems,
@@ -147,12 +155,11 @@ export function usePostEditorWorkflow({
   // 2. SLOW PATH: Enrich with full details (Silent Sync)
   const populateStoreFromFullDetails = useCallback(
     (fullPost: FullPostDetails) => {
+      const start = performance.now();
       const isEnrichment = hasInitializedFromSummary.current === fullPost.id;
 
       console.log(
-        `[Calendar Debug] 📦 Full details arrived for: ${fullPost.id} | Mode: ${
-          isEnrichment ? "ENRICH (Merge)" : "INIT (Overwrite)"
-        }`
+        `[Perf Audit] 📦 STORE ACTION: Merging Full Details for ${fullPost.id} (Enrichment Mode: ${isEnrichment})`
       );
 
       // If this is an enrichment (we already showed summary data),
@@ -267,6 +274,13 @@ export function usePostEditorWorkflow({
       }
 
       setPublishingState(publishingUpdates);
+
+      const duration = performance.now() - start;
+      console.log(
+        `[Perf Audit] ✅ STORE COMPLETE: Full Details Applied in ${duration.toFixed(
+          2
+        )}ms`
+      );
     },
     [setStagedMediaItems, setDraftState, setPublishingState]
   );
@@ -297,7 +311,9 @@ export function usePostEditorWorkflow({
 
   const handleEditPost = useCallback(
     (post: ScheduledPost) => {
-      console.log(`[Calendar Debug] 🖱️ User clicked edit post: ${post.id}`);
+      console.log(
+        `[Perf Audit] 🖱️ UI INTERACTION: User clicked edit post ${post.id}`
+      );
 
       // Clear previous tracking
       hasInitializedFromSummary.current = null;
