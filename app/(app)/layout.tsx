@@ -51,7 +51,7 @@ export default async function AppLayout({
     "Editor";
 
   return (
-    <div className="flex h-screen w-full bg-[--background] overflow-hidden">
+    <div className="flex">
       <InviteToast />
 
       <Suspense fallback={null}>
@@ -64,7 +64,7 @@ export default async function AppLayout({
       />
 
       <main className="flex-1 flex flex-col min-w-0 overflow-hidden relative">
-        <div className="flex-1 overflow-y-auto scroll-smooth">{children}</div>
+        <div>{children}</div>
       </main>
     </div>
   );
