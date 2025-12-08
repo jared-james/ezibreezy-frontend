@@ -16,6 +16,7 @@ import { YouTubeOptions } from "../../previews/youtube/youtube-options";
 import { PinterestOptions } from "../../previews/pinterest/pinterest-options";
 import { InstagramOptions } from "../../previews/instagram/instagram-options";
 import { ThreadsOptions } from "../../previews/threads/threads-options";
+import { TikTokOptions } from "../../previews/tiktok/tiktok-options";
 import { useEditorialDraftStore } from "@/lib/store/editorial/draft-store";
 import { usePublishingStore } from "@/lib/store/editorial/publishing-store";
 
@@ -155,6 +156,19 @@ export function PlatformCaptionSection({
   const platformMediaSelections = useEditorialDraftStore(
     (state) => state.platformMediaSelections
   );
+  const instagramCoverUrl = useEditorialDraftStore(
+    (state) => state.instagramCoverUrl
+  );
+  const instagramThumbOffset = useEditorialDraftStore(
+    (state) => state.instagramThumbOffset
+  );
+  const instagramShareToFeed = useEditorialDraftStore(
+    (state) => state.instagramShareToFeed
+  );
+  const tiktokVideoCoverTimestamp = useEditorialDraftStore(
+    (state) => state.tiktokVideoCoverTimestamp
+  );
+  const setDraftState = useEditorialDraftStore((state) => state.setDraftState);
 
   const activeMediaUids = platformMediaSelections[platformId] || [];
   const activeMediaItem =
@@ -163,6 +177,16 @@ export function PlatformCaptionSection({
       : undefined;
 
   const integrationId = selectedAccounts[platformId]?.[0];
+
+  // Media properties for cover/thumbnail functionality
+  const mediaType = activeMediaItem?.type === "video"
+    ? "video"
+    : activeMediaItem?.type === "image"
+    ? "image"
+    : "text";
+  const displayMediaSrc = activeMediaItem?.type === "video"
+    ? activeMediaItem.mediaUrl
+    : activeMediaItem?.preview;
 
   let characterLimit: number | undefined;
   let commentLimit: number | undefined;
@@ -391,6 +415,15 @@ export function PlatformCaptionSection({
               setPublishingState({ location: v || { id: null, name: "" } })
             }
             postType={currentPostType}
+            mediaType={mediaType}
+            shareToFeed={instagramShareToFeed}
+            onShareToFeedChange={(v) => setDraftState({ instagramShareToFeed: v })}
+            coverUrl={instagramCoverUrl}
+            onCoverChange={(v) => setDraftState({ instagramCoverUrl: v })}
+            thumbOffset={instagramThumbOffset}
+            onThumbOffsetChange={(v) => setDraftState({ instagramThumbOffset: v })}
+            displayMediaSrc={displayMediaSrc}
+            videoDuration={0}
           />
         )}
 
@@ -408,6 +441,17 @@ export function PlatformCaptionSection({
             onLocationChange={(v) =>
               setPublishingState({ location: v || { id: null, name: "" } })
             }
+          />
+        )}
+
+        {platformId === "tiktok" && mediaType === "video" && (
+          <TikTokOptions
+            videoCoverTimestamp={tiktokVideoCoverTimestamp}
+            onVideoCoverTimestampChange={(v) =>
+              setDraftState({ tiktokVideoCoverTimestamp: v })
+            }
+            displayMediaSrc={displayMediaSrc}
+            videoDuration={0}
           />
         )}
 

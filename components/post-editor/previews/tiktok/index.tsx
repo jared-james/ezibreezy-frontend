@@ -229,17 +229,6 @@ function TikTokPreview({
         </div>
       </div>
 
-      {!isCarousel && mediaType === "video" && displayMediaSrc && (
-        <TikTokVideoOptions
-          displayMediaSrc={displayMediaSrc}
-          videoCoverTimestamp={tiktokVideoCoverTimestamp}
-          onVideoCoverTimestampChange={(timestamp) =>
-            setDraftState({ tiktokVideoCoverTimestamp: timestamp })
-          }
-          videoDuration={videoDuration || 0}
-        />
-      )}
-
       {isCropperOpen && (
         <ImageCropperModal
           open={isCropperOpen}

@@ -29,7 +29,6 @@ import { InstagramGridView } from "./instagram-grid-view";
 import { InstagramPostFooter } from "./instagram-post-footer";
 import { InstagramMediaDisplay } from "./instagram-media-display";
 import { InstagramToolbar } from "./instagram-toolbar";
-import { InstagramReelOptions } from "./instagram-reel-options";
 import { InstagramCarousel } from "./instagram-carousel";
 import { InstagramStoryCarousel } from "./instagram-story-carousel";
 
@@ -422,23 +421,6 @@ function InstagramPreview({
           onAltTextClick={handleAltTextClick}
         />
       </div>
-
-      {postType === "post" &&
-        mediaType === "video" &&
-        displayMediaSrc &&
-        !isCarousel && (
-          <InstagramReelOptions
-            integrationId={integrationId}
-            shareToFeed={shareToFeed}
-            onShareToFeedChange={onShareToFeedChange}
-            coverUrl={coverUrl}
-            onCoverChange={onCoverChange}
-            displayMediaSrc={displayMediaSrc}
-            thumbOffset={thumbOffset}
-            onThumbOffsetChange={onThumbOffsetChange}
-            videoDuration={videoDuration}
-          />
-        )}
 
       {isCropperOpen && (
         <ImageCropperModal
