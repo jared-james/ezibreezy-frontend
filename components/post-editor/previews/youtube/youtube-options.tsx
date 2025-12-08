@@ -168,7 +168,7 @@ export function YouTubeOptions({
           Custom Thumbnail
         </label>
         <p className="text-xs text-yellow-600 dark:text-yellow-500 leading-tight">
-          Note: Custom thumbnails require a verified phone number on your YouTube account.{" "}
+          Note: Custom thumbnails require a verified phone number on your YouTube account and must be enabled in your channel settings.{" "}
           <a
             href="https://www.youtube.com/verify"
             target="_blank"
