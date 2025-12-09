@@ -21,7 +21,7 @@ export default async function LoginPage() {
       const contextResult = await getUserContext();
 
       if (contextResult.success && contextResult.data?.defaultWorkspaceSlug) {
-        redirect(`/${contextResult.data.defaultWorkspaceSlug}/dashboard`);
+        redirect(`/${contextResult.data.defaultWorkspaceSlug}/editorial`);
       }
     } catch (e) {
       // Allow Next.js redirects to pass through
