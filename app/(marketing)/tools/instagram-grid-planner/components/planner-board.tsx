@@ -2,7 +2,7 @@
 
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useId } from "react";
 import {
   DndContext,
   closestCenter,
@@ -57,6 +57,7 @@ export type VisualPost = {
 };
 
 export default function PlannerBoard() {
+  const dndContextId = useId();
   const [items, setItems] = useState<VisualPost[]>([]);
   const [activeId, setActiveId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -191,6 +192,7 @@ export default function PlannerBoard() {
         </div>
       ) : (
         <DndContext
+          id={dndContextId}
           sensors={sensors}
           collisionDetection={closestCenter}
           onDragStart={handleDragStart}

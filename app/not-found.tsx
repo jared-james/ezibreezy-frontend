@@ -7,20 +7,27 @@ import { getWorkspaceStructure } from "@/app/actions/workspaces";
 import { FileQuestion, ArrowRight, Home } from "lucide-react";
 
 export default async function NotFound() {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
+  let user = null;
   let defaultWorkspacePath: string | null = null;
 
-  if (user) {
-    const workspaceResult = await getWorkspaceStructure();
-    if (workspaceResult.success) {
-      const nodes = workspaceResult.data || [];
-      const firstWs = nodes.flatMap((n) => n.workspaces)[0];
-      if (firstWs) defaultWorkspacePath = `/${firstWs.slug}/dashboard`;
+  try {
+    const supabase = await createClient();
+    const { data, error } = await supabase.auth.getUser();
+
+    // Only use user if there's no error
+    if (!error && data.user) {
+      user = data.user;
+
+      const workspaceResult = await getWorkspaceStructure();
+      if (workspaceResult.success) {
+        const nodes = workspaceResult.data || [];
+        const firstWs = nodes.flatMap((n) => n.workspaces)[0];
+        if (firstWs) defaultWorkspacePath = `/${firstWs.slug}/dashboard`;
+      }
     }
+  } catch (error) {
+    // Silently handle auth errors - user is simply not authenticated
+    console.error("Auth error in not-found:", error);
   }
 
   return (
