@@ -4,16 +4,13 @@
 
 import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import posthog from "posthog-js";
-import { completeOnboarding } from "@/app/actions/user";
 import type { PlanTier } from "@/lib/types/billing";
 import { OnboardingHeader } from "./onboarding-header";
 import OnboardingRole from "./onboarding-role";
 import OnboardingPricing from "./onboarding-pricing";
 import OnboardingCheckout from "./onboarding-checkout";
 import OnboardingForm from "./onboarding-form";
-import OnboardingConnect from "./onboarding-connect";
-import SubmittingState from "./submitting-state";
+import OnboardingProvisioning from "./onboarding-provisioning";
 import SuccessState from "./success-state";
 import { useTimezone } from "@/lib/hooks/use-timezone";
 
@@ -22,8 +19,7 @@ type OnboardingState =
   | "pricing"
   | "checkout"
   | "form"
-  | "submitting"
-  | "connect"
+  | "provisioning"
   | "success";
 
 export default function OnboardingContainer() {
@@ -32,9 +28,6 @@ export default function OnboardingContainer() {
 
   // Billing state
   const [selectedRole, setSelectedRole] = useState<PlanTier | null>(null);
-  const [verifiedSessionId, setVerifiedSessionId] = useState<string | null>(
-    null
-  );
 
   // Form data
   const [organizationName, setOrganizationName] = useState("");
@@ -43,10 +36,6 @@ export default function OnboardingContainer() {
   // Timezone logic handled by hook (auto-detects browser time)
   const { timezone, setTimezone } = useTimezone();
 
-  const [createdWorkspace, setCreatedWorkspace] = useState<{
-    id: string;
-    slug: string;
-  } | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   // Initialize state based on URL params
@@ -71,79 +60,52 @@ export default function OnboardingContainer() {
     }
   }, []);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError(null);
-    setState("submitting");
+  const handleProvisioningComplete = (workspaceId: string, workspaceSlug: string) => {
+    // Store workspace data for the /onboarding/connect page
+    localStorage.setItem(
+      "onboarding_workspace_data",
+      JSON.stringify({
+        id: workspaceId,
+        slug: workspaceSlug,
+      })
+    );
+    localStorage.removeItem("onboarding_data");
 
-    if (organizationName.trim().length < 3) {
-      setError("Organization name must be at least 3 characters");
-      setState("form");
-      return;
-    }
-    if (workspaceName.trim().length < 3) {
-      setError("Workspace name must be at least 3 characters");
-      setState("form");
-      return;
-    }
-    if (!timezone) {
-      setError("Please select a timezone");
-      setState("form");
-      return;
-    }
-
-    posthog.capture("onboarding_attempt", {
-      organizationName,
-      workspaceName,
-      timezone,
-    });
-
-    try {
-      const result = await completeOnboarding({
-        organizationName: organizationName.trim(),
-        workspaceName: workspaceName.trim(),
-        timezone,
-        sessionId: verifiedSessionId || undefined,
-      });
-
-      if (!result.success) {
-        setError(result.error || "Failed to complete onboarding");
-        setState("form");
-        return;
-      }
-
-      setCreatedWorkspace({
-        id: result.targetWorkspaceId,
-        slug: result.targetWorkspaceSlug || result.targetWorkspaceId,
-      });
-      localStorage.removeItem("onboarding_data");
-
-      setTimeout(() => setState("connect"), 1500);
-    } catch (err) {
-      setError("An unexpected error occurred");
-      setState("form");
-    }
-  };
-
-  const handleSkipConnection = () => {
-    if (!createdWorkspace) return;
-    setState("success");
-    setTimeout(() => {
-      router.push(`/${createdWorkspace.slug}/editorial`);
-    }, 1500);
+    // Redirect to the connect page (social accounts)
+    router.push("/onboarding/connect");
   };
 
   const handleSelectRole = (role: PlanTier) => {
     setSelectedRole(role);
+    setState("form");
+  };
+
+  const handleFormComplete = () => {
+    // Validate form data before proceeding
+    if (organizationName.trim().length < 3) {
+      setError("Organization name must be at least 3 characters");
+      return;
+    }
+    if (workspaceName.trim().length < 3) {
+      setError("Workspace name must be at least 3 characters");
+      return;
+    }
+    if (!timezone) {
+      setError("Please select a timezone");
+      return;
+    }
+
+    setError(null);
     setState("pricing");
   };
 
-  const handleBackToPricing = () => setState("role");
-  const handleBackToRole = () => setState("role"); // For header usage
+  const handleBackToForm = () => setState("form");
+  const handleBackToRole = () => setState("role");
 
-  const handlePaymentVerified = (sessionId: string) => {
-    setVerifiedSessionId(sessionId);
-    setState("form");
+  const handlePaymentVerified = () => {
+    // Payment verified - webhook will handle provisioning
+    // Start polling for completion
+    setState("provisioning");
   };
 
   const handlePaymentError = (errorMsg: string) => setError(errorMsg);
@@ -161,27 +123,25 @@ export default function OnboardingContainer() {
       stepName = "Identification";
       showBack = false;
       break;
-    case "pricing":
+    case "form":
       stepNumber = 2;
-      stepName = "Subscription";
+      stepName = "Workspace Setup";
       showBack = true;
       onBackAction = handleBackToRole;
       break;
+    case "pricing":
+      stepNumber = 3;
+      stepName = "Subscription";
+      showBack = true;
+      onBackAction = handleBackToForm;
+      break;
     case "checkout":
-      stepNumber = 2;
+      stepNumber = 3;
       stepName = "Verification";
       break;
-    case "form":
-      stepNumber = 3;
-      stepName = "Workspace Setup";
-      break;
-    case "submitting":
-      stepNumber = 3;
-      stepName = "Provisioning";
-      break;
-    case "connect":
+    case "provisioning":
       stepNumber = 4;
-      stepName = "Integration";
+      stepName = "Building Workspace";
       break;
     case "success":
       stepNumber = 4;
@@ -202,7 +162,7 @@ export default function OnboardingContainer() {
         <div
           key={state}
           className={
-            state === "connect" || state === "success"
+            state === "provisioning" || state === "success"
               ? "animate-in fade-in duration-700 ease-out"
               : "animate-in fade-in slide-in-from-bottom-4 duration-700 ease-out"
           }
@@ -211,21 +171,6 @@ export default function OnboardingContainer() {
             <OnboardingRole
               selectedRole={selectedRole}
               onSelectRole={handleSelectRole}
-            />
-          )}
-
-          {state === "pricing" && selectedRole && (
-            <OnboardingPricing
-              selectedRole={selectedRole}
-              onBack={handleBackToRole}
-            />
-          )}
-
-          {state === "checkout" && searchParams?.get("session_id") && (
-            <OnboardingCheckout
-              sessionId={searchParams.get("session_id")!}
-              onVerified={handlePaymentVerified}
-              onError={handlePaymentError}
             />
           )}
 
@@ -239,18 +184,33 @@ export default function OnboardingContainer() {
               setTimezone={setTimezone}
               state="form"
               error={error}
-              onSubmit={handleSubmit}
+              onSubmit={(e) => {
+                e.preventDefault();
+                handleFormComplete();
+              }}
             />
           )}
 
-          {state === "submitting" && <SubmittingState />}
-
-          {state === "connect" && createdWorkspace && (
-            <OnboardingConnect
-              workspaceId={createdWorkspace.id}
-              workspaceSlug={createdWorkspace.slug}
-              onSkip={handleSkipConnection}
+          {state === "pricing" && selectedRole && (
+            <OnboardingPricing
+              selectedRole={selectedRole}
+              organizationName={organizationName}
+              workspaceName={workspaceName}
+              timezone={timezone}
+              onBack={handleBackToForm}
             />
+          )}
+
+          {state === "checkout" && searchParams?.get("session_id") && (
+            <OnboardingCheckout
+              sessionId={searchParams.get("session_id")!}
+              onVerified={handlePaymentVerified}
+              onError={handlePaymentError}
+            />
+          )}
+
+          {state === "provisioning" && (
+            <OnboardingProvisioning onComplete={handleProvisioningComplete} />
           )}
 
           {state === "success" && <SuccessState />}

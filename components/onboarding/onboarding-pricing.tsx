@@ -12,11 +12,17 @@ import { cn } from "@/lib/utils";
 
 interface OnboardingPricingProps {
   selectedRole: PlanTier;
+  organizationName: string;
+  workspaceName: string;
+  timezone: string;
   onBack: () => void;
 }
 
 export default function OnboardingPricing({
   selectedRole,
+  organizationName,
+  workspaceName,
+  timezone,
 }: OnboardingPricingProps) {
   const [billingCycle, setBillingCycle] = useState<BillingCycle>("monthly");
   const [loadingTier, setLoadingTier] = useState<PlanTier | null>(null);
@@ -46,11 +52,16 @@ export default function OnboardingPricing({
       role: tier,
       cycle: billingCycle,
       priceId,
+      organizationName,
+      workspaceName,
     });
 
     const result = await createOnboardingCheckout({
       priceId,
       role: tier,
+      organizationName,
+      workspaceName,
+      timezone,
     });
 
     if (result.success && result.url) {

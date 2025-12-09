@@ -109,7 +109,7 @@ export default function OnboardingForm({
             </>
           ) : (
             <>
-              Create Workspace
+              Continue to Pricing
               <ArrowRight className="w-4 h-4" />
             </>
           )}

@@ -1,28 +1,12 @@
 // app/onboarding/page.tsx
 
-import { redirect } from "next/navigation";
-import { getOnboardingRoute } from "@/app/actions/onboarding";
+import { Suspense } from "react";
+import OnboardingContainer from "@/components/onboarding/onboarding-container";
 
-export default async function OnboardingPage({
-  searchParams,
-}: {
-  searchParams: Promise<{ session_id?: string; canceled?: string }>;
-}) {
-  const params = await searchParams;
-  const sessionId = params.session_id;
-  const canceled = params.canceled;
-
-  // Handle payment cancellation
-  if (canceled) {
-    redirect("/onboarding/pricing");
-  }
-
-  // If session_id is present, redirect to checkout for verification
-  if (sessionId) {
-    redirect(`/onboarding/checkout?session_id=${sessionId}`);
-  }
-
-  // Otherwise, determine the correct step based on user's progress
-  const route = await getOnboardingRoute();
-  redirect(route);
+export default async function OnboardingPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-[#fdfbf7]" />}>
+      <OnboardingContainer />
+    </Suspense>
+  );
 }

@@ -19,6 +19,13 @@ export default function OnboardingLayout({
   const pathname = usePathname();
   const step = STEP_MAP[pathname] || { number: 1, name: "Getting Started" };
 
+  // Don't show layout header for /onboarding root - OnboardingContainer handles it
+  const isRootOnboarding = pathname === "/onboarding";
+
+  if (isRootOnboarding) {
+    return <>{children}</>;
+  }
+
   return (
     <div className="min-h-screen bg-[#fdfbf7] text-foreground selection:bg-brand-accent/20">
       <OnboardingHeader

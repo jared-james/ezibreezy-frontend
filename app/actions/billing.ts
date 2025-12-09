@@ -65,9 +65,10 @@ export async function authenticatedFetch(
  */
 export async function createOnboardingCheckout(data: {
   priceId: string;
-  role?: PlanTier;
-  organizationName?: string;
-  workspaceName?: string;
+  role: PlanTier;
+  organizationName: string;
+  workspaceName: string;
+  timezone: string;
 }): Promise<CreateCheckoutResponse> {
   const supabase = await createClient();
   const {

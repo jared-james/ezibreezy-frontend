@@ -9,7 +9,7 @@ import posthog from "posthog-js";
 
 interface OnboardingCheckoutProps {
   sessionId: string;
-  onVerified: (sessionId: string) => void;
+  onVerified: () => void;
   onError: (error: string) => void;
 }
 
@@ -34,9 +34,9 @@ export default function OnboardingCheckout({
             sessionId,
           });
 
-          // Wait a moment to show success state, then proceed
+          // Wait a moment to show success state, then proceed to polling
           setTimeout(() => {
-            onVerified(sessionId);
+            onVerified();
           }, 1500);
         } else {
           setStatus("error");
@@ -89,7 +89,7 @@ export default function OnboardingCheckout({
               Payment Confirmed!
             </h2>
             <p className="font-serif text-foreground/60">
-              Your trial has started. Let&apos;s set up your workspace...
+              Your trial has started. Setting up your workspace...
             </p>
           </div>
         </>
