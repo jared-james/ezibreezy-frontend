@@ -169,3 +169,58 @@ export async function verifyCheckoutSession(
     };
   }
 }
+
+/**
+ * Store payment session immediately after Stripe redirect
+ * This MUST be called when user returns from Stripe BEFORE showing workspace form
+ * Calls backend: POST /billing/store-payment-session
+ */
+export async function storePaymentSession(sessionId: string): Promise<{
+  success: boolean;
+  verified?: boolean;
+  error?: string;
+}> {
+  const supabase = await createClient();
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
+
+  if (!session) {
+    return { success: false, error: "User is not authenticated." };
+  }
+
+  try {
+    const response = await fetch(`${BACKEND_URL}/billing/store-payment-session`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${session.access_token}`,
+        "x-api-key": API_KEY || "",
+      },
+      body: JSON.stringify({ sessionId }),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      return {
+        success: false,
+        error: `Failed to store payment session: ${
+          errorData.message || response.statusText
+        }`,
+      };
+    }
+
+    const data = await response.json();
+
+    return {
+      success: data.success,
+      verified: data.verified,
+    };
+  } catch (error) {
+    console.error("[storePaymentSession] Error:", error);
+    return {
+      success: false,
+      error: "Failed to store payment session.",
+    };
+  }
+}

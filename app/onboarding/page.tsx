@@ -1,26 +1,28 @@
 // app/onboarding/page.tsx
 
-import { Suspense } from "react";
-import OnboardingContainer from "@/components/onboarding/onboarding-container";
+import { redirect } from "next/navigation";
+import { getOnboardingRoute } from "@/app/actions/onboarding";
 
-// The container needs to be wrapped in Suspense because it uses useSearchParams
-function OnboardingContent() {
-  return <OnboardingContainer />;
-}
+export default async function OnboardingPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ session_id?: string; canceled?: string }>;
+}) {
+  const params = await searchParams;
+  const sessionId = params.session_id;
+  const canceled = params.canceled;
 
-export default function OnboardingPage() {
-  return (
-    <Suspense
-      fallback={
-        <div className="flex items-center justify-center min-h-screen bg-background-editorial">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-brand-primary mx-auto"></div>
-            <p className="mt-4 font-serif text-foreground/60">Loading...</p>
-          </div>
-        </div>
-      }
-    >
-      <OnboardingContent />
-    </Suspense>
-  );
+  // Handle payment cancellation
+  if (canceled) {
+    redirect("/onboarding/pricing");
+  }
+
+  // If session_id is present, redirect to checkout for verification
+  if (sessionId) {
+    redirect(`/onboarding/checkout?session_id=${sessionId}`);
+  }
+
+  // Otherwise, determine the correct step based on user's progress
+  const route = await getOnboardingRoute();
+  redirect(route);
 }

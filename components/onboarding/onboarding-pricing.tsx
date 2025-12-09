@@ -19,7 +19,7 @@ export default function OnboardingPricing({
   selectedRole,
 }: OnboardingPricingProps) {
   const [billingCycle, setBillingCycle] = useState<BillingCycle>("monthly");
-  const [isLoading, setIsLoading] = useState(false);
+  const [loadingTier, setLoadingTier] = useState<PlanTier | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   // Override description for creator tier
@@ -35,7 +35,7 @@ export default function OnboardingPricing({
   });
 
   const handleSelectPlan = async (tier: PlanTier) => {
-    setIsLoading(true);
+    setLoadingTier(tier);
     setError(null);
 
     const plan = PRICING_PLANS[tier];
@@ -68,7 +68,7 @@ export default function OnboardingPricing({
       }
     } else {
       setError(result.error || "Failed to create checkout session");
-      setIsLoading(false);
+      setLoadingTier(null);
     }
   };
 
@@ -244,20 +244,21 @@ export default function OnboardingPricing({
               <div className="p-4 border-t border-black/10 bg-white">
                 <button
                   onClick={() => handleSelectPlan(plan.tier)}
-                  disabled={isLoading}
+                  disabled={loadingTier !== null}
                   className={cn(
                     "w-full flex items-center justify-between px-4 py-3.5 transition-all duration-200 border border-transparent rounded-sm group/btn shadow-sm",
                     isRecommended
                       ? "bg-brand-primary text-white hover:bg-brand-primary-hover shadow-brand-primary/20"
-                      : "bg-foreground text-background hover:bg-foreground/90"
+                      : "bg-foreground text-background hover:bg-foreground/90",
+                    loadingTier !== null && "opacity-50 cursor-not-allowed"
                   )}
                 >
                   <div className="flex flex-col items-start">
                     <span className="font-mono text-xs uppercase tracking-[0.15em] font-bold">
-                      {isLoading ? "Processing..." : "Start 14-Day Free Trial"}
+                      {loadingTier === plan.tier ? "Processing..." : "Start 14-Day Free Trial"}
                     </span>
                   </div>
-                  {isLoading ? (
+                  {loadingTier === plan.tier ? (
                     <Loader2 className="w-4 h-4 animate-spin" />
                   ) : (
                     <ArrowRight className="w-4 h-4 transition-transform group-hover/btn:translate-x-1" />
