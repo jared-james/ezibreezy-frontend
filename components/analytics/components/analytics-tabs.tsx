@@ -5,7 +5,16 @@
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
 import { cn } from "@/lib/utils";
-import { LayoutDashboard, Instagram, Youtube } from "lucide-react";
+import { LayoutDashboard } from "lucide-react";
+import { SocialIcon } from "@/components/ui/social-icon";
+
+const InstagramIcon = ({ className }: { className?: string }) => {
+  return <SocialIcon network="instagram" className={className} style={{ height: "16px", width: "16px" }} />;
+};
+
+const YouTubeIcon = ({ className }: { className?: string }) => {
+  return <SocialIcon network="youtube" className={className} style={{ height: "16px", width: "16px" }} />;
+};
 
 export default function AnalyticsTabs() {
   const pathname = usePathname();
@@ -29,13 +38,13 @@ export default function AnalyticsTabs() {
       name: "Instagram",
       href: `/analytics/instagram${createQueryString()}`,
       isActive: pathname.includes("/analytics/instagram"),
-      icon: Instagram,
+      icon: InstagramIcon,
     },
     {
       name: "YouTube",
       href: `/analytics/youtube${createQueryString()}`,
       isActive: pathname.includes("/analytics/youtube"),
-      icon: Youtube,
+      icon: YouTubeIcon,
     },
   ];
 

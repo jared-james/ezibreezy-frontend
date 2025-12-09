@@ -1,7 +1,7 @@
 "use client";
 
 import { cn } from "@/lib/utils";
-import { Youtube } from "lucide-react";
+import { SocialIcon } from "@/components/ui/social-icon";
 
 interface YouTubeHeaderProps {
   avatarUrl: string | null;
@@ -12,7 +12,7 @@ export function YouTubeHeader({ avatarUrl, primaryName }: YouTubeHeaderProps) {
   return (
     <div className="flex items-center justify-between p-3 border-b border-[--border] bg-[--surface]">
       <div className="flex items-center gap-2">
-        <Youtube className="w-6 h-6 text-red-600" />
+        <SocialIcon network="youtube" style={{ height: "24px", width: "24px" }} />
         <span className="font-bold text-sm tracking-tight">YouTube</span>
       </div>
 

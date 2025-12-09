@@ -3,17 +3,8 @@
 "use client";
 
 import { useMemo, memo, useEffect } from "react";
-import {
-  Twitter,
-  Instagram,
-  Linkedin,
-  Youtube,
-  Facebook,
-  AtSign,
-  Music2,
-  LayoutGrid,
-  Pin,
-} from "lucide-react";
+import { LayoutGrid } from "lucide-react";
+import { SocialIcon } from "@/components/ui/social-icon";
 import Image from "next/image";
 import { useParams } from "next/navigation";
 import { getConnectionsAction } from "@/app/actions/integrations";
@@ -34,15 +25,15 @@ import { useEditorialUIStore } from "@/lib/store/editorial/ui-store";
 import { UserTagDto, ProductTagDto } from "@/lib/types/publishing";
 import { useQuery } from "@tanstack/react-query";
 
-const platformIcons: Record<string, React.ElementType> = {
-  x: Twitter,
-  instagram: Instagram,
-  linkedin: Linkedin,
-  youtube: Youtube,
-  facebook: Facebook,
-  threads: AtSign,
-  tiktok: Music2,
-  pinterest: Pin,
+const networkMap: Record<string, string> = {
+  x: "x",
+  instagram: "instagram",
+  linkedin: "linkedin",
+  youtube: "youtube",
+  facebook: "facebook",
+  threads: "threads",
+  tiktok: "tiktok",
+  pinterest: "pinterest",
 };
 
 const platformNames: Record<string, string> = {
@@ -379,7 +370,7 @@ function PreviewPanel() {
     }
   };
 
-  const PlatformIcon = platformIcons[validActiveTab];
+  const network = networkMap[validActiveTab];
   const platformName = platformNames[validActiveTab] || validActiveTab;
 
   return (
@@ -391,8 +382,8 @@ function PreviewPanel() {
 
       <div className="bg-[--surface] border border-[--border] mt-6 rounded-lg overflow-hidden shadow-sm">
         <div className="flex items-center gap-2 px-5 py-3 border-b border-[--border] bg-[--background]/50">
-          {PlatformIcon && (
-            <PlatformIcon className="w-5 h-5 text-brand-primary" />
+          {network && (
+            <SocialIcon network={network} style={{ width: "20px", height: "20px" }} />
           )}
           <span className="font-serif font-bold text-sm text-[--foreground]">
             {platformName}

@@ -1,8 +1,9 @@
-// lib/hooks/use-post-editor.ts
+// lib/hooks/use-post-editor.tsx
 
 import { useMemo, useCallback } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
+import { SocialIcon } from "@/components/ui/social-icon";
 import {
   useEditorialDraftStore,
   MediaItem,
@@ -10,22 +11,45 @@ import {
 import { usePublishingStore } from "@/lib/store/editorial/publishing-store";
 import { type Connection } from "@/lib/types/integrations";
 import type { Platform, ThreadMessageAugmented } from "@/lib/types/editorial";
-import {
-  Twitter,
-  Linkedin,
-  Youtube,
-  Instagram,
-  Facebook,
-  AtSign,
-  Music2,
-  Pin,
-} from "lucide-react";
 import { type CreatePostPayload } from "@/lib/types/publishing";
 import { generateVideoThumbnail } from "@/lib/utils/video-thumbnail";
 import { getAutoSelectionForPlatform } from "@/lib/utils/media-validation";
 import { uploadMediaDirect } from "@/lib/api/media-upload";
 import { getConnectionsAction } from "@/app/actions/integrations";
 import { createPostAction } from "@/app/actions/publishing";
+
+// Create wrapper components for social icons
+const TwitterIcon = ({ className }: { className?: string }) => {
+  return <SocialIcon network="x" className={className} style={{ height: "100%", width: "100%" }} />;
+};
+
+const LinkedinIcon = ({ className }: { className?: string }) => {
+  return <SocialIcon network="linkedin" className={className} style={{ height: "100%", width: "100%" }} />;
+};
+
+const YouTubeIcon = ({ className }: { className?: string }) => {
+  return <SocialIcon network="youtube" className={className} style={{ height: "100%", width: "100%" }} />;
+};
+
+const InstagramIcon = ({ className }: { className?: string }) => {
+  return <SocialIcon network="instagram" className={className} style={{ height: "100%", width: "100%" }} />;
+};
+
+const FacebookIcon = ({ className }: { className?: string }) => {
+  return <SocialIcon network="facebook" className={className} style={{ height: "100%", width: "100%" }} />;
+};
+
+const ThreadsIcon = ({ className }: { className?: string }) => {
+  return <SocialIcon network="threads" className={className} style={{ height: "100%", width: "100%" }} />;
+};
+
+const TikTokIcon = ({ className }: { className?: string }) => {
+  return <SocialIcon network="tiktok" className={className} style={{ height: "100%", width: "100%" }} />;
+};
+
+const PinterestIcon = ({ className }: { className?: string }) => {
+  return <SocialIcon network="pinterest" className={className} style={{ height: "100%", width: "100%" }} />;
+};
 import { useParams } from "next/navigation";
 
 interface UsePostEditorOptions {
@@ -102,10 +126,7 @@ export function usePostEditor(options: UsePostEditorOptions = {}) {
   });
 
   const uploadMediaMutation = useMutation({
-    mutationFn: async (variables: {
-      file: File;
-      uid: string;
-    }) => {
+    mutationFn: async (variables: { file: File; uid: string }) => {
       let thumbnail: File | undefined;
 
       if (variables.file.type.startsWith("video/")) {
@@ -172,14 +193,14 @@ export function usePostEditor(options: UsePostEditorOptions = {}) {
 
     const fullPlatformDefinitions: Record<string, { name: string; icon: any }> =
       {
-        x: { name: "Twitter/X", icon: Twitter },
-        linkedin: { name: "LinkedIn", icon: Linkedin },
-        youtube: { name: "YouTube", icon: Youtube },
-        instagram: { name: "Instagram", icon: Instagram },
-        facebook: { name: "Facebook", icon: Facebook },
-        threads: { name: "Threads", icon: AtSign },
-        tiktok: { name: "TikTok", icon: Music2 },
-        pinterest: { name: "Pinterest", icon: Pin },
+        x: { name: "Twitter/X", icon: TwitterIcon },
+        linkedin: { name: "LinkedIn", icon: LinkedinIcon },
+        youtube: { name: "YouTube", icon: YouTubeIcon },
+        instagram: { name: "Instagram", icon: InstagramIcon },
+        facebook: { name: "Facebook", icon: FacebookIcon },
+        threads: { name: "Threads", icon: ThreadsIcon },
+        tiktok: { name: "TikTok", icon: TikTokIcon },
+        pinterest: { name: "Pinterest", icon: PinterestIcon },
       };
 
     return Object.keys(fullPlatformDefinitions).map((platformId) => {
@@ -305,12 +326,7 @@ export function usePostEditor(options: UsePostEditorOptions = {}) {
         setStagedMediaItems(nonUploadingItems);
       }
     },
-    [
-      setDraftState,
-      setStagedMediaItems,
-      uploadMediaMutation,
-      mode,
-    ]
+    [setDraftState, setStagedMediaItems, uploadMediaMutation, mode]
   );
 
   const handleRemoveMedia = useCallback(

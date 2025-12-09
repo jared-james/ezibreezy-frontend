@@ -1,43 +1,33 @@
 // components/post-editor/caption/components/platform-icon.tsx
 
-import {
-  Twitter,
-  Instagram,
-  Facebook,
-  Linkedin,
-  AtSign,
-  Music2,
-  Youtube,
-  Pin,
-} from "lucide-react";
-import { cn } from "@/lib/utils";
+import { SocialIcon } from "@/components/ui/social-icon";
 
 interface PlatformIconProps {
   platformId: string;
   className?: string;
 }
 
+const networkMap: Record<string, string> = {
+  x: "x",
+  instagram: "instagram",
+  facebook: "facebook",
+  linkedin: "linkedin",
+  threads: "threads",
+  tiktok: "tiktok",
+  youtube: "youtube",
+  pinterest: "pinterest",
+};
+
 export function PlatformIcon({ platformId, className }: PlatformIconProps) {
-  const Icon =
-    platformId === "x"
-      ? Twitter
-      : platformId === "instagram"
-      ? Instagram
-      : platformId === "facebook"
-      ? Facebook
-      : platformId === "linkedin"
-      ? Linkedin
-      : platformId === "threads"
-      ? AtSign
-      : platformId === "tiktok"
-      ? Music2
-      : platformId === "youtube"
-      ? Youtube
-      : platformId === "pinterest"
-      ? Pin
-      : null;
+  const network = networkMap[platformId];
 
-  if (!Icon) return null;
+  if (!network) return null;
 
-  return <Icon className={cn("h-4 w-4", className || "text-brand-primary")} />;
+  return (
+    <SocialIcon
+      network={network}
+      className={className}
+      style={{ height: "24px", width: "24px" }}
+    />
+  );
 }

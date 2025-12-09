@@ -2,7 +2,8 @@
 
 "use client";
 
-import { Instagram, X, Facebook, Check, AlertCircle } from "lucide-react";
+import { X, Check, AlertCircle } from "lucide-react";
+import { SocialIcon } from "@/components/ui/social-icon";
 import { PlatformDefinition } from "../types";
 import { useWorkspaceStore } from "@/lib/store/workspace-store";
 
@@ -80,7 +81,7 @@ export const InstagramConnectOptionsModal: React.FC<
 
           {/* Top Icon - Smaller */}
           <div className="inline-flex items-center justify-center w-10 h-10 mb-3 rounded-full border border-black/10 bg-white shadow-sm">
-            <Instagram className="w-5 h-5 text-foreground" />
+            <SocialIcon network="instagram" style={{ height: "20px", width: "20px" }} />
           </div>
 
           <div className="space-y-1">
@@ -109,7 +110,7 @@ export const InstagramConnectOptionsModal: React.FC<
 
               <div className="flex flex-col items-center text-center gap-2 mb-3 mt-1">
                 <div className="flex items-center justify-center w-10 h-10 rounded-full bg-[#1877F2] text-white border border-black/10 shadow-sm">
-                  <Facebook className="w-5 h-5" />
+                  <SocialIcon network="facebook" style={{ height: "20px", width: "20px" }} />
                 </div>
                 <div>
                   <h3 className="font-serif text-lg font-bold text-foreground">
@@ -152,7 +153,7 @@ export const InstagramConnectOptionsModal: React.FC<
             <div className="flex flex-col p-5 border-2 border-dashed border-black/10 hover:border-black/30 transition-colors duration-300 rounded-sm bg-white/50">
               <div className="flex flex-col items-center text-center gap-2 mb-3 mt-1">
                 <div className="flex items-center justify-center w-10 h-10 rounded-full bg-gradient-to-tr from-[#f09433] via-[#dc2743] to-[#bc1888] text-white shadow-sm border border-transparent">
-                  <Instagram className="w-5 h-5" />
+                  <SocialIcon network="instagram" style={{ height: "20px", width: "20px" }} />
                 </div>
                 <div>
                   <h3 className="font-serif text-lg font-bold text-foreground">

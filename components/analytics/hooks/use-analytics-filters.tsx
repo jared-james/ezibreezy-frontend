@@ -1,10 +1,12 @@
+// components/analytics/hooks/use-analytics-filters.tsx
+
 // components/analytics/hooks/use-analytics-filters.ts
 
 "use client";
 
 import { useState, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Instagram, Youtube } from "lucide-react";
+import { SocialIcon } from "@/components/ui/social-icon";
 import { useParams } from "next/navigation";
 import type { Connection } from "@/lib/types/integrations";
 import { getConnectionsAction } from "@/app/actions/integrations";
@@ -18,6 +20,27 @@ import type {
 
 const STORAGE_KEY = "ezibreezy_analytics_filters";
 const DEFAULT_DAYS: TimeRange = 7;
+
+// Create wrapper components for social icons
+const InstagramIcon = ({ className }: { className?: string }) => {
+  return (
+    <SocialIcon
+      network="instagram"
+      className={className}
+      style={{ height: "100%", width: "100%" }}
+    />
+  );
+};
+
+const YouTubeIcon = ({ className }: { className?: string }) => {
+  return (
+    <SocialIcon
+      network="youtube"
+      className={className}
+      style={{ height: "100%", width: "100%" }}
+    />
+  );
+};
 
 interface UseAnalyticsFiltersReturn {
   integrations: Connection[];
@@ -113,7 +136,7 @@ export function useAnalyticsFilters(): UseAnalyticsFiltersReturn {
       {
         id: "instagram",
         name: "Instagram",
-        icon: Instagram,
+        icon: InstagramIcon,
         accounts: (connectionsByPlatform["instagram"] || []).map(
           (conn): Account => ({
             id: conn.id,
@@ -127,7 +150,7 @@ export function useAnalyticsFilters(): UseAnalyticsFiltersReturn {
       {
         id: "youtube",
         name: "YouTube",
-        icon: Youtube,
+        icon: YouTubeIcon,
         accounts: (connectionsByPlatform["youtube"] || []).map(
           (conn): Account => ({
             id: conn.id,

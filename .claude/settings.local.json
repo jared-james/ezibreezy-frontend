@@ -25,7 +25,8 @@
       "Bash(dir:*)",
       "Bash(mv:*)",
       "Bash(grep:*)",
-      "Bash(npx drizzle-kit:*)"
+      "Bash(npx drizzle-kit:*)",
+      "Bash(pnpm add:*)"
     ],
     "deny": [],
     "ask": []

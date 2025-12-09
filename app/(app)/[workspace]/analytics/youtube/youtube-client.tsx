@@ -17,7 +17,8 @@ import MetricChart from "@/components/analytics/components/metric-chart";
 import TopPerformingContent from "@/components/analytics/components/top-performing-content";
 import ContentList from "@/components/analytics/components/content-list";
 import AnalyticsSkeleton from "@/components/analytics/components/analytics-skeleton";
-import { Youtube, Clock, PlayCircle, Users } from "lucide-react";
+import { Clock, PlayCircle, Users } from "lucide-react";
+import { SocialIcon } from "@/components/ui/social-icon";
 
 interface YoutubeClientProps {
   workspaceId: string;
@@ -116,7 +117,7 @@ export default function YoutubeClient({ workspaceId }: YoutubeClientProps) {
       <div className="flex h-full w-full flex-col items-center justify-center p-8 text-center bg-[#f4f4f0]">
         <div className="max-w-md space-y-6 p-8 border-[3px] border-black shadow-[8px_8px_0_0_rgba(0,0,0,1)] bg-white">
           <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full border-2 border-black bg-red-50 text-red-600">
-            <Youtube className="h-8 w-8" />
+            <SocialIcon network="youtube" style={{ height: "32px", width: "32px" }} />
           </div>
           <div className="space-y-2">
             <h2 className="font-serif text-2xl font-bold uppercase tracking-wide text-foreground">
