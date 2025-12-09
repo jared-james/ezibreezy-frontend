@@ -1,4 +1,5 @@
 // app/actions/media.ts
+
 "use server";
 
 import { serverFetch } from "@/lib/api/server-fetch";
@@ -14,10 +15,40 @@ import type {
 } from "@/lib/types/media";
 
 // ============================================================================
+// Media Room Initialization
+// ============================================================================
+
+export async function mediaInitAction(
+  workspaceId: string
+): Promise<{
+  success: boolean;
+  data?: {
+    folders: MediaFolder[];
+    tags: MediaTag[];
+    media: MediaItem[];
+    pagination: {
+      limit: number;
+      hasMore: boolean;
+      nextCursor: string | null;
+    };
+  };
+  error?: string;
+}> {
+  return await serverFetch<{
+    folders: MediaFolder[];
+    tags: MediaTag[];
+    media: MediaItem[];
+    pagination: {
+      limit: number;
+      hasMore: boolean;
+      nextCursor: string | null;
+    };
+  }>("/media/init", { workspaceId });
+}
+
+// ============================================================================
 // Media Assets
 // ============================================================================
-// NOTE: Media upload is now handled directly from the client via uploadMediaDirect()
-// in lib/api/media-upload.ts to avoid double-uploading large files through server actions.
 
 export async function listMediaAction(
   workspaceId: string,
@@ -35,10 +66,14 @@ export async function listMediaAction(
   if (filters.sortBy) params.set("sortBy", filters.sortBy);
   if (filters.order) params.set("order", filters.order);
   if (filters.limit) params.set("limit", String(filters.limit));
-  if (filters.offset) params.set("offset", String(filters.offset));
+
+  // Updated to use cursor instead of offset
+  if (filters.cursor) params.set("cursor", filters.cursor);
 
   const queryString = params.toString();
   const url = queryString ? `/media?${queryString}` : "/media";
+
+  // console.log(`[MediaAction] Fetching media with params: ${queryString}`); // Commented out to reduce noise, enable for deep debugging
 
   return await serverFetch<MediaListResponse>(url, { workspaceId });
 }
@@ -187,10 +222,9 @@ export async function getFolderAction(
   data?: MediaFolderWithChildren;
   error?: string;
 }> {
-  return await serverFetch<MediaFolderWithChildren>(
-    `/media/folders/${id}`,
-    { workspaceId }
-  );
+  return await serverFetch<MediaFolderWithChildren>(`/media/folders/${id}`, {
+    workspaceId,
+  });
 }
 
 export async function getFolderBreadcrumbAction(

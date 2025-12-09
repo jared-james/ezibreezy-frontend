@@ -6,6 +6,7 @@ import { useState, useEffect } from "react";
 import { Loader2, Upload, Plus } from "lucide-react";
 import { useMediaRoomStore } from "@/lib/store/media-room-store";
 import { useWorkspaceStore } from "@/lib/store/workspace-store";
+import { useMediaRoomInit } from "@/lib/hooks/use-media";
 
 import MediaFolderBar from "./media-folder-bar";
 import MediaToolbar from "./media-toolbar";
@@ -23,18 +24,31 @@ export default function MediaRoom({}: MediaRoomProps) {
   const [folderToRename, setFolderToRename] = useState<any>(null);
   const [folderToDelete, setFolderToDelete] = useState<any>(null);
 
-  const reset = useMediaRoomStore((s) => s.reset);
+  const resetUIStore = useMediaRoomStore((s) => s.reset);
   const { currentWorkspace } = useWorkspaceStore();
-
   const { FolderActionDialogs } = useFolderActions();
+
+  // Prefetch all media room data in a single optimized call
+  // Child components will use React Query's cache to get the data instantly
+  const { isLoading: isInitializing } = useMediaRoomInit();
 
   useEffect(() => {
     return () => {
-      reset();
+      resetUIStore();
     };
-  }, [reset]);
+  }, [resetUIStore]);
 
   if (!currentWorkspace) {
+    return (
+      <div className="flex items-center justify-center h-full">
+        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+      </div>
+    );
+  }
+
+  // Show loading state while initial data is being fetched
+  // This prevents child components from making separate API calls
+  if (isInitializing) {
     return (
       <div className="flex items-center justify-center h-full">
         <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />

@@ -9,7 +9,6 @@ import { useMediaRoomStore } from "@/lib/store/media-room-store";
 
 interface MediaCardProps {
   item: MediaItem;
-  organizationId: string | null;
   onSelect: (id: string, isShiftKey: boolean, isCtrlKey: boolean) => void;
   onOpenDetail: (id: string) => void;
   priority?: boolean;

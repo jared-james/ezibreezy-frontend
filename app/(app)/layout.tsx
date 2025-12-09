@@ -51,7 +51,7 @@ export default async function AppLayout({
     "Editor";
 
   return (
-    <div className="flex">
+    <div className="flex h-screen bg-gray-50">
       <InviteToast />
 
       <Suspense fallback={null}>

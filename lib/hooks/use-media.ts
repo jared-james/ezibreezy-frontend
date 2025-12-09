@@ -15,6 +15,7 @@ import {
   type MediaItemWithUsage,
 } from "@/lib/types/media";
 import {
+  mediaInitAction,
   listMediaAction,
   getMediaAction,
   updateMediaAction,
@@ -44,25 +45,79 @@ import { generateVideoThumbnail } from "@/lib/utils/video-thumbnail";
 import { useWorkspaceStore } from "@/lib/store/workspace-store";
 import { uploadMediaDirect } from "@/lib/api/media-upload";
 
+// ============================================================================
+// Media Room Initialization - Single optimized call for folders, tags, and media
+// ============================================================================
+
+export function useMediaRoomInit() {
+  const { currentWorkspace } = useWorkspaceStore();
+  const queryClient = useQueryClient();
+
+  return useQuery({
+    queryKey: ["media-init", currentWorkspace?.id],
+    queryFn: async () => {
+      const result = await mediaInitAction(currentWorkspace!.id);
+      if (!result.success) throw new Error(result.error);
+
+      const data = result.data!;
+
+      // Populate individual query caches so child components get instant data
+      // This prevents them from making separate API calls
+
+      // 1. Populate folders cache
+      queryClient.setQueryData(
+        ["folders", currentWorkspace!.id, null],
+        data.folders
+      );
+
+      // 2. Populate tags cache
+      queryClient.setQueryData(
+        ["tags", currentWorkspace!.id],
+        data.tags
+      );
+
+      // 3. Populate media list cache (first page)
+      queryClient.setQueryData(
+        ["media", currentWorkspace!.id, { rootOnly: true, sortBy: "createdAt", order: "desc" }],
+        {
+          pages: [{
+            data: data.media,
+            pagination: data.pagination
+          }],
+          pageParams: [undefined]
+        }
+      );
+
+      return data;
+    },
+    enabled: !!currentWorkspace,
+    staleTime: 30000,
+  });
+}
+
+// ============================================================================
+// Individual hooks (can be used as fallback or for specific use cases)
+// ============================================================================
+
 export function useMediaList(filters: MediaFilters = {}) {
   const { currentWorkspace } = useWorkspaceStore();
 
   return useInfiniteQuery({
     queryKey: ["media", currentWorkspace?.id, filters],
-    queryFn: async ({ pageParam = 0 }) => {
+    queryFn: async ({ pageParam }) => {
+      // pageParam is now the cursor (string) or undefined for the first page
       const result = await listMediaAction(currentWorkspace!.id, {
         ...filters,
-        offset: pageParam as number,
+        cursor: pageParam as string | undefined,
       });
       if (!result.success) throw new Error(result.error);
       return result.data!;
     },
-    initialPageParam: 0,
+    // Start with undefined cursor
+    initialPageParam: undefined,
+    // Extract the next cursor from the backend response
     getNextPageParam: (lastPage) => {
-      if (lastPage.pagination.hasMore) {
-        return lastPage.pagination.offset + lastPage.pagination.limit;
-      }
-      return undefined;
+      return lastPage.pagination.nextCursor ?? undefined;
     },
     enabled: !!currentWorkspace,
     placeholderData: keepPreviousData,
@@ -86,6 +141,7 @@ export function useMediaItem(id: string | null) {
     initialData: () => {
       if (!id || !currentWorkspace) return undefined;
 
+      // Soft-cache check: look into the list cache to see if we already have this item
       const queries = queryClient.getQueriesData<{
         pages: MediaListResponse[];
       }>({
@@ -216,7 +272,10 @@ export function useBulkDeleteMedia() {
 
   return useMutation({
     mutationFn: async (mediaIds: string[]) => {
-      const result = await bulkDeleteMediaAction(mediaIds, currentWorkspace!.id);
+      const result = await bulkDeleteMediaAction(
+        mediaIds,
+        currentWorkspace!.id
+      );
       if (!result.success) throw new Error(result.error);
       return result.data!;
     },
@@ -236,7 +295,10 @@ export function useBulkArchiveMedia() {
 
   return useMutation({
     mutationFn: async (mediaIds: string[]) => {
-      const result = await bulkArchiveMediaAction(mediaIds, currentWorkspace!.id);
+      const result = await bulkArchiveMediaAction(
+        mediaIds,
+        currentWorkspace!.id
+      );
       if (!result.success) throw new Error(result.error);
       return result.data!;
     },
@@ -262,7 +324,11 @@ export function useBulkMoveMedia() {
       mediaIds: string[];
       folderId: string | null;
     }) => {
-      const result = await bulkMoveMediaAction(mediaIds, folderId, currentWorkspace!.id);
+      const result = await bulkMoveMediaAction(
+        mediaIds,
+        folderId,
+        currentWorkspace!.id
+      );
       if (!result.success) throw new Error(result.error);
     },
     onSuccess: () => {
@@ -287,7 +353,11 @@ export function useBulkTagMedia() {
       mediaIds: string[];
       tagIds: string[];
     }) => {
-      const result = await bulkTagMediaAction(mediaIds, tagIds, currentWorkspace!.id);
+      const result = await bulkTagMediaAction(
+        mediaIds,
+        tagIds,
+        currentWorkspace!.id
+      );
       if (!result.success) throw new Error(result.error);
     },
     onSuccess: () => {
@@ -312,7 +382,11 @@ export function useBulkUntagMedia() {
       mediaIds: string[];
       tagIds: string[];
     }) => {
-      const result = await bulkUntagMediaAction(mediaIds, tagIds, currentWorkspace!.id);
+      const result = await bulkUntagMediaAction(
+        mediaIds,
+        tagIds,
+        currentWorkspace!.id
+      );
       if (!result.success) throw new Error(result.error);
     },
     onSuccess: () => {
@@ -336,7 +410,10 @@ export function useFolderList(parentId?: string | "root") {
   return useQuery({
     queryKey: ["folders", currentWorkspace?.id, validParentId],
     queryFn: async () => {
-      const result = await listFoldersAction(currentWorkspace!.id, validParentId);
+      const result = await listFoldersAction(
+        currentWorkspace!.id,
+        validParentId
+      );
       if (!result.success) throw new Error(result.error);
       return result.data!;
     },
@@ -380,8 +457,18 @@ export function useCreateFolder() {
   const { currentWorkspace } = useWorkspaceStore();
 
   return useMutation({
-    mutationFn: async ({ name, parentId }: { name: string; parentId?: string }) => {
-      const result = await createFolderAction(name, currentWorkspace!.id, parentId);
+    mutationFn: async ({
+      name,
+      parentId,
+    }: {
+      name: string;
+      parentId?: string;
+    }) => {
+      const result = await createFolderAction(
+        name,
+        currentWorkspace!.id,
+        parentId
+      );
       if (!result.success) throw new Error(result.error);
       return result.data!;
     },
@@ -420,7 +507,13 @@ export function useMoveFolder() {
   const { currentWorkspace } = useWorkspaceStore();
 
   return useMutation({
-    mutationFn: async ({ id, parentId }: { id: string; parentId: string | null }) => {
+    mutationFn: async ({
+      id,
+      parentId,
+    }: {
+      id: string;
+      parentId: string | null;
+    }) => {
       const result = await moveFolderAction(id, parentId, currentWorkspace!.id);
       if (!result.success) throw new Error(result.error);
     },
@@ -541,8 +634,18 @@ export function useAttachTags() {
   const { currentWorkspace } = useWorkspaceStore();
 
   return useMutation({
-    mutationFn: async ({ mediaId, tagIds }: { mediaId: string; tagIds: string[] }) => {
-      const result = await attachTagsToMediaAction(mediaId, tagIds, currentWorkspace!.id);
+    mutationFn: async ({
+      mediaId,
+      tagIds,
+    }: {
+      mediaId: string;
+      tagIds: string[];
+    }) => {
+      const result = await attachTagsToMediaAction(
+        mediaId,
+        tagIds,
+        currentWorkspace!.id
+      );
       if (!result.success) throw new Error(result.error);
     },
     onSuccess: () => {
@@ -559,8 +662,18 @@ export function useDetachTags() {
   const { currentWorkspace } = useWorkspaceStore();
 
   return useMutation({
-    mutationFn: async ({ mediaId, tagIds }: { mediaId: string; tagIds: string[] }) => {
-      const result = await detachTagsFromMediaAction(mediaId, tagIds, currentWorkspace!.id);
+    mutationFn: async ({
+      mediaId,
+      tagIds,
+    }: {
+      mediaId: string;
+      tagIds: string[];
+    }) => {
+      const result = await detachTagsFromMediaAction(
+        mediaId,
+        tagIds,
+        currentWorkspace!.id
+      );
       if (!result.success) throw new Error(result.error);
     },
     onSuccess: () => {

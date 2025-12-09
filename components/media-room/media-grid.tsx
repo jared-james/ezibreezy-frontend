@@ -2,11 +2,11 @@
 
 "use client";
 
-import { useMemo, useEffect, useRef } from "react";
+import { useEffect, useRef, useMemo } from "react";
 import { Loader2, ImageOff } from "lucide-react";
-import { useMediaList } from "@/lib/hooks/use-media";
 import { useMediaRoomStore } from "@/lib/store/media-room-store";
-import { useClientData } from "@/lib/hooks/use-client-data";
+import { useMediaList } from "@/lib/hooks/use-media";
+import { useWorkspaceStore } from "@/lib/store/workspace-store";
 import type { MediaFilters } from "@/lib/types/media";
 import MediaCard from "./media-card";
 import MediaListItem from "./media-list-item";
@@ -14,27 +14,26 @@ import MediaListItem from "./media-list-item";
 interface MediaGridProps {}
 
 export default function MediaGrid({}: MediaGridProps) {
-  const { organizationId } = useClientData();
+  const { currentWorkspace } = useWorkspaceStore();
+  const selectItem = useMediaRoomStore((s) => s.selectItem);
+  const openDetailPanel = useMediaRoomStore((s) => s.openDetailPanel);
+  const viewMode = useMediaRoomStore((s) => s.viewMode);
 
+  // Extract individual filter values from store
+  const sortBy = useMediaRoomStore((s) => s.sortBy);
+  const sortOrder = useMediaRoomStore((s) => s.sortOrder);
   const currentFolderId = useMediaRoomStore((s) => s.currentFolderId);
   const searchQuery = useMediaRoomStore((s) => s.searchQuery);
   const typeFilter = useMediaRoomStore((s) => s.typeFilter);
   const selectedTagIds = useMediaRoomStore((s) => s.selectedTagIds);
   const showUsedOnly = useMediaRoomStore((s) => s.showUsedOnly);
   const showUnusedOnly = useMediaRoomStore((s) => s.showUnusedOnly);
-  const sortBy = useMediaRoomStore((s) => s.sortBy);
-  const sortOrder = useMediaRoomStore((s) => s.sortOrder);
-  const selectItem = useMediaRoomStore((s) => s.selectItem);
-  const openDetailPanel = useMediaRoomStore((s) => s.openDetailPanel);
-  const viewMode = useMediaRoomStore((s) => s.viewMode);
 
-  const observerTarget = useRef<HTMLDivElement>(null);
-
-  const filters = useMemo<MediaFilters>(() => {
+  // Memoize filter object to prevent unnecessary re-renders and React Query refetches
+  const filters = useMemo(() => {
     const f: MediaFilters = {
       sortBy,
       order: sortOrder,
-      limit: 50,
     };
 
     if (currentFolderId) {
@@ -64,26 +63,18 @@ export default function MediaGrid({}: MediaGridProps) {
     }
 
     return f;
-  }, [
-    currentFolderId,
-    searchQuery,
-    typeFilter,
-    selectedTagIds,
-    showUsedOnly,
-    showUnusedOnly,
-    sortBy,
-    sortOrder,
-  ]);
+  }, [sortBy, sortOrder, currentFolderId, searchQuery, typeFilter, selectedTagIds, showUsedOnly, showUnusedOnly]);
 
   const {
     data,
     isLoading,
-    isError,
-    error,
     fetchNextPage,
     hasNextPage,
     isFetchingNextPage,
+    error,
   } = useMediaList(filters);
+
+  const observerTarget = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -110,22 +101,20 @@ export default function MediaGrid({}: MediaGridProps) {
     );
   }
 
-  if (isError) {
+  if (error) {
     return (
       <div className="border border-error bg-error/5 p-6 text-center rounded-sm">
         <p className="font-serif text-sm text-error">
-          Error loading media: {error?.message}
+          Error loading media: {error.message}
         </p>
       </div>
     );
   }
 
-  const mediaItems =
-    data?.pages
-      .flatMap((page) => page.data)
-      .filter((item) => !item.isArchived) || [];
+  const allMediaItems = data?.pages.flatMap((page) => page.data) || [];
+  const filteredMediaItems = allMediaItems.filter((item) => !item.isArchived);
 
-  if (mediaItems.length === 0) {
+  if (filteredMediaItems.length === 0) {
     return (
       <div className="py-24 text-center border-2 border-dashed border-border rounded-sm bg-surface/50">
         <ImageOff className="w-10 h-10 mx-auto mb-4 text-muted-foreground/50" />
@@ -143,11 +132,10 @@ export default function MediaGrid({}: MediaGridProps) {
     <div>
       {viewMode === "grid" ? (
         <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-8 2xl:grid-cols-10 gap-2">
-          {mediaItems.map((item, index) => (
+          {filteredMediaItems.map((item, index) => (
             <MediaCard
               key={item.id}
               item={item}
-              organizationId={organizationId}
               onSelect={selectItem}
               onOpenDetail={openDetailPanel}
               priority={index < 18}
@@ -156,11 +144,10 @@ export default function MediaGrid({}: MediaGridProps) {
         </div>
       ) : (
         <div className="space-y-1">
-          {mediaItems.map((item, index) => (
+          {filteredMediaItems.map((item, index) => (
             <MediaListItem
               key={item.id}
               item={item}
-              organizationId={organizationId}
               onSelect={selectItem}
               onOpenDetail={openDetailPanel}
               priority={index < 18}
@@ -176,7 +163,7 @@ export default function MediaGrid({}: MediaGridProps) {
         {isFetchingNextPage && (
           <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
         )}
-        {!hasNextPage && mediaItems.length > 0 && (
+        {!hasNextPage && filteredMediaItems.length > 0 && (
           <p className="text-xs text-muted-foreground font-serif italic">
             End of list
           </p>

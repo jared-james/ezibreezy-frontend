@@ -23,7 +23,9 @@
       "Bash(del:*)",
       "Bash(node fix-remaining-imports.js:*)",
       "Bash(dir:*)",
-      "Bash(mv:*)"
+      "Bash(mv:*)",
+      "Bash(grep:*)",
+      "Bash(npx drizzle-kit:*)"
     ],
     "deny": [],
     "ask": []

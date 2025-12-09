@@ -1,9 +1,15 @@
 // lib/types/media.ts
 
+export type MediaTypeFilter = "all" | "image" | "video";
+export type MediaSortBy = "createdAt" | "filename" | "fileSize";
+export type MediaSortOrder = "asc" | "desc";
+
 export interface MediaTag {
   id: string;
   name: string;
-  color: string;
+  color: string | null;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface MediaFolder {
@@ -15,72 +21,71 @@ export interface MediaFolder {
 }
 
 export interface MediaFolderWithChildren extends MediaFolder {
-  parent: MediaFolder | null;
   children: MediaFolder[];
+  parent: MediaFolder | null;
+}
+
+export interface BreadcrumbItem {
+  id: string;
+  name: string;
 }
 
 export interface MediaItem {
   id: string;
+  workspaceId: string;
+  folderId: string | null;
   url: string;
-  thumbnailUrl: string;
+  thumbnailUrl: string | null;
   type: string;
   filename: string;
   fileSize: number;
-  width: number;
-  height: number;
+  width: number | null;
+  height: number | null;
   altText: string | null;
-  folderId: string | null;
+  isFavorite: boolean;
+  isArchived: boolean;
   createdAt: string;
   updatedAt: string;
   tags: MediaTag[];
   usageCount: number;
-  isArchived: boolean;
 }
 
 export interface MediaItemWithUsage extends MediaItem {
-  folder: { id: string; name: string } | null;
   usedInPosts: {
     id: string;
-    title: string;
+    title: string | null;
     status: string;
-    scheduledAt: string;
-    createdAt: string;
+    scheduledAt: string | null;
   }[];
-}
-
-export interface MediaListResponse {
-  data: MediaItem[];
-  pagination: {
-    total: number;
-    limit: number;
-    offset: number;
-    hasMore: boolean;
-  };
 }
 
 export interface MediaFilters {
   folderId?: string;
   rootOnly?: boolean;
   tagIds?: string[];
-  type?: "image" | "video" | "gif";
+  type?: MediaTypeFilter;
   search?: string;
   isUsed?: boolean;
   isUnused?: boolean;
-  sortBy?: "createdAt" | "filename" | "fileSize";
-  order?: "asc" | "desc";
+  sortBy?: MediaSortBy;
+  order?: MediaSortOrder;
   limit?: number;
-  offset?: number;
+  cursor?: string;
+}
+
+export interface MediaListResponse {
+  data: MediaItem[];
+  pagination: {
+    limit: number;
+    hasMore: boolean;
+    nextCursor: string | null;
+  };
 }
 
 export interface UploadMediaResponse {
   mediaId: string;
   url: string;
-  thumbnailUrl: string;
-  width: number;
-  height: number;
-}
-
-export interface BreadcrumbItem {
-  id: string;
-  name: string;
+  thumbnailUrl: string | null;
+  width: number | null;
+  height: number | null;
 }

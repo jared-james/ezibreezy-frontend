@@ -12,14 +12,15 @@ import {
   Trash2,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { useFolderList } from "@/lib/hooks/use-media";
 import { useMediaRoomStore } from "@/lib/store/media-room-store";
+import { useFolderList } from "@/lib/hooks/use-media";
 import type { MediaFolder } from "@/lib/types/media";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+
 interface MediaFolderBarProps {
   onRenameFolder: (folder: MediaFolder) => void;
   onDeleteFolder: (folder: MediaFolder) => void;

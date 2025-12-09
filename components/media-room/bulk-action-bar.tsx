@@ -29,7 +29,6 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { cn } from "@/lib/utils";
 
 interface BulkActionBarProps {}
 
@@ -91,7 +90,6 @@ export default function BulkActionBar({}: BulkActionBarProps) {
     <>
       <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 animate-in slide-in-from-bottom-4 duration-300">
         <div className="flex items-center gap-4 bg-brand-primary text-brand-primary-foreground px-4 py-3 shadow-[0_8px_30px_rgb(0,0,0,0.12)] border border-brand-primary-hover rounded-sm">
-          {/* Selection count */}
           <div className="flex items-center gap-3 pr-4 border-r border-white/20">
             <span className="font-serif text-sm font-bold uppercase tracking-wider text-white">
               {selectedCount} selected
@@ -105,9 +103,7 @@ export default function BulkActionBar({}: BulkActionBarProps) {
             </button>
           </div>
 
-          {/* Actions */}
           <div className="flex items-center gap-2">
-            {/* Move to folder */}
             <div className="relative">
               <button
                 onClick={() => {
@@ -144,7 +140,6 @@ export default function BulkActionBar({}: BulkActionBarProps) {
               )}
             </div>
 
-            {/* Add tag */}
             <div className="relative">
               <button
                 onClick={() => {
@@ -185,7 +180,6 @@ export default function BulkActionBar({}: BulkActionBarProps) {
               )}
             </div>
 
-            {/* Archive */}
             <button
               onClick={() => setShowArchiveConfirm(true)}
               disabled={isLoading}
@@ -204,7 +198,6 @@ export default function BulkActionBar({}: BulkActionBarProps) {
         </div>
       </div>
 
-      {/* Archive confirmation */}
       <AlertDialog
         open={showArchiveConfirm}
         onOpenChange={setShowArchiveConfirm}

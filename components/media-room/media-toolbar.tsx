@@ -21,7 +21,7 @@ import {
   type MediaTypeFilter,
   type MediaSortBy,
 } from "@/lib/store/media-room-store";
-import { useTagList, useCreateTag } from "@/lib/hooks/use-media";
+import { useCreateTag, useTagList } from "@/lib/hooks/use-media";
 
 interface MediaToolbarProps {
   onUploadClick?: () => void;
@@ -110,9 +110,7 @@ export default function MediaToolbar({}: MediaToolbarProps) {
   return (
     <div className="flex flex-col gap-4">
       <div className="flex flex-wrap items-center justify-between gap-4 border-b border-border pb-4">
-        {/* Left Side: Filters */}
         <div className="flex items-center gap-3">
-          {/* Type Filters Group */}
           <div className="flex items-center p-1 gap-1">
             {typeFilters.map((filter) => (
               <button
@@ -132,7 +130,6 @@ export default function MediaToolbar({}: MediaToolbarProps) {
 
           <div className="h-6 w-px bg-border mx-1" />
 
-          {/* Tags Dropdown */}
           <div className="relative">
             <button
               onClick={() => setShowTagDropdown(!showTagDropdown)}
@@ -222,9 +219,7 @@ export default function MediaToolbar({}: MediaToolbarProps) {
           )}
         </div>
 
-        {/* Right Side: Search & View Options */}
         <div className="flex items-center gap-3">
-          {/* Search Input */}
           <div className="relative w-56">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
             <Input
@@ -249,7 +244,6 @@ export default function MediaToolbar({}: MediaToolbarProps) {
 
           <div className="h-6 w-px bg-border" />
 
-          {/* Sort Controls */}
           <div className="flex items-center gap-px border border-border rounded-sm bg-surface overflow-hidden">
             <select
               value={sortBy}
@@ -276,7 +270,6 @@ export default function MediaToolbar({}: MediaToolbarProps) {
             </button>
           </div>
 
-          {/* View Toggle */}
           <div className="flex items-center gap-px border border-border rounded-sm bg-surface overflow-hidden">
             <button
               onClick={() => setViewMode("grid")}
