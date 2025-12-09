@@ -23,9 +23,7 @@ export default function MinimalHeader() {
       <div className="relative mx-auto w-full max-w-7xl">
         <div className="mb-8 flex items-center justify-between border-b-2 border-foreground pb-2 text-[10px] font-mono uppercase tracking-widest md:text-xs">
           {/* LEFT SIDE - Status */}
-          <span className="hidden text-foreground/60 sm:block">
-            System Status: In Development
-          </span>
+          <span className="hidden text-foreground/60 sm:block"></span>
 
           {/* RIGHT SIDE - Navigation links */}
           <div className="flex w-full items-center justify-end gap-4 sm:w-auto md:gap-6">

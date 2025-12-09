@@ -29,15 +29,20 @@ export default function PressPassCard() {
   return (
     <div className="relative hidden lg:col-span-5 lg:block">
       <div className="relative mx-auto aspect-4/5 w-full max-w-sm rotate-3 cursor-default transition-transform duration-500 ease-out hover:rotate-0">
-        <div className="absolute inset-0 translate-x-4 translate-y-4 bg-foreground" />
+        {/* SHADOW: Reduced offset from 4 to 2 */}
+        <div className="absolute inset-0 translate-x-2 translate-y-2 bg-foreground" />
 
-        <div className="relative flex h-full flex-col justify-between border-4 border-foreground bg-background-editorial p-6">
-          <div className="absolute left-1/2 top-[-20px] z-20 flex h-8 w-6 -translate-x-1/2 items-center justify-center rounded-b-full border-x-4 border-b-4 border-foreground bg-background-editorial">
+        {/* MAIN BORDER: Reduced from border-4 to border-2 */}
+        <div className="relative flex h-full flex-col justify-between border-2 border-foreground bg-background-editorial p-6">
+          {/* HANGER: Reduced borders to 2 */}
+          <div className="absolute left-1/2 top-[-20px] z-20 flex h-8 w-6 -translate-x-1/2 items-center justify-center rounded-b-full border-x-2 border-b-2 border-foreground bg-background-editorial">
             <div className="mb-2 h-2 w-2 rounded-full bg-foreground" />
           </div>
 
-          <div className="mt-6 border-b-4 border-foreground pb-4 text-center">
-            <h3 className="font-serif text-4xl font-black uppercase tracking-tighter">
+          {/* HEADER: Reduced border to 2 */}
+          <div className="mt-6 border-b-2 border-foreground pb-4 text-center">
+            {/* FONT: Swapped font-black for font-bold */}
+            <h3 className="font-serif text-4xl font-bold uppercase tracking-tighter">
               Social Pass
             </h3>
             <p className="mt-1 font-mono text-[10px] uppercase tracking-[0.2em]">
@@ -58,15 +63,19 @@ export default function PressPassCard() {
             </div>
           </div>
 
-          <div className="space-y-3 border-t-4 border-foreground pt-4 font-mono text-xs uppercase">
+          {/* FOOTER: Reduced border to 2 */}
+          <div className="space-y-3 border-t-2 border-foreground pt-4 font-mono text-xs uppercase">
             <div className="flex justify-between">
               <span className="text-foreground/50">Access Level</span>
               <span className="font-bold">Editorial</span>
             </div>
             <div className="flex items-center justify-between">
               <span className="text-foreground/50">Status</span>
-              <span className="border border-foreground bg-brand-primary px-2 py-0.5 text-[10px] font-bold text-brand-primary-foreground shadow-[2px_2px_0_0_black]">
+              {/* BADGE SHADOW: Reduced to 1px */}
+              <span className="relative px-2 py-0.5 text-[10px] font-bold text-brand-primary uppercase font-mono">
+                <span className="absolute left-0 top-0 h-[1px] w-full bg-brand-primary"></span>
                 Early Access
+                <span className="absolute left-0 bottom-0 h-[1px] w-full bg-brand-primary"></span>
               </span>
             </div>
             <div className="flex justify-between">

@@ -19,9 +19,7 @@ export default function LandingPageHeader() {
         {/* TOP BAR */}
         <div className="mb-8 flex items-center justify-between border-b-2 border-foreground pb-2 text-[10px] font-mono uppercase tracking-widest md:text-xs">
           {/* Hidden on small screens (mobile) to give space to the Buttons */}
-          <span className="hidden text-foreground/60 sm:block">
-            System Status: In Development
-          </span>
+          <span className="hidden text-foreground/60 sm:block"></span>
 
           {/* w-full on mobile to justify content, auto on desktop */}
           <div className="flex w-full items-center justify-end gap-4 sm:w-auto md:gap-6">

@@ -4,7 +4,6 @@ import HeroContent from "./hero-content";
 import PressPassCard from "./press-pass-card";
 
 export default function LandingPageHero() {
-
   return (
     <section className="relative w-full bg-background-editorial text-foreground overflow-hidden ">
       {/* Background Grid Pattern */}

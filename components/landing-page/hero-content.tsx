@@ -68,15 +68,14 @@ export default function HeroContent() {
   return (
     <div className="flex flex-col justify-center lg:col-span-7">
       {/* "Late Breaking" Tag */}
-      <div className="mb-8 inline-flex w-fit items-center gap-2 border-2 border-foreground bg-brand-primary px-3 py-1 text-brand-primary-foreground shadow-[4px_4px_0_0_var(--brand-primary)]">
-        <Star className="h-4 w-4 fill-current" />
-        <span className="text-xs font-bold uppercase tracking-widest">
-          Late Breaking News
+      <div className="relative mb-4 inline-flex w-fit items-center gap-2 px-3 py-1">
+        <span className="text-xs font-bold uppercase tracking-widest text-brand-primary">
+          Inspire. Create. Publish.
         </span>
       </div>
 
       <h1 className="mb-8 font-serif text-5xl font-bold leading-[1.1] tracking-tight md:text-6xl">
-        Social media shouldn&apos;t feel like a second job.
+        The social media scheduler that goes beyond scheduling
       </h1>
 
       {/* Editorial Copy */}
@@ -90,7 +89,9 @@ export default function HeroContent() {
         </p>
 
         <p className="mt-6 border-l-4 border-foreground pl-4 text-base italic text-foreground/60">
-          “Finally, a{" "}
+          “The problem isn&apos;t hitting schedule, it&apos;s sitting in front
+          of a blank page with a million ideas and no starting point. I
+          don&apos;t need another{" "}
           <span className="line-through decoration-foreground/40 opacity-50">
             cross-posting omni-channel marketing platform
           </span>
@@ -98,8 +99,8 @@ export default function HeroContent() {
           <span className="font-bold text-foreground/80 not-italic">
             *ahem*
           </span>{" "}
-          ... one simple space to ideate, design, approve, schedule, and
-          publish, and feel confident while building your brand.”
+          ... I need one place that helps me turn ideas into content, repurpose
+          it, and get it out across every channel.”
         </p>
       </div>
 
@@ -161,14 +162,14 @@ export default function HeroContent() {
                     <div className="flex flex-1 flex-col justify-end">
                       <label
                         htmlFor="email"
-                        className="mb-1 pl-1 font-mono text-[10px] uppercase tracking-widest text-foreground/50"
+                        className="mb-1 pl-1 font-mono text-[10px] uppercase tracking-widest text-foreground"
                       >
-                        Waitlist Email
+                        Early Access Email
                       </label>
                       <input
                         id="email"
                         type="email"
-                        placeholder="write.here@example.com"
+                        placeholder="go.viral@everyday.com"
                         value={email}
                         disabled={isLoading}
                         onChange={(e) => setEmail(e.target.value)}
@@ -244,7 +245,7 @@ export default function HeroContent() {
         </div>
 
         <p className="mt-3 pl-1 font-mono text-[10px] uppercase tracking-wide text-foreground/50">
-          * Limited spots available for early access cohort.
+          * Limited spots available for early access.
         </p>
       </div>
     </div>
