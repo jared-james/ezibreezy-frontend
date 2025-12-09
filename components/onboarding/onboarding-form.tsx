@@ -3,13 +3,7 @@
 "use client";
 
 import { ArrowRight, Loader2, Building2, Briefcase, Globe } from "lucide-react";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import TimeZoneSelect from "@/components/time-zone-select/time-zone-select";
 
 type OnboardingState = "form" | "submitting" | "success";
 
@@ -23,7 +17,6 @@ interface OnboardingFormProps {
   state: OnboardingState;
   error: string | null;
   onSubmit: (e: React.FormEvent) => void;
-  timezoneOptions: Array<{ value: string; label: string }>;
 }
 
 export default function OnboardingForm({
@@ -36,10 +29,9 @@ export default function OnboardingForm({
   state,
   error,
   onSubmit,
-  timezoneOptions,
 }: OnboardingFormProps) {
   return (
-    <form onSubmit={onSubmit} className="space-y-8">
+    <form onSubmit={onSubmit} className="space-y-8 max-w-2xl mx-auto mt-12">
       <div className="space-y-8">
         {/* ORGANIZATION NAME */}
         <div className="group">
@@ -84,31 +76,17 @@ export default function OnboardingForm({
         </div>
 
         {/* TIMEZONE */}
-        <div className="group">
+        <div className="group relative z-20">
           <label className="flex items-center gap-2 font-mono text-xs uppercase tracking-wider text-foreground font-bold mb-2">
             <Globe className="w-4 h-4" />
             Timezone
           </label>
-          <Select
+
+          <TimeZoneSelect
             value={timezone}
-            onValueChange={setTimezone}
+            onChange={setTimezone}
             disabled={state !== "form"}
-          >
-            <SelectTrigger className="w-full h-[50px] px-4 bg-transparent border-b-2 border-dotted border-foreground/30 font-serif text-base focus:ring-0 focus:border-foreground transition-colors rounded-none">
-              <SelectValue placeholder="Select Timezone" />
-            </SelectTrigger>
-            <SelectContent className="max-h-[300px] bg-surface border border-foreground shadow-xl font-serif">
-              {timezoneOptions.map((option) => (
-                <SelectItem
-                  key={option.value}
-                  value={option.value}
-                  className="cursor-pointer focus:bg-foreground/5 focus:text-foreground"
-                >
-                  {option.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          />
         </div>
       </div>
 

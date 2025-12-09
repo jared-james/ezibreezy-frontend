@@ -6,7 +6,9 @@ import { useState } from "react";
 import { ArrowRight, Scissors } from "lucide-react";
 import { platformDefinitions } from "@/components/settings/integrations/constants";
 import { InstagramConnectOptionsModal } from "@/components/settings/integrations/modals/instagram-connect-modal";
+import ConnectAccountModal from "@/components/settings/integrations/modals/connect-account-modal";
 import { cn } from "@/lib/utils";
+import type { PlatformDefinition } from "@/components/settings/integrations/types";
 
 interface OnboardingConnectProps {
   workspaceId: string;
@@ -19,31 +21,18 @@ export default function OnboardingConnect({
   workspaceSlug,
   onSkip,
 }: OnboardingConnectProps) {
-  const [isInstagramModalOpen, setIsInstagramModalOpen] = useState(false);
-  const [selectedPlatformId, setSelectedPlatformId] = useState<string | null>(
-    null
-  );
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedPlatform, setSelectedPlatform] = useState<PlatformDefinition | null>(null);
 
   const nextUrl = `/${workspaceSlug}/settings/integrations`;
 
-  const handlePlatformClick = (platformId: string) => {
-    setSelectedPlatformId(platformId);
-
-    if (platformId === "instagram") {
-      setIsInstagramModalOpen(true);
-      return;
-    }
-
-    const encodedNext = encodeURIComponent(nextUrl);
-    window.location.href = `/api/integrations/${platformId}/connect?workspaceId=${workspaceId}&next=${encodedNext}`;
+  const handlePlatformClick = (platform: PlatformDefinition) => {
+    setSelectedPlatform(platform);
+    setIsModalOpen(true);
   };
 
-  const instagramDef =
-    platformDefinitions.find((p) => p.id === "instagram") ||
-    platformDefinitions[0];
-
   return (
-    <div className="flex flex-col h-full w-full max-w-5xl mx-auto">
+    <div className="flex flex-col h-full w-full max-w-5xl mx-auto opacity-100">
       {/* Header */}
       <div className="mb-8 text-center space-y-3">
         <h2 className="headline text-4xl md:text-5xl font-bold text-foreground">
@@ -61,12 +50,12 @@ export default function OnboardingConnect({
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           {platformDefinitions.map((platform) => {
             const Icon = platform.icon;
-            const isSelected = selectedPlatformId === platform.id;
+            const isSelected = selectedPlatform?.id === platform.id;
 
             return (
               <button
                 key={platform.id}
-                onClick={() => handlePlatformClick(platform.id)}
+                onClick={() => handlePlatformClick(platform)}
                 className={cn(
                   "group relative flex flex-col items-center justify-center p-6 border-2 border-dashed rounded-sm transition-all duration-300 min-h-[140px]",
                   isSelected
@@ -76,7 +65,7 @@ export default function OnboardingConnect({
               >
                 <div
                   className={cn(
-                    "mb-4 p-3 rounded-full border transition-all duration-300",
+                    "mb-4 flex h-14 w-14 items-center justify-center rounded-full border transition-all duration-300",
                     isSelected
                       ? "bg-white border-brand-primary/20 scale-110"
                       : "bg-white border-foreground/10 group-hover:scale-110 group-hover:border-foreground/30"
@@ -84,7 +73,7 @@ export default function OnboardingConnect({
                 >
                   <Icon
                     className={cn(
-                      "w-6 h-6 transition-colors duration-300",
+                      "h-7 w-7 transition-colors duration-300",
                       isSelected
                         ? "text-brand-primary"
                         : "text-foreground group-hover:text-foreground"
@@ -127,16 +116,33 @@ export default function OnboardingConnect({
         </button>
       </div>
 
-      <InstagramConnectOptionsModal
-        isOpen={isInstagramModalOpen}
-        onClose={() => {
-          setIsInstagramModalOpen(false);
-          setSelectedPlatformId(null);
-        }}
-        platform={instagramDef}
-        workspaceIdOverride={workspaceId}
-        nextUrl={nextUrl}
-      />
+      {selectedPlatform?.id === "instagram" && (
+        <InstagramConnectOptionsModal
+          isOpen={isModalOpen}
+          onClose={() => {
+            setIsModalOpen(false);
+            setSelectedPlatform(null);
+          }}
+          platform={selectedPlatform}
+          workspaceIdOverride={workspaceId}
+          nextUrl={nextUrl}
+        />
+      )}
+
+      {selectedPlatform && selectedPlatform.id !== "instagram" && (
+        <ConnectAccountModal
+          isOpen={isModalOpen}
+          onClose={() => {
+            setIsModalOpen(false);
+            setSelectedPlatform(null);
+          }}
+          platformName={selectedPlatform.name}
+          platformIcon={selectedPlatform.icon}
+          platformId={selectedPlatform.id}
+          workspaceIdOverride={workspaceId}
+          nextUrl={nextUrl}
+        />
+      )}
     </div>
   );
 }

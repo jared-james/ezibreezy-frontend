@@ -2,63 +2,74 @@
 
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useEffect } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import posthog from "posthog-js";
 import { completeOnboarding } from "@/app/actions/user";
-import { cn } from "@/lib/utils";
-import OnboardingBranding from "./onboarding-branding";
+import type { PlanTier } from "@/lib/types/billing";
+import { OnboardingHeader } from "./onboarding-header";
+import OnboardingRole from "./onboarding-role";
+import OnboardingPricing from "./onboarding-pricing";
+import OnboardingCheckout from "./onboarding-checkout";
 import OnboardingForm from "./onboarding-form";
 import OnboardingConnect from "./onboarding-connect";
 import SubmittingState from "./submitting-state";
 import SuccessState from "./success-state";
+import { useTimezone } from "@/lib/hooks/use-timezone";
 
-type OnboardingState = "form" | "submitting" | "connect" | "success";
-
-const TIMEZONE_OPTIONS = [
-  { value: "UTC", label: "UTC (Universal Time)" },
-  { value: "America/New_York", label: "Eastern Time (US & Canada)" },
-  { value: "America/Chicago", label: "Central Time (US & Canada)" },
-  { value: "America/Denver", label: "Mountain Time (US & Canada)" },
-  { value: "America/Los_Angeles", label: "Pacific Time (US & Canada)" },
-  { value: "Europe/London", label: "London" },
-  { value: "Europe/Paris", label: "Paris" },
-  { value: "Europe/Berlin", label: "Berlin" },
-  { value: "Asia/Tokyo", label: "Tokyo" },
-  { value: "Asia/Shanghai", label: "Shanghai" },
-  { value: "Asia/Singapore", label: "Singapore" },
-  { value: "Australia/Sydney", label: "Sydney" },
-  { value: "Pacific/Auckland", label: "Auckland" },
-];
+type OnboardingState =
+  | "role"
+  | "pricing"
+  | "checkout"
+  | "form"
+  | "submitting"
+  | "connect"
+  | "success";
 
 export default function OnboardingContainer() {
   const router = useRouter();
-  const [state, setState] = useState<OnboardingState>("form");
-  const [error, setError] = useState<string | null>(null);
+  const searchParams = useSearchParams();
+
+  // Billing state
+  const [selectedRole, setSelectedRole] = useState<PlanTier | null>(null);
+  const [verifiedSessionId, setVerifiedSessionId] = useState<string | null>(
+    null
+  );
 
   // Form data
   const [organizationName, setOrganizationName] = useState("");
   const [workspaceName, setWorkspaceName] = useState("");
-  const [timezone, setTimezone] = useState("");
+
+  // Timezone logic handled by hook (auto-detects browser time)
+  const { timezone, setTimezone } = useTimezone();
 
   const [createdWorkspace, setCreatedWorkspace] = useState<{
     id: string;
     slug: string;
   } | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
-  // Auto-detect timezone on mount
-  useState(() => {
-    try {
-      const detectedTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-      if (TIMEZONE_OPTIONS.some((opt) => opt.value === detectedTimezone)) {
-        setTimezone(detectedTimezone);
-      } else {
-        setTimezone("UTC");
-      }
-    } catch {
-      setTimezone("UTC");
-    }
+  // Initialize state based on URL params
+  const [state, setState] = useState<OnboardingState>(() => {
+    const sessionId = searchParams?.get("session_id");
+    const canceled = searchParams?.get("canceled");
+    if (sessionId) return "checkout";
+    if (canceled) return "pricing";
+    return "role";
   });
+
+  useEffect(() => {
+    // Restore saved state from local storage if available
+    const savedData = localStorage.getItem("onboarding_data");
+    if (savedData) {
+      try {
+        const parsed = JSON.parse(savedData);
+        if (parsed.role) setSelectedRole(parsed.role);
+      } catch (err) {
+        console.error("Failed to parse onboarding data:", err);
+      }
+    }
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -70,13 +81,11 @@ export default function OnboardingContainer() {
       setState("form");
       return;
     }
-
     if (workspaceName.trim().length < 3) {
       setError("Workspace name must be at least 3 characters");
       setState("form");
       return;
     }
-
     if (!timezone) {
       setError("Please select a timezone");
       setState("form");
@@ -94,179 +103,157 @@ export default function OnboardingContainer() {
         organizationName: organizationName.trim(),
         workspaceName: workspaceName.trim(),
         timezone,
+        sessionId: verifiedSessionId || undefined,
       });
 
       if (!result.success) {
         setError(result.error || "Failed to complete onboarding");
         setState("form");
-        posthog.capture("onboarding_failed", {
-          error: result.error,
-        });
         return;
       }
 
-      posthog.capture("onboarding_workspace_created", {
-        organizationName,
-        workspaceName,
-        timezone,
-      });
-
-      const targetSlug = result.targetWorkspaceSlug || result.targetWorkspaceId;
       setCreatedWorkspace({
         id: result.targetWorkspaceId,
-        slug: targetSlug,
+        slug: result.targetWorkspaceSlug || result.targetWorkspaceId,
       });
+      localStorage.removeItem("onboarding_data");
 
-      // Transition to Connect step
-      setTimeout(() => {
-        setState("connect");
-      }, 1500);
+      setTimeout(() => setState("connect"), 1500);
     } catch (err) {
       setError("An unexpected error occurred");
       setState("form");
-      posthog.capture("onboarding_error", {
-        error: err instanceof Error ? err.message : "Unknown error",
-      });
     }
   };
 
   const handleSkipConnection = () => {
     if (!createdWorkspace) return;
-
-    posthog.capture("onboarding_connection_skipped");
     setState("success");
-
-    // Redirect to dashboard
     setTimeout(() => {
-      router.push(`/${createdWorkspace.slug}/dashboard`);
+      router.push(`/${createdWorkspace.slug}/editorial`);
     }, 1500);
   };
 
-  const isExpandedMode = state === "connect" || state === "success";
+  const handleSelectRole = (role: PlanTier) => {
+    setSelectedRole(role);
+    setState("pricing");
+  };
+
+  const handleBackToPricing = () => setState("role");
+  const handleBackToRole = () => setState("role"); // For header usage
+
+  const handlePaymentVerified = (sessionId: string) => {
+    setVerifiedSessionId(sessionId);
+    setState("form");
+  };
+
+  const handlePaymentError = (errorMsg: string) => setError(errorMsg);
+
+  // --- DERIVE HEADER PROPS ---
+  let stepNumber = 1;
+  const totalSteps = 4;
+  let stepName = "Identification";
+  let showBack = false;
+  let onBackAction = undefined;
+
+  switch (state) {
+    case "role":
+      stepNumber = 1;
+      stepName = "Identification";
+      showBack = false;
+      break;
+    case "pricing":
+      stepNumber = 2;
+      stepName = "Subscription";
+      showBack = true;
+      onBackAction = handleBackToRole;
+      break;
+    case "checkout":
+      stepNumber = 2;
+      stepName = "Verification";
+      break;
+    case "form":
+      stepNumber = 3;
+      stepName = "Workspace Setup";
+      break;
+    case "submitting":
+      stepNumber = 3;
+      stepName = "Provisioning";
+      break;
+    case "connect":
+      stepNumber = 4;
+      stepName = "Integration";
+      break;
+    case "success":
+      stepNumber = 4;
+      stepName = "Complete";
+      break;
+  }
 
   return (
-    <div className="flex flex-col min-h-screen bg-background-editorial text-foreground transition-colors duration-500">
-      <main className="grow flex items-center justify-center py-8 md:py-16 px-4 relative">
+    <div className="min-h-screen bg-[#fdfbf7] text-foreground selection:bg-brand-accent/20">
+      <OnboardingHeader
+        currentStep={stepNumber}
+        totalSteps={totalSteps}
+        stepName={stepName}
+        onBack={showBack ? onBackAction : undefined}
+      />
+
+      <main className="w-full max-w-5xl mx-auto px-4 md:px-0 pb-20">
         <div
-          className="absolute inset-0 pointer-events-none opacity-[0.03]"
-          style={{
-            backgroundImage:
-              "linear-gradient(var(--foreground) 1px, transparent 1px), linear-gradient(90deg, var(--foreground) 1px, transparent 1px)",
-            backgroundSize: "40px 40px",
-          }}
-        />
+          key={state}
+          className={
+            state === "connect" || state === "success"
+              ? "animate-in fade-in duration-700 ease-out"
+              : "animate-in fade-in slide-in-from-bottom-4 duration-700 ease-out"
+          }
+        >
+          {state === "role" && (
+            <OnboardingRole
+              selectedRole={selectedRole}
+              onSelectRole={handleSelectRole}
+            />
+          )}
 
-        <div className="w-full max-w-6xl relative z-10">
-          <div className="bg-surface border border-foreground shadow-2xl relative overflow-hidden transition-all duration-500 rounded-sm">
-            {/* Increased min-height to 700px to prevent crunching */}
-            <div className="flex flex-col md:flex-row min-h-[700px] w-full relative">
-              {/* LEFT COLUMN */}
-              <div
-                className={cn(
-                  "relative border-b md:border-b-0 md:border-r border-dashed border-foreground/30 bg-surface overflow-hidden transition-all duration-700 ease-[cubic-bezier(0.76,0,0.24,1)]",
-                  isExpandedMode
-                    ? "md:w-0 md:opacity-0 md:border-r-0 h-0 md:h-auto py-0"
-                    : "w-full md:w-1/2 opacity-100"
-                )}
-              >
-                <div className="absolute inset-0 w-full h-full min-w-[500px]">
-                  <OnboardingBranding organizationName={organizationName} />
-                </div>
-              </div>
+          {state === "pricing" && selectedRole && (
+            <OnboardingPricing
+              selectedRole={selectedRole}
+              onBack={handleBackToRole}
+            />
+          )}
 
-              {/* RIGHT COLUMN */}
-              <div
-                className={cn(
-                  "relative bg-surface-hover/30 flex flex-col transition-all duration-700 ease-[cubic-bezier(0.76,0,0.24,1)]",
-                  // Only center vertically if NOT expanded (form state).
-                  // If expanded, align to top (via default flex-start) and add padding top.
-                  !isExpandedMode && "justify-center",
-                  isExpandedMode
-                    ? "w-full md:w-full p-6 md:p-10 pt-12 md:pt-16"
-                    : "w-full md:w-1/2 p-8 md:p-12"
-                )}
-              >
-                <div
-                  className={cn(
-                    "w-full mx-auto relative min-h-[400px] flex flex-col transition-all duration-700",
-                    !isExpandedMode && "justify-center", // Also un-center the inner wrapper
-                    isExpandedMode ? "max-w-4xl h-full" : "max-w-sm"
-                  )}
-                >
-                  {/* --- STATE 1: FORM --- */}
-                  <div
-                    className={cn(
-                      "transition-all duration-500 absolute inset-0 flex flex-col justify-center",
-                      state === "form"
-                        ? "opacity-100 translate-x-0 pointer-events-auto"
-                        : "opacity-0 -translate-x-8 pointer-events-none"
-                    )}
-                  >
-                    <OnboardingForm
-                      organizationName={organizationName}
-                      setOrganizationName={setOrganizationName}
-                      workspaceName={workspaceName}
-                      setWorkspaceName={setWorkspaceName}
-                      timezone={timezone}
-                      setTimezone={setTimezone}
-                      state={
-                        state === "form" || state === "submitting"
-                          ? state
-                          : "form"
-                      }
-                      error={error}
-                      onSubmit={handleSubmit}
-                      timezoneOptions={TIMEZONE_OPTIONS}
-                    />
-                  </div>
+          {state === "checkout" && searchParams?.get("session_id") && (
+            <OnboardingCheckout
+              sessionId={searchParams.get("session_id")!}
+              onVerified={handlePaymentVerified}
+              onError={handlePaymentError}
+            />
+          )}
 
-                  {/* --- STATE 2: SUBMITTING --- */}
-                  <div
-                    className={cn(
-                      "transition-all duration-500 absolute inset-0 flex flex-col items-center justify-center text-center space-y-6",
-                      state === "submitting"
-                        ? "opacity-100 translate-x-0 transform scale-100"
-                        : "opacity-0 translate-y-4 transform scale-95 pointer-events-none"
-                    )}
-                  >
-                    <SubmittingState />
-                  </div>
+          {state === "form" && (
+            <OnboardingForm
+              organizationName={organizationName}
+              setOrganizationName={setOrganizationName}
+              workspaceName={workspaceName}
+              setWorkspaceName={setWorkspaceName}
+              timezone={timezone}
+              setTimezone={setTimezone}
+              state="form"
+              error={error}
+              onSubmit={handleSubmit}
+            />
+          )}
 
-                  {/* --- STATE 3: CONNECT --- */}
-                  <div
-                    className={cn(
-                      "transition-all duration-700 delay-200 absolute inset-0 flex flex-col",
-                      state === "connect"
-                        ? "opacity-100 translate-x-0 transform scale-100 pointer-events-auto"
-                        : state === "success"
-                        ? "opacity-0 -translate-x-8 transform scale-95 pointer-events-none"
-                        : "opacity-0 translate-x-8 transform scale-95 pointer-events-none"
-                    )}
-                  >
-                    {createdWorkspace && (
-                      <OnboardingConnect
-                        workspaceId={createdWorkspace.id}
-                        workspaceSlug={createdWorkspace.slug}
-                        onSkip={handleSkipConnection}
-                      />
-                    )}
-                  </div>
+          {state === "submitting" && <SubmittingState />}
 
-                  {/* --- STATE 4: SUCCESS --- */}
-                  <div
-                    className={cn(
-                      "transition-all duration-700 delay-100 absolute inset-0 flex flex-col items-center justify-center text-center space-y-6",
-                      state === "success"
-                        ? "opacity-100 translate-x-0 transform scale-100"
-                        : "opacity-0 translate-x-8 transform scale-95 pointer-events-none"
-                    )}
-                  >
-                    <SuccessState />
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
+          {state === "connect" && createdWorkspace && (
+            <OnboardingConnect
+              workspaceId={createdWorkspace.id}
+              workspaceSlug={createdWorkspace.slug}
+              onSkip={handleSkipConnection}
+            />
+          )}
+
+          {state === "success" && <SuccessState />}
         </div>
       </main>
     </div>

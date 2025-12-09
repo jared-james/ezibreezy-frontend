@@ -19,8 +19,22 @@ export interface Organization {
   name: string;
   slug: string | null;
   role: "owner" | "admin" | "member";
-  plan: "free" | "solo" | "agency" | "enterprise";
+  plan: "creator" | "agency" | "enterprise";
   status: string;
+
+  // Billing fields (from backend documentation)
+  subscriptionStatus?: "active" | "trialing" | "past_due" | "canceled" | "unpaid";
+  trialEndsAt?: string | null;
+
+  // Limits
+  limitWorkspaces?: number;
+  limitUsers?: number;
+  limitIntegrations?: number;
+  limitStorageBytes?: number;
+
+  // Usage
+  storageUsed?: number;
+  aiCredits?: number;
 }
 
 export interface OrganizationNode {

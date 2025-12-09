@@ -106,7 +106,9 @@ export async function syncUser(options?: { inviteToken?: string }) {
 }
 
 // Complete onboarding (create org + workspace)
-export async function completeOnboarding(data: CompleteOnboardingRequest) {
+export async function completeOnboarding(
+  data: CompleteOnboardingRequest & { sessionId?: string }
+) {
   const supabase = await createClient();
 
   const {

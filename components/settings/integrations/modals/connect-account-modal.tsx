@@ -21,6 +21,8 @@ interface ConnectAccountModalProps {
   platformName: string;
   platformIcon: React.ElementType;
   platformId: string;
+  workspaceIdOverride?: string;
+  nextUrl?: string;
 }
 
 export default function ConnectAccountModal({
@@ -29,6 +31,8 @@ export default function ConnectAccountModal({
   platformName,
   platformIcon: Icon,
   platformId,
+  workspaceIdOverride,
+  nextUrl,
 }: ConnectAccountModalProps) {
   const [isConnecting, setIsConnecting] = useState(false);
   const { currentWorkspace } = useWorkspaceStore();
@@ -36,7 +40,9 @@ export default function ConnectAccountModal({
   if (!isOpen) return null;
 
   const handleConnectClick = () => {
-    if (!currentWorkspace?.id) {
+    const workspaceParam = workspaceIdOverride || currentWorkspace?.slug || currentWorkspace?.id;
+
+    if (!workspaceParam) {
       console.error("No workspace selected");
       return;
     }
@@ -48,9 +54,14 @@ export default function ConnectAccountModal({
       console.error("Could not save to sessionStorage", e);
     }
 
-    // NEW: Use the workspace slug in the URL path
-    const workspaceParam = currentWorkspace.slug || currentWorkspace.id;
-    window.location.href = `/api/${workspaceParam}/integrations/${platformId}/connect`;
+    // Build the connect URL
+    let connectUrl = `/api/${workspaceParam}/integrations/${platformId}/connect`;
+
+    if (nextUrl) {
+      connectUrl += `?next=${encodeURIComponent(nextUrl)}`;
+    }
+
+    window.location.href = connectUrl;
   };
 
   return (
