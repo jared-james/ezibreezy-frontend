@@ -15,6 +15,7 @@ import { ChannelCircleButton } from "@/components/ui/channel-circle-button";
 import { AccountAvatar } from "./account-avatar";
 import type { AnalyticsPlatform, TimeRange } from "@/lib/types/analytics";
 import { cn } from "@/lib/utils";
+import { useWorkspaceStore } from "@/lib/store/workspace-store";
 
 interface AnalyticsFiltersProps {
   platforms: AnalyticsPlatform[];
@@ -46,6 +47,8 @@ export default function AnalyticsFilters({
   onDaysChange,
   showAccountSelector = true,
 }: AnalyticsFiltersProps) {
+  const { currentWorkspace } = useWorkspaceStore();
+
   // Helper for Headquarters (Multi-select platforms)
   const getChannelState = (
     platform: AnalyticsPlatform
@@ -58,6 +61,8 @@ export default function AnalyticsFilters({
 
   const triggerClasses =
     "h-9 w-full sm:w-[200px] rounded-sm border-border bg-surface text-xs font-bold uppercase tracking-wider text-muted-foreground hover:text-foreground hover:bg-surface-hover hover:border-border-hover focus:ring-brand-primary transition-colors";
+
+  const workspaceSlug = currentWorkspace?.slug || currentWorkspace?.id || "";
 
   return (
     <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-6 border-b border-border pb-6 mb-6">
@@ -75,7 +80,7 @@ export default function AnalyticsFilters({
               {/* Connect Link (Only show if no accounts or multi mode) */}
               {selectionMode === "multi" && (
                 <Link
-                  href="/settings/integrations"
+                  href={`/${workspaceSlug}/settings/integrations`}
                   className="flex items-center gap-1.5 font-serif text-[10px] text-brand-primary hover:underline"
                 >
                   <PlusCircle className="h-3 w-3" />

@@ -9,6 +9,7 @@ import { cn } from "@/lib/utils";
 import Link from "next/link";
 import type { Platform } from "@/lib/types/editorial";
 import { usePublishingStore } from "@/lib/store/editorial/publishing-store";
+import { useWorkspaceStore } from "@/lib/store/workspace-store";
 
 interface ChannelSelectorProps {
   platforms: Platform[];
@@ -23,18 +24,21 @@ export default function ChannelSelector({
   const selectedAccounts = usePublishingStore(
     (state) => state.selectedAccounts
   );
+  const { currentWorkspace } = useWorkspaceStore();
 
   const activePlatforms = useMemo(
     () => new Set(Object.keys(selectedAccounts)),
     [selectedAccounts]
   );
 
+  const workspaceSlug = currentWorkspace?.slug || currentWorkspace?.id || "";
+
   return (
     <div>
       <div className="mb-3 flex items-center justify-between">
         <p className="eyebrow text-foreground">Select Channels</p>
         <Link
-          href="/settings/integrations"
+          href={`/${workspaceSlug}/settings/integrations`}
           className="flex items-center gap-2 font-serif text-xs text-brand-accent hover:underline"
         >
           <PlusCircle className="h-3 w-3" />
