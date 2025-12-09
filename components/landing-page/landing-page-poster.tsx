@@ -2,9 +2,13 @@
 
 "use client";
 
+import dynamic from "next/dynamic";
 import { Sparkles, PenTool, BrainCircuit, Fingerprint } from "lucide-react";
-// Changed import
-import InstagramGridBoard from "./instagram-grid";
+
+// Dynamic import to prevent hydration issues with DndContext
+const InstagramGridBoard = dynamic(() => import("./instagram-grid"), {
+  ssr: false,
+});
 
 export default function LandingPagePoster() {
   return (

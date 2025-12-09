@@ -2,8 +2,20 @@
 
 "use client";
 
-import PlannerBoard from "./components/planner-board";
+import dynamic from "next/dynamic";
 import { InfoSection } from "../instagram-carousel-splitter/components/info-section";
+
+const PlannerBoard = dynamic(() => import("./components/planner-board"), {
+  ssr: false,
+  loading: () => (
+    <div className="flex h-96 w-full items-center justify-center text-foreground/50 flex-col gap-4">
+      <div className="w-8 h-8 border-4 border-foreground/20 border-t-foreground/50 rounded-full animate-spin" />
+      <span className="font-mono text-xs uppercase tracking-widest">
+        Initializing Simulator...
+      </span>
+    </div>
+  ),
+});
 
 export default function GridPlannerClient() {
   return (
