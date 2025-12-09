@@ -96,7 +96,7 @@ export default function MediaRoomModal({
 
   const { data } = useMediaList(filters);
   const allMediaItems = useMemo(
-    () => data?.pages.flatMap((page) => page.data) || [],
+    () => data?.pages.flatMap((page: any) => page.data) || [],
     [data]
   );
 

@@ -111,7 +111,7 @@ export default function MediaGrid({}: MediaGridProps) {
     );
   }
 
-  const allMediaItems = data?.pages.flatMap((page) => page.data) || [];
+  const allMediaItems = data?.pages.flatMap((page: any) => page.data) || [];
   const filteredMediaItems = allMediaItems.filter((item) => !item.isArchived);
 
   if (filteredMediaItems.length === 0) {

@@ -196,7 +196,7 @@ export default function MediaToolbar({}: MediaToolbarProps) {
                         >
                           <span
                             className="w-2 h-2 rounded-full shrink-0 border border-white/20"
-                            style={{ backgroundColor: tag.color }}
+                            style={{ backgroundColor: tag.color || undefined }}
                           />
                           <span className="truncate">{tag.name}</span>
                         </button>

@@ -32,6 +32,7 @@ import {
   useAttachTags,
   useDetachTags,
   useFolderList,
+  useFolder,
 } from "@/lib/hooks/use-media";
 import { useMediaRoomStore } from "@/lib/store/media-room-store";
 import type { MediaItemWithUsage } from "@/lib/types/media";
@@ -102,10 +103,7 @@ interface MediaItemEditorProps {
   onClose: () => void;
 }
 
-function MediaItemEditor({
-  media,
-  onClose,
-}: MediaItemEditorProps) {
+function MediaItemEditor({ media, onClose }: MediaItemEditorProps) {
   const [filename, setFilename] = useState(media.filename);
   const [altText, setAltText] = useState(media.altText || "");
 
@@ -116,6 +114,9 @@ function MediaItemEditor({
 
   const { data: tags = [] } = useTagList();
   const { data: folders = [] } = useFolderList("root");
+
+  // Fetch the current folder details if media is in a folder
+  const { data: currentFolder } = useFolder(media.folderId);
 
   const updateMedia = useUpdateMedia();
   const archiveMedia = useArchiveMedia();
@@ -143,7 +144,10 @@ function MediaItemEditor({
 
     setIsDownloading(true);
     try {
-      const result = await getMediaDownloadUrlAction(media.id, currentWorkspace.id);
+      const result = await getMediaDownloadUrlAction(
+        media.id,
+        currentWorkspace.id
+      );
       if (!result.success) throw new Error(result.error);
 
       const link = document.createElement("a");
@@ -364,7 +368,7 @@ function MediaItemEditor({
                 onClick={() => setShowFolderDropdown(!showFolderDropdown)}
                 className="w-full flex items-center justify-between px-3 py-2 border border-border bg-background hover:border-foreground transition-colors text-left text-sm font-serif rounded-sm"
               >
-                <span>{media.folder?.name || "All Media (Root)"}</span>
+                <span>{currentFolder?.name || "All Media (Root)"}</span>
                 <ChevronDown className="h-4 w-4 text-muted-foreground" />
               </button>
               {showFolderDropdown && (
@@ -443,7 +447,7 @@ function MediaItemEditor({
                             >
                               <span
                                 className="w-2.5 h-2.5 rounded-full shrink-0 border border-white/20"
-                                style={{ backgroundColor: tag.color }}
+                                style={{ backgroundColor: tag.color || undefined }}
                               />
                               <span className="truncate">{tag.name}</span>
                             </button>
@@ -467,13 +471,13 @@ function MediaItemEditor({
                     key={tag.id}
                     className="inline-flex items-center gap-1.5 px-2 py-1 text-[10px] font-bold uppercase tracking-wider rounded-sm bg-surface border border-border shadow-sm"
                     style={{
-                      color: tag.color,
-                      borderColor: `${tag.color}40`,
+                      color: tag.color || undefined,
+                      borderColor: tag.color ? `${tag.color}40` : undefined,
                     }}
                   >
                     <span
                       className="w-1.5 h-1.5 rounded-full"
-                      style={{ backgroundColor: tag.color }}
+                      style={{ backgroundColor: tag.color || undefined }}
                     />
                     {tag.name}
                     <button

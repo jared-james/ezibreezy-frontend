@@ -34,7 +34,7 @@ export default function MediaLibrarySelector({
 
   const { data, isLoading, isError, error } = useMediaList(filters);
 
-  const mediaItems = data?.pages.flatMap((page) => page.data) || [];
+  const mediaItems = data?.pages.flatMap((page: any) => page.data) || [];
 
   if (isLoading) {
     return (

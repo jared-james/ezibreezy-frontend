@@ -104,17 +104,17 @@ export function useMediaList(filters: MediaFilters = {}) {
 
   return useInfiniteQuery({
     queryKey: ["media", currentWorkspace?.id, filters],
-    queryFn: async ({ pageParam }) => {
+    queryFn: async ({ pageParam }: { pageParam: string | undefined }) => {
       // pageParam is now the cursor (string) or undefined for the first page
       const result = await listMediaAction(currentWorkspace!.id, {
         ...filters,
-        cursor: pageParam as string | undefined,
+        cursor: pageParam,
       });
       if (!result.success) throw new Error(result.error);
       return result.data!;
     },
     // Start with undefined cursor
-    initialPageParam: undefined,
+    initialPageParam: undefined as string | undefined,
     // Extract the next cursor from the backend response
     getNextPageParam: (lastPage) => {
       return lastPage.pagination.nextCursor ?? undefined;

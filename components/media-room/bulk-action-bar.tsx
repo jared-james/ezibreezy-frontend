@@ -167,10 +167,7 @@ export default function BulkActionBar({}: BulkActionBarProps) {
                           onClick={() => handleAddTag(tag.id)}
                           className="w-full flex items-center gap-2 px-3 py-2 text-left text-xs font-serif font-medium hover:bg-surface-hover transition-colors rounded-sm"
                         >
-                          <span
-                            className="w-2.5 h-2.5 rounded-full shrink-0 border border-black/10"
-                            style={{ backgroundColor: tag.color }}
-                          />
+                          <span className="w-2.5 h-2.5 rounded-full shrink-0 border border-black/10" />
                           <span className="truncate">{tag.name}</span>
                         </button>
                       ))}
