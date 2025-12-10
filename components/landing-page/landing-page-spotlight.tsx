@@ -24,7 +24,7 @@ export default function LandingPageSpotlight() {
         {/* SECTION HEADER */}
         <div className="mb-12 flex items-center gap-4">
           <div className="flex-1 h-[1px] bg-foreground/20" />
-          <span className="font-mono text-xs uppercase  text-white tracking-widest bg-primary text-foreground px-3 py-1 font-bold">
+          <span className="font-mono text-xs uppercase tracking-widest bg-foreground text-background-editorial px-3 py-1">
             The Feature Ledger
           </span>
           <div className="flex-1 h-[1px] bg-foreground/20" />

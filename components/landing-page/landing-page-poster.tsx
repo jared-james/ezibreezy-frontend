@@ -21,8 +21,8 @@ export default function LandingPagePoster() {
               The Final Word
             </p>
 
-            <h2 className="font-serif text-5xl md:text-6xl font-black leading-[0.95] mb-4 tracking-tighter text-foreground">
-              A workflow that respects your taste.
+            <h2 className="font-serif text-4xl md:text-5xl font-medium mb-6 leading-[0.95] tracking-tight">
+              A workflow that respects your taste
             </h2>
           </div>
 
