@@ -8,6 +8,7 @@ import LandingPageHero from "./landing-page-hero";
 import LandingPageSpotlight from "./landing-page-spotlight";
 import LandingPagePoster from "./landing-page-poster";
 import LandingPageCTA from "./landing-page-cta";
+import LandingPagePricing from "./landing-page-pricing"; // Import added
 import LandingPageFooter from "./landing-page-footer";
 
 export default function LandingPageClient() {
@@ -18,6 +19,7 @@ export default function LandingPageClient() {
       <LandingPageEditorialSection />
       <LandingPageSpotlight />
       <LandingPagePoster />
+      <LandingPagePricing />
       <LandingPageCTA />
       <LandingPageFooter />
     </main>

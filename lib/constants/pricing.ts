@@ -2,11 +2,6 @@
 
 import type { PlanTier, PricingPlan } from "@/lib/types/billing";
 
-/**
- * Pricing Plans Configuration
- * Aligned with backend billing limits and Stripe price IDs
- */
-
 export const PRICING_PLANS: Record<PlanTier, PricingPlan> = {
   creator: {
     tier: "creator",
@@ -14,21 +9,23 @@ export const PRICING_PLANS: Record<PlanTier, PricingPlan> = {
     description: "Perfect for solo creators building their personal brand",
     monthlyPriceId: process.env.NEXT_PUBLIC_STRIPE_PRICE_CREATOR_MONTHLY || "",
     yearlyPriceId: process.env.NEXT_PUBLIC_STRIPE_PRICE_CREATOR_YEARLY || "",
-    monthlyPrice: 20,
-    yearlyPrice: 200, // $20/month equivalent
+    monthlyPrice: 25,
+    yearlyPrice: 240,
     features: [
       "1 user account",
       "2 workspaces",
       "20 social connections",
-      "10 GB media storage",
-      "Unified Social Inbox",
-      "AI-powered caption writing",
-      "Basic performance analytics",
+      "Social Inbox",
+      "Advanced Analytics",
+      "Hashtag & Label Manager", // Combined for space
+      "First comment scheduling",
+      "Social Calendar",
+      "Canva integration",
     ],
     limits: {
       users: 1,
       workspaces: 2,
-      integrations: 20,
+      integrations: 15,
       storage: "10 GB",
     },
   },
@@ -38,44 +35,45 @@ export const PRICING_PLANS: Record<PlanTier, PricingPlan> = {
     description: "For growing teams managing multiple brands or clients",
     monthlyPriceId: process.env.NEXT_PUBLIC_STRIPE_PRICE_AGENCY_MONTHLY || "",
     yearlyPriceId: process.env.NEXT_PUBLIC_STRIPE_PRICE_AGENCY_YEARLY || "",
-    monthlyPrice: 49,
-    yearlyPrice: 490, // $49/month equivalent
+    monthlyPrice: 70,
+    yearlyPrice: 672,
     features: [
-      "Unlimited team members",
+      // Added this line:
+      "Everything in Creator +",
+      "5 team members",
       "5 workspaces",
       "50 social connections",
-      "50 GB media storage",
-      "Approval workflows & comments",
-      "Advanced analytics & reporting",
-      "Client management tools",
+      "Roles and permissions",
+      "Internal collaboration & approvals",
+      "External client workflows",
     ],
     limits: {
-      users: -1, // -1 often represents unlimited in logic
+      users: 15,
       workspaces: 5,
       integrations: 50,
       storage: "50 GB",
     },
   },
-  enterprise: {
-    tier: "enterprise",
-    name: "Enterprise",
-    description: "For large organizations requiring scale and security",
+  scale: {
+    tier: "scale",
+    name: "Scale",
+    description: "For large organizations requiring scale and more security",
     monthlyPriceId:
-      process.env.NEXT_PUBLIC_STRIPE_PRICE_ENTERPRISE_MONTHLY || "",
-    yearlyPriceId: process.env.NEXT_PUBLIC_STRIPE_PRICE_ENTERPRISE_YEARLY || "",
-    monthlyPrice: 149,
-    yearlyPrice: 1490, // $149/month equivalent
+      process.env.NEXT_PUBLIC_STRIPE_PRICE_SCALE_MONTHLY || "",
+    yearlyPriceId: process.env.NEXT_PUBLIC_STRIPE_PRICE_SCALE_YEARLY || "",
+    monthlyPrice: 150,
+    yearlyPrice: 1440,
     features: [
+      // Added this line:
+      "Everything in Agency +",
       "Unlimited team members",
       "Unlimited workspaces",
       "Unlimited social connections",
-      "1 TB media storage",
       "Dedicated Success Manager",
-      "Custom Onboarding & Training",
-      "SSO (Single Sign-On) Enforcement",
+      "SSO Enforcement",
       "99.9% Uptime SLA",
       "Advanced Audit Logs",
-      "24/7 White-glove phone support",
+      "White-glove phone support",
     ],
     limits: {
       users: -1,
@@ -106,8 +104,8 @@ export const ROLE_OPTIONS: Array<{
     icon: "users",
   },
   {
-    tier: "enterprise",
-    title: "Enterprise",
+    tier: "scale",
+    title: "Scale",
     description: "We are a large organization with complex compliance needs.",
     icon: "building",
   },

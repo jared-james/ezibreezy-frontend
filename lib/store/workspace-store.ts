@@ -19,7 +19,7 @@ export interface Organization {
   name: string;
   slug: string | null;
   role: "owner" | "admin" | "member";
-  plan: "creator" | "agency" | "enterprise";
+  plan: "creator" | "agency" | "scale";
   status: string;
 
   // Billing fields (from backend documentation)

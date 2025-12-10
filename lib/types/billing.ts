@@ -5,7 +5,7 @@
  * Aligned with backend billing implementation
  */
 
-export type PlanTier = "creator" | "agency" | "enterprise";
+export type PlanTier = "creator" | "agency" | "scale";
 export type BillingCycle = "monthly" | "yearly";
 
 export interface PricingPlan {
