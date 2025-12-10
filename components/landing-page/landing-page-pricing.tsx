@@ -173,7 +173,7 @@ export default function LandingPagePricing() {
                 {/* CTA BUTTON */}
                 <div className="mt-auto">
                   <Link
-                    href={`/register?plan=${plan.tier}&cycle=${billingCycle}`}
+                    href={`/auth/signup`}
                     className={cn(
                       "group relative flex w-full items-center justify-center gap-2 overflow-hidden border-2 px-6 py-4 text-xs font-bold uppercase tracking-[0.2em] transition-all",
                       // UNIFIED STATE: Outline default
