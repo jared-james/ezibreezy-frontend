@@ -10,9 +10,9 @@ import {
 import GridPlannerClient from "./client";
 
 export const metadata: Metadata = {
-  title: "Instagram Grid Planner | Free Visual Feed Preview Tool",
+  title: "Instagram Grid Planner | Free Visual Feed & Content Planner",
   description:
-    "Plan your Instagram feed visually. Drag and drop photos, rearrange your grid, and curate your aesthetic before posting. Free online tool, no login required.",
+    "Visually plan your Instagram feed. Drag and drop photos to create the perfect aesthetic grid layout before you schedule content. Free online tool.",
   alternates: {
     canonical: "/tools/instagram-grid-planner",
   },
@@ -41,13 +41,11 @@ export const metadata: Metadata = {
   },
   keywords: [
     "instagram grid planner",
-    "visual feed planner",
+    "instagram feed planner",
+    "visual content planner",
     "instagram layout tool",
     "preview instagram feed",
-    "drag and drop instagram",
     "aesthetic planner",
-    "grid preview tool",
-    "instagram feed organizer",
   ],
 };
 
@@ -55,18 +53,19 @@ export default function GridPlannerPage() {
   return (
     <>
       <WebPageJsonLd
-        title="Instagram Grid Planner | Free Visual Feed Preview Tool"
-        description="Plan your Instagram feed visually. Drag and drop photos, rearrange your grid, and curate your aesthetic before posting."
+        title="Instagram Grid Planner | Free Visual Feed & Content Planner"
+        description="Visually plan your Instagram feed. Drag and drop photos to create the perfect aesthetic grid layout."
         url="https://www.ezibreezy.com/tools/instagram-grid-planner"
         images={["https://www.ezibreezy.com/og-instagram-grid-planner.jpg"]}
       />
 
       <SoftwareApplicationJsonLd
         name="Instagram Grid Planner"
-        description="A browser-based tool to visually plan and rearrange Instagram posts in a grid layout before publishing."
+        description="A drag-and-drop tool to plan and visualize Instagram feed aesthetics."
         applicationCategory="MultimediaApplication"
         url="https://www.ezibreezy.com/tools/instagram-grid-planner"
         operatingSystem="Any"
+        price="0"
         image="https://www.ezibreezy.com/og-instagram-grid-planner.jpg"
       />
 

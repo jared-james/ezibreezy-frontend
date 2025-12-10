@@ -142,10 +142,10 @@ export default function LandingPageEditorialSection() {
                   Workspaces
                 </h3>
                 <p className="font-serif text-sm leading-relaxed text-foreground/80">
-                  Most tools lump everything together. We use distinct
-                  Workspaces with their own timezones, libraries, and tags. Your
-                  personal brand never touches your client work. Your brain
-                  operates in different modes; your tool should too.
+                  We use distinct Workspaces with their own timezones,
+                  libraries, and tags. Your personal brand never touches your
+                  client work. Your brain operates in different modes; your tool
+                  should too.
                 </p>
               </div>
 

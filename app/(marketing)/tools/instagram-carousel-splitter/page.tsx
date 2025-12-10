@@ -12,7 +12,7 @@ import CarouselSplitterClient from "./client";
 export const metadata: Metadata = {
   title: "Instagram Carousel Splitter | Seamless Panorama Swipe Tool",
   description:
-    "Split your panoramic images into seamless Instagram carousel slides. Free online tool to create perfect swipeable panoramas without Photoshop.",
+    "Split panoramic images into seamless Instagram carousel slides. The perfect tool for aesthetic photo dumps and visual storytelling.",
   alternates: {
     canonical: "/tools/instagram-carousel-splitter",
   },
@@ -43,10 +43,8 @@ export const metadata: Metadata = {
     "instagram carousel splitter",
     "panorama to carousel",
     "seamless instagram swipe",
+    "instagram post template",
     "split image for instagram",
-    "instagram swipeable post",
-    "carousel maker online",
-    "split panorama online",
   ],
 };
 
@@ -55,20 +53,20 @@ export default function CarouselSplitterPage() {
     <>
       <WebPageJsonLd
         title="Instagram Carousel Splitter | Seamless Panorama Swipe Tool"
-        description="Split your panoramic images into seamless Instagram carousel slides. Free online tool to create perfect swipeable panoramas without Photoshop."
+        description="Split panoramic images into seamless Instagram carousel slides."
         url="https://www.ezibreezy.com/tools/instagram-carousel-splitter"
         images={["https://www.ezibreezy.com/og-carousel-splitter.jpg"]}
       />
 
       <SoftwareApplicationJsonLd
         name="Instagram Carousel Splitter"
-        description="A browser-based utility to split panoramic images into seamless, pixel-perfect slides for Instagram carousels."
+        description="A utility to split panoramas into 4:5 seamless carousel slides for Instagram."
         applicationCategory="MultimediaApplication"
         url="https://www.ezibreezy.com/tools/instagram-carousel-splitter"
         operatingSystem="Any"
+        price="0"
         image="https://www.ezibreezy.com/og-carousel-splitter.jpg"
       />
-
       <div className="min-h-screen flex flex-col bg-background-editorial text-foreground font-serif">
         <LandingPageHeader />
         <CarouselSplitterClient />

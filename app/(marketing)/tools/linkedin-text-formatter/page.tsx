@@ -10,16 +10,16 @@ import {
 import TextFormatterClient from "./client";
 
 export const metadata: Metadata = {
-  title: "LinkedIn Text Formatter | Bold, Italic & Unicode Font Generator",
+  title: "LinkedIn Text Formatter | Bold, Italic & Script Font Generator",
   description:
-    "Convert standard text into bold, italic, serif, or script Unicode characters for LinkedIn posts. Highlight key points and stop the scroll. Free online tool.",
+    "Convert plain text into bold, italic, and script unicode formats for LinkedIn posts. Stop the scroll with styled headlines and lists. Free tool.",
   alternates: {
     canonical: "/tools/linkedin-text-formatter",
   },
   openGraph: {
     title: "LinkedIn Text Formatter | Bold & Italic Font Generator",
     description:
-      "Make your LinkedIn posts stand out. Convert plain text to bold, italic, or script fonts instantly.",
+      "Make your LinkedIn posts stand out. Convert plain text to bold, italic, or script fonts instantly to highlight key points.",
     url: "https://www.ezibreezy.com/tools/linkedin-text-formatter",
     siteName: "EziBreezy",
     images: [
@@ -54,8 +54,8 @@ export default function TextFormatterPage() {
   return (
     <>
       <WebPageJsonLd
-        title="LinkedIn Text Formatter | Bold, Italic & Unicode Font Generator"
-        description="Convert standard text into bold, italic, serif, or script Unicode characters for LinkedIn posts."
+        title="LinkedIn Text Formatter | Bold, Italic & Script Font Generator"
+        description="Convert plain text into bold, italic, and script unicode formats for LinkedIn posts. Stop the scroll with styled headlines and lists."
         url="https://www.ezibreezy.com/tools/linkedin-text-formatter"
         images={["https://www.ezibreezy.com/og-text-formatter.jpg"]}
       />
@@ -66,6 +66,7 @@ export default function TextFormatterPage() {
         applicationCategory="MultimediaApplication"
         url="https://www.ezibreezy.com/tools/linkedin-text-formatter"
         operatingSystem="Any"
+        price="0"
         image="https://www.ezibreezy.com/og-text-formatter.jpg"
       />
 

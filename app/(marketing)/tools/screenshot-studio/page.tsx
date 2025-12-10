@@ -60,14 +60,17 @@ export default function ScreenshotStudioPage() {
         url="https://www.ezibreezy.com/tools/screenshot-studio"
         images={["https://www.ezibreezy.com/og-screenshot-studio.jpg"]}
       />
+
       <SoftwareApplicationJsonLd
         name="Screenshot Studio"
         description="A browser-based utility to beautify screenshots with backgrounds, shadows, and frames for social media sharing."
         applicationCategory="DesignApplication"
         url="https://www.ezibreezy.com/tools/screenshot-studio"
         operatingSystem="Any"
+        price="0"
         image="https://www.ezibreezy.com/og-screenshot-studio.jpg"
       />
+
       <div className="min-h-screen flex flex-col bg-background-editorial text-foreground font-serif">
         <LandingPageHeader />
         <ScreenshotStudioClient />

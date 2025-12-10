@@ -13,9 +13,9 @@ import {
 } from "lucide-react";
 
 export const metadata: Metadata = {
-  title: "About EziBreezy | The Editorial Desk for Creators",
+  title: "About EziBreezy | The Editorial Social Media Content Planner",
   description:
-    "We are building the operating system for modern publishers. Learn why we moved away from spreadsheets to build a visual, editorial-first scheduling tool.",
+    "We are building the operating system for publishers. A visual social media scheduler designed to replace spreadsheet calendars and chaotic workflows.",
   alternates: {
     canonical: "/about",
   },
@@ -57,8 +57,8 @@ export default function AboutPage() {
   return (
     <div className="flex flex-col min-h-screen bg-background-editorial text-foreground font-serif">
       <WebPageJsonLd
-        title="About EziBreezy"
-        description="We are building the operating system for modern publishers."
+        title="About EziBreezy | The Editorial Social Media Content Planner"
+        description="We are building the operating system for publishers. A visual social media scheduler designed to replace spreadsheet calendars."
         url="https://www.ezibreezy.com/about"
       />
 

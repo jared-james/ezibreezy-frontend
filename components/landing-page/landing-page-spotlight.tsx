@@ -249,17 +249,18 @@ export default function LandingPageSpotlight() {
           >
             <div className="flex items-center justify-between mb-6">
               <span className="font-mono text-[10px] uppercase tracking-widest text-foreground/50 font-bold">
-                Workspaces
+                Organisations & Workspaces
               </span>
               <FolderOpen className="w-4 h-4 text-brand-primary/80" />
             </div>
 
             <h4 className="font-serif text-3xl font-medium mb-4">
-              Silos that work.
+              Invite your team
             </h4>
             <p className="font-serif text-sm text-foreground/70 leading-relaxed">
-              We use distinct Workspaces with their own timezones, libraries,
-              and tags. Your personal brand never touches your client work.
+              Invite collaborators and assign specific roles to maintain control
+              over your content. Manage who can view, edit, or administer each
+              workspace.
             </p>
           </div>
 

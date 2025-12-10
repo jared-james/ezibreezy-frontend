@@ -71,8 +71,8 @@ export default function LandingPageFooter() {
               </span>
             </Link>
             <p className="text-sm leading-relaxed text-foreground/80 max-w-xs">
-              The editorial workspace for modern creators. Draft, visualize, and
-              schedule content without the spreadsheet chaos.
+              The editorial desk for the modern creator. polished, intuitive,
+              and unmistakably enjoyable to create in.
             </p>
           </div>
 

@@ -11,16 +11,16 @@ import {
 } from "@/components/seo/json-ld";
 
 export const metadata: Metadata = {
-  title: "Free Social Media Tools & Utilities for Creators | EziBreezy",
+  title: "Free Social Media Tools: IG Fonts, Grid Planners & Image Resizers",
   description:
-    "A suite of open-access editorial tools. Split carousels, plan grids, format text, and generate mockups without a subscription. No sign-up required.",
+    "A suite of free tools for creators. Generate IG fonts, plan your Instagram grid, resize social images, and split carousels. No signup required.",
   alternates: {
     canonical: "/tools",
   },
   openGraph: {
-    title: "Free Social Media Tools & Utilities",
+    title: "Free Social Media Tools for Creators",
     description:
-      "Specialized instruments for the digital publisher. Screenshot beautifier, carousel splitter, grid planner, and more.",
+      "Editorial utilities for the digital publisher. Screenshot beautifier, carousel splitter, grid planner, and more.",
     url: "https://www.ezibreezy.com/tools",
     siteName: "EziBreezy",
     images: [
@@ -33,14 +33,6 @@ export const metadata: Metadata = {
     ],
     type: "website",
   },
-  keywords: [
-    "social media tools",
-    "free instagram tools",
-    "content creator utilities",
-    "social media scheduling tools",
-    "instagram grid planner free",
-    "screenshot beautifier",
-  ],
 };
 
 const tools = [
@@ -108,7 +100,7 @@ export default function ToolsPage() {
   return (
     <>
       <WebPageJsonLd
-        title="Free Social Media Tools & Utilities"
+        title="Free Social Media Tools: IG Fonts, Grid Planners & Image Resizers"
         description="A curated list of free tools for content creators, including grid planners, font generators, and screenshot beautifiers."
         url="https://www.ezibreezy.com/tools"
       />

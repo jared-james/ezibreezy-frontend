@@ -8,16 +8,16 @@ import {
 } from "@/components/seo/json-ld";
 
 export const metadata: Metadata = {
-  title: "EziBreezy | The Editorial Desk for Social Media",
+  title: "EziBreezy | The Editorial Social Media Scheduler & Content Planner",
   description:
-    "Draft, visualize, and schedule content for ALL social platforms, stop the spreadsheet chaos. The all-in-one workspace for modern creators.",
+    "The editorial desk for modern creators. Draft, visualize, and schedule Instagram posts, LinkedIn articles, and Threads from one aesthetic workspace.",
   alternates: {
     canonical: "/",
   },
   openGraph: {
-    title: "EziBreezy | Social Media Scheduling & Planning",
+    title: "EziBreezy | Social Media Scheduler & Content Planner",
     description:
-      "Draft, visualize, and schedule content for ALL social platforms, stop the spreadsheet chaos. The all-in-one workspace for modern creators.",
+      "Stop the spreadsheet chaos. The all-in-one editorial workspace to draft, visualize, and schedule content for all social platforms.",
     url: "https://www.ezibreezy.com",
     siteName: "EziBreezy",
     images: [
@@ -25,7 +25,7 @@ export const metadata: Metadata = {
         url: "/og-home.jpg",
         width: 1200,
         height: 630,
-        alt: "EziBreezy Dashboard Interface",
+        alt: "EziBreezy Editorial Dashboard",
       },
     ],
     locale: "en_US",
@@ -33,12 +33,12 @@ export const metadata: Metadata = {
   },
   keywords: [
     "social media scheduler",
+    "social media content planner",
+    "instagram scheduler",
     "content calendar",
-    "instagram auto publish",
-    "linkedin scheduler",
     "social media workflow",
-    "content approval software",
-    "social media management tool",
+    "buffer alternative",
+    "planoly alternative",
   ],
 };
 
@@ -46,11 +46,17 @@ export default function Page() {
   return (
     <>
       <WebPageJsonLd
-        title="EziBreezy | The Editorial Desk for Social Media"
-        description="Draft, visualize, and schedule content for ALL social platforms, without the spreadsheet chaos."
+        title="EziBreezy | The Editorial Social Media Scheduler & Content Planner"
+        description="The editorial desk for modern creators. Draft, visualize, and schedule Instagram posts, LinkedIn articles, and Threads from one aesthetic workspace."
         url="https://www.ezibreezy.com"
       />
-      <SoftwareApplicationJsonLd />
+      {/* Main SaaS Product - Price reflects subscription */}
+      <SoftwareApplicationJsonLd
+        name="EziBreezy"
+        applicationCategory="BusinessApplication"
+        price="25"
+        currency="USD"
+      />
       <LandingPageClient />
     </>
   );

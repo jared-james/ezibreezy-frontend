@@ -10,9 +10,9 @@ import {
 import SocialResizerClient from "./client";
 
 export const metadata: Metadata = {
-  title: "Social Image Resizer | Crop Once, Post Everywhere",
+  title: "Social Image Resizer | Crop for Instagram, LinkedIn & X",
   description:
-    "Resize and crop a single image for Instagram, Twitter/X, LinkedIn, and Facebook instantly. Export pixel-perfect formats without complex software.",
+    "Resize and crop one image for all platforms. Create perfect Instagram posts, LinkedIn covers, and Twitter headers instantly.",
   alternates: {
     canonical: "/tools/social-image-resizer",
   },
@@ -42,11 +42,9 @@ export const metadata: Metadata = {
   keywords: [
     "social media image resizer",
     "instagram crop tool",
-    "twitter header size converter",
     "linkedin image resizer",
+    "twitter header size",
     "content repurposing tool",
-    "social media crop online",
-    "image aspect ratio converter",
   ],
 };
 
@@ -54,18 +52,19 @@ export default function SocialResizerPage() {
   return (
     <>
       <WebPageJsonLd
-        title="Social Image Resizer | Crop Once, Post Everywhere"
-        description="Resize and crop a single image for Instagram, Twitter/X, LinkedIn, and Facebook instantly."
+        title="Social Image Resizer | Crop for Instagram, LinkedIn & X"
+        description="Resize and crop one image for all platforms simultaneously."
         url="https://www.ezibreezy.com/tools/social-image-resizer"
         images={["https://www.ezibreezy.com/og-social-resizer.jpg"]}
       />
 
       <SoftwareApplicationJsonLd
         name="Social Image Resizer"
-        description="A browser-based utility to resize and crop images for multiple social media platforms simultaneously."
+        description="Multi-platform image cropping and resizing utility for social media."
         applicationCategory="MultimediaApplication"
         url="https://www.ezibreezy.com/tools/social-image-resizer"
         operatingSystem="Any"
+        price="0"
         image="https://www.ezibreezy.com/og-social-resizer.jpg"
       />
 
