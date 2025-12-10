@@ -1,5 +1,3 @@
-// components/landing-page/landing-page-pricing.tsx
-
 "use client";
 
 import { useState } from "react";
@@ -158,7 +156,7 @@ export default function LandingPagePricing() {
                           className={cn(
                             "mt-1 flex h-4 w-4 items-center justify-center rounded-full border border-foreground/20",
                             isInclusiveLine
-                              ? "bg-brand-primary text-white border-brand-primary" // <--- CHANGED THIS LINE
+                              ? "bg-brand-primary text-white border-brand-primary" // Highlighted tick
                               : "bg-transparent"
                           )}
                         >
