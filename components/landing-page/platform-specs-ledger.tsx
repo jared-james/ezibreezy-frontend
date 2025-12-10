@@ -25,12 +25,9 @@ export default function PlatformSpecsLedger() {
         <div className="flex items-center gap-3 mb-4">
           {/* UPDATED FONT: Lighter weight, tighter tracking, specific leading */}
           <h2 className="font-serif text-4xl md:text-5xl font-medium mb-6 leading-[0.95] tracking-tight">
-            Technical Specifications
+            Platform Specifications
           </h2>
         </div>
-        <p className="font-serif text-lg text-foreground/80 max-w-2xl leading-relaxed">
-          Deep integrations utilizing native features and specific APIs.
-        </p>
       </div>
 
       {/* 

@@ -47,7 +47,6 @@ export default function HeroContent() {
           result.error || "Signup failed due to an unknown error.";
         setError(errorMessage);
 
-        // Show user-friendly toast messages
         if (
           errorMessage.toLowerCase().includes("already on the waitlist") ||
           errorMessage.toLowerCase().includes("already exists")
@@ -67,7 +66,6 @@ export default function HeroContent() {
 
   return (
     <div className="flex flex-col justify-center lg:col-span-7">
-      {/* "Late Breaking" Tag */}
       <div className="relative mb-4 inline-flex w-fit items-center gap-2 px-3 py-1">
         <span className="text-xs font-bold uppercase tracking-widest text-brand-primary">
           Inspire. Create. Publish.
@@ -78,7 +76,6 @@ export default function HeroContent() {
         The social media scheduler that goes beyond scheduling
       </h1>
 
-      {/* Editorial Copy */}
       <div className="prose prose-lg mb-10 max-w-xl font-serif leading-relaxed text-foreground/80">
         <p>
           <span className="mr-3 -mt-1.5 float-left font-serif text-5xl font-bold">
@@ -104,9 +101,8 @@ export default function HeroContent() {
         </p>
       </div>
 
-      {/* Email Capture Section */}
+      {/* Email Capture */}
       <div className="mt-2 max-w-md overflow-hidden p-1">
-        {/* The "Cut Line" */}
         <div className="mb-2 flex items-center gap-2 text-foreground/40">
           <Scissors className="h-4 w-4 -rotate-90" />
           <div className="flex-1 border-b border-dashed border-foreground/40" />
@@ -122,7 +118,6 @@ export default function HeroContent() {
                 key="signup-form"
                 onSubmit={handleJoin}
                 className="group relative"
-                // The Exit Animation (The Train Leaving)
                 exit={{
                   x: "100%",
                   opacity: 0,
@@ -132,7 +127,6 @@ export default function HeroContent() {
                   },
                 }}
               >
-                {/* HONEYPOT FIELD: Hidden from users, but visible to bots */}
                 <div
                   style={{
                     position: "absolute",
@@ -155,9 +149,9 @@ export default function HeroContent() {
                     autoComplete="off"
                   />
                 </div>
-                {/* END HONEYPOT FIELD */}
 
-                <div className="relative border-2 border-dashed border-foreground bg-surface p-4 transition-all hover:bg-surface-hover">
+                {/* Removed hover:bg-surface-hover */}
+                <div className="relative border-2 border-dashed border-foreground bg-surface p-4 transition-all">
                   <div className="flex flex-col items-stretch gap-3 sm:flex-row">
                     <div className="flex flex-1 flex-col justify-end">
                       <label
@@ -178,6 +172,7 @@ export default function HeroContent() {
                       />
                     </div>
 
+                    {/* Removed hover:bg-brand-primary-hover */}
                     <button
                       type="submit"
                       disabled={isLoading}
@@ -186,7 +181,7 @@ export default function HeroContent() {
                         ${
                           isLoading
                             ? "bg-white/10 text-foreground cursor-wait"
-                            : "bg-brand-primary text-white hover:bg-brand-primary-hover"
+                            : "bg-brand-primary text-white"
                         }
                       `}
                     >
@@ -222,7 +217,6 @@ export default function HeroContent() {
                 </div>
               </motion.form>
             ) : (
-              // The Thank You State
               <motion.div
                 key="success-message"
                 initial={{ opacity: 0, y: 10 }}

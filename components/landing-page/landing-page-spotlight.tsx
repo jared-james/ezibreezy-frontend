@@ -258,9 +258,8 @@ export default function LandingPageSpotlight() {
               Silos that work.
             </h4>
             <p className="font-serif text-sm text-foreground/70 leading-relaxed">
-              Most tools lump everything together. We use distinct Workspaces
-              with their own timezones, libraries, and tags. Your personal brand
-              never touches your client work.
+              We use distinct Workspaces with their own timezones, libraries,
+              and tags. Your personal brand never touches your client work.
             </p>
           </div>
 
