@@ -85,7 +85,7 @@ export default function LandingPageFooter() {
               <li>
                 <Link
                   href="/tools/instagram-font-generator"
-                  className="hover:text-brand-primary hover:underline decoration-dashed underline-offset-4 transition-colors"
+                  className="hover:text-brand-primary hover:underline decoration-dotted underline-offset-4 transition-colors"
                 >
                   Instagram Font Generator
                 </Link>
@@ -93,7 +93,7 @@ export default function LandingPageFooter() {
               <li>
                 <Link
                   href="/tools/instagram-grid-planner"
-                  className="hover:text-brand-primary hover:underline decoration-dashed underline-offset-4 transition-colors"
+                  className="hover:text-brand-primary hover:underline decoration-dotted underline-offset-4 transition-colors"
                 >
                   Grid Planner
                 </Link>
@@ -101,7 +101,7 @@ export default function LandingPageFooter() {
               <li>
                 <Link
                   href="/tools/instagram-carousel-splitter"
-                  className="hover:text-brand-primary hover:underline decoration-dashed underline-offset-4 transition-colors"
+                  className="hover:text-brand-primary hover:underline decoration-dotted underline-offset-4 transition-colors"
                 >
                   Carousel Splitter
                 </Link>
@@ -109,7 +109,7 @@ export default function LandingPageFooter() {
               <li>
                 <Link
                   href="/tools/social-image-resizer"
-                  className="hover:text-brand-primary hover:underline decoration-dashed underline-offset-4 transition-colors"
+                  className="hover:text-brand-primary hover:underline decoration-dotted underline-offset-4 transition-colors"
                 >
                   Social Image Resizer
                 </Link>
@@ -117,7 +117,7 @@ export default function LandingPageFooter() {
               <li>
                 <Link
                   href="/tools/screenshot-studio"
-                  className="hover:text-brand-primary hover:underline decoration-dashed underline-offset-4 transition-colors"
+                  className="hover:text-brand-primary hover:underline decoration-dotted underline-offset-4 transition-colors"
                 >
                   Screenshot Studio
                 </Link>
@@ -125,7 +125,7 @@ export default function LandingPageFooter() {
               <li>
                 <Link
                   href="/tools/linkedin-text-formatter"
-                  className="hover:text-brand-primary hover:underline decoration-dashed underline-offset-4 transition-colors"
+                  className="hover:text-brand-primary hover:underline decoration-dotted underline-offset-4 transition-colors"
                 >
                   LinkedIn Formatter
                 </Link>
@@ -133,7 +133,7 @@ export default function LandingPageFooter() {
               <li>
                 <Link
                   href="/tools/youtube-title-checker"
-                  className="hover:text-brand-primary hover:underline decoration-dashed underline-offset-4 transition-colors"
+                  className="hover:text-brand-primary hover:underline decoration-dotted underline-offset-4 transition-colors"
                 >
                   YouTube Title Checker
                 </Link>
@@ -158,7 +158,7 @@ export default function LandingPageFooter() {
               <li>
                 <Link
                   href="/about"
-                  className="hover:text-brand-primary transition-colors"
+                  className="hover:text-brand-primary hover:underline decoration-dotted underline-offset-4 transition-colors"
                 >
                   About Us
                 </Link>
@@ -167,7 +167,7 @@ export default function LandingPageFooter() {
               <li>
                 <Link
                   href="/auth/login"
-                  className="hover:text-brand-primary transition-colors"
+                  className="hover:text-brand-primary hover:underline decoration-dotted underline-offset-4 transition-colors"
                 >
                   Login
                 </Link>
@@ -175,7 +175,7 @@ export default function LandingPageFooter() {
               <li>
                 <Link
                   href="/auth/signup"
-                  className="hover:text-brand-primary transition-colors"
+                  className="hover:text-brand-primary hover:underline decoration-dotted underline-offset-4 transition-colors"
                 >
                   Sign Up
                 </Link>
@@ -262,19 +262,19 @@ export default function LandingPageFooter() {
           <div className="flex items-center gap-6">
             <Link
               href="/privacy"
-              className="hover:text-brand-primary transition-colors"
+              className="hover:text-brand-primary hover:underline decoration-dotted underline-offset-4 transition-colors"
             >
               Privacy
             </Link>
             <Link
               href="/terms"
-              className="hover:text-brand-primary transition-colors"
+              className="hover:text-brand-primary hover:underline decoration-dotted underline-offset-4 transition-colors"
             >
               Terms
             </Link>
             <a
               href={`mailto:${contactEmail}`}
-              className="hover:text-brand-primary transition-colors"
+              className="hover:text-brand-primary hover:underline decoration-dotted underline-offset-4 transition-colors"
             >
               Support
             </a>
