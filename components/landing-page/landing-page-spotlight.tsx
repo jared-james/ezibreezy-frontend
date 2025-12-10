@@ -10,14 +10,21 @@ import {
   AtSign,
   Users,
   ShieldCheck,
-  Globe,
+  BarChart3,
   Layers,
   Zap,
   Pin,
-  Store,
-  Cloud,
+  Clock,
   Check,
   Hammer,
+  AlignLeft,
+  Hash,
+  Tag,
+  Split,
+  Image as ImageIcon,
+  MessageCircle,
+  Fingerprint,
+  FolderOpen,
 } from "lucide-react";
 
 export default function LandingPageSpotlight() {
@@ -57,26 +64,29 @@ export default function LandingPageSpotlight() {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-6 lg:grid-cols-12 gap-4 auto-rows-[minmax(300px,auto)]">
+        {/* --- MAIN BENTO GRID --- */}
+        <div className="grid grid-cols-1 md:grid-cols-6 lg:grid-cols-12 gap-4 auto-rows-[minmax(300px,auto)] mb-4">
+          {/* 1. ASSET MANAGEMENT (Media) */}
           <div className="md:col-span-6 lg:col-span-7 bg-surface border-2 border-foreground p-8 relative group overflow-hidden">
             <div className="relative z-10 flex h-full flex-col justify-between">
               <div>
                 <div className="flex items-center gap-2 mb-4">
                   <span className="w-2 h-2 bg-brand-primary rounded-full" />
                   <span className="font-mono text-[10px] uppercase tracking-widest text-foreground/60">
-                    Asset Management
+                    Cloud Storage R2
                   </span>
                 </div>
                 <h3 className="font-serif text-4xl font-medium mb-4">
-                  The Media Room
+                  Intelligent Media Room
                 </h3>
                 <p className="font-serif text-lg text-foreground/70 max-w-md">
-                  A visual home for your creative assets. Organize by folder,
-                  tag by product, and visualize your aesthetic grid before
-                  posting.
+                  Not just a bucket. We handle auto-cropping for X, aspect ratio
+                  checks for LinkedIn, and format conversion for TikTok on the
+                  fly.
                 </p>
               </div>
 
+              {/* Visualization of Grid */}
               <div className="mt-8 grid grid-cols-4 gap-2 opacity-80 group-hover:opacity-100 transition-opacity">
                 <div className="col-span-4 flex items-center gap-3 mb-2 border-b border-foreground/10 pb-2">
                   <div className="w-12 h-12 rounded-full border border-foreground/20 bg-foreground/5" />
@@ -85,7 +95,6 @@ export default function LandingPageSpotlight() {
                     <div className="w-20 h-2 bg-foreground/10 rounded-sm" />
                   </div>
                 </div>
-
                 {[...Array(8)].map((_, i) => (
                   <div
                     key={i}
@@ -98,6 +107,7 @@ export default function LandingPageSpotlight() {
             </div>
           </div>
 
+          {/* 2. CONNECTIVITY (Integrations) */}
           <div className="md:col-span-6 lg:col-span-5 bg-surface-hover border-2 border-foreground p-8 relative flex flex-row gap-6">
             <div className="flex-1 flex flex-col">
               <div className="flex items-center gap-2 mb-4">
@@ -110,13 +120,13 @@ export default function LandingPageSpotlight() {
                 Universal Signal
               </h3>
               <p className="font-serif text-base text-foreground/70 mb-auto pr-4">
-                Connect everything. No per channel pricing. Your plan includes
-                access to the full network.
+                Native integrations for the big 8. No third-party wrappers.
+                Direct API access with auto-token refresh handling.
               </p>
 
               <div className="mt-8 hidden sm:block">
                 <p className="font-mono text-[10px] uppercase tracking-widest opacity-40">
-                  Network Status, Active
+                  Network Status: Active
                 </p>
               </div>
             </div>
@@ -132,86 +142,98 @@ export default function LandingPageSpotlight() {
                   { icon: Music2, label: "TT" },
                   { icon: AtSign, label: "TH" },
                   { icon: Pin, label: "PIN" },
-                  { icon: Store, label: "GMB" },
-                  { icon: Cloud, label: "BS" },
                 ].map((p, i) => (
                   <div
                     key={i}
-                    className="relative w-14 h-14 rounded-full border-2 border-foreground bg-surface flex items-center justify-center shadow-[3px_3px_0_0_var(--foreground)] cursor-default"
+                    className="relative w-14 h-14 rounded-full border-2 border-foreground bg-surface flex items-center justify-center shadow-[3px_3px_0_0_var(--foreground)] cursor-default group"
+                    title={p.label}
                   >
-                    <p.icon className="w-6 h-6" />
+                    <p.icon className="w-6 h-6 group-hover:scale-110 transition-transform" />
                   </div>
                 ))}
               </div>
             </div>
           </div>
 
+          {/* 3. COMMAND & CONTROL */}
           <div className="md:col-span-6 lg:col-span-4 bg-surface border-2 border-foreground p-8 relative">
             <div className="flex items-center gap-2 mb-4">
               <span className="w-2 h-2 bg-brand-primary rounded-full" />
               <span className="font-mono text-[10px] uppercase tracking-widest text-foreground/60">
-                Command and Control
+                Workflow Logic
               </span>
             </div>
 
             <h3 className="font-serif text-2xl font-medium mb-6">
-              Workspaces and Teams
+              Command & Control
             </h3>
 
             <ul className="space-y-4 font-serif text-sm text-foreground/80">
               <li className="flex items-start gap-3">
                 <Users className="w-4 h-4 mt-1 text-brand-primary" />
-                <span>Invite your team. Roles without per seat fees.</span>
+                <span>
+                  <strong>Data Silos.</strong> Workspaces isolate clients and
+                  brands completely.
+                </span>
               </li>
               <li className="flex items-start gap-3">
                 <ShieldCheck className="w-4 h-4 mt-1 text-brand-primary" />
                 <span>
-                  Approval workflows. Nothing goes live unintentionally.
+                  <strong>Consensus Policy.</strong> Require "Any" or "All"
+                  admin approvals before publishing.
                 </span>
               </li>
               <li className="flex items-start gap-3">
                 <Layers className="w-4 h-4 mt-1 text-brand-primary" />
-                <span>Campaign grouping. Organize by project or season.</span>
+                <span>
+                  <strong>Audit Trail.</strong> Full history of who approved,
+                  rejected, or edited a post.
+                </span>
               </li>
             </ul>
           </div>
 
+          {/* 4. ANALYTICS */}
           <div className="md:col-span-6 lg:col-span-4 bg-surface border-2 border-foreground p-8 relative">
             <div className="flex items-center gap-2 mb-4">
-              <Globe className="w-4 h-4" />
+              <BarChart3 className="w-4 h-4" />
               <span className="font-mono text-[10px] uppercase tracking-widest text-foreground/60">
-                External
+                Unified Intelligence
               </span>
             </div>
 
             <h3 className="font-serif text-2xl font-medium mb-4">
-              Client Access
+              Aggregated Analytics
             </h3>
 
             <p className="font-serif text-sm text-foreground/70 mb-6">
-              Share a live, read only link to your calendar. Clients see the
-              schedule, no account needed.
+              Stop summing up Excel spreadsheets. We aggregate metrics across
+              platforms to give you a single "Total Reach" number for your
+              brand.
             </p>
 
             <div className="rounded-sm p-4 flex items-center gap-3 bg-surface-hover border border-foreground/20">
               <div className="w-8 h-8 rounded-full bg-brand-primary text-brand-primary-foreground border border-foreground flex items-center justify-center font-bold text-xs">
-                Ez
+                %
               </div>
               <div className="flex-1 min-w-0">
-                <div className="h-2 w-24 bg-foreground/10 rounded-sm mb-1" />
-                <div className="h-1.5 w-full bg-foreground/5 rounded-sm" />
-              </div>
-              <div className="px-2 py-1 bg-surface border border-foreground/10 text-[9px] uppercase font-bold tracking-wider rounded-sm">
-                Public
+                <div className="flex justify-between mb-1">
+                  <div className="h-2 w-16 bg-foreground/10 rounded-sm" />
+                  <div className="h-2 w-8 bg-green-500/20 rounded-sm" />
+                </div>
+                <div className="h-1.5 w-full bg-foreground/5 rounded-sm overflow-hidden">
+                  <div className="h-full w-3/4 bg-foreground/20" />
+                </div>
               </div>
             </div>
           </div>
 
+          {/* 5. AI */}
           <div className="md:col-span-6 lg:col-span-4 bg-brand-primary border-2 border-foreground p-8 relative text-brand-primary-foreground">
             <div className="flex items-center gap-2 mb-4">
               <Zap className="w-4 h-4" />
               <span className="font-mono text-[10px] uppercase tracking-widest text-brand-primary-foreground/70">
-                Generation
+                Input Classifiers
               </span>
             </div>
 
@@ -220,15 +242,13 @@ export default function LandingPageSpotlight() {
             </h3>
 
             <p className="font-serif text-sm text-brand-primary-foreground/90 leading-relaxed">
-              Do not start from zero. Our system turns raw notes into drafts
-              that actually sound like <em>you</em>.
+              Our classifiers identify if you are inputting a work log, an
+              observation, or a news reaction, then structure the draft
+              accordingly.
               <br />
               <br />
               <span className="opacity-80">
-                We know you are rolling your eyes. We will accept your apology
-                later. It will not sound like a robot, unless <em>you</em> sound
-                like a robot. If that is the case, we can help with that too, I
-                guess.
+                Context-aware drafting beats generic "Write me a post" prompts.
               </span>
             </p>
 
@@ -236,66 +256,143 @@ export default function LandingPageSpotlight() {
               <span className="font-serif text-9xl font-black">AI</span>
             </div>
           </div>
+        </div>
 
-          <div className="col-span-1 md:col-span-6 lg:col-span-12 bg-foreground text-background-editorial border-2 border-foreground relative overflow-hidden group p-0 flex flex-col h-full">
-            <div className="h-1 w-full bg-brand-primary absolute top-0 left-0 z-10" />
+        {/* --- TECHNICAL SPECIFICATIONS LIST (The Granular Features) --- */}
+        <div className="w-full bg-surface border-2 border-foreground p-8 md:p-12">
+          <div className="flex items-center gap-4 mb-8">
+            <Hammer className="w-5 h-5 text-brand-primary" />
+            <h3 className="font-serif text-2xl font-medium">
+              Technical Specifications
+            </h3>
+            <div className="h-px bg-foreground/20 flex-1" />
+          </div>
 
-            <div className="shrink-0 grid grid-cols-1 md:grid-cols-3 divide-y md:divide-y-0 md:divide-x divide-background-editorial/10">
-              <div className="p-8 flex items-start gap-4 hover:bg-white/5 transition-colors">
-                <div className="w-12 h-12 rounded-full border border-background-editorial/20 flex overflow-hidden shrink-0">
-                  <div className="w-1/2 bg-background-editorial" />
-                  <div className="w-1/2 bg-[#222]" />
-                </div>
-
-                <div>
-                  <h3 className="font-serif font-bold text-lg">System Dark</h3>
-                  <p className="font-serif text-sm text-background-editorial/60 mt-1 leading-relaxed">
-                    Native dark mode support for late night editorial sessions.
-                  </p>
-                </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-x-8 gap-y-8">
+            {/* Spec 1: Smart Threading */}
+            <div className="flex flex-col gap-2">
+              <div className="flex items-center gap-2 text-brand-primary">
+                <Split className="w-4 h-4" />
+                <span className="font-mono text-[10px] uppercase tracking-widest font-bold">
+                  Publishing
+                </span>
               </div>
-
-              <div className="p-8 flex items-start gap-4 hover:bg-white/5 transition-colors">
-                <div className="w-12 h-12 border border-background-editorial/20 flex flex-col gap-1 p-2 justify-center shrink-0 bg-background-editorial/5">
-                  <div className="w-full h-0.5 bg-white/40" />
-                  <div className="w-2/3 h-0.5 bg-white/40" />
-                  <div className="w-full h-0.5 bg-white/40" />
-                </div>
-
-                <div>
-                  <h3 className="font-serif font-bold text-lg flex items-center gap-2">
-                    Unified Feed
-                  </h3>
-                  <p className="font-serif text-sm text-background-editorial/60 mt-1 leading-relaxed">
-                    A single stream for all comments and notifications.
-                    <span className="text-brand-primary text-xs uppercase tracking-wider ml-1">
-                      Coming Soon
-                    </span>
-                  </p>
-                </div>
-              </div>
-
-              <div className="p-8 flex flex-col justify-center items-center text-center bg-brand-primary text-brand-primary-foreground hover:bg-brand-primary-hover transition-colors">
-                <div className="mb-2 border-2 border-foreground rounded-full p-1">
-                  <Check className="w-6 h-6" />
-                </div>
-                <h3 className="font-serif font-bold text-xl uppercase tracking-tight">
-                  Fair pricing
-                </h3>
-                <p className="font-mono text-xs uppercase tracking-widest mt-1 opacity-80">
-                  Includes Everything, Because we can.
-                </p>
-              </div>
+              <h4 className="font-bold text-sm">Auto-Splitting Threads</h4>
+              <p className="text-xs text-foreground/70 leading-relaxed">
+                Writing a long-form post? We automatically detect length limits
+                (280 chars for X, 500 for Threads) and split your text into a
+                perfectly linked reply chain.
+              </p>
             </div>
 
-            <div className="flex-1 w-full border-t border-background-editorial/10 py-8 flex items-center justify-center bg-white/5 min-h-[120px]">
-              <div className="flex items-center gap-3 opacity-60 hover:opacity-100 transition-opacity select-none px-4 text-center">
-                <Hammer className="w-4 h-4 text-brand-primary shrink-0" />
-                <p className="font-serif italic text-base md:text-lg text-background-editorial">
-                  "There is even more, but we are too busy building the product
-                  to finish the landing page."
-                </p>
+            {/* Spec 2: First Comment */}
+            <div className="flex flex-col gap-2">
+              <div className="flex items-center gap-2 text-brand-primary">
+                <MessageCircle className="w-4 h-4" />
+                <span className="font-mono text-[10px] uppercase tracking-widest font-bold">
+                  Instagram / FB
+                </span>
               </div>
+              <h4 className="font-bold text-sm">First Comment Logic</h4>
+              <p className="text-xs text-foreground/70 leading-relaxed">
+                Keep your captions clean. We allow you to schedule the first
+                comment along with the post to hide your hashtags below the fold
+                automatically.
+              </p>
+            </div>
+
+            {/* Spec 3: User Tagging */}
+            <div className="flex flex-col gap-2">
+              <div className="flex items-center gap-2 text-brand-primary">
+                <Tag className="w-4 h-4" />
+                <span className="font-mono text-[10px] uppercase tracking-widest font-bold">
+                  Metadata
+                </span>
+              </div>
+              <h4 className="font-bold text-sm">Native User Tagging</h4>
+              <p className="text-xs text-foreground/70 leading-relaxed">
+                Don't just mention in captions. We support native photo tagging
+                coords (x,y) for Instagram, ensuring collaborators get notified
+                properly.
+              </p>
+            </div>
+
+            {/* Spec 4: Timezones */}
+            <div className="flex flex-col gap-2">
+              <div className="flex items-center gap-2 text-brand-primary">
+                <Clock className="w-4 h-4" />
+                <span className="font-mono text-[10px] uppercase tracking-widest font-bold">
+                  Scheduling
+                </span>
+              </div>
+              <h4 className="font-bold text-sm">Timezone Sovereignty</h4>
+              <p className="text-xs text-foreground/70 leading-relaxed">
+                Every workspace has its own timezone. "9 AM" means 9 AM for the
+                client in Tokyo, not 9 AM on your server in Virginia.
+              </p>
+            </div>
+
+            {/* Spec 5: Deduplication */}
+            <div className="flex flex-col gap-2">
+              <div className="flex items-center gap-2 text-brand-primary">
+                <Fingerprint className="w-4 h-4" />
+                <span className="font-mono text-[10px] uppercase tracking-widest font-bold">
+                  Storage
+                </span>
+              </div>
+              <h4 className="font-bold text-sm">Asset Deduplication</h4>
+              <p className="text-xs text-foreground/70 leading-relaxed">
+                We hash every file on upload. If you try to upload the same meme
+                twice to a workspace, we catch it and link to the existing asset
+                to save your quota.
+              </p>
+            </div>
+
+            {/* Spec 6: Story Sequencing */}
+            <div className="flex flex-col gap-2">
+              <div className="flex items-center gap-2 text-brand-primary">
+                <Layers className="w-4 h-4" />
+                <span className="font-mono text-[10px] uppercase tracking-widest font-bold">
+                  Stories
+                </span>
+              </div>
+              <h4 className="font-bold text-sm">Story Sequencing</h4>
+              <p className="text-xs text-foreground/70 leading-relaxed">
+                Upload 5 videos at once for a story. We don't make a carousel;
+                we automatically split them into 5 sequential story posts posted
+                seconds apart.
+              </p>
+            </div>
+
+            {/* Spec 7: Folder Organization */}
+            <div className="flex flex-col gap-2">
+              <div className="flex items-center gap-2 text-brand-primary">
+                <FolderOpen className="w-4 h-4" />
+                <span className="font-mono text-[10px] uppercase tracking-widest font-bold">
+                  Organization
+                </span>
+              </div>
+              <h4 className="font-bold text-sm">Deep Folder Nesting</h4>
+              <p className="text-xs text-foreground/70 leading-relaxed">
+                Create a real file structure. Clients Q4 Campaign A. Stop
+                dumping everything into one "Uploads" bucket.
+              </p>
+            </div>
+
+            {/* Spec 8: Fair Pricing */}
+            <div className="flex flex-col gap-2">
+              <div className="flex items-center gap-2 text-brand-primary">
+                <Check className="w-4 h-4" />
+                <span className="font-mono text-[10px] uppercase tracking-widest font-bold">
+                  Billing
+                </span>
+              </div>
+              <h4 className="font-bold text-sm">No "Seat Tax"</h4>
+              <p className="text-xs text-foreground/70 leading-relaxed">
+                We charge based on value (brands managed), not headcount. Invite
+                your writer, your designer, and your client without upgrading
+                plans.
+              </p>
             </div>
           </div>
         </div>

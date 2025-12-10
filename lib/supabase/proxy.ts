@@ -3,7 +3,7 @@ import { createServerClient } from "@supabase/ssr";
 import { type NextRequest, NextResponse } from "next/server";
 
 export async function updateSession(request: NextRequest) {
-  let response = NextResponse.next({
+  const response = NextResponse.next({
     request: {
       headers: request.headers,
     },
@@ -20,11 +20,6 @@ export async function updateSession(request: NextRequest) {
         setAll(cookiesToSet) {
           cookiesToSet.forEach(({ name, value, options }) => {
             request.cookies.set(name, value);
-            response = NextResponse.next({
-              request: {
-                headers: request.headers,
-              },
-            });
             response.cookies.set(name, value, options);
           });
         },
@@ -32,11 +27,9 @@ export async function updateSession(request: NextRequest) {
     }
   );
 
-  try {
-    await supabase.auth.getUser();
-  } catch (e) {
-    // Sshhh... silence.
-  }
+  // This refreshes the cookie if needed
+  await supabase.auth.getUser();
 
+  // IMPORTANT: Return the response object directly!
   return response;
 }

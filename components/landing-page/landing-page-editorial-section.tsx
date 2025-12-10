@@ -16,37 +16,27 @@ export default function LandingPageEditorialSection() {
         </div>
 
         <div className="grid grid-cols-1 items-start gap-12 lg:grid-cols-12 lg:gap-16">
-          {/* COLUMN 1: THE PAIN (Unchanged) */}
+          {/* COLUMN 1: THE PAIN */}
           <div className="lg:col-span-5">
             <div className="relative border-2 border-foreground border-dashed bg-surface-hover p-6 md:p-8">
-              {/* "Rejected" Stamp Visual */}
-              <div className="absolute -top-4 -left-4 z-10 rotate-[-6deg] border-2 border-foreground bg-surface px-2 py-1 shadow-[2px_2px_0_0_var(--foreground)]">
-                <span className="font-mono text-[10px] font-bold uppercase tracking-wider text-[#9b2c2c]">
-                  Exhibit A: The Old Way
-                </span>
-              </div>
-
               <p className="mb-6 font-serif text-3xl font-bold leading-tight">
                 Why does posting feel like punishment?
               </p>
 
               <div className="space-y-8">
-                {/* 1. The Channel Ransom */}
+                {/* 1. The Content Guilt */}
                 <div className="group flex items-start gap-4 opacity-90 transition-opacity hover:opacity-100">
                   <div className="mt-1 rounded border border-[#9b2c2c]/30 bg-[#9b2c2c]/10 p-1 text-[#9b2c2c]">
                     <Lock className="h-4 w-4" />
                   </div>
                   <div className="font-serif text-sm leading-relaxed">
                     <strong className="mb-1 block font-sans text-xs uppercase tracking-wider text-[#9b2c2c]">
-                      {`The "Channel Ransom"`}
+                      The Content Guilt
                     </strong>
-                    You want to post to X <em>and</em> LinkedIn? That’s a plan
-                    upgrade. Want to add a team member? Enterprise tier.
+                    You tell yourself you’ll post more consistently, but paying
+                    work and actual life keep getting in the way. Every week
+                    ends with the same promise that next week will be different.
                     <br />
-                    <span className="mt-1.5 block italic font-medium text-foreground/90">
-                      {`"Sorry, your budget only allows you to be famous on
-                      Facebook today."`}
-                    </span>
                   </div>
                 </div>
 
@@ -59,125 +49,117 @@ export default function LandingPageEditorialSection() {
                     <strong className="mb-1 block font-sans text-xs uppercase tracking-wider text-[#9b2c2c]">
                       The Context Switching
                     </strong>
-                    One app for writing. Another for scheduling. A drive for
-                    images. You are paying $200/mo just to be disorganized.
+                    You’re bouncing between tools, one for brainstorming, one
+                    for writing, one for visuals, one for publishing. The
+                    momentum dies somewhere between app number two and three.
                   </div>
                 </div>
 
-                {/* 3. The Complexity */}
+                {/* 3. The Blank Page */}
                 <div className="group flex items-start gap-4 opacity-90 transition-opacity hover:opacity-100">
                   <div className="mt-1 rounded border border-[#9b2c2c]/30 bg-[#9b2c2c]/10 p-1 text-[#9b2c2c]">
                     <Ban className="h-4 w-4" />
                   </div>
                   <div className="font-serif text-sm leading-relaxed">
                     <strong className="mb-1 block font-sans text-xs uppercase tracking-wider text-[#9b2c2c]">
-                      The Complexity
+                      The Blank Page
                     </strong>
-                    Why do you need a PhD in project management just to post a
-                    meme? If the tool is harder to use than the social network
-                    itself, it's broken.
+                    Half-formed concepts everywhere, your camera roll is a
+                    graveyard of "I'll use this later" screenshots, notes app
+                    chaos across platforms, but when it's time to post, there's
+                    just that intimidating blank space.
                   </div>
                 </div>
 
-                {/* 4. The Feed Anxiety */}
+                {/* 4. The Invisible Expert */}
                 <div className="group flex items-start gap-4 opacity-90 transition-opacity hover:opacity-100">
                   <div className="mt-1 rounded border border-[#9b2c2c]/30 bg-[#9b2c2c]/10 p-1 text-[#9b2c2c]">
                     <Eye className="h-4 w-4" />
                   </div>
                   <div className="font-serif text-sm leading-relaxed">
                     <strong className="mb-1 block font-sans text-xs uppercase tracking-wider text-[#9b2c2c]">
-                      The Feed Anxiety
+                      The Invisible Expert
                     </strong>
-                    Trying to write deep thoughts inside a chaotic social app is
-                    impossible. You feel watched before you even hit publish.
+                    You’re doing the work, getting results, and saying smart
+                    things all day on calls and in docs. But almost none of that
+                    makes it to your feed, so the people who’d benefit from it
+                    never even know you exist.
                   </div>
                 </div>
               </div>
             </div>
           </div>
 
-          {/* COLUMN 2: THE SOLUTION (Redesigned) */}
+          {/* COLUMN 2: THE SOLUTION */}
           <div className="lg:col-span-7">
             <h2 className="mb-8 font-serif text-5xl font-black leading-[0.9] tracking-tight md:text-6xl">
-              A complete solution.
+              Made for creators
               <br />
-              <span className="italic font-light">Zero gatekeeping.</span>
+              <span className="italic font-light">who care what they say.</span>
             </h2>
 
             <p className="article-body mb-12 border-l-4 border-brand-primary pl-6 text-lg leading-relaxed md:text-xl">
-              We don't charge you for being ambitious. We believe you shouldn't
-              have to choose which audience you can afford to talk to.
+              We’re here for the “I know what I want to say, I just can’t get it
+              out” part. Turn brain-dumps, old posts, and client work into
+              drafts, caption options, and cross-channel versions, so you’re
+              refining instead of starting from nothing.
             </p>
 
             {/* NEW LAYOUT: Clean Editorial Grid (No boxes, no hover effects) */}
             <div className="grid grid-cols-1 gap-x-12 gap-y-12 md:grid-cols-2">
-              {/* Feature 1: The Channel Fix */}
+              {/* Feature 1: Raw to Refined (AI) */}
               <div className="flex flex-col">
-                <div className="mb-4 flex items-center justify-between border-t border-foreground pt-4">
-                  <Globe className="h-5 w-5 text-foreground" />
-                  <span className="font-mono text-[10px] uppercase tracking-widest text-foreground/60">
-                    Unlocked
-                  </span>
-                </div>
+                <div className="mb-4 flex items-center justify-between border-t border-foreground pt-4"></div>
                 <h3 className="mb-3 font-serif text-xl font-bold">
-                  Every Channel. Period.
+                  Don&apos;t start from zero.
                 </h3>
                 <p className="font-serif text-sm leading-relaxed text-foreground/80">
-                  We include every platform on every plan. No per-channel
-                  pricing. No "seat taxes." Go ahead, launch that TikTok account
-                  or spin up a new LinkedIn page. It's on the house.
+                  Stop staring at a blinking cursor. Paste your raw notes, daily
+                  work logs, or a link you reacted to. We identify the concept,
+                  strip out the noise, and structure it into a "Clipping", a
+                  draft that’s 80% ready before you even start writing.
                 </p>
               </div>
 
-              {/* Feature 2: Unified Workflow */}
+              {/* Feature 2: Intelligent Assets (Media) */}
               <div className="flex flex-col">
-                <div className="mb-4 flex items-center justify-between border-t border-foreground pt-4">
-                  <Grid className="h-5 w-5 text-foreground" />
-                  <span className="font-mono text-[10px] uppercase tracking-widest text-foreground/60">
-                    Consolidated
-                  </span>
-                </div>
+                <div className="mb-4 flex items-center justify-between border-t border-foreground pt-4"></div>
                 <h3 className="mb-3 font-serif text-xl font-bold">
-                  The Command Center
+                  Assets that adapt.
                 </h3>
                 <p className="font-serif text-sm leading-relaxed text-foreground/80">
-                  Stop tabbing between Notes apps, Spreadsheets, and scheduling
-                  tools. From that first spark of an idea to your final Media
-                  Room assets, your entire workflow is finally in one view.
+                  Context switching kills momentum, and so does resizing images.
+                  Upload your media once. We handle the specific cropping for X,
+                  the aspect ratios for LinkedIn, and the format conversions for
+                  TikTok automatically.
                 </p>
               </div>
 
-              {/* Feature 3: Simplicity (Changed from Flow State to Clarity) */}
+              {/* Feature 3: Context Boundaries (Workspaces) */}
               <div className="flex flex-col">
-                <div className="mb-4 flex items-center justify-between border-t border-foreground pt-4">
-                  <Zap className="h-5 w-5 text-foreground" />
-                  <span className="font-mono text-[10px] uppercase tracking-widest text-foreground/60">
-                    Focused
-                  </span>
-                </div>
+                <div className="mb-4 flex items-center justify-between border-t border-foreground pt-4"></div>
                 <h3 className="mb-3 font-serif text-xl font-bold">
-                  The Idea Engine
+                  Silos that work.
                 </h3>
                 <p className="font-serif text-sm leading-relaxed text-foreground/80">
-                  {`You don't need a tool to hold your posts; you need help creating them. We turn your daily grind into actual strategy, not another PowerPoint "strategy". We bridge the gap between your loose ideas and a published narrative.`}
+                  Most tools lump everything together. We use distinct
+                  Workspaces with their own timezones, libraries, and tags. Your
+                  personal brand never touches your client work. Your brain
+                  operates in different modes; your tool should too.
                 </p>
               </div>
 
-              {/* Feature 4: Scalable Pricing */}
+              {/* Feature 4: The Quality Gate (Approvals) */}
               <div className="flex flex-col">
-                <div className="mb-4 flex items-center justify-between border-t border-foreground pt-4">
-                  <Wallet className="h-5 w-5 text-foreground" />
-                  <span className="font-mono text-[10px] uppercase tracking-widest text-foreground/60">
-                    Scalable
-                  </span>
-                </div>
+                <div className="mb-4 flex items-center justify-between border-t border-foreground pt-4"></div>
                 <h3 className="mb-3 font-serif text-xl font-bold">
-                  Universal Pricing
+                  Review before release.
                 </h3>
                 <p className="font-serif text-sm leading-relaxed text-foreground/80">
-                  Small business budget, Enterprise capabilities. Whether you
-                  manage one brand or fifty, our two simple plans adapt to you.
-                  Finally, a tool that wants you to grow.
+                  Whether it’s a client sign-off or just a second pair of eyes,
+                  our built-in approval workflows ensure nothing goes live by
+                  accident. Set policies, track changes, and refine the work
+                  without leaving the platform.
                 </p>
               </div>
             </div>

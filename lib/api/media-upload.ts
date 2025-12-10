@@ -1,6 +1,6 @@
 // lib/api/media-upload.ts
 
-import { createClient } from "@/lib/supabase/client";
+import { getClientSessionToken } from "@/app/actions/session";
 import { UploadMediaResponse } from "@/lib/types/media";
 
 /**
@@ -12,30 +12,28 @@ export async function uploadMediaDirect(
   workspaceId: string,
   thumbnail?: File
 ): Promise<UploadMediaResponse> {
-  // Get the Supabase session from the client
-  const supabase = createClient();
-  const {
-    data: { session },
-  } = await supabase.auth.getSession();
+  // 1. Retrieve the access token via Server Action
+  // (Only the server can read the httpOnly cookies to get the token)
+  const accessToken = await getClientSessionToken();
 
-  if (!session) {
+  if (!accessToken) {
     throw new Error("Not authenticated");
   }
 
-  // Prepare FormData with file and optional thumbnail
+  // 2. Prepare FormData
   const formData = new FormData();
   formData.append("file", file);
   if (thumbnail) {
     formData.append("thumbnail", thumbnail);
   }
 
-  // Make direct request to backend API
+  // 3. Make direct request to backend API using the retrieved token
   const response = await fetch(
     `${process.env.NEXT_PUBLIC_API_URL}/media/upload`,
     {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${session.access_token}`,
+        Authorization: `Bearer ${accessToken}`,
         "x-workspace-id": workspaceId,
       },
       body: formData,
