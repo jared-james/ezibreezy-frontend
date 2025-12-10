@@ -26,7 +26,12 @@ export default function PlatformSpecsLedger() {
         </p>
       </div>
 
-      <div className="col-span-1 md:col-span-4 lg:col-span-3 bg-background-editorial border-t-0 flex flex-col">
+      {/* 
+        NAVIGATION CONTAINER 
+        Mobile: Horizontal scroll, Icon only
+        Desktop: Vertical list, Icon + Text
+      */}
+      <div className="col-span-1 md:col-span-4 lg:col-span-3 bg-background-editorial border-t-0 border-b md:border-b-0 border-foreground/10 flex flex-row md:flex-col overflow-x-auto md:overflow-visible no-scrollbar">
         {PLATFORM_SPECS.map((platform) => {
           const isActive = activeTab === platform.id;
           const Icon = platform.icon;
@@ -36,19 +41,29 @@ export default function PlatformSpecsLedger() {
               key={platform.id}
               onClick={() => setActiveTab(platform.id)}
               className={cn(
-                "group flex items-center gap-4 p-5 text-left transition-all border-b border-foreground/10 last:border-0",
+                "group flex items-center justify-center md:justify-start gap-4 transition-all shrink-0",
+                // Mobile Sizing: Square touch targets
+                "h-16 w-16 md:h-auto md:w-auto md:p-5",
+                // Mobile Borders: Right border separator
+                "border-r border-foreground/10 md:border-r-0",
+                // Desktop Borders: Bottom border separator
+                "md:border-b md:last:border-0",
                 isActive
                   ? "bg-brand-primary text-brand-primary-foreground"
                   : "hover:bg-foreground/5 text-foreground bg-background-editorial"
               )}
+              title={platform.name}
             >
               <Icon
                 className={cn(
-                  "w-5 h-5 transition-transform group-hover:scale-110",
+                  "transition-transform group-hover:scale-110",
+                  // Slightly larger icon on mobile for touch accuracy
+                  "w-6 h-6 md:w-5 md:h-5",
                   isActive ? "text-white" : "text-foreground/70"
                 )}
               />
-              <span className="block font-serif font-bold text-sm tracking-wide">
+              {/* Text hidden on mobile, visible on desktop */}
+              <span className="hidden md:block font-serif font-bold text-sm tracking-wide">
                 {platform.name}
               </span>
             </button>
@@ -56,6 +71,7 @@ export default function PlatformSpecsLedger() {
         })}
       </div>
 
+      {/* CONTENT PANEL */}
       <div className="col-span-1 md:col-span-8 lg:col-span-9 bg-background-editorial relative min-h-[600px]">
         {PLATFORM_SPECS.map((platform) => {
           const isActive = activeTab === platform.id;

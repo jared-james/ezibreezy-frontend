@@ -1,29 +1,14 @@
 // components/landing-page/landing-page-spotlight.tsx
 
 import {
-  Twitter,
-  Instagram,
-  Linkedin,
-  Facebook,
-  Youtube,
-  Music2,
-  AtSign,
-  Pin,
-  Hammer,
-  Split,
-  MessageCircle,
   Layers,
-  Tag,
-  EyeOff,
-  Baby,
-  Fingerprint,
   FolderOpen,
   CalendarDays,
   BarChart3,
-  Clock,
   ShieldCheck,
   Globe,
 } from "lucide-react";
+import { SocialIcon } from "react-social-icons";
 import { cn } from "@/lib/utils";
 import PlatformSpecsLedger from "./platform-specs-ledger";
 
@@ -120,44 +105,93 @@ export default function LandingPageSpotlight() {
 
           {/* 3. ANALYTICS - Spans 4 cols */}
           <div className="md:col-span-4 bg-background-editorial p-8 flex flex-col justify-between">
-            <div className="mb-4">
-              <BarChart3 className="w-6 h-6 text-brand-primary mb-3" />
-              <h3 className="font-serif text-2xl font-medium mb-2">
+            <div className="flex items-center justify-between mb-6">
+              <span className="font-mono text-[10px] uppercase tracking-widest text-foreground/60 font-bold">
+                Performance
+              </span>
+              <BarChart3 className="w-4 h-4 text-brand-primary" />
+            </div>
+
+            <div>
+              <h3 className="font-serif text-3xl font-medium mb-4">
                 Analytics
               </h3>
-              <p className="font-serif text-xs text-foreground/70 leading-relaxed">
+              <p className="font-serif text-sm text-foreground/70 leading-relaxed">
                 One aggregated "Total Reach" number across X, LinkedIn, and
                 TikTok. Proof of performance.
               </p>
             </div>
-            <div className="h-1 w-full bg-foreground/10 mt-4 overflow-hidden">
+
+            <div className="h-1 w-full bg-foreground/10 mt-8 overflow-hidden">
               <div className="h-full w-[65%] bg-brand-primary" />
             </div>
           </div>
 
           {/* 4. CONNECTIVITY - Spans 4 cols */}
           <div className="md:col-span-4 bg-background-editorial p-8">
-            <div className="flex items-center gap-2 mb-4">
-              <span className="relative flex h-2 w-2">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
-              </span>
+            <div className="flex items-center justify-between mb-6">
               <span className="font-mono text-[10px] uppercase tracking-widest text-foreground/60 font-bold">
                 Connectivity
               </span>
+              <div className="relative flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
+              </div>
             </div>
-            <h3 className="font-serif text-2xl font-medium mb-4">
+
+            <h3 className="font-serif text-3xl font-medium mb-4">
               Every Platform
             </h3>
-            <div className="grid grid-cols-4 gap-4 mt-6 opacity-70">
-              <Twitter className="w-5 h-5" />
-              <Instagram className="w-5 h-5" />
-              <Linkedin className="w-5 h-5" />
-              <Facebook className="w-5 h-5" />
-              <Youtube className="w-5 h-5" />
-              <Music2 className="w-5 h-5" />
-              <AtSign className="w-5 h-5" />
-              <Pin className="w-5 h-5" />
+
+            <div className="grid grid-cols-4 gap-4 mt-8 opacity-70">
+              <SocialIcon
+                network="x"
+                style={{ height: 40, width: 40 }}
+                bgColor="transparent"
+                fgColor="#000000"
+              />
+              <SocialIcon
+                network="instagram"
+                style={{ height: 40, width: 40 }}
+                bgColor="transparent"
+                fgColor="#000000"
+              />
+              <SocialIcon
+                network="linkedin"
+                style={{ height: 40, width: 40 }}
+                bgColor="transparent"
+                fgColor="#000000"
+              />
+              <SocialIcon
+                network="facebook"
+                style={{ height: 40, width: 40 }}
+                bgColor="transparent"
+                fgColor="#000000"
+              />
+              <SocialIcon
+                network="youtube"
+                style={{ height: 40, width: 40 }}
+                bgColor="transparent"
+                fgColor="#000000"
+              />
+              <SocialIcon
+                network="tiktok"
+                style={{ height: 40, width: 40 }}
+                bgColor="transparent"
+                fgColor="#000000"
+              />
+              <SocialIcon
+                network="threads"
+                style={{ height: 40, width: 40 }}
+                bgColor="transparent"
+                fgColor="#000000"
+              />
+              <SocialIcon
+                network="pinterest"
+                style={{ height: 40, width: 40 }}
+                bgColor="transparent"
+                fgColor="#000000"
+              />
             </div>
           </div>
 
@@ -179,20 +213,18 @@ export default function LandingPageSpotlight() {
             </div>
           </div>
 
-          {/* 5. Placeholder / Fill for grid balance (Cols 9-12 covered by Calendar row-span) */}
-          {/* Note: In CSS Grid with gap-px, empty divs are fine or the auto-flow handles it. 
-              Since Calendar is row-span-2, it occupies this space in column 3. 
-              Wait, row 2 is Analytics/Connectivity. 
-              Row 3 is Editorial Desk (8) + Calendar (bottom half). 
-              Let's adjust layouts slightly to ensure clean 12-col fit.
-          */}
-
           {/* --- ROW 4: THE OPINION COLUMNS (Text Heavy) --- */}
 
           <div className="md:col-span-4 bg-background-editorial p-8 border-t-0">
-            <h4 className="font-serif text-xl font-bold mb-3 flex items-center gap-2">
-              <FolderOpen className="w-4 h-4 text-brand-primary" /> Silos that
-              work.
+            <div className="flex items-center justify-between mb-6">
+              <span className="font-mono text-[10px] uppercase tracking-widest text-foreground/60 font-bold">
+                Workspaces
+              </span>
+              <FolderOpen className="w-4 h-4 text-brand-primary" />
+            </div>
+
+            <h4 className="font-serif text-3xl font-medium mb-4">
+              Silos that work.
             </h4>
             <p className="font-serif text-sm text-foreground/80 leading-relaxed">
               Most tools lump everything together. We use distinct Workspaces
@@ -202,9 +234,15 @@ export default function LandingPageSpotlight() {
           </div>
 
           <div className="md:col-span-4 bg-background-editorial p-8 border-t-0">
-            <h4 className="font-serif text-xl font-bold mb-3 flex items-center gap-2">
-              <ShieldCheck className="w-4 h-4 text-brand-primary" /> Review &
-              Approve.
+            <div className="flex items-center justify-between mb-6">
+              <span className="font-mono text-[10px] uppercase tracking-widest text-foreground/60 font-bold">
+                Workflow
+              </span>
+              <ShieldCheck className="w-4 h-4 text-brand-primary" />
+            </div>
+
+            <h4 className="font-serif text-3xl font-medium mb-4">
+              Review & Approve.
             </h4>
             <p className="font-serif text-sm text-foreground/80 leading-relaxed">
               Whether it's a client sign-off or just a second pair of eyes, our
@@ -213,9 +251,15 @@ export default function LandingPageSpotlight() {
           </div>
 
           <div className="md:col-span-4 bg-background-editorial p-8 border-t-0">
-            <h4 className="font-serif text-xl font-bold mb-3 flex items-center gap-2">
-              <Globe className="w-4 h-4 text-brand-primary" /> Timezone
-              Sovereignty.
+            <div className="flex items-center justify-between mb-6">
+              <span className="font-mono text-[10px] uppercase tracking-widest text-foreground/60 font-bold">
+                Global
+              </span>
+              <Globe className="w-4 h-4 text-brand-primary" />
+            </div>
+
+            <h4 className="font-serif text-3xl font-medium mb-4">
+              Timezone Sovereignty.
             </h4>
             <p className="font-serif text-sm text-foreground/80 leading-relaxed">
               When your client is in NY and you are in Tokyo, 9 AM means 9 AM

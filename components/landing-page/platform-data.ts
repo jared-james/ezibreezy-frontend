@@ -1,16 +1,16 @@
 // components/landing-page/platform-data.ts
 
+import { ComponentType } from "react";
 import {
-  Instagram,
-  Linkedin,
-  Twitter,
-  Youtube,
-  Facebook,
-  Music2,
-  AtSign,
-  Pin,
-  LucideIcon,
-} from "lucide-react";
+  InstagramIcon,
+  LinkedinIcon,
+  TwitterIcon,
+  YoutubeIcon,
+  FacebookIcon,
+  TikTokIcon,
+  ThreadsIcon,
+  PinterestIcon,
+} from "./platform-icons";
 
 export type SpecFeature = {
   title: string;
@@ -21,7 +21,7 @@ export type PlatformSpec = {
   id: string;
   name: string;
   subtitle: string;
-  icon: LucideIcon;
+  icon: ComponentType<{ className?: string }>;
   apiStatus: "Active" | "Beta" | "Deprecated";
   uniqueCapability: string;
   features: SpecFeature[];
@@ -32,7 +32,7 @@ export const PLATFORM_SPECS: PlatformSpec[] = [
     id: "instagram",
     name: "Instagram",
     subtitle: "The Visual Portfolio",
-    icon: Instagram,
+    icon: InstagramIcon,
     apiStatus: "Active",
     uniqueCapability: "Direct Grid Preview",
     features: [
@@ -79,7 +79,7 @@ export const PLATFORM_SPECS: PlatformSpec[] = [
     id: "facebook",
     name: "Facebook",
     subtitle: "The Social Graph",
-    icon: Facebook,
+    icon: FacebookIcon,
     apiStatus: "Active",
     uniqueCapability: "Page Management",
     features: [
@@ -122,7 +122,7 @@ export const PLATFORM_SPECS: PlatformSpec[] = [
     id: "threads",
     name: "Threads",
     subtitle: "The Conversation",
-    icon: AtSign,
+    icon: ThreadsIcon,
     apiStatus: "Active",
     uniqueCapability: "Native Threading",
     features: [
@@ -159,7 +159,7 @@ export const PLATFORM_SPECS: PlatformSpec[] = [
     id: "tiktok",
     name: "TikTok",
     subtitle: "Viral Mechanics",
-    icon: Music2,
+    icon: TikTokIcon,
     apiStatus: "Active",
     uniqueCapability: "Privacy Toggles",
     features: [
@@ -199,7 +199,7 @@ export const PLATFORM_SPECS: PlatformSpec[] = [
     id: "linkedin",
     name: "LinkedIn",
     subtitle: "The Professional Record",
-    icon: Linkedin,
+    icon: LinkedinIcon,
     apiStatus: "Active",
     uniqueCapability: "Smart Article Cards",
     features: [
@@ -235,7 +235,7 @@ export const PLATFORM_SPECS: PlatformSpec[] = [
     id: "youtube",
     name: "YouTube",
     subtitle: "Broadcast Control",
-    icon: Youtube,
+    icon: YoutubeIcon,
     apiStatus: "Active",
     uniqueCapability: "Compliance & Shorts",
     features: [
@@ -272,7 +272,7 @@ export const PLATFORM_SPECS: PlatformSpec[] = [
     id: "x",
     name: "X (Twitter)",
     subtitle: "The Wire",
-    icon: Twitter,
+    icon: TwitterIcon,
     apiStatus: "Active",
     uniqueCapability: "Native Threading",
     features: [
@@ -311,7 +311,7 @@ export const PLATFORM_SPECS: PlatformSpec[] = [
     id: "pinterest",
     name: "Pinterest",
     subtitle: "Visual Discovery",
-    icon: Pin,
+    icon: PinterestIcon,
     apiStatus: "Active",
     uniqueCapability: "Board Management",
     features: [

@@ -26,7 +26,8 @@
       "Bash(mv:*)",
       "Bash(grep:*)",
       "Bash(npx drizzle-kit:*)",
-      "Bash(pnpm add:*)"
+      "Bash(pnpm add:*)",
+      "Bash(git checkout:*)"
     ],
     "deny": [],
     "ask": []
