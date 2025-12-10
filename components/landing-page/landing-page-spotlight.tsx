@@ -13,36 +13,46 @@ import { cn } from "@/lib/utils";
 import PlatformSpecsLedger from "./platform-specs-ledger";
 
 export default function LandingPageSpotlight() {
+  // Shared border styles for uniform "thin ink" look
+  // border-foreground/20 is much lighter than the previous solid black
+  const solidBorder = "border-foreground/20";
+  const dashedBorder = "border-foreground/30 border-dashed";
+
   return (
-    <section className="bg-background-editorial text-foreground py-20 border-b border-foreground overflow-hidden">
+    <section className="bg-background-editorial text-foreground py-20 border-b border-foreground/20 overflow-hidden">
       <div className="mx-auto w-full max-w-7xl px-4 md:px-6">
         {/* SECTION HEADER */}
         <div className="mb-12 flex items-center gap-4">
-          <div className="flex-1 h-px bg-foreground" />
-          <span className="font-mono text-xs uppercase tracking-widest bg-foreground text-background-editorial px-3 py-1 font-bold">
+          <div className="flex-1 h-[1px] bg-foreground/20" />
+          <span className="font-mono text-xs uppercase  text-white tracking-widest bg-primary text-foreground px-3 py-1 font-bold">
             The Feature Ledger
           </span>
-          <div className="flex-1 h-px bg-foreground" />
+          <div className="flex-1 h-[1px] bg-foreground/20" />
         </div>
 
         {/* 
            THE NEWSPAPER GRID 
-           Strategy: bg-foreground with gap-px creates the grid lines. 
-           Children use bg-background-editorial to hide the black, revealing only the 1px gap.
+           Changed: Removed `gap-px bg-foreground`. 
+           Now using `gap-0` with explicit borders on children for finer control.
+           Added an outer border to frame the "paper".
         */}
-        <div className="bg-foreground border-2 border-foreground gap-px grid grid-cols-1 md:grid-cols-12 overflow-hidden shadow-sm">
+        <div
+          className={`border ${solidBorder} gap-0 grid grid-cols-1 md:grid-cols-12 overflow-hidden shadow-sm`}
+        >
           {/* --- ROW 1: HEADLINE STORY & SIDEBAR --- */}
 
           {/* 1. THE MEDIA ROOM (Lead Story) - Spans 8 cols */}
-          <div className="md:col-span-8 bg-background-editorial p-8 md:p-12 flex flex-col justify-between min-h-[400px]">
+          <div
+            className={`md:col-span-8 bg-background-editorial p-8 md:p-12 flex flex-col justify-between min-h-[400px] border-b md:border-b-0 md:border-r ${solidBorder}`}
+          >
             <div>
               <div className="flex items-center gap-2 mb-4">
-                <div className="w-2 h-2 bg-brand-primary rounded-full" />
-                <span className="font-mono text-[10px] uppercase tracking-widest text-foreground/60 font-bold">
+                <div className="w-2 h-2 bg-brand-primary rounded-full opacity-80" />
+                <span className="font-mono text-[10px] uppercase tracking-widest text-foreground/50 font-bold">
                   Asset Management
                 </span>
               </div>
-              <h3 className="font-serif text-4xl md:text-5xl font-medium mb-6 leading-[0.95]">
+              <h3 className="font-serif text-4xl md:text-5xl font-medium mb-6 leading-[0.95] tracking-tight">
                 The Media Room
               </h3>
               <p className="font-serif text-lg text-foreground/80 max-w-lg leading-relaxed">
@@ -53,8 +63,10 @@ export default function LandingPageSpotlight() {
               </p>
             </div>
 
-            {/* Visual Abstract */}
-            <div className="mt-12 grid grid-cols-4 gap-px bg-foreground/10 border border-foreground/10 h-32 opacity-60">
+            {/* Visual Abstract - Lightened borders */}
+            <div
+              className={`mt-12 grid grid-cols-4 gap-px bg-foreground/10 border ${solidBorder} h-32 opacity-60`}
+            >
               {[...Array(4)].map((_, i) => (
                 <div key={i} className="bg-background-editorial relative">
                   <div className="absolute inset-2 bg-foreground/5" />
@@ -64,12 +76,15 @@ export default function LandingPageSpotlight() {
           </div>
 
           {/* 2. THE CALENDAR (Sidebar) - Spans 4 cols, vertically tall */}
-          <div className="md:col-span-4 md:row-span-2 bg-background-editorial p-8 border-l-0 md:border-l-0 relative flex flex-col">
+          {/* Note: This spans 2 rows. It needs a bottom border to separate from items below it. */}
+          <div
+            className={`md:col-span-4 md:row-span-2 bg-background-editorial p-8 border-b ${solidBorder} relative flex flex-col`}
+          >
             <div className="flex items-center justify-between mb-6">
-              <span className="font-mono text-[10px] uppercase tracking-widest text-foreground/60 font-bold">
+              <span className="font-mono text-[10px] uppercase tracking-widest text-foreground/50 font-bold">
                 Scheduling
               </span>
-              <CalendarDays className="w-4 h-4 text-brand-primary" />
+              <CalendarDays className="w-4 h-4 text-brand-primary/80" />
             </div>
 
             <h3 className="font-serif text-3xl font-medium mb-4">
@@ -81,19 +96,23 @@ export default function LandingPageSpotlight() {
             </p>
 
             {/* Calendar Visual Abstract */}
-            <div className="flex-1 w-full bg-surface border border-foreground/10 p-4 flex flex-col gap-2 opacity-80">
-              <div className="flex justify-between border-b border-foreground/10 pb-2 mb-2">
-                <div className="w-1/3 h-2 bg-foreground/20" />
-                <div className="w-1/4 h-2 bg-foreground/10" />
+            <div
+              className={`flex-1 w-full bg-surface border ${solidBorder} p-4 flex flex-col gap-2 opacity-80`}
+            >
+              <div
+                className={`flex justify-between border-b ${solidBorder} pb-2 mb-2`}
+              >
+                <div className="w-1/3 h-2 bg-foreground/10" />
+                <div className="w-1/4 h-2 bg-foreground/5" />
               </div>
               <div className="grid grid-cols-7 gap-1 h-full">
                 {[...Array(28)].map((_, i) => (
                   <div
                     key={i}
                     className={cn(
-                      "bg-foreground/5 rounded-sm",
+                      "bg-foreground/5 rounded-[1px]",
                       i === 12 &&
-                        "bg-brand-primary/20 ring-1 ring-brand-primary"
+                        "bg-brand-primary/20 ring-1 ring-brand-primary/50"
                     )}
                   />
                 ))}
@@ -104,12 +123,15 @@ export default function LandingPageSpotlight() {
           {/* --- ROW 2: THE OPERATIONS STRIP --- */}
 
           {/* 3. ANALYTICS - Spans 4 cols */}
-          <div className="md:col-span-4 bg-background-editorial p-8 flex flex-col justify-between">
+          {/* Needs Right border to separate from Connectivity */}
+          <div
+            className={`md:col-span-4 bg-background-editorial p-8 flex flex-col justify-between border-b md:border-b-0 md:border-r ${solidBorder}`}
+          >
             <div className="flex items-center justify-between mb-6">
-              <span className="font-mono text-[10px] uppercase tracking-widest text-foreground/60 font-bold">
+              <span className="font-mono text-[10px] uppercase tracking-widest text-foreground/50 font-bold">
                 Performance
               </span>
-              <BarChart3 className="w-4 h-4 text-brand-primary" />
+              <BarChart3 className="w-4 h-4 text-brand-primary/80" />
             </div>
 
             <div>
@@ -122,20 +144,23 @@ export default function LandingPageSpotlight() {
               </p>
             </div>
 
-            <div className="h-1 w-full bg-foreground/10 mt-8 overflow-hidden">
-              <div className="h-full w-[65%] bg-brand-primary" />
+            <div className="h-[2px] w-full bg-foreground/10 mt-8 overflow-hidden">
+              <div className="h-full w-[65%] bg-brand-primary/80" />
             </div>
           </div>
 
           {/* 4. CONNECTIVITY - Spans 4 cols */}
-          <div className="md:col-span-4 bg-background-editorial p-8">
+          {/* Needs Right border to separate from the Calendar (which is to its right in the grid flow) */}
+          <div
+            className={`md:col-span-4 bg-background-editorial p-8 border-b md:border-b-0 md:border-r ${solidBorder}`}
+          >
             <div className="flex items-center justify-between mb-6">
-              <span className="font-mono text-[10px] uppercase tracking-widest text-foreground/60 font-bold">
+              <span className="font-mono text-[10px] uppercase tracking-widest text-foreground/50 font-bold">
                 Connectivity
               </span>
               <div className="relative flex h-2 w-2">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500/80"></span>
               </div>
             </div>
 
@@ -143,61 +168,63 @@ export default function LandingPageSpotlight() {
               Every Platform
             </h3>
 
-            <div className="grid grid-cols-4 gap-4 mt-8 opacity-70">
+            <div className="grid grid-cols-4 gap-4 mt-8 opacity-60">
               <SocialIcon
                 network="x"
-                style={{ height: 40, width: 40 }}
+                style={{ height: 35, width: 35 }}
                 bgColor="transparent"
-                fgColor="#000000"
+                fgColor="currentColor"
               />
               <SocialIcon
                 network="instagram"
-                style={{ height: 40, width: 40 }}
+                style={{ height: 35, width: 35 }}
                 bgColor="transparent"
-                fgColor="#000000"
+                fgColor="currentColor"
               />
               <SocialIcon
                 network="linkedin"
-                style={{ height: 40, width: 40 }}
+                style={{ height: 35, width: 35 }}
                 bgColor="transparent"
-                fgColor="#000000"
+                fgColor="currentColor"
               />
               <SocialIcon
                 network="facebook"
-                style={{ height: 40, width: 40 }}
+                style={{ height: 35, width: 35 }}
                 bgColor="transparent"
-                fgColor="#000000"
+                fgColor="currentColor"
               />
               <SocialIcon
                 network="youtube"
-                style={{ height: 40, width: 40 }}
+                style={{ height: 35, width: 35 }}
                 bgColor="transparent"
-                fgColor="#000000"
+                fgColor="currentColor"
               />
               <SocialIcon
                 network="tiktok"
-                style={{ height: 40, width: 40 }}
+                style={{ height: 35, width: 35 }}
                 bgColor="transparent"
-                fgColor="#000000"
+                fgColor="currentColor"
               />
               <SocialIcon
                 network="threads"
-                style={{ height: 40, width: 40 }}
+                style={{ height: 35, width: 35 }}
                 bgColor="transparent"
-                fgColor="#000000"
+                fgColor="currentColor"
               />
               <SocialIcon
                 network="pinterest"
-                style={{ height: 40, width: 40 }}
+                style={{ height: 35, width: 35 }}
                 bgColor="transparent"
-                fgColor="#000000"
+                fgColor="currentColor"
               />
             </div>
           </div>
 
           {/* --- ROW 3: EDITORIAL DESK (Featured) --- */}
-          {/* Spans 8 cols */}
-          <div className="md:col-span-8 bg-brand-primary text-brand-primary-foreground p-8 md:p-10 relative overflow-hidden">
+          {/* Spans 8 cols. We add a dashed bottom border here to separate the top "Features" from the bottom "Opinions" */}
+          <div
+            className={`md:col-span-8 bg-brand-primary text-brand-primary-foreground p-8 md:p-10 relative overflow-hidden border-b ${dashedBorder} md:border-r ${solidBorder}`}
+          >
             <div className="relative z-10">
               <h3 className="font-serif text-3xl font-medium mb-4">
                 The Editorial Desk
@@ -214,58 +241,74 @@ export default function LandingPageSpotlight() {
           </div>
 
           {/* --- ROW 4: THE OPINION COLUMNS (Text Heavy) --- */}
+          {/* We use DASHED borders here for the "Classifieds" look */}
 
-          <div className="md:col-span-4 bg-background-editorial p-8 border-t-0">
+          {/* WORKSPACES: Sits to the right of Editorial Desk in the flow */}
+          <div
+            className={`md:col-span-4 bg-background-editorial p-8 border-b ${dashedBorder}`}
+          >
             <div className="flex items-center justify-between mb-6">
-              <span className="font-mono text-[10px] uppercase tracking-widest text-foreground/60 font-bold">
+              <span className="font-mono text-[10px] uppercase tracking-widest text-foreground/50 font-bold">
                 Workspaces
               </span>
-              <FolderOpen className="w-4 h-4 text-brand-primary" />
+              <FolderOpen className="w-4 h-4 text-brand-primary/80" />
             </div>
 
             <h4 className="font-serif text-3xl font-medium mb-4">
               Silos that work.
             </h4>
-            <p className="font-serif text-sm text-foreground/80 leading-relaxed">
+            <p className="font-serif text-sm text-foreground/70 leading-relaxed">
               Most tools lump everything together. We use distinct Workspaces
               with their own timezones, libraries, and tags. Your personal brand
               never touches your client work.
             </p>
           </div>
 
-          <div className="md:col-span-4 bg-background-editorial p-8 border-t-0">
+          {/* WORKFLOW */}
+          <div
+            className={`md:col-span-4 bg-background-editorial p-8 border-b md:border-b-0 md:border-r ${dashedBorder}`}
+          >
             <div className="flex items-center justify-between mb-6">
-              <span className="font-mono text-[10px] uppercase tracking-widest text-foreground/60 font-bold">
+              <span className="font-mono text-[10px] uppercase tracking-widest text-foreground/50 font-bold">
                 Workflow
               </span>
-              <ShieldCheck className="w-4 h-4 text-brand-primary" />
+              <ShieldCheck className="w-4 h-4 text-brand-primary/80" />
             </div>
 
             <h4 className="font-serif text-3xl font-medium mb-4">
               Review & Approve.
             </h4>
-            <p className="font-serif text-sm text-foreground/80 leading-relaxed">
+            <p className="font-serif text-sm text-foreground/70 leading-relaxed">
               Whether it's a client sign-off or just a second pair of eyes, our
               built-in approval workflows ensure nothing goes live by accident.
             </p>
           </div>
 
-          <div className="md:col-span-4 bg-background-editorial p-8 border-t-0">
+          {/* GLOBAL */}
+          <div
+            className={`md:col-span-4 bg-background-editorial p-8 border-b md:border-b-0 md:border-r ${dashedBorder}`}
+          >
             <div className="flex items-center justify-between mb-6">
-              <span className="font-mono text-[10px] uppercase tracking-widest text-foreground/60 font-bold">
+              <span className="font-mono text-[10px] uppercase tracking-widest text-foreground/50 font-bold">
                 Global
               </span>
-              <Globe className="w-4 h-4 text-brand-primary" />
+              <Globe className="w-4 h-4 text-brand-primary/80" />
             </div>
 
             <h4 className="font-serif text-3xl font-medium mb-4">
               Timezone Sovereignty.
             </h4>
-            <p className="font-serif text-sm text-foreground/80 leading-relaxed">
+            <p className="font-serif text-sm text-foreground/70 leading-relaxed">
               When your client is in NY and you are in Tokyo, 9 AM means 9 AM
               for them. Each workspace runs on its own clock.
             </p>
           </div>
+
+          {/* LEDGER - Assuming this component handles its own internal layout, 
+              we leave it as is, but it sits inside the grid so it will flow naturally. 
+              The previous element (Global) didn't close the row (it was col 5-8 effectively),
+              so Ledger might need to ensure it clears or starts fresh depending on its internal definition.
+          */}
           <PlatformSpecsLedger />
         </div>
       </div>

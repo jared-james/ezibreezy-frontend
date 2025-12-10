@@ -10,28 +10,35 @@ import { Check, Cpu } from "lucide-react";
 export default function PlatformSpecsLedger() {
   const [activeTab, setActiveTab] = useState(PLATFORM_SPECS[0].id);
 
+  // Consistent 1950s styling variables
+  const borderStyle = "border-foreground/20";
+  const dashedBorder = "border-foreground/30 border-dashed";
+
   return (
     <>
-      <div className="col-span-1 md:col-span-12 bg-background-editorial p-8 md:p-12 border-t-0">
+      {/* 
+        HEADER SECTION 
+      */}
+      <div
+        className={`col-span-1 md:col-span-12 bg-background-editorial p-8 md:p-12 border-t ${dashedBorder}`}
+      >
         <div className="flex items-center gap-3 mb-4">
-          <Cpu className="w-6 h-6 text-brand-primary" />
-          <h2 className="font-serif text-3xl md:text-4xl font-bold">
+          {/* UPDATED FONT: Lighter weight, tighter tracking, specific leading */}
+          <h2 className="font-serif text-4xl md:text-5xl font-medium mb-6 leading-[0.95] tracking-tight">
             Technical Specifications
           </h2>
         </div>
-        <p className="font-serif text-lg text-foreground/70 max-w-2xl">
-          We don't just "support" these platforms. We engineered deep
-          integrations that utilize their native features, specific APIs, and
-          unique quirks.
+        <p className="font-serif text-lg text-foreground/80 max-w-2xl leading-relaxed">
+          Deep integrations utilizing native features and specific APIs.
         </p>
       </div>
 
       {/* 
-        NAVIGATION CONTAINER 
-        Mobile: Horizontal scroll, Icon only
-        Desktop: Vertical list, Icon + Text
+        NAVIGATION SIDEBAR 
       */}
-      <div className="col-span-1 md:col-span-4 lg:col-span-3 bg-background-editorial border-t-0 border-b md:border-b-0 border-foreground/10 flex flex-row md:flex-col overflow-x-auto md:overflow-visible no-scrollbar">
+      <div
+        className={`col-span-1 md:col-span-4 lg:col-span-3 bg-background-editorial border-t-0 border-b md:border-b-0 md:border-r ${borderStyle} flex flex-row md:flex-col overflow-x-auto md:overflow-visible no-scrollbar`}
+      >
         {PLATFORM_SPECS.map((platform) => {
           const isActive = activeTab === platform.id;
           const Icon = platform.icon;
@@ -42,12 +49,11 @@ export default function PlatformSpecsLedger() {
               onClick={() => setActiveTab(platform.id)}
               className={cn(
                 "group flex items-center justify-center md:justify-start gap-4 transition-all shrink-0",
-                // Mobile Sizing: Square touch targets
+                // Mobile Sizing
                 "h-16 w-16 md:h-auto md:w-auto md:p-5",
-                // Mobile Borders: Right border separator
-                "border-r border-foreground/10 md:border-r-0",
-                // Desktop Borders: Bottom border separator
-                "md:border-b md:last:border-0",
+                // Borders
+                `border-r ${borderStyle} md:border-r-0`,
+                `md:border-b ${borderStyle} md:last:border-b-0`,
                 isActive
                   ? "bg-brand-primary text-brand-primary-foreground"
                   : "hover:bg-foreground/5 text-foreground bg-background-editorial"
@@ -57,13 +63,12 @@ export default function PlatformSpecsLedger() {
               <Icon
                 className={cn(
                   "transition-transform group-hover:scale-110",
-                  // Slightly larger icon on mobile for touch accuracy
                   "w-6 h-6 md:w-5 md:h-5",
                   isActive ? "text-white" : "text-foreground/70"
                 )}
               />
-              {/* Text hidden on mobile, visible on desktop */}
-              <span className="hidden md:block font-serif font-bold text-sm tracking-wide">
+              {/* UPDATED FONT: Changed font-bold to font-medium for lighter look */}
+              <span className="hidden md:block font-serif font-medium text-sm tracking-wide">
                 {platform.name}
               </span>
             </button>
@@ -71,7 +76,9 @@ export default function PlatformSpecsLedger() {
         })}
       </div>
 
-      {/* CONTENT PANEL */}
+      {/* 
+        CONTENT PANEL 
+      */}
       <div className="col-span-1 md:col-span-8 lg:col-span-9 bg-background-editorial relative min-h-[600px]">
         {PLATFORM_SPECS.map((platform) => {
           const isActive = activeTab === platform.id;
@@ -88,7 +95,10 @@ export default function PlatformSpecsLedger() {
               role="tabpanel"
               aria-hidden={!isActive}
             >
-              <div className="flex flex-col xl:flex-row xl:items-end justify-between border-b border-foreground/10 pb-8 mb-10 gap-6">
+              {/* Title Section */}
+              <div
+                className={`flex flex-col xl:flex-row xl:items-end justify-between border-b ${dashedBorder} pb-8 mb-10 gap-6`}
+              >
                 <div>
                   <h3 className="font-serif text-5xl md:text-6xl font-medium mb-2 tracking-tight">
                     {platform.name}
@@ -99,12 +109,14 @@ export default function PlatformSpecsLedger() {
                 </div>
               </div>
 
+              {/* Specs Grid */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-x-16 gap-y-12">
                 {platform.features.map((feature, i) => (
                   <div key={i}>
                     <div className="flex items-center gap-3 mb-4">
-                      <div className="w-1 h-5 bg-brand-primary" />
-                      <h4 className="font-serif text-xl font-bold text-foreground">
+                      <div className="w-px h-5 bg-brand-primary" />
+                      {/* UPDATED FONT: Changed font-bold to font-medium */}
+                      <h4 className="font-serif text-xl font-medium text-foreground">
                         {feature.title}
                       </h4>
                     </div>
@@ -114,7 +126,7 @@ export default function PlatformSpecsLedger() {
                           key={j}
                           className="flex items-start gap-3 text-sm text-foreground/80 leading-relaxed font-serif"
                         >
-                          <Check className="w-3.5 h-3.5 text-brand-primary mt-1 shrink-0" />
+                          <Check className="w-3.5 h-3.5 text-brand-primary mt-1 shrink-0 opacity-70" />
                           <span>{point}</span>
                         </li>
                       ))}
@@ -123,11 +135,14 @@ export default function PlatformSpecsLedger() {
                 ))}
               </div>
 
-              <div className="mt-20 pt-6 border-t border-dashed border-foreground/20 flex justify-between items-center">
-                <span className="font-mono text-[10px] uppercase tracking-widest text-foreground/40">
+              {/* Footer */}
+              <div
+                className={`mt-20 pt-6 border-t ${dashedBorder} flex justify-between items-center opacity-70`}
+              >
+                <span className="font-mono text-[10px] uppercase tracking-widest text-foreground/60">
                   API Status: {platform.apiStatus.toUpperCase()}
                 </span>
-                <span className="font-mono text-[10px] uppercase tracking-widest text-foreground/40">
+                <span className="font-mono text-[10px] uppercase tracking-widest text-foreground/60">
                   {platform.uniqueCapability.toUpperCase()}
                 </span>
               </div>
