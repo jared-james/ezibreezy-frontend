@@ -4,13 +4,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import {
-  ArrowRight,
-  Scissors,
-  Loader2,
-  CheckCircle2,
-  AlertCircle,
-} from "lucide-react";
+import { ArrowRight, Loader2, CheckCircle2, AlertCircle } from "lucide-react";
 import { signupForWaitlist } from "@/app/actions/early-access";
 import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
@@ -168,7 +162,14 @@ export default function LandingPageFooter() {
                   About Us
                 </Link>
               </li>
-
+              <li>
+                <Link
+                  href="/editorial"
+                  className="hover:text-brand-primary hover:underline decoration-dotted underline-offset-4 transition-colors"
+                >
+                  Editorial
+                </Link>
+              </li>
               <li>
                 <Link
                   href="/auth/login"

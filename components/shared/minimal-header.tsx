@@ -48,6 +48,16 @@ export default function MinimalHeader() {
               Tools
             </Link>
             <Link
+              href="/editorial"
+              className={`px-2 py-0.5 transition-colors ${
+                pathname.startsWith("/editorial")
+                  ? "bg-foreground text-background-editorial"
+                  : "hover:bg-foreground hover:text-background-editorial"
+              }`}
+            >
+              Editorial
+            </Link>
+            <Link
               href="/auth/login"
               className={`px-2 py-0.5 transition-colors ${
                 pathname === "/auth/login"

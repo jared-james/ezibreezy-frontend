@@ -36,6 +36,12 @@ export default function LandingPageHeader() {
               Tools
             </Link>
             <Link
+              href="/editorial"
+              className="px-2 py-0.5 transition-colors hover:bg-foreground hover:text-background-editorial"
+            >
+              Editorial
+            </Link>
+            <Link
               href="/auth/login"
               className="px-2 py-0.5 transition-colors hover:bg-foreground hover:text-background-editorial"
             >
