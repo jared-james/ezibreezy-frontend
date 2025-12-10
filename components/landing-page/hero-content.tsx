@@ -81,7 +81,7 @@ export default function HeroContent() {
           <span className="mr-3 -mt-1.5 float-left font-serif text-5xl font-bold">
             W
           </span>
-          e are building the editorial desk for the modern creator. polished,
+          elcome to the editorial desk for the modern creator. polished,
           intuitive, and unmistakably enjoyable to create in.
         </p>
 

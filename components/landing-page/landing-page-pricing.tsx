@@ -17,7 +17,7 @@ export default function LandingPagePricing() {
     if (plan.tier === "creator") {
       return {
         ...plan,
-        description: "For solo creators and business owners building a legacy.",
+        description: "For solo creators and business owners.",
       };
     }
     return plan;
