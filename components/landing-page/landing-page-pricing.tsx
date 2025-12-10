@@ -1,3 +1,5 @@
+// components/landing-page/landing-page-pricing.tsx
+
 "use client";
 
 import { useState } from "react";

@@ -3,62 +3,68 @@
 import LandingPageFooter from "@/components/landing-page/landing-page-footer";
 import LandingPageHeader from "@/components/landing-page/landing-page-header";
 
-// All icon imports and definitions have been removed as requested.
-
 const sections = [
   {
     id: "information-collection",
     title: "Information We Collect",
     content: (
       <>
-        <p className="article-body mb-6 text-muted-foreground">
-          We collect information about you and your activity in the following
-          ways to provide our content generation and publishing service:
+        <p className="font-serif text-lg text-foreground/80 mb-8 leading-relaxed">
+          We collect information to provide our editorial and publishing
+          services. This includes data you provide directly and data collected
+          automatically via your interactions with the platform.
         </p>
-        <div className="space-y-6">
-          <div className="pl-6 border-l-2 border-border/70">
-            <h4 className="font-serif font-bold text-lg mb-2 text-foreground">
-              Personal and Account Data
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+          <div className="p-6 border border-dashed border-foreground/30 bg-background-editorial">
+            <h4 className="font-serif font-bold text-xl mb-3 text-foreground flex items-center gap-2">
+              <span className="w-2 h-2 bg-brand-primary rounded-full" />
+              Account & Identity
             </h4>
-            <p className="article-body text-muted-foreground">
-              When you register, we collect your unique{" "}
-              <span className="font-bold">User ID</span> (from Supabase),{" "}
-              <span className="font-bold">email address</span>,{" "}
-              <span className="font-bold">display name</span>, and information
-              about the organizations you belong to and manage.
+            <p className="font-serif text-sm text-foreground/70 leading-relaxed">
+              We collect your <span className="font-bold">email address</span>,{" "}
+              <span className="font-bold">display name</span>, and
+              authentication IDs (via Supabase). If you purchase a subscription,
+              our payment processor (Stripe) collects billing details; we do not
+              store raw credit card numbers.
             </p>
           </div>
-          <div className="pl-6 border-l-2 border-border/70">
-            <h4 className="font-serif font-bold text-lg mb-2 text-foreground">
-              Content and AI Data
+
+          <div className="p-6 border border-dashed border-foreground/30 bg-background-editorial">
+            <h4 className="font-serif font-bold text-xl mb-3 text-foreground flex items-center gap-2">
+              <span className="w-2 h-2 bg-brand-primary rounded-full" />
+              Social Credentials
             </h4>
-            <p className="article-body text-muted-foreground">
-              We store the <span className="font-bold">raw text prompts</span>{" "}
-              you submit to the AI Gateway and the resulting generated content
-              (drafts, titles, and post bodies) to manage your content library.
+            <p className="font-serif text-sm text-foreground/70 leading-relaxed">
+              To publish on your behalf, we store OAuth{" "}
+              <span className="font-bold">access and refresh tokens</span> for
+              connected platforms. These are stored using AES-256-GCM encryption
+              at rest and are never shared with third parties other than the
+              platforms themselves.
             </p>
           </div>
-          <div className="pl-6 border-l-2 border-border/70">
-            <h4 className="font-serif font-bold text-lg mb-2 text-foreground">
-              Social Media Credentials
+
+          <div className="p-6 border border-dashed border-foreground/30 bg-background-editorial">
+            <h4 className="font-serif font-bold text-xl mb-3 text-foreground flex items-center gap-2">
+              <span className="w-2 h-2 bg-brand-primary rounded-full" />
+              Editorial Content
             </h4>
-            <p className="article-body text-muted-foreground">
-              If you connect a social media account (e.g., X/Twitter), we
-              retrieve and store the required OAuth{" "}
-              <span className="font-bold">access and refresh tokens</span>.
-              These tokens are stored securely using strong encryption
-              (AES-256-GCM). We also store public profile details (username,
-              profile image).
+            <p className="font-serif text-sm text-foreground/70 leading-relaxed">
+              We process your <span className="font-bold">prompts</span> sent to
+              AI providers and store the resulting drafts, media files, and
+              scheduled posts to manage your content library.
             </p>
           </div>
-          <div className="pl-6 border-l-2 border-border/70">
-            <h4 className="font-serif font-bold text-lg mb-2 text-foreground">
-              Media and Publishing Data
+
+          <div className="p-6 border border-dashed border-foreground/30 bg-background-editorial">
+            <h4 className="font-serif font-bold text-xl mb-3 text-foreground flex items-center gap-2">
+              <span className="w-2 h-2 bg-brand-primary rounded-full" />
+              Usage & Log Data
             </h4>
-            <p className="article-body text-muted-foreground">
-              Uploaded media files (images, videos) are stored on our cloud
-              storage (R2/S3), and we save the resulting links and file details
-              in our database.
+            <p className="font-serif text-sm text-foreground/70 leading-relaxed">
+              Our servers automatically record information ("Log Data") such as
+              your IP address, browser type, referring domain, and pages
+              visited. This helps us prevent abuse and improve platform
+              stability.
             </p>
           </div>
         </div>
@@ -66,102 +72,232 @@ const sections = [
     ),
   },
   {
-    id: "use-of-information",
-    title: "How We Use Your Information",
+    id: "platform-integrations",
+    title: "Platform Integrations",
     content: (
       <>
-        <p className="article-body mb-6 text-muted-foreground">
-          Your information is primarily used to power the ezibreezy platform and
-          deliver content:
+        <p className="font-serif text-lg text-foreground/80 mb-6 leading-relaxed">
+          Our service acts as a bridge to third-party platforms. By connecting
+          these accounts, you acknowledge that your data is processed according
+          to their respective policies.
         </p>
-        <div className="grid gap-4">
-          {[
-            "To generate content drafts by sending your prompts to the configured AI provider (OpenAI/Gemini).",
-            "To securely store your encrypted tokens and user settings for future publishing.",
-            "To publish your scheduled content and media to the designated social media platforms at the specified time.",
-            "To manage and maintain your content library (draft, scheduled, sent posts).",
-            "To authenticate your identity (via Supabase) and manage your organizational permissions.",
-          ].map((item, index) => (
-            <div key={index} className="flex items-start gap-3">
-              <div className="w-1.5 h-1.5 rounded-full bg-brand-primary mt-2 flex-shrink-0" />
-              <p className="article-body text-muted-foreground">{item}</p>
+
+        <div className="space-y-6">
+          {/* YouTube / Google Block - CRITICAL for Compliance */}
+          <div className="p-6 border-l-4 border-brand-primary bg-surface/50">
+            <h4 className="font-serif font-bold text-lg mb-2">
+              YouTube & Google API Services
+            </h4>
+            <p className="font-serif text-sm text-foreground/80 leading-relaxed mb-4">
+              We use YouTube API Services to upload videos and retrieve
+              analytics. By using this integration, you agree to be bound by the{" "}
+              <a
+                href="https://www.youtube.com/t/terms"
+                target="_blank"
+                rel="noreferrer"
+                className="underline decoration-brand-primary/50 hover:text-brand-primary font-bold"
+              >
+                YouTube Terms of Service
+              </a>
+              . Your data is processed in accordance with the{" "}
+              <a
+                href="http://www.google.com/policies/privacy"
+                target="_blank"
+                rel="noreferrer"
+                className="underline decoration-brand-primary/50 hover:text-brand-primary font-bold"
+              >
+                Google Privacy Policy
+              </a>
+              .
+            </p>
+            <div className="bg-background-editorial p-3 border border-foreground/10 inline-block">
+              <p className="font-mono text-xs text-foreground/70">
+                <strong>Revoke Access:</strong> You can remove our access via
+                the{" "}
+                <a
+                  href="https://security.google.com/settings/security/permissions"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="underline hover:text-brand-primary"
+                >
+                  Google Security Settings page
+                </a>
+                .
+              </p>
             </div>
-          ))}
+          </div>
+
+          {/* Meta (Facebook/Instagram) */}
+          <div className="p-6 border border-dashed border-foreground/20">
+            <h4 className="font-serif font-bold text-lg mb-2">
+              Meta (Facebook & Instagram)
+            </h4>
+            <p className="font-serif text-sm text-foreground/80 leading-relaxed">
+              We access your Page IDs, usernames, and insights via the Meta
+              Graph API to schedule posts and report performance. Please refer
+              to the{" "}
+              <a
+                href="https://www.facebook.com/privacy/policy"
+                target="_blank"
+                rel="noreferrer"
+                className="underline hover:text-brand-primary"
+              >
+                Meta Privacy Policy
+              </a>
+              . You can manage app permissions in your{" "}
+              <a
+                href="https://www.facebook.com/settings?tab=business_tools"
+                target="_blank"
+                rel="noreferrer"
+                className="underline hover:text-brand-primary"
+              >
+                Facebook Business Integrations
+              </a>
+              .
+            </p>
+          </div>
+
+          {/* TikTok */}
+          <div className="p-6 border border-dashed border-foreground/20">
+            <h4 className="font-serif font-bold text-lg mb-2">TikTok</h4>
+            <p className="font-serif text-sm text-foreground/80 leading-relaxed">
+              We access your profile information and video metrics to enable
+              publishing and analytics. Refer to the{" "}
+              <a
+                href="https://www.tiktok.com/legal/page/row/privacy-policy/en"
+                target="_blank"
+                rel="noreferrer"
+                className="underline hover:text-brand-primary"
+              >
+                TikTok Privacy Policy
+              </a>
+              .
+            </p>
+          </div>
+
+          {/* LinkedIn & Pinterest */}
+          <div className="p-6 border border-dashed border-foreground/20">
+            <h4 className="font-serif font-bold text-lg mb-2">
+              LinkedIn & Pinterest
+            </h4>
+            <p className="font-serif text-sm text-foreground/80 leading-relaxed">
+              We utilize OAuth tokens to post content to your profile/boards.
+              Data handling is subject to the{" "}
+              <a
+                href="https://www.linkedin.com/legal/privacy-policy"
+                target="_blank"
+                rel="noreferrer"
+                className="underline hover:text-brand-primary"
+              >
+                LinkedIn Privacy Policy
+              </a>{" "}
+              and{" "}
+              <a
+                href="https://policy.pinterest.com/en/privacy-policy"
+                target="_blank"
+                rel="noreferrer"
+                className="underline hover:text-brand-primary"
+              >
+                Pinterest Privacy Policy
+              </a>
+              .
+            </p>
+          </div>
         </div>
       </>
     ),
   },
   {
-    id: "disclosure-of-information",
-    title: "Sharing Your Information",
+    id: "cookies",
+    title: "Cookies & Processors",
     content: (
-      <>
-        <p className="article-body mb-6 text-muted-foreground">
-          We do not sell your personal data. Information is only shared as
-          necessary to operate the service:
+      <div className="space-y-6">
+        <p className="font-serif text-lg text-foreground/80 leading-relaxed">
+          We use cookies to maintain your session and improve the service. We do
+          not sell your data. We only share data with specific "Processors"
+          necessary to run the application:
         </p>
-        <div className="space-y-6">
-          <div className="pl-6 border-l-2 border-border/70">
-            <h4 className="font-serif font-bold text-lg mb-2 text-foreground">
-              With External AI Services
-            </h4>
-            <p className="article-body text-muted-foreground">
-              Your <span className="font-bold">text prompts</span> are
-              transmitted to the configured AI provider (e.g., OpenAI, Gemini)
-              to perform content generation.
-            </p>
-          </div>
-          <div className="pl-6 border-l-2 border-border/70">
-            <h4 className="font-serif font-bold text-lg mb-2 text-foreground">
-              With Social Media Platforms
-            </h4>
-            <p className="article-body text-muted-foreground">
-              Your{" "}
-              <span className="font-bold">
-                post content, media, and publishing request
-              </span>{" "}
-              are transmitted to the relevant social media platform (e.g.,
-              X/Twitter) using your encrypted tokens to fulfill your publishing
-              command.
-            </p>
-          </div>
-          <div className="pl-6 border-l-2 border-border/70">
-            <h4 className="font-serif font-bold text-lg mb-2 text-foreground">
-              With Service Providers
-            </h4>
-            <p className="article-body text-muted-foreground">
-              We share data with providers like Supabase (Auth), our database
-              (Postgres/Drizzle), BullMQ (Scheduling), and cloud media storage
-              (R2/S3) to host and operate the platform.
-            </p>
-          </div>
+        <div className="border-t border-b border-double border-foreground/20 py-8">
+          <ul className="grid gap-4">
+            <li className="flex items-start gap-4">
+              <span className="font-mono text-xs font-bold text-brand-primary mt-1.5 min-w-[80px]">
+                Infrastructure
+              </span>
+              <p className="font-serif text-foreground/80 text-sm leading-relaxed">
+                <span className="font-bold">Supabase</span> (Database & Auth),{" "}
+                <span className="font-bold">Vercel</span> (Hosting), and{" "}
+                <span className="font-bold">Cloudflare R2</span> (Media
+                Storage).
+              </p>
+            </li>
+            <li className="flex items-start gap-4">
+              <span className="font-mono text-xs font-bold text-brand-primary mt-1.5 min-w-[80px]">
+                Analytics
+              </span>
+              <p className="font-serif text-foreground/80 text-sm leading-relaxed">
+                <span className="font-bold">PostHog</span>. We use this to
+                understand which features are popular. Data is aggregated and
+                anonymized where possible.
+              </p>
+            </li>
+            <li className="flex items-start gap-4">
+              <span className="font-mono text-xs font-bold text-brand-primary mt-1.5 min-w-[80px]">
+                Payments
+              </span>
+              <p className="font-serif text-foreground/80 text-sm leading-relaxed">
+                <span className="font-bold">Stripe</span>. Payment data is
+                provided directly to Stripe. We do not access or store full card
+                numbers.
+              </p>
+            </li>
+          </ul>
         </div>
-      </>
+      </div>
     ),
   },
   {
-    id: "data-security",
-    title: "Data Security and Retention",
+    id: "security-retention",
+    title: "Security & Retention",
     content: (
-      <p className="article-body text-muted-foreground">
-        We prioritize data security. All sensitive credentials, such as{" "}
-        <span className="font-bold">social media tokens</span>, are encrypted at
-        rest. We store your data as long as your account is active to maintain
-        your content library. You can delete your account at any time, which
-        will permanently remove all personal data and content from our systems.
-      </p>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+        <div className="p-8 border-2 border-dashed border-foreground/20 bg-foreground/[0.02]">
+          <h4 className="font-serif font-bold text-lg mb-3">Data Retention</h4>
+          <p className="font-serif text-sm text-foreground/80 leading-relaxed mb-2">
+            <strong>Active Accounts:</strong> We retain your content library and
+            connection tokens as long as your account is active.
+          </p>
+          <p className="font-serif text-sm text-foreground/80 leading-relaxed">
+            <strong>Deletion:</strong> Upon account deletion, all personal data
+            is removed from our live databases within 30 days. Logs may be
+            retained for up to 90 days for security auditing.
+          </p>
+        </div>
+        <div className="p-8 border-2 border-dashed border-foreground/20 bg-foreground/[0.02]">
+          <h4 className="font-serif font-bold text-lg mb-3">
+            International Transfers
+          </h4>
+          <p className="font-serif text-sm text-foreground/80 leading-relaxed">
+            Our infrastructure is primarily located in the United States. By
+            using our service, you acknowledge that your data may be transferred
+            to and processed in the US, where data protection laws may differ
+            from your local jurisdiction.
+          </p>
+        </div>
+      </div>
     ),
   },
   {
     id: "contact",
-    title: "Contact Us",
+    title: "Contact & Rights",
     content: (
-      <p className="article-body text-muted-foreground">
-        If you have any questions or comments about this Privacy Policy, please
-        contact us at:{" "}
+      <p className="font-serif text-lg text-foreground/80 leading-relaxed">
+        You may request the deletion of your account and all associated data at
+        any time via your account settings. For privacy-related questions or to
+        exercise your rights (GDPR/CCPA/DPA), please contact our Data Protection
+        Officer at:{" "}
         <a
-          href="mailto:support@ezibreezy.app" // Placeholder email
-          className="text-brand-accent hover:text-brand-accent-hover underline underline-offset-4 font-bold transition-colors"
+          href="mailto:support@ezibreezy.app"
+          className="text-brand-primary hover:text-foreground font-bold underline decoration-brand-primary/30 underline-offset-4 transition-all"
         >
           support@ezibreezy.app
         </a>
@@ -172,52 +308,76 @@ const sections = [
 
 export default function PrivacyPage() {
   return (
-    <div className="bg-background text-foreground min-h-screen">
+    <div className="relative bg-background-editorial text-foreground min-h-screen">
+      <div
+        className="absolute inset-0 pointer-events-none opacity-[0.03]"
+        style={{
+          backgroundImage:
+            "linear-gradient(var(--foreground) 1px, transparent 1px), linear-gradient(90deg, var(--foreground) 1px, transparent 1px)",
+          backgroundSize: "40px 40px",
+        }}
+      />
+
       <LandingPageHeader />
-      <main className="container mx-auto px-6 py-16 md:py-24">
-        <div className="max-w-4xl mx-auto">
-          <div className="text-center mb-16">
-            {/* Removed icon wrapper div */}
-            <h1 className="headline text-4xl md:text-5xl lg:text-6xl font-extrabold tracking-tight text-foreground mb-4">
-              Privacy Policy
+
+      <main className="relative container mx-auto px-6 pt-24 pb-32 max-w-5xl">
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-8 mb-20 pb-8 border-b-4 border-double border-foreground/20">
+          <div className="max-w-3xl">
+            <div className="flex items-center gap-3 mb-4">
+              <span className="h-px w-8 bg-brand-primary" />
+              <p className="font-mono text-xs font-bold uppercase tracking-widest text-brand-primary">
+                Legal Reference
+              </p>
+            </div>
+            <h1 className="font-serif text-5xl md:text-6xl font-medium leading-[0.9] tracking-tight text-foreground">
+              Privacy <span className="italic">Policy</span>
             </h1>
-            <p className="dateline text-lg text-muted-foreground">
-              Last Updated: November 21, 2025
-            </p>
           </div>
-
-          <div className="mb-16 p-8 rounded-lg bg-surface border border-border">
-            <p className="article-body text-lg text-foreground leading-relaxed">
-              Welcome to ezibreezy ("we," "us," or "our"). We are committed to
-              protecting your privacy. This policy explains how we collect, use,
-              and safeguard your information when you use our content generation
-              and publishing application.
+          <div className="text-right">
+            <p className="font-mono text-[10px] uppercase tracking-widest opacity-60 mb-1">
+              Last Updated
             </p>
-          </div>
-
-          <div className="space-y-16">
-            {sections.map((section, index) => {
-              return (
-                <section
-                  key={section.id}
-                  id={section.id}
-                  className="scroll-mt-24"
-                >
-                  <div className="flex items-start gap-4 mb-6">
-                    {/* Removed Icon component and its container */}
-                    <div className="flex-1">
-                      <h2 className="font-serif font-bold text-2xl md:text-3xl text-foreground">
-                        {index + 1}. {section.title}
-                      </h2>
-                    </div>
-                  </div>
-                  <div className="pl-4 sm:pl-16">{section.content}</div>
-                </section>
-              );
-            })}
+            <p className="font-serif text-xl font-bold">November 21, 2025</p>
           </div>
         </div>
+
+        <div className="mb-20">
+          <div className="relative p-8 md:p-12 border-l-4 border-brand-primary bg-surface/50">
+            <p className="font-serif text-xl md:text-2xl text-foreground leading-relaxed italic">
+              "We value your sovereignty. This document outlines exactly how we
+              handle your data, the third parties we trust, and how you retain
+              control over your digital footprint across all connected
+              platforms."
+            </p>
+          </div>
+        </div>
+
+        <div className="space-y-24">
+          {sections.map((section, index) => {
+            return (
+              <section
+                key={section.id}
+                id={section.id}
+                className="scroll-mt-32 group"
+              >
+                <div className="flex flex-col md:flex-row gap-8 md:gap-16">
+                  <div className="md:w-1/4 shrink-0">
+                    <span className="inline-block px-3 py-1 border border-foreground/20 font-mono text-xs font-bold text-brand-primary uppercase tracking-widest mb-4">
+                      Section 0{index + 1}
+                    </span>
+                    <h2 className="font-serif text-3xl font-bold text-foreground leading-tight">
+                      {section.title}
+                    </h2>
+                  </div>
+
+                  <div className="md:w-3/4 pt-2">{section.content}</div>
+                </div>
+              </section>
+            );
+          })}
+        </div>
       </main>
+
       <LandingPageFooter />
     </div>
   );
