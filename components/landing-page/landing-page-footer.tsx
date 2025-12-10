@@ -10,9 +10,6 @@ import {
   Loader2,
   CheckCircle2,
   AlertCircle,
-  Twitter,
-  Instagram,
-  Linkedin,
 } from "lucide-react";
 import { signupForWaitlist } from "@/app/actions/early-access";
 import { toast } from "sonner";
@@ -95,7 +92,15 @@ export default function LandingPageFooter() {
                   href="/tools/instagram-grid-planner"
                   className="hover:text-brand-primary hover:underline decoration-dotted underline-offset-4 transition-colors"
                 >
-                  Grid Planner
+                  Grid Planner (Simulator)
+                </Link>
+              </li>
+              <li>
+                <Link
+                  href="/tools/instagram-grid-maker"
+                  className="hover:text-brand-primary hover:underline decoration-dotted underline-offset-4 transition-colors"
+                >
+                  Grid Maker (Splitter)
                 </Link>
               </li>
               <li>
