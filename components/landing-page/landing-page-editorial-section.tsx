@@ -139,7 +139,7 @@ export default function LandingPageEditorialSection() {
               <div className="flex flex-col">
                 <div className="mb-4 flex items-center justify-between border-t border-foreground pt-4"></div>
                 <h3 className="mb-3 font-serif text-xl font-bold">
-                  Silos that work.
+                  Workspaces
                 </h3>
                 <p className="font-serif text-sm leading-relaxed text-foreground/80">
                   Most tools lump everything together. We use distinct

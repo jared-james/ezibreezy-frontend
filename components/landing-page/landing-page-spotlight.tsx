@@ -8,393 +8,221 @@ import {
   Youtube,
   Music2,
   AtSign,
-  Users,
-  ShieldCheck,
-  BarChart3,
-  Layers,
-  Zap,
   Pin,
-  Clock,
-  Check,
   Hammer,
-  AlignLeft,
-  Hash,
-  Tag,
   Split,
-  Image as ImageIcon,
   MessageCircle,
+  Layers,
+  Tag,
+  EyeOff,
+  Baby,
   Fingerprint,
   FolderOpen,
+  CalendarDays,
+  BarChart3,
+  Clock,
+  ShieldCheck,
+  Globe,
 } from "lucide-react";
+import { cn } from "@/lib/utils";
+import PlatformSpecsLedger from "./platform-specs-ledger";
 
 export default function LandingPageSpotlight() {
   return (
-    <section className="relative bg-background-editorial text-foreground py-24 px-6 border-b border-foreground overflow-hidden">
-      <style>{`
-        @keyframes flash-red-green {
-          0%, 100% { background-color: #ef4444; box-shadow: 0 0 5px rgba(239, 68, 68, 0.5); } 
-          50% { background-color: #22c55e; box-shadow: 0 0 5px rgba(34, 197, 94, 0.5); }
-        }
-        .animate-connectivity {
-          animation: flash-red-green 3s ease-in-out infinite;
-        }
-      `}</style>
-
-      <div
-        className="absolute inset-0 opacity-[0.03] pointer-events-none"
-        style={{
-          backgroundImage:
-            "linear-gradient(var(--foreground) 1px, transparent 1px), linear-gradient(90deg, var(--foreground) 1px, transparent 1px)",
-          backgroundSize: "40px 40px",
-        }}
-      />
-
-      <div className="relative mx-auto w-full max-w-7xl">
-        <div className="flex flex-col md:flex-row md:items-end justify-between border-b-[3px] border-foreground pb-6 mb-16 gap-6">
-          <div className="max-w-2xl">
-            <p className="font-mono text-xs uppercase tracking-[0.25em] text-brand-primary font-bold mb-4">
-              System Capabilities
-            </p>
-            <h2 className="font-serif text-5xl md:text-7xl font-light tracking-tight leading-[0.9]">
-              The <span className="font-bold">Feature</span> Ledger.
-            </h2>
-          </div>
-          <div className="hidden md:block text-right">
-            <p className="font-serif italic text-2xl">Vol. 1, Full Suite</p>
-          </div>
+    <section className="bg-background-editorial text-foreground py-20 border-b border-foreground overflow-hidden">
+      <div className="mx-auto w-full max-w-7xl px-4 md:px-6">
+        {/* SECTION HEADER */}
+        <div className="mb-12 flex items-center gap-4">
+          <div className="flex-1 h-px bg-foreground" />
+          <span className="font-mono text-xs uppercase tracking-widest bg-foreground text-background-editorial px-3 py-1 font-bold">
+            The Feature Ledger
+          </span>
+          <div className="flex-1 h-px bg-foreground" />
         </div>
 
-        {/* --- MAIN BENTO GRID --- */}
-        <div className="grid grid-cols-1 md:grid-cols-6 lg:grid-cols-12 gap-4 auto-rows-[minmax(300px,auto)] mb-4">
-          {/* 1. ASSET MANAGEMENT (Media) */}
-          <div className="md:col-span-6 lg:col-span-7 bg-surface border-2 border-foreground p-8 relative group overflow-hidden">
-            <div className="relative z-10 flex h-full flex-col justify-between">
-              <div>
-                <div className="flex items-center gap-2 mb-4">
-                  <span className="w-2 h-2 bg-brand-primary rounded-full" />
-                  <span className="font-mono text-[10px] uppercase tracking-widest text-foreground/60">
-                    Cloud Storage R2
-                  </span>
-                </div>
-                <h3 className="font-serif text-4xl font-medium mb-4">
-                  Intelligent Media Room
-                </h3>
-                <p className="font-serif text-lg text-foreground/70 max-w-md">
-                  Not just a bucket. We handle auto-cropping for X, aspect ratio
-                  checks for LinkedIn, and format conversion for TikTok on the
-                  fly.
-                </p>
-              </div>
+        {/* 
+           THE NEWSPAPER GRID 
+           Strategy: bg-foreground with gap-px creates the grid lines. 
+           Children use bg-background-editorial to hide the black, revealing only the 1px gap.
+        */}
+        <div className="bg-foreground border-2 border-foreground gap-px grid grid-cols-1 md:grid-cols-12 overflow-hidden shadow-sm">
+          {/* --- ROW 1: HEADLINE STORY & SIDEBAR --- */}
 
-              {/* Visualization of Grid */}
-              <div className="mt-8 grid grid-cols-4 gap-2 opacity-80 group-hover:opacity-100 transition-opacity">
-                <div className="col-span-4 flex items-center gap-3 mb-2 border-b border-foreground/10 pb-2">
-                  <div className="w-12 h-12 rounded-full border border-foreground/20 bg-foreground/5" />
-                  <div className="space-y-1">
-                    <div className="w-32 h-3 bg-foreground/10 rounded-sm" />
-                    <div className="w-20 h-2 bg-foreground/10 rounded-sm" />
-                  </div>
-                </div>
-                {[...Array(8)].map((_, i) => (
-                  <div
-                    key={i}
-                    className="aspect-square border border-foreground/10 bg-background-editorial relative group/item"
-                  >
-                    <div className="absolute inset-0 bg-transparent transition-colors group-hover/item:bg-foreground/10" />
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-
-          {/* 2. CONNECTIVITY (Integrations) */}
-          <div className="md:col-span-6 lg:col-span-5 bg-surface-hover border-2 border-foreground p-8 relative flex flex-row gap-6">
-            <div className="flex-1 flex flex-col">
+          {/* 1. THE MEDIA ROOM (Lead Story) - Spans 8 cols */}
+          <div className="md:col-span-8 bg-background-editorial p-8 md:p-12 flex flex-col justify-between min-h-[400px]">
+            <div>
               <div className="flex items-center gap-2 mb-4">
-                <span className="w-2 h-2 rounded-full animate-connectivity" />
-                <span className="font-mono text-[10px] uppercase tracking-widest text-foreground/60">
-                  Connectivity
+                <div className="w-2 h-2 bg-brand-primary rounded-full" />
+                <span className="font-mono text-[10px] uppercase tracking-widest text-foreground/60 font-bold">
+                  Asset Management
                 </span>
               </div>
-              <h3 className="font-serif text-3xl font-medium mb-4 leading-tight">
-                Universal Signal
+              <h3 className="font-serif text-4xl md:text-5xl font-medium mb-6 leading-[0.95]">
+                The Media Room
               </h3>
-              <p className="font-serif text-base text-foreground/70 mb-auto pr-4">
-                Native integrations for the big 8. No third-party wrappers.
-                Direct API access with auto-token refresh handling.
+              <p className="font-serif text-lg text-foreground/80 max-w-lg leading-relaxed">
+                Your media library that finally feels sane. Folders, smart
+                deduplication, and search. Crop once for everything, or get
+                specific at post-time. We handle aspect ratios and format
+                conversions.
               </p>
-
-              <div className="mt-8 hidden sm:block">
-                <p className="font-mono text-[10px] uppercase tracking-widest opacity-40">
-                  Network Status: Active
-                </p>
-              </div>
             </div>
 
-            <div className="shrink-0">
-              <div className="grid grid-cols-2 gap-3">
-                {[
-                  { icon: Twitter, label: "X" },
-                  { icon: Instagram, label: "IG" },
-                  { icon: Linkedin, label: "LI" },
-                  { icon: Facebook, label: "FB" },
-                  { icon: Youtube, label: "YT" },
-                  { icon: Music2, label: "TT" },
-                  { icon: AtSign, label: "TH" },
-                  { icon: Pin, label: "PIN" },
-                ].map((p, i) => (
+            {/* Visual Abstract */}
+            <div className="mt-12 grid grid-cols-4 gap-px bg-foreground/10 border border-foreground/10 h-32 opacity-60">
+              {[...Array(4)].map((_, i) => (
+                <div key={i} className="bg-background-editorial relative">
+                  <div className="absolute inset-2 bg-foreground/5" />
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* 2. THE CALENDAR (Sidebar) - Spans 4 cols, vertically tall */}
+          <div className="md:col-span-4 md:row-span-2 bg-background-editorial p-8 border-l-0 md:border-l-0 relative flex flex-col">
+            <div className="flex items-center justify-between mb-6">
+              <span className="font-mono text-[10px] uppercase tracking-widest text-foreground/60 font-bold">
+                Scheduling
+              </span>
+              <CalendarDays className="w-4 h-4 text-brand-primary" />
+            </div>
+
+            <h3 className="font-serif text-3xl font-medium mb-4">
+              The Calendar
+            </h3>
+            <p className="font-serif text-sm text-foreground/70 mb-8 leading-relaxed">
+              Your entire strategy at a glance. Drag to reschedule, click to
+              edit. Filter by workspace or channel.
+            </p>
+
+            {/* Calendar Visual Abstract */}
+            <div className="flex-1 w-full bg-surface border border-foreground/10 p-4 flex flex-col gap-2 opacity-80">
+              <div className="flex justify-between border-b border-foreground/10 pb-2 mb-2">
+                <div className="w-1/3 h-2 bg-foreground/20" />
+                <div className="w-1/4 h-2 bg-foreground/10" />
+              </div>
+              <div className="grid grid-cols-7 gap-1 h-full">
+                {[...Array(28)].map((_, i) => (
                   <div
                     key={i}
-                    className="relative w-14 h-14 rounded-full border-2 border-foreground bg-surface flex items-center justify-center shadow-[3px_3px_0_0_var(--foreground)] cursor-default group"
-                    title={p.label}
-                  >
-                    <p.icon className="w-6 h-6 group-hover:scale-110 transition-transform" />
-                  </div>
+                    className={cn(
+                      "bg-foreground/5 rounded-sm",
+                      i === 12 &&
+                        "bg-brand-primary/20 ring-1 ring-brand-primary"
+                    )}
+                  />
                 ))}
               </div>
             </div>
           </div>
 
-          {/* 3. COMMAND & CONTROL */}
-          <div className="md:col-span-6 lg:col-span-4 bg-surface border-2 border-foreground p-8 relative">
-            <div className="flex items-center gap-2 mb-4">
-              <span className="w-2 h-2 bg-brand-primary rounded-full" />
-              <span className="font-mono text-[10px] uppercase tracking-widest text-foreground/60">
-                Workflow Logic
-              </span>
+          {/* --- ROW 2: THE OPERATIONS STRIP --- */}
+
+          {/* 3. ANALYTICS - Spans 4 cols */}
+          <div className="md:col-span-4 bg-background-editorial p-8 flex flex-col justify-between">
+            <div className="mb-4">
+              <BarChart3 className="w-6 h-6 text-brand-primary mb-3" />
+              <h3 className="font-serif text-2xl font-medium mb-2">
+                Analytics
+              </h3>
+              <p className="font-serif text-xs text-foreground/70 leading-relaxed">
+                One aggregated "Total Reach" number across X, LinkedIn, and
+                TikTok. Proof of performance.
+              </p>
             </div>
-
-            <h3 className="font-serif text-2xl font-medium mb-6">
-              Command & Control
-            </h3>
-
-            <ul className="space-y-4 font-serif text-sm text-foreground/80">
-              <li className="flex items-start gap-3">
-                <Users className="w-4 h-4 mt-1 text-brand-primary" />
-                <span>
-                  <strong>Data Silos.</strong> Workspaces isolate clients and
-                  brands completely.
-                </span>
-              </li>
-              <li className="flex items-start gap-3">
-                <ShieldCheck className="w-4 h-4 mt-1 text-brand-primary" />
-                <span>
-                  <strong>Consensus Policy.</strong> Require "Any" or "All"
-                  admin approvals before publishing.
-                </span>
-              </li>
-              <li className="flex items-start gap-3">
-                <Layers className="w-4 h-4 mt-1 text-brand-primary" />
-                <span>
-                  <strong>Audit Trail.</strong> Full history of who approved,
-                  rejected, or edited a post.
-                </span>
-              </li>
-            </ul>
+            <div className="h-1 w-full bg-foreground/10 mt-4 overflow-hidden">
+              <div className="h-full w-[65%] bg-brand-primary" />
+            </div>
           </div>
 
-          {/* 4. ANALYTICS */}
-          <div className="md:col-span-6 lg:col-span-4 bg-surface border-2 border-foreground p-8 relative">
+          {/* 4. CONNECTIVITY - Spans 4 cols */}
+          <div className="md:col-span-4 bg-background-editorial p-8">
             <div className="flex items-center gap-2 mb-4">
-              <BarChart3 className="w-4 h-4" />
-              <span className="font-mono text-[10px] uppercase tracking-widest text-foreground/60">
-                Unified Intelligence
+              <span className="relative flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
+              </span>
+              <span className="font-mono text-[10px] uppercase tracking-widest text-foreground/60 font-bold">
+                Connectivity
               </span>
             </div>
-
             <h3 className="font-serif text-2xl font-medium mb-4">
-              Aggregated Analytics
+              Every Platform
             </h3>
+            <div className="grid grid-cols-4 gap-4 mt-6 opacity-70">
+              <Twitter className="w-5 h-5" />
+              <Instagram className="w-5 h-5" />
+              <Linkedin className="w-5 h-5" />
+              <Facebook className="w-5 h-5" />
+              <Youtube className="w-5 h-5" />
+              <Music2 className="w-5 h-5" />
+              <AtSign className="w-5 h-5" />
+              <Pin className="w-5 h-5" />
+            </div>
+          </div>
 
-            <p className="font-serif text-sm text-foreground/70 mb-6">
-              Stop summing up Excel spreadsheets. We aggregate metrics across
-              platforms to give you a single "Total Reach" number for your
-              brand.
+          {/* --- ROW 3: EDITORIAL DESK (Featured) --- */}
+          {/* Spans 8 cols */}
+          <div className="md:col-span-8 bg-brand-primary text-brand-primary-foreground p-8 md:p-10 relative overflow-hidden">
+            <div className="relative z-10">
+              <h3 className="font-serif text-3xl font-medium mb-4">
+                The Editorial Desk
+              </h3>
+              <p className="font-serif text-sm md:text-base text-brand-primary-foreground/90 max-w-2xl leading-relaxed">
+                One place to inspire, create, and publish. Write your main
+                caption, select channels, make per-platform tweaks, and ship it
+                all without leaving the desk.
+              </p>
+            </div>
+            <div className="absolute right-[-20px] bottom-[-40px] opacity-10 rotate-12">
+              <Layers className="w-48 h-48" />
+            </div>
+          </div>
+
+          {/* 5. Placeholder / Fill for grid balance (Cols 9-12 covered by Calendar row-span) */}
+          {/* Note: In CSS Grid with gap-px, empty divs are fine or the auto-flow handles it. 
+              Since Calendar is row-span-2, it occupies this space in column 3. 
+              Wait, row 2 is Analytics/Connectivity. 
+              Row 3 is Editorial Desk (8) + Calendar (bottom half). 
+              Let's adjust layouts slightly to ensure clean 12-col fit.
+          */}
+
+          {/* --- ROW 4: THE OPINION COLUMNS (Text Heavy) --- */}
+
+          <div className="md:col-span-4 bg-background-editorial p-8 border-t-0">
+            <h4 className="font-serif text-xl font-bold mb-3 flex items-center gap-2">
+              <FolderOpen className="w-4 h-4 text-brand-primary" /> Silos that
+              work.
+            </h4>
+            <p className="font-serif text-sm text-foreground/80 leading-relaxed">
+              Most tools lump everything together. We use distinct Workspaces
+              with their own timezones, libraries, and tags. Your personal brand
+              never touches your client work.
             </p>
-
-            <div className="rounded-sm p-4 flex items-center gap-3 bg-surface-hover border border-foreground/20">
-              <div className="w-8 h-8 rounded-full bg-brand-primary text-brand-primary-foreground border border-foreground flex items-center justify-center font-bold text-xs">
-                %
-              </div>
-              <div className="flex-1 min-w-0">
-                <div className="flex justify-between mb-1">
-                  <div className="h-2 w-16 bg-foreground/10 rounded-sm" />
-                  <div className="h-2 w-8 bg-green-500/20 rounded-sm" />
-                </div>
-                <div className="h-1.5 w-full bg-foreground/5 rounded-sm overflow-hidden">
-                  <div className="h-full w-3/4 bg-foreground/20" />
-                </div>
-              </div>
-            </div>
           </div>
 
-          {/* 5. AI */}
-          <div className="md:col-span-6 lg:col-span-4 bg-brand-primary border-2 border-foreground p-8 relative text-brand-primary-foreground">
-            <div className="flex items-center gap-2 mb-4">
-              <Zap className="w-4 h-4" />
-              <span className="font-mono text-[10px] uppercase tracking-widest text-brand-primary-foreground/70">
-                Input Classifiers
-              </span>
-            </div>
-
-            <h3 className="font-serif text-2xl font-medium mb-4">
-              Idea Engine
-            </h3>
-
-            <p className="font-serif text-sm text-brand-primary-foreground/90 leading-relaxed">
-              Our classifiers identify if you are inputting a work log, an
-              observation, or a news reaction, then structure the draft
-              accordingly.
-              <br />
-              <br />
-              <span className="opacity-80">
-                Context-aware drafting beats generic "Write me a post" prompts.
-              </span>
+          <div className="md:col-span-4 bg-background-editorial p-8 border-t-0">
+            <h4 className="font-serif text-xl font-bold mb-3 flex items-center gap-2">
+              <ShieldCheck className="w-4 h-4 text-brand-primary" /> Review &
+              Approve.
+            </h4>
+            <p className="font-serif text-sm text-foreground/80 leading-relaxed">
+              Whether it's a client sign-off or just a second pair of eyes, our
+              built-in approval workflows ensure nothing goes live by accident.
             </p>
-
-            <div className="absolute bottom-4 right-4 opacity-10 rotate-12">
-              <span className="font-serif text-9xl font-black">AI</span>
-            </div>
-          </div>
-        </div>
-
-        {/* --- TECHNICAL SPECIFICATIONS LIST (The Granular Features) --- */}
-        <div className="w-full bg-surface border-2 border-foreground p-8 md:p-12">
-          <div className="flex items-center gap-4 mb-8">
-            <Hammer className="w-5 h-5 text-brand-primary" />
-            <h3 className="font-serif text-2xl font-medium">
-              Technical Specifications
-            </h3>
-            <div className="h-px bg-foreground/20 flex-1" />
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-x-8 gap-y-8">
-            {/* Spec 1: Smart Threading */}
-            <div className="flex flex-col gap-2">
-              <div className="flex items-center gap-2 text-brand-primary">
-                <Split className="w-4 h-4" />
-                <span className="font-mono text-[10px] uppercase tracking-widest font-bold">
-                  Publishing
-                </span>
-              </div>
-              <h4 className="font-bold text-sm">Auto-Splitting Threads</h4>
-              <p className="text-xs text-foreground/70 leading-relaxed">
-                Writing a long-form post? We automatically detect length limits
-                (280 chars for X, 500 for Threads) and split your text into a
-                perfectly linked reply chain.
-              </p>
-            </div>
-
-            {/* Spec 2: First Comment */}
-            <div className="flex flex-col gap-2">
-              <div className="flex items-center gap-2 text-brand-primary">
-                <MessageCircle className="w-4 h-4" />
-                <span className="font-mono text-[10px] uppercase tracking-widest font-bold">
-                  Instagram / FB
-                </span>
-              </div>
-              <h4 className="font-bold text-sm">First Comment Logic</h4>
-              <p className="text-xs text-foreground/70 leading-relaxed">
-                Keep your captions clean. We allow you to schedule the first
-                comment along with the post to hide your hashtags below the fold
-                automatically.
-              </p>
-            </div>
-
-            {/* Spec 3: User Tagging */}
-            <div className="flex flex-col gap-2">
-              <div className="flex items-center gap-2 text-brand-primary">
-                <Tag className="w-4 h-4" />
-                <span className="font-mono text-[10px] uppercase tracking-widest font-bold">
-                  Metadata
-                </span>
-              </div>
-              <h4 className="font-bold text-sm">Native User Tagging</h4>
-              <p className="text-xs text-foreground/70 leading-relaxed">
-                Don't just mention in captions. We support native photo tagging
-                coords (x,y) for Instagram, ensuring collaborators get notified
-                properly.
-              </p>
-            </div>
-
-            {/* Spec 4: Timezones */}
-            <div className="flex flex-col gap-2">
-              <div className="flex items-center gap-2 text-brand-primary">
-                <Clock className="w-4 h-4" />
-                <span className="font-mono text-[10px] uppercase tracking-widest font-bold">
-                  Scheduling
-                </span>
-              </div>
-              <h4 className="font-bold text-sm">Timezone Sovereignty</h4>
-              <p className="text-xs text-foreground/70 leading-relaxed">
-                Every workspace has its own timezone. "9 AM" means 9 AM for the
-                client in Tokyo, not 9 AM on your server in Virginia.
-              </p>
-            </div>
-
-            {/* Spec 5: Deduplication */}
-            <div className="flex flex-col gap-2">
-              <div className="flex items-center gap-2 text-brand-primary">
-                <Fingerprint className="w-4 h-4" />
-                <span className="font-mono text-[10px] uppercase tracking-widest font-bold">
-                  Storage
-                </span>
-              </div>
-              <h4 className="font-bold text-sm">Asset Deduplication</h4>
-              <p className="text-xs text-foreground/70 leading-relaxed">
-                We hash every file on upload. If you try to upload the same meme
-                twice to a workspace, we catch it and link to the existing asset
-                to save your quota.
-              </p>
-            </div>
-
-            {/* Spec 6: Story Sequencing */}
-            <div className="flex flex-col gap-2">
-              <div className="flex items-center gap-2 text-brand-primary">
-                <Layers className="w-4 h-4" />
-                <span className="font-mono text-[10px] uppercase tracking-widest font-bold">
-                  Stories
-                </span>
-              </div>
-              <h4 className="font-bold text-sm">Story Sequencing</h4>
-              <p className="text-xs text-foreground/70 leading-relaxed">
-                Upload 5 videos at once for a story. We don't make a carousel;
-                we automatically split them into 5 sequential story posts posted
-                seconds apart.
-              </p>
-            </div>
-
-            {/* Spec 7: Folder Organization */}
-            <div className="flex flex-col gap-2">
-              <div className="flex items-center gap-2 text-brand-primary">
-                <FolderOpen className="w-4 h-4" />
-                <span className="font-mono text-[10px] uppercase tracking-widest font-bold">
-                  Organization
-                </span>
-              </div>
-              <h4 className="font-bold text-sm">Deep Folder Nesting</h4>
-              <p className="text-xs text-foreground/70 leading-relaxed">
-                Create a real file structure. Clients Q4 Campaign A. Stop
-                dumping everything into one "Uploads" bucket.
-              </p>
-            </div>
-
-            {/* Spec 8: Fair Pricing */}
-            <div className="flex flex-col gap-2">
-              <div className="flex items-center gap-2 text-brand-primary">
-                <Check className="w-4 h-4" />
-                <span className="font-mono text-[10px] uppercase tracking-widest font-bold">
-                  Billing
-                </span>
-              </div>
-              <h4 className="font-bold text-sm">No "Seat Tax"</h4>
-              <p className="text-xs text-foreground/70 leading-relaxed">
-                We charge based on value (brands managed), not headcount. Invite
-                your writer, your designer, and your client without upgrading
-                plans.
-              </p>
-            </div>
+          <div className="md:col-span-4 bg-background-editorial p-8 border-t-0">
+            <h4 className="font-serif text-xl font-bold mb-3 flex items-center gap-2">
+              <Globe className="w-4 h-4 text-brand-primary" /> Timezone
+              Sovereignty.
+            </h4>
+            <p className="font-serif text-sm text-foreground/80 leading-relaxed">
+              When your client is in NY and you are in Tokyo, 9 AM means 9 AM
+              for them. Each workspace runs on its own clock.
+            </p>
           </div>
+          <PlatformSpecsLedger />
         </div>
       </div>
     </section>

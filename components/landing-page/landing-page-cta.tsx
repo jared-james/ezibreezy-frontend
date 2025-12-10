@@ -85,10 +85,6 @@ export default function LandingPageCTA() {
             <div className="max-w-3xl">
               <div className="mb-8 flex flex-col sm:flex-row sm:items-center gap-4">
                 {/* THE RED TAG */}
-                <div className="inline-flex items-center gap-2 bg-red-600 text-white px-4 py-2 font-mono text-xs uppercase tracking-[0.2em] font-bold border border-white/20 shadow-[4px_4px_0_0_rgba(255,255,255,0.2)]">
-                  <AlertCircle className="w-4 h-4 fill-current" />
-                  <span>Late Breaking News</span>
-                </div>
 
                 {/* SOCIAL PROOF BADGE (Validates Schema) */}
                 <div className="flex items-center gap-3 px-3 py-1.5 border border-white/10 bg-white/5 backdrop-blur-sm rounded-full">
@@ -101,21 +97,22 @@ export default function LandingPageCTA() {
                     ))}
                   </div>
                   <span className="text-[10px] font-mono uppercase tracking-wide text-white/70">
-                    Used by real people - holy ****
+                    Rated by creators and business owners just like you
                   </span>
                 </div>
               </div>
 
               <h2 className="font-serif text-6xl md:text-8xl lg:text-9xl font-black uppercase leading-[0.85] mb-8 tracking-tighter text-white">
                 Don&rsquo;t get left <br />
-                <span className="text-transparent bg-clip-text bg-linear-to-r from-white via-white/80 to-white/40">
+                {/* Gradient uses --random-blue variable */}
+                <span className="text-transparent bg-clip-text bg-linear-to-r from-white via-[var(--random-blue)] to-[var(--random-blue)]/60">
                   Behind.
                 </span>
               </h2>
 
               <p className="font-serif text-xl md:text-2xl text-white/80 max-w-2xl leading-relaxed border-l-4 border-brand-primary pl-6">
                 Your competition is still trying to figure out which hashtag to
-                use. We are building the engine that makes them obsolete.
+                use. Your building a legacy.
               </p>
             </div>
 
@@ -169,7 +166,8 @@ export default function LandingPageCTA() {
                         />
                       </div>
 
-                      <div className="relative border-2 border-dashed border-white/30 bg-white/5 p-4 transition-all hover:bg-white/10 hover:border-white/50 backdrop-blur-sm">
+                      {/* UPDATED: Removed hover:bg-white/10 and hover:border-white/50 */}
+                      <div className="relative border-2 border-dashed border-white/30 bg-white/5 p-4 backdrop-blur-sm">
                         <div className="flex flex-col gap-4">
                           <div className="flex flex-col">
                             <label
@@ -199,13 +197,13 @@ export default function LandingPageCTA() {
                           <button
                             type="submit"
                             disabled={isLoading}
+                            // Button keeps its specific hover state
                             className={`
                               relative flex w-full items-center justify-center gap-2 overflow-hidden px-6 py-4 text-xs font-bold uppercase tracking-[0.2em] transition-all
-                              border border-transparent
                               ${
                                 isLoading
                                   ? "bg-white/10 text-white cursor-wait"
-                                  : "bg-brand-primary text-white hover:bg-brand-primary-hover shadow-[4px_4px_0_0_rgba(255,255,255,1)] hover:shadow-[2px_2px_0_0_rgba(255,255,255,1)] hover:translate-x-[2px] hover:translate-y-[2px]"
+                                  : "bg-brand-primary text-white hover:bg-brand-primary-hover"
                               }
                             `}
                           >

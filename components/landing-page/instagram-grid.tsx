@@ -32,52 +32,51 @@ type Post = {
   borderColor: string;
 };
 
+// Updated content to form a cohesive message across the grid
 const RAW_CONTENT = [
-  { id: "1", type: "text", content: "CONTENT\nCREATOR" },
-  { id: "2", type: "quote", content: "Less is more." },
-  { id: "3", type: "text", content: "BRAND\nSTORY" },
-  { id: "4", type: "quote", content: "Design System" },
-  { id: "5", type: "text", content: "VISUAL\nIDENTITY" },
-  { id: "6", type: "quote", content: "Authenticity" },
-  { id: "7", type: "text", content: "SOCIAL\nFIRST" },
-  { id: "8", type: "quote", content: "Simplicity." },
-  { id: "9", type: "text", content: "EZI\nBREEZY" },
-  { id: "10", type: "quote", content: "Intentional" },
-  { id: "11", type: "text", content: "COMING\nSOON" },
-  { id: "12", type: "quote", content: "Your Voice." },
+  // Row 1
+  { id: "1", type: "text", content: "CHAOS\nIS" },
+  { id: "2", type: "quote", content: "Optional." },
+  { id: "3", type: "text", content: "ORDER\nIS" },
+
+  // Row 2
+  { id: "4", type: "quote", content: "Essential." },
+  { id: "5", type: "text", content: "TASTE\nIS" },
+  { id: "6", type: "quote", content: "Timeless." },
+
+  // Row 3
+  { id: "7", type: "text", content: "YOUR\nRULES" },
+  { id: "8", type: "quote", content: "Apply." },
+  { id: "9", type: "text", content: "THIS\nIS" },
+
+  // Row 4
+  { id: "10", type: "quote", content: "The..." },
+  { id: "11", type: "text", content: "FINAL\nWORD" },
+  { id: "12", type: "quote", content: "Period." },
 ] as const;
 
 /**
  * GENERATE THE "JEWEL TONE" OMBRE
- *
- * Adjusted Range:
- * Start: Deep Emerald (Visible Green, not Black)
- * End:   Vibrant Forest (Rich Green, not Lime)
  */
 const generateGradientPosts = (): Post[] => {
   const count = RAW_CONTENT.length;
 
-  // Configuration for Rich Green Ombre
   const startHue = 160; // Cool Deep Emerald
-  const endHue = 145; // Your Brand Green
+  const endHue = 145; // Vibrant Forest
 
-  // Lightness: Mid-Dark range for richness
-  const startLit = 22; // Deep, heavy green (Classic "Rolex" green depth)
-  const endLit = 42; // Vibrant, punchy green (but nowhere near pastel/lime)
+  const startLit = 22;
+  const endLit = 42;
 
-  // Saturation: High to keep it "Menace" and bold
   const startSat = 85;
   const endSat = 75;
 
   return RAW_CONTENT.map((item, index) => {
-    // 0.0 (top) to 1.0 (bottom)
     const step = index / (count - 1);
 
     const hue = startHue - step * (startHue - endHue);
     const lightness = startLit + step * (endLit - startLit);
     const saturation = startSat + step * (endSat - startSat);
 
-    // Internal gradient for the tile texture (adds the "Ombre" feel per tile)
     const bgStyle = {
       background: `linear-gradient(135deg, 
         hsl(${hue}, ${saturation}%, ${lightness}%) 0%, 
@@ -87,7 +86,7 @@ const generateGradientPosts = (): Post[] => {
     return {
       ...item,
       gradientStyle: bgStyle,
-      textColor: "text-white", // Always white for high contrast on these rich greens
+      textColor: "text-white",
       borderColor: "border-white/20",
     };
   });
@@ -123,13 +122,11 @@ export default function InstagramGridBoard() {
   }
 
   return (
-    <div className="w-full max-w-6xl mx-auto py-12">
-      <h2 className="font-serif text-5xl md:text-7xl font-black leading-[0.9] mb-12 tracking-tighter text-center text-stone-900">
-        The Grid
-      </h2>
+    <div className="w-full max-w-lg mx-auto py-12">
+      {/* Title Removed here, moved to parent component */}
 
-      {/* Container is now bg-white to create WHITE grid lines */}
-      <div className="w-full max-w-[500px] mx-auto bg-white rounded-3xl overflow-hidden shadow-2xl border-2 border-stone-200 ring-1 ring-black/5">
+      {/* Container with WHITE grid lines */}
+      <div className="w-full bg-white rounded-3xl overflow-hidden shadow-2xl border-2 border-stone-200 ring-1 ring-black/5">
         <DndContext
           sensors={sensors}
           collisionDetection={closestCenter}
@@ -225,14 +222,6 @@ function GridPost({ post, isOverlay }: { post: Post; isOverlay?: boolean }) {
         />
       )}
 
-      {/* Decorative circle placeholder */}
-      {post.type === "image" && !post.imageSrc && (
-        <div
-          className={`w-16 h-16 rounded-full border-2 ${post.borderColor} opacity-60`}
-        />
-      )}
-
-      {/* Hover Shine */}
       {!isOverlay && (
         <div className="absolute inset-0 bg-gradient-to-tr from-white/0 via-white/0 to-white/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
       )}
