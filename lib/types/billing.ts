@@ -17,12 +17,6 @@ export interface PricingPlan {
   monthlyPrice: number;
   yearlyPrice: number;
   features: string[];
-  limits: {
-    users: number;
-    workspaces: number;
-    integrations: number;
-    storage: string;
-  };
 }
 
 export interface OnboardingData {

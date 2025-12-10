@@ -21,13 +21,8 @@ export const PRICING_PLANS: Record<PlanTier, PricingPlan> = {
       "First comment scheduling",
       "Social Calendar",
       "Canva integration",
+      "20GB Media Storage",
     ],
-    limits: {
-      users: 1,
-      workspaces: 2,
-      integrations: 15,
-      storage: "10 GB",
-    },
   },
   agency: {
     tier: "agency",
@@ -46,20 +41,14 @@ export const PRICING_PLANS: Record<PlanTier, PricingPlan> = {
       "Roles and permissions",
       "Internal collaboration & approvals",
       "External client workflows",
+      "50GB Media Storage",
     ],
-    limits: {
-      users: 15,
-      workspaces: 5,
-      integrations: 50,
-      storage: "50 GB",
-    },
   },
   scale: {
     tier: "scale",
     name: "Scale",
     description: "For large organizations requiring scale and more security",
-    monthlyPriceId:
-      process.env.NEXT_PUBLIC_STRIPE_PRICE_SCALE_MONTHLY || "",
+    monthlyPriceId: process.env.NEXT_PUBLIC_STRIPE_PRICE_SCALE_MONTHLY || "",
     yearlyPriceId: process.env.NEXT_PUBLIC_STRIPE_PRICE_SCALE_YEARLY || "",
     monthlyPrice: 150,
     yearlyPrice: 1440,
@@ -74,13 +63,8 @@ export const PRICING_PLANS: Record<PlanTier, PricingPlan> = {
       "99.9% Uptime SLA",
       "Advanced Audit Logs",
       "White-glove phone support",
+      "100GB Media Storage",
     ],
-    limits: {
-      users: -1,
-      workspaces: -1,
-      integrations: -1,
-      storage: "1 TB",
-    },
   },
 };
 
