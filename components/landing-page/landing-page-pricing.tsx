@@ -80,7 +80,7 @@ export default function LandingPagePricing() {
                 Yearly
                 {/* SAVINGS BADGE */}
                 <span className="absolute -top-3 -right-2 bg-brand-primary text-white text-[9px] px-1.5 py-0.5 font-bold z-10">
-                  -17%
+                  -20%
                 </span>
               </button>
             </div>
@@ -158,7 +158,7 @@ export default function LandingPagePricing() {
                           className={cn(
                             "mt-1 flex h-4 w-4 items-center justify-center rounded-full border border-foreground/20",
                             isInclusiveLine
-                              ? "bg-foreground text-background border-foreground"
+                              ? "bg-brand-primary text-white border-brand-primary" // <--- CHANGED THIS LINE
                               : "bg-transparent"
                           )}
                         >
