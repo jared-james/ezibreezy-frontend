@@ -337,7 +337,7 @@ export default function PrivacyPage() {
             <p className="font-mono text-[10px] uppercase tracking-widest opacity-60 mb-1">
               Last Updated
             </p>
-            <p className="font-serif text-xl font-bold">November 21, 2025</p>
+            <p className="font-serif text-xl font-bold">December 11, 2025</p>
           </div>
         </div>
 
