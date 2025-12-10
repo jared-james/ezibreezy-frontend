@@ -50,8 +50,8 @@ const RAW_CONTENT = [
   { id: "9", type: "text", content: "THIS\nIS" },
 
   // Row 4
-  { id: "10", type: "quote", content: "The..." },
-  { id: "11", type: "text", content: "FINAL\nWORD" },
+  { id: "10", type: "quote", content: "your." },
+  { id: "11", type: "text", content: "VISION" },
   { id: "12", type: "quote", content: "Period." },
 ] as const;
 
