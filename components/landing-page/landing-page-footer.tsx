@@ -263,6 +263,70 @@ export default function LandingPageFooter() {
           </div>
         </div>
 
+        {/* Supported Platforms - SEO Section */}
+        <div className="py-8 border-t border-dotted border-foreground/20">
+          <h4 className="font-mono text-[10px] font-bold uppercase tracking-widest mb-4 text-foreground/40 text-center">
+            Supported Platforms
+          </h4>
+          <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-2 text-xs text-foreground/60">
+            <Link
+              href="/features/instagram-scheduler"
+              className="hover:text-brand-primary hover:underline decoration-dotted underline-offset-4 transition-colors"
+            >
+              Instagram Scheduler
+            </Link>
+            <span className="text-foreground/20">•</span>
+            <Link
+              href="/features/linkedin-scheduler"
+              className="hover:text-brand-primary hover:underline decoration-dotted underline-offset-4 transition-colors"
+            >
+              LinkedIn Scheduler
+            </Link>
+            <span className="text-foreground/20">•</span>
+            <Link
+              href="/features/tiktok-scheduler"
+              className="hover:text-brand-primary hover:underline decoration-dotted underline-offset-4 transition-colors"
+            >
+              TikTok Scheduler
+            </Link>
+            <span className="text-foreground/20">•</span>
+            <Link
+              href="/features/twitter-scheduler"
+              className="hover:text-brand-primary hover:underline decoration-dotted underline-offset-4 transition-colors"
+            >
+              Twitter Scheduler
+            </Link>
+            <span className="text-foreground/20">•</span>
+            <Link
+              href="/features/facebook-scheduler"
+              className="hover:text-brand-primary hover:underline decoration-dotted underline-offset-4 transition-colors"
+            >
+              Facebook Scheduler
+            </Link>
+            <span className="text-foreground/20">•</span>
+            <Link
+              href="/features/youtube-scheduler"
+              className="hover:text-brand-primary hover:underline decoration-dotted underline-offset-4 transition-colors"
+            >
+              YouTube Scheduler
+            </Link>
+            <span className="text-foreground/20">•</span>
+            <Link
+              href="/features/threads-scheduler"
+              className="hover:text-brand-primary hover:underline decoration-dotted underline-offset-4 transition-colors"
+            >
+              Threads Scheduler
+            </Link>
+            <span className="text-foreground/20">•</span>
+            <Link
+              href="/features/pinterest-scheduler"
+              className="hover:text-brand-primary hover:underline decoration-dotted underline-offset-4 transition-colors"
+            >
+              Pinterest Scheduler
+            </Link>
+          </div>
+        </div>
+
         {/* Bottom Bar */}
         <div className="flex flex-col md:flex-row items-center justify-between border-t-2 border-double border-foreground/20 pt-6 text-[10px] md:text-xs font-mono uppercase tracking-wider gap-4 md:gap-0">
           <div className="flex items-center gap-6">

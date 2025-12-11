@@ -19,6 +19,18 @@ export default function sitemap(): MetadataRoute.Sitemap {
     "screenshot-studio", // Niche Utility
   ];
 
+  // Platform-Specific Scheduler Pages - PSEO Content Strategy
+  const platformSchedulers = [
+    "instagram-scheduler", // High Volume
+    "linkedin-scheduler", // High Intent
+    "tiktok-scheduler", // High Volume
+    "twitter-scheduler", // High Intent
+    "facebook-scheduler", // High Volume
+    "youtube-scheduler", // High Intent
+    "threads-scheduler", // Emerging Platform
+    "pinterest-scheduler", // Niche High Intent
+  ];
+
   const staticRoutes = [
     "", // Home
     "/tools", // Tools Hub
@@ -27,6 +39,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     "/terms", // Compliance
     "/auth/login", // App Entry
     "/auth/signup", // App Entry
+    "/editorial", // Editorial Hub
   ];
 
   const toolsSitemap = tools.map((tool) => ({
@@ -34,6 +47,13 @@ export default function sitemap(): MetadataRoute.Sitemap {
     lastModified: new Date(),
     changeFrequency: "weekly" as const,
     priority: 0.9, // High priority for tool pages
+  }));
+
+  const platformSchedulersSitemap = platformSchedulers.map((scheduler) => ({
+    url: `${baseUrl}/features/${scheduler}`,
+    lastModified: new Date(),
+    changeFrequency: "weekly" as const,
+    priority: 0.9, // High priority for platform scheduler pages
   }));
 
   const staticSitemap = staticRoutes.map((route) => ({
@@ -53,5 +73,10 @@ export default function sitemap(): MetadataRoute.Sitemap {
     priority: 0.7, // Important content, but lower than tools
   }));
 
-  return [...staticSitemap, ...toolsSitemap, ...editorialSitemap];
+  return [
+    ...staticSitemap,
+    ...toolsSitemap,
+    ...platformSchedulersSitemap,
+    ...editorialSitemap,
+  ];
 }
