@@ -28,13 +28,12 @@ export default function Analytics() {
             <span className="italic text-brand-primary">room.</span>
           </h2>
           <p className="font-serif text-lg leading-relaxed text-foreground/80 mb-6">
-            In a conversation, listening is as important as speaking.
-            Analytics help you listen at scale.
+            In a conversation, listening is as important as speaking. Analytics
+            help you listen at scale.
           </p>
           <p className="font-serif text-sm leading-relaxed text-foreground/70">
             Our intelligence report shows you which topics ignite dialogue,
-            helping you steer the conversation where it naturally wants to
-            go.
+            helping you steer the conversation where it naturally wants to go.
           </p>
         </div>
 
@@ -42,21 +41,21 @@ export default function Analytics() {
         <div className="lg:col-span-2 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 bg-surface-hover/10">
           {/* Metric 1 */}
           <div className="p-6 border-b sm:border-r border-foreground/20 hover:bg-white transition-colors group">
-            <UserPlus className="w-5 h-5 text-foreground/40 mb-3 group-hover:text-brand-primary transition-colors" />
+            <UserPlus className="w-5 h-5 text-brand-primary mb-3" />
             <h4 className="font-bold font-serif text-lg mb-1">Followers</h4>
             <p className="text-xs font-mono text-foreground/60 uppercase tracking-wider mb-2">
               Circle Growth
             </p>
             <p className="text-sm text-foreground/70 leading-snug">
-              See how many people have pulled up a chair to listen to what
-              you have to say.
+              See how many people have pulled up a chair to listen to what you
+              have to say.
             </p>
           </div>
 
           {/* Metric 2 */}
           <div className="p-6 border-b md:border-r border-foreground/20 hover:bg-white transition-colors group">
             <div className="mb-3 flex items-center gap-2">
-              <Heart className="w-5 h-5 text-foreground/40 group-hover:text-brand-primary transition-colors" />
+              <Heart className="w-5 h-5 text-brand-primary" />
             </div>
             <h4 className="font-bold font-serif text-lg mb-1">Likes</h4>
             <p className="text-xs font-mono text-foreground/60 uppercase tracking-wider mb-2">
@@ -70,7 +69,7 @@ export default function Analytics() {
 
           {/* Metric 3 */}
           <div className="p-6 border-b sm:border-r-0 md:border-r border-foreground/20 hover:bg-white transition-colors group">
-            <MessageCircle className="w-5 h-5 text-foreground/40 mb-3 group-hover:text-brand-primary transition-colors" />
+            <MessageCircle className="w-5 h-5 text-brand-primary mb-3" />
             <h4 className="font-bold font-serif text-lg mb-1">Replies</h4>
             <p className="text-xs font-mono text-foreground/60 uppercase tracking-wider mb-2">
               Dialogue
@@ -83,7 +82,7 @@ export default function Analytics() {
 
           {/* Metric 4 */}
           <div className="p-6 border-b md:border-b-0 sm:border-r border-foreground/20 hover:bg-white transition-colors group">
-            <Repeat className="w-5 h-5 text-foreground/40 mb-3 group-hover:text-brand-primary transition-colors" />
+            <Repeat className="w-5 h-5 text-brand-primary mb-3" />
             <h4 className="font-bold font-serif text-lg mb-1">Reposts</h4>
             <p className="text-xs font-mono text-foreground/60 uppercase tracking-wider mb-2">
               Amplification
@@ -96,10 +95,8 @@ export default function Analytics() {
 
           {/* Metric 5 */}
           <div className="p-6 border-b sm:border-b-0 md:border-r border-foreground/20 hover:bg-white transition-colors group">
-            <Hash className="w-5 h-5 text-foreground/40 mb-3 group-hover:text-brand-primary transition-colors" />
-            <h4 className="font-bold font-serif text-lg mb-1">
-              Topic Tags
-            </h4>
+            <Hash className="w-5 h-5 text-brand-primary mb-3" />
+            <h4 className="font-bold font-serif text-lg mb-1">Topic Tags</h4>
             <p className="text-xs font-mono text-foreground/60 uppercase tracking-wider mb-2">
               Discovery
             </p>
@@ -111,16 +108,14 @@ export default function Analytics() {
 
           {/* Metric 6 */}
           <div className="p-6 hover:bg-white transition-colors group">
-            <Sparkles className="w-5 h-5 text-foreground/40 mb-3 group-hover:text-brand-primary transition-colors" />
-            <h4 className="font-bold font-serif text-lg mb-1">
-              Engagement
-            </h4>
+            <Sparkles className="w-5 h-5 text-brand-primary mb-3" />
+            <h4 className="font-bold font-serif text-lg mb-1">Engagement</h4>
             <p className="text-xs font-mono text-foreground/60 uppercase tracking-wider mb-2">
               Activity Rate
             </p>
             <p className="text-sm text-foreground/70 leading-snug">
-              The pulse of your profile. Measure the overall liveliness of
-              your presence.
+              The pulse of your profile. Measure the overall liveliness of your
+              presence.
             </p>
           </div>
         </div>

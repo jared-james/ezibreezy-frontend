@@ -32,9 +32,8 @@ export default function Analytics() {
             words create in real-time.
           </p>
           <p className="font-serif text-sm leading-relaxed text-foreground/70">
-            Understand which topics spark conversation and which formats
-            drive action. Turn the noise into a clear signal for your next
-            move.
+            Understand which topics spark conversation and which formats drive
+            action. Turn the noise into a clear signal for your next move.
           </p>
         </div>
 
@@ -42,23 +41,21 @@ export default function Analytics() {
         <div className="lg:col-span-2 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 bg-surface-hover/10">
           {/* Metric 1 */}
           <div className="p-6 border-b sm:border-r border-foreground/20 hover:bg-white transition-colors group">
-            <Eye className="w-5 h-5 text-foreground/40 mb-3 group-hover:text-brand-primary transition-colors" />
-            <h4 className="font-bold font-serif text-lg mb-1">
-              Impressions
-            </h4>
+            <Eye className="w-5 h-5 text-brand-primary mb-3" />
+            <h4 className="font-bold font-serif text-lg mb-1">Impressions</h4>
             <p className="text-xs font-mono text-foreground/60 uppercase tracking-wider mb-2">
               Visibility
             </p>
             <p className="text-sm text-foreground/70 leading-snug">
-              See how many timelines your thoughts have graced. The total
-              reach of your voice.
+              See how many timelines your thoughts have graced. The total reach
+              of your voice.
             </p>
           </div>
 
           {/* Metric 2 */}
           <div className="p-6 border-b md:border-r border-foreground/20 hover:bg-white transition-colors group">
             <div className="mb-3 flex items-center gap-2">
-              <MousePointer2 className="w-5 h-5 text-foreground/40 group-hover:text-brand-primary transition-colors" />
+              <MousePointer2 className="w-5 h-5 text-brand-primary" />
             </div>
             <h4 className="font-bold font-serif text-lg mb-1">
               Profile Visits
@@ -67,27 +64,26 @@ export default function Analytics() {
               Curiosity
             </p>
             <p className="text-sm text-foreground/70 leading-snug">
-              Track how many people stopped scrolling to learn more about
-              who you are.
+              Track how many people stopped scrolling to learn more about who
+              you are.
             </p>
           </div>
 
           {/* Metric 3 */}
           <div className="p-6 border-b sm:border-r-0 md:border-r border-foreground/20 hover:bg-white transition-colors group">
-            <Heart className="w-5 h-5 text-foreground/40 mb-3 group-hover:text-brand-primary transition-colors" />
+            <Heart className="w-5 h-5 text-brand-primary mb-3" />
             <h4 className="font-bold font-serif text-lg mb-1">Likes</h4>
             <p className="text-xs font-mono text-foreground/60 uppercase tracking-wider mb-2">
               Appreciation
             </p>
             <p className="text-sm text-foreground/70 leading-snug">
-              A simple signal of agreement. See which sentiments resonate
-              most.
+              A simple signal of agreement. See which sentiments resonate most.
             </p>
           </div>
 
           {/* Metric 4 */}
           <div className="p-6 border-b md:border-b-0 sm:border-r border-foreground/20 hover:bg-white transition-colors group">
-            <Repeat className="w-5 h-5 text-foreground/40 mb-3 group-hover:text-brand-primary transition-colors" />
+            <Repeat className="w-5 h-5 text-brand-primary mb-3" />
             <h4 className="font-bold font-serif text-lg mb-1">Retweets</h4>
             <p className="text-xs font-mono text-foreground/60 uppercase tracking-wider mb-2">
               Amplification
@@ -100,23 +96,21 @@ export default function Analytics() {
 
           {/* Metric 5 */}
           <div className="p-6 border-b sm:border-b-0 md:border-r border-foreground/20 hover:bg-white transition-colors group">
-            <MessageSquare className="w-5 h-5 text-foreground/40 mb-3 group-hover:text-brand-primary transition-colors" />
+            <MessageSquare className="w-5 h-5 text-brand-primary mb-3" />
             <h4 className="font-bold font-serif text-lg mb-1">Replies</h4>
             <p className="text-xs font-mono text-foreground/60 uppercase tracking-wider mb-2">
               Conversation
             </p>
             <p className="text-sm text-foreground/70 leading-snug">
-              Track the discussions you ignite. Identify the topics that
-              people want to talk about.
+              Track the discussions you ignite. Identify the topics that people
+              want to talk about.
             </p>
           </div>
 
           {/* Metric 6 */}
           <div className="p-6 hover:bg-white transition-colors group">
-            <BarChart3 className="w-5 h-5 text-foreground/40 mb-3 group-hover:text-brand-primary transition-colors" />
-            <h4 className="font-bold font-serif text-lg mb-1">
-              Link Clicks
-            </h4>
+            <BarChart3 className="w-5 h-5 text-brand-primary mb-3" />
+            <h4 className="font-bold font-serif text-lg mb-1">Link Clicks</h4>
             <p className="text-xs font-mono text-foreground/60 uppercase tracking-wider mb-2">
               Conversion
             </p>

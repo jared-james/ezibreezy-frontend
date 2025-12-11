@@ -11,7 +11,8 @@ export default function VideoIntro() {
         <div className="relative">
           <div className="absolute -top-4 -left-4 w-full h-full border border-dashed border-foreground/20 bg-foreground/5 -z-10" />
 
-          <div className="bg-white border-2 border-foreground p-1 shadow-[8px_8px_0_0_rgba(0,0,0,1)]">
+          {/* UPDATED SHADOW: Now uses var(--random-blue) */}
+          <div className="bg-white border-2 border-foreground p-1 shadow-[8px_8px_0_0_var(--random-blue)]">
             <div className="bg-background-editorial border border-dashed border-foreground/20 p-8 min-h-[400px] flex flex-col justify-center relative overflow-hidden">
               {/* Video Player Mockup */}
               <div className="w-full aspect-video bg-black relative group cursor-pointer overflow-hidden border border-foreground/10 shadow-xl">
@@ -72,17 +73,15 @@ export default function VideoIntro() {
 
         <div className="prose prose-lg font-serif text-foreground/80 leading-relaxed mb-10">
           <p>
-            <span className="float-left text-5xl font-black mr-3 -mt-2">
-              V
-            </span>
-            ideo is not just another post type. It is an investment. It
-            requires time, craft, and vision.
+            <span className="float-left text-5xl font-black mr-3 -mt-2">V</span>
+            ideo is not just another post type. It is an investment. It requires
+            time, craft, and vision.
           </p>
           <p>
             The <strong>Editorial Desk</strong> treats your uploads with the
             care they deserve. We handle the technical details—metadata,
-            thumbnails, privacy settings—so you can focus on the story you
-            are trying to tell.
+            thumbnails, privacy settings—so you can focus on the story you are
+            trying to tell.
           </p>
         </div>
 

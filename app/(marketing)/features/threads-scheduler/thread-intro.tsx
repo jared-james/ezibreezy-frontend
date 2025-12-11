@@ -11,7 +11,8 @@ export default function ThreadIntro() {
         <div className="relative">
           <div className="absolute -top-4 -left-4 w-full h-full border border-dashed border-foreground/20 bg-foreground/5 -z-10" />
 
-          <div className="bg-white border-2 border-foreground p-1 shadow-[8px_8px_0_0_rgba(0,0,0,1)]">
+          {/* UPDATED SHADOW: Now uses var(--random-blue) */}
+          <div className="bg-white border-2 border-foreground p-1 shadow-[8px_8px_0_0_var(--random-blue)]">
             <div className="bg-background-editorial border border-dashed border-foreground/20 p-8 min-h-[400px] flex flex-col justify-center relative overflow-hidden">
               {/* Thread Chain Visual */}
               <div className="max-w-sm mx-auto w-full relative pl-4">
@@ -70,18 +71,16 @@ export default function ThreadIntro() {
 
         <div className="prose prose-lg font-serif text-foreground/80 leading-relaxed mb-10">
           <p>
-            <span className="float-left text-5xl font-black mr-3 -mt-2">
-              T
-            </span>
-            hreads feels different. It is intimate. It is immediate. It is
-            less about broadcasting to the masses and more about sitting in
-            a circle with your community.
+            <span className="float-left text-5xl font-black mr-3 -mt-2">T</span>
+            hreads feels different. It is intimate. It is immediate. It is less
+            about broadcasting to the masses and more about sitting in a circle
+            with your community.
           </p>
           <p>
             The <strong>Editorial Desk</strong> removes the friction of
             participation. Write your thoughts naturally, and let our tools
-            handle the splitting, tagging, and formatting so you can focus
-            on the flow.
+            handle the splitting, tagging, and formatting so you can focus on
+            the flow.
           </p>
         </div>
 

@@ -11,7 +11,8 @@ export default function ThreadIntro() {
         <div className="relative">
           <div className="absolute -top-4 -left-4 w-full h-full border border-dashed border-foreground/20 bg-foreground/5 -z-10" />
 
-          <div className="bg-white border-2 border-foreground p-1 shadow-[8px_8px_0_0_rgba(0,0,0,1)]">
+          {/* UPDATED SHADOW: Now uses var(--random-blue) */}
+          <div className="bg-white border-2 border-foreground p-1 shadow-[8px_8px_0_0_var(--random-blue)]">
             <div className="bg-background-editorial border border-dashed border-foreground/20 p-8 min-h-[400px] flex flex-col justify-center relative overflow-hidden">
               {/* Thread Visual */}
               <div className="max-w-sm mx-auto w-full space-y-4">
@@ -65,15 +66,13 @@ export default function ThreadIntro() {
 
         <div className="prose prose-lg font-serif text-foreground/80 leading-relaxed mb-10">
           <p>
-            <span className="float-left text-5xl font-black mr-3 -mt-2">
-              W
-            </span>
+            <span className="float-left text-5xl font-black mr-3 -mt-2">W</span>
             riting simply is often harder than writing at length. Every
             character counts. Every word must earn its place.
           </p>
           <p>
-            The <strong>Editorial Desk</strong> helps you craft clarity.
-            Whether it&apos;s a single powerful statement or a thoughtfully woven
+            The <strong>Editorial Desk</strong> helps you craft clarity. Whether
+            it&apos;s a single powerful statement or a thoughtfully woven
             thread, we give you the tools to structure your thoughts so they
             land with impact.
           </p>

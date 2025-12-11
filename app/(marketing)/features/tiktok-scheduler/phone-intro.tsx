@@ -11,7 +11,8 @@ export default function PhoneIntro() {
         <div className="relative">
           <div className="absolute -top-4 -left-4 w-full h-full border border-dashed border-foreground/20 bg-foreground/5 -z-10" />
 
-          <div className="bg-white border-2 border-foreground p-1 shadow-[8px_8px_0_0_rgba(0,0,0,1)]">
+          {/* UPDATED SHADOW: Now uses var(--random-blue) */}
+          <div className="bg-white border-2 border-foreground p-1 shadow-[8px_8px_0_0_var(--random-blue)]">
             <div className="bg-background-editorial border border-dashed border-foreground/20 p-8 min-h-[400px] flex items-center justify-center relative overflow-hidden">
               {/* The Phone Visual */}
               <div className="relative w-[240px] aspect-[9/16] bg-black border-[6px] border-zinc-800 rounded-[2rem] shadow-2xl overflow-hidden group">
