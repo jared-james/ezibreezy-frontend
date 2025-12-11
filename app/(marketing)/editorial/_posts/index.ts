@@ -2,12 +2,10 @@
 
 import { ComponentType } from "react";
 import * as VisualGridManifesto from "./visual-grid-manifesto";
-import * as ContextSwitching from "./context-switching-is-poison";
-import * as TasteIsTheMoat from "./taste-is-the-moat";
-import * as InvisibleExpert from "./the-invisible-expert";
 
-// 1. Import the new specific post wrapper
+// Import specific posts
 import * as InstagramCaptions from "./instagram-captions-2025/post";
+import * as InstagramFontGenerator from "./instagram-font-generator/post";
 
 export type Article = {
   slug: string;
@@ -18,7 +16,10 @@ export type Article = {
 };
 
 export const articles: Article[] = [
-  // 2. Add it to the array
+  {
+    ...InstagramFontGenerator.metadata,
+    component: InstagramFontGenerator.default,
+  },
   {
     ...InstagramCaptions.metadata,
     component: InstagramCaptions.default,
@@ -26,18 +27,6 @@ export const articles: Article[] = [
   {
     ...VisualGridManifesto.metadata,
     component: VisualGridManifesto.default,
-  },
-  {
-    ...ContextSwitching.metadata,
-    component: ContextSwitching.default,
-  },
-  {
-    ...TasteIsTheMoat.metadata,
-    component: TasteIsTheMoat.default,
-  },
-  {
-    ...InvisibleExpert.metadata,
-    component: InvisibleExpert.default,
   },
 ];
 
