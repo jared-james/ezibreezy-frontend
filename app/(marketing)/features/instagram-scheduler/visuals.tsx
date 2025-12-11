@@ -1,25 +1,25 @@
 // app/(marketing)/features/instagram-scheduler/visuals.tsx
 
+import Image from "next/image";
 import { MessageCircle, AtSign, Mail } from "lucide-react";
-import InstagramGridBoard from "@/components/landing-page/instagram-grid";
 
 export function InstagramHeroVisual() {
   return (
-    <>
-      <div className="flex justify-between items-center mb-6 opacity-60 font-mono text-[10px] uppercase tracking-widest">
-        <span>Fig 1. The Visual Canvas</span>
-        <span>Interactive Preview</span>
-      </div>
-
-      {/* Existing Grid Component */}
-      <InstagramGridBoard />
-
-      <div className="mt-6 text-center">
-        <p className="font-mono text-xs text-brand-primary font-bold uppercase tracking-widest">
-          ↑ Drag to Reorder
-        </p>
-      </div>
-    </>
+    /* 
+       -m-8: Cancels out the 'p-8' padding of the parent container so the image hits the edges.
+       w-[calc(100%+4rem)]: Ensures the width fills the space created by the negative margin.
+    */
+    <div className="-m-8 w-[calc(100%+4rem)] bg-background-editorial">
+      <Image
+        src="/marketing/features/features_instagram.webp"
+        alt="Instagram Scheduler Interface"
+        width={1200}
+        height={1000}
+        quality={100}
+        priority
+        className="w-full h-auto object-cover"
+      />
+    </div>
   );
 }
 

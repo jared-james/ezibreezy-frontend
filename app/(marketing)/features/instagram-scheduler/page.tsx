@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import LandingPageHeader from "@/components/landing-page/landing-page-header";
 import LandingPageFooter from "@/components/landing-page/landing-page-footer";
+import InstagramGridBoard from "@/components/landing-page/instagram-grid"; // Imported Grid Here
 import {
   SoftwareApplicationJsonLd,
   WebPageJsonLd,
@@ -110,6 +111,34 @@ export default function InstagramSchedulerPage() {
           visual={<InstagramHeroVisual />}
         />
 
+        {/* INTERACTIVE GRID SECTION */}
+        <section className="mb-24 max-w-5xl mx-auto">
+          <div className="flex flex-col items-center mb-10 text-center">
+            <h3 className="font-serif text-3xl font-bold mb-3">
+              Experience the flow.
+            </h3>
+            <p className="font-serif text-lg text-foreground/70 max-w-xl">
+              Drag and drop your posts to find the perfect arrangement. See how
+              your aesthetic comes together before you publish.
+            </p>
+          </div>
+
+          <div className="bg-white border-2 border-foreground p-1 shadow-[8px_8px_0_0_var(--random-blue)]">
+            <div className="bg-background-editorial border border-dashed border-foreground/20 p-8">
+              <div className="flex justify-between items-center mb-6 opacity-60 font-mono text-[10px] uppercase tracking-widest">
+                <span>Fig 1.1 The Visual Canvas</span>
+                <span>Interactive Preview</span>
+              </div>
+              <InstagramGridBoard />
+              <div className="mt-6 text-center">
+                <p className="font-mono text-xs text-brand-primary font-bold uppercase tracking-widest">
+                  ↑ Drag to Reorder
+                </p>
+              </div>
+            </div>
+          </div>
+        </section>
+
         <MarketIntelligence
           leadTitle={
             <>
@@ -140,7 +169,7 @@ export default function InstagramSchedulerPage() {
                 "See who is joining the circle and who is drifting away. Understand the net growth of your community.",
             },
             {
-              icon: Users, // Fallback icon, overwritten by customIcon
+              icon: Users,
               customIcon: (
                 <div className="flex items-center gap-2">
                   <div className="w-2 h-2 rounded-full bg-brand-primary" />

@@ -647,7 +647,6 @@ export default function EditorialCore({
 
         <div className="space-y-6 lg:col-span-5">
           <PreviewPanel />
-          <DistributionPanel />
           {mode === "editorial" && (
             <SchedulePanel
               onPublish={initiatePublishFlow} // Triggers the unified flow
@@ -656,6 +655,7 @@ export default function EditorialCore({
               hasMinimumContent={hasMinimumContent}
             />
           )}
+          <DistributionPanel />
         </div>
       </div>
       <div className="pb-64" />
