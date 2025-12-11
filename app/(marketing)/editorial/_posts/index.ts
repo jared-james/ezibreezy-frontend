@@ -6,6 +6,9 @@ import * as ContextSwitching from "./context-switching-is-poison";
 import * as TasteIsTheMoat from "./taste-is-the-moat";
 import * as InvisibleExpert from "./the-invisible-expert";
 
+// 1. Import the new specific post wrapper
+import * as InstagramCaptions from "./instagram-captions-2025/post";
+
 export type Article = {
   slug: string;
   title: string;
@@ -15,6 +18,11 @@ export type Article = {
 };
 
 export const articles: Article[] = [
+  // 2. Add it to the array
+  {
+    ...InstagramCaptions.metadata,
+    component: InstagramCaptions.default,
+  },
   {
     ...VisualGridManifesto.metadata,
     component: VisualGridManifesto.default,

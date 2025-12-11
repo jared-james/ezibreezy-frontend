@@ -101,11 +101,6 @@ export default async function ArticlePage({ params }: Props) {
                   {article.publishedAt}
                 </time>
               </div>
-
-              <div className="flex items-center gap-2">
-                <span className="w-1.5 h-1.5 bg-brand-primary rounded-full"></span>
-                <span>5 Min Read</span>
-              </div>
             </div>
           </header>
 
