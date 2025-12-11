@@ -9,6 +9,8 @@ import * as InstagramGridMaker from "./instagram-grid-maker/post";
 import * as InstagramGridPlanner from "./instagram-grid-planner/post";
 import * as LinkedInTextFormatter from "./linkedin-text-formatter/post";
 import * as ScreenshotStudio from "./screenshot-studio/post";
+import * as SocialImageResizer from "./social-image-resizer/post";
+import * as YouTubeTitleChecker from "./youtube-title-checker/post";
 
 export type Article = {
   slug: string;
@@ -22,6 +24,14 @@ export const articles: Article[] = [
   {
     ...ScreenshotStudio.metadata,
     component: ScreenshotStudio.default,
+  },
+  {
+    ...SocialImageResizer.metadata,
+    component: SocialImageResizer.default,
+  },
+  {
+    ...YouTubeTitleChecker.metadata,
+    component: YouTubeTitleChecker.default,
   },
   {
     ...LinkedInTextFormatter.metadata,
