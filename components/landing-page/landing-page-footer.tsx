@@ -154,14 +154,14 @@ export default function LandingPageFooter() {
               Company
             </h4>
             <ul className="space-y-3 text-sm">
-              <li>
+              {/* <li>
                 <Link
                   href="/about"
                   className="hover:text-brand-primary hover:underline decoration-dotted underline-offset-4 transition-colors"
                 >
                   About Us
                 </Link>
-              </li>
+              </li> */}
               <li>
                 <Link
                   href="/editorial"
