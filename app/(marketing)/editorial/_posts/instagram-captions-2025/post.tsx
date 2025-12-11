@@ -317,6 +317,62 @@ export default function Post() {
       <div id="weekend" className="scroll-mt-32" />
       <WeekendCaptions />
 
+      {/* Tool Links Section */}
+      <div className="mt-16 mb-8">
+        <h3 className="font-serif text-2xl font-bold mb-6">
+          More Instagram Tools
+        </h3>
+        <p className="mb-6 text-lg text-foreground/70">
+          Caption sorted? Now make your visuals match the energy.
+        </p>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <Link
+            href="/tools/instagram-font-generator"
+            className="p-6 border border-foreground/10 hover:border-brand-primary/50 hover:bg-surface-hover/30 transition-all group"
+          >
+            <h4 className="font-mono text-sm uppercase tracking-wider font-bold mb-2 group-hover:text-brand-primary transition-colors">
+              Instagram Font Generator
+            </h4>
+            <p className="text-sm text-foreground/60">
+              Style your captions with custom fonts that stand out
+            </p>
+          </Link>
+          <Link
+            href="/tools/instagram-grid-planner"
+            className="p-6 border border-foreground/10 hover:border-brand-primary/50 hover:bg-surface-hover/30 transition-all group"
+          >
+            <h4 className="font-mono text-sm uppercase tracking-wider font-bold mb-2 group-hover:text-brand-primary transition-colors">
+              Instagram Grid Planner
+            </h4>
+            <p className="text-sm text-foreground/60">
+              Preview and plan your grid before you post
+            </p>
+          </Link>
+          <Link
+            href="/tools/instagram-grid-maker"
+            className="p-6 border border-foreground/10 hover:border-brand-primary/50 hover:bg-surface-hover/30 transition-all group"
+          >
+            <h4 className="font-mono text-sm uppercase tracking-wider font-bold mb-2 group-hover:text-brand-primary transition-colors">
+              Instagram Grid Maker
+            </h4>
+            <p className="text-sm text-foreground/60">
+              Create cohesive grid layouts in seconds
+            </p>
+          </Link>
+          <Link
+            href="/tools/instagram-carousel-splitter"
+            className="p-6 border border-foreground/10 hover:border-brand-primary/50 hover:bg-surface-hover/30 transition-all group"
+          >
+            <h4 className="font-mono text-sm uppercase tracking-wider font-bold mb-2 group-hover:text-brand-primary transition-colors">
+              Instagram Carousel Splitter
+            </h4>
+            <p className="text-sm text-foreground/60">
+              Split images into carousel-ready slides
+            </p>
+          </Link>
+        </div>
+      </div>
+
       {/* Footer / CTA specific to this article */}
       <div className="mt-16 p-8 bg-brand-primary/10 border border-brand-primary/20 rounded-sm text-center">
         <h3 className="font-serif text-2xl font-bold mb-4">
