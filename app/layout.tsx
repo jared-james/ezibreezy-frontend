@@ -21,10 +21,7 @@ export const metadata: Metadata = {
   metadataBase: new URL(
     process.env.NEXT_PUBLIC_APP_URL || "https://www.ezibreezy.com"
   ),
-  title: {
-    default: "EziBreezy | The Editorial Desk for Social Media",
-    template: "%s | EziBreezy",
-  },
+  title: "EziBreezy | The Editorial Desk for Social Media",
   description:
     "EziBreezy is the editorial workspace for creators. Draft, visualize, and schedule content for Instagram, LinkedIn, and X without the spreadsheet chaos.",
   keywords: [
