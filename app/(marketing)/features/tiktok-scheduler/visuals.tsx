@@ -1,49 +1,25 @@
 // app/(marketing)/features/tiktok-scheduler/visuals.tsx
 
-import { CheckCircle2, MessageCircle } from "lucide-react";
+import Image from "next/image";
+import { MessageCircle } from "lucide-react";
 
 export function TikTokHeroVisual() {
   return (
-    <>
-      <div className="bg-background-editorial border border-dashed border-foreground/20 p-8 min-h-[400px] flex items-center justify-center relative overflow-hidden">
-        {/* The Phone Visual */}
-        <div className="relative w-[240px] aspect-[9/16] bg-black border-[6px] border-zinc-800 rounded-[2rem] shadow-2xl overflow-hidden group">
-          {/* Screen Content */}
-          <div className="absolute inset-0 bg-zinc-900 flex flex-col">
-            {/* Video Mockup */}
-            <div className="flex-1 bg-gradient-to-b from-zinc-800 to-zinc-900 relative">
-              <div className="absolute bottom-12 left-4 right-16 space-y-2">
-                <div className="w-3/4 h-3 bg-white/20 rounded" />
-                <div className="w-1/2 h-3 bg-white/20 rounded" />
-              </div>
-              {/* Side Actions */}
-              <div className="absolute bottom-12 right-2 flex flex-col gap-4 items-center">
-                <div className="w-8 h-8 rounded-full bg-white/10 backdrop-blur-md" />
-                <div className="w-8 h-8 rounded-full bg-white/10 backdrop-blur-md" />
-                <div className="w-8 h-8 rounded-full bg-white/10 backdrop-blur-md" />
-              </div>
-            </div>
-          </div>
-
-          {/* "Schedule" Overlay */}
-          <div className="absolute inset-0 bg-brand-primary/90 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-            <div className="text-center text-white">
-              <CheckCircle2 className="w-12 h-12 mx-auto mb-2" />
-              <span className="font-mono text-xs uppercase tracking-widest font-bold">
-                Ready to Publish
-              </span>
-            </div>
-          </div>
-        </div>
-
-        {/* Decorative Elements */}
-        <div className="absolute top-6 right-6 font-mono text-[9px] uppercase tracking-widest opacity-40 text-right">
-          Fig 3.
-          <br />
-          The Feed
-        </div>
-      </div>
-    </>
+    /* 
+       -m-8: Cancels out the 'p-8' padding of the parent container so the image hits the edges.
+       w-[calc(100%+4rem)]: Ensures the width fills the space created by the negative margin.
+    */
+    <div className="-m-8 w-[calc(100%+4rem)] bg-background-editorial">
+      <Image
+        src="/marketing/features/features_tiktok.webp"
+        alt="TikTok Scheduler Interface"
+        width={1200}
+        height={1000}
+        quality={70}
+        priority
+        className="w-full h-auto object-cover"
+      />
+    </div>
   );
 }
 

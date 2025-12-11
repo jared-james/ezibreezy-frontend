@@ -15,7 +15,7 @@ export function InstagramHeroVisual() {
         alt="Instagram Scheduler Interface"
         width={1200}
         height={1000}
-        quality={100}
+        quality={70}
         priority
         className="w-full h-auto object-cover"
       />

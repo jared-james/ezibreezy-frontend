@@ -1,48 +1,25 @@
 // app/(marketing)/features/twitter-scheduler/visuals.tsx
 
+import Image from "next/image";
 import { AtSign } from "lucide-react";
 
 export function TwitterHeroVisual() {
   return (
-    <>
-      {/* Thread Visual */}
-      <div className="max-w-sm mx-auto w-full space-y-4">
-        {/* Tweet 1 */}
-        <div className="bg-white p-4 border border-foreground/10 rounded-lg shadow-sm relative z-10">
-          <div className="flex gap-3">
-            <div className="w-10 h-10 rounded-full bg-brand-primary/20" />
-            <div className="flex-1">
-              <div className="h-2 w-24 bg-foreground/10 mb-2 rounded" />
-              <div className="space-y-1">
-                <div className="h-2 w-full bg-foreground/20 rounded" />
-                <div className="h-2 w-3/4 bg-foreground/20 rounded" />
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Connector Line */}
-        <div className="absolute left-[3.25rem] top-16 bottom-20 w-0.5 bg-foreground/10 -z-0" />
-
-        {/* Tweet 2 */}
-        <div className="bg-white p-4 border border-foreground/10 rounded-lg shadow-sm relative z-10 ml-8 transform rotate-1">
-          <div className="flex gap-3">
-            <div className="w-10 h-10 rounded-full bg-brand-primary/20" />
-            <div className="flex-1">
-              <div className="h-2 w-24 bg-foreground/10 mb-2 rounded" />
-              <div className="space-y-1">
-                <div className="h-2 w-full bg-foreground/20 rounded" />
-                <div className="h-2 w-1/2 bg-foreground/20 rounded" />
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <p className="text-center font-mono text-[9px] uppercase tracking-widest text-brand-primary mt-8 font-bold">
-        Native Thread Construction
-      </p>
-    </>
+    /* 
+       -m-8: Cancels out the 'p-8' padding of the parent container so the image hits the edges.
+       w-[calc(100%+4rem)]: Ensures the width fills the space created by the negative margin.
+    */
+    <div className="-m-8 w-[calc(100%+4rem)] bg-background-editorial">
+      <Image
+        src="/marketing/features/features_x.webp"
+        alt="X (Twitter) Scheduler Interface"
+        width={1200}
+        height={1000}
+        quality={70}
+        priority
+        className="w-full h-auto object-cover"
+      />
+    </div>
   );
 }
 

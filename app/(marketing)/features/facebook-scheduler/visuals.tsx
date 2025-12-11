@@ -15,7 +15,7 @@ export function FacebookHeroVisual() {
         alt="Facebook Scheduler Interface"
         width={1200}
         height={1000}
-        quality={100}
+        quality={70}
         priority
         /* 
            h-auto: Allows the height to grow naturally so the full image is shown.

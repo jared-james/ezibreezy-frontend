@@ -1,52 +1,25 @@
 // app/(marketing)/features/youtube-scheduler/visuals.tsx
 
-import { Play, Heart } from "lucide-react";
+import Image from "next/image";
+import { Heart } from "lucide-react";
 
 export function YouTubeHeroVisual() {
   return (
-    <>
-      {/* Video Player Mockup */}
-      <div className="w-full aspect-video bg-black relative group cursor-pointer overflow-hidden border border-foreground/10 shadow-xl">
-        {/* Thumbnail Image Placeholder */}
-        <div className="absolute inset-0 bg-gradient-to-tr from-zinc-800 to-zinc-700 opacity-80" />
-
-        {/* Play Button */}
-        <div className="absolute inset-0 flex items-center justify-center">
-          <div className="w-16 h-16 rounded-full bg-white/10 backdrop-blur-md border border-white/20 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
-            <Play className="w-6 h-6 text-white ml-1" fill="currentColor" />
-          </div>
-        </div>
-
-        {/* Progress Bar */}
-        <div className="absolute bottom-0 left-0 w-full h-1 bg-white/20">
-          <div className="h-full w-1/3 bg-red-600" />
-        </div>
-
-        {/* Metadata Overlay */}
-        <div className="absolute top-4 left-4 right-4">
-          <div className="flex justify-between items-start text-white">
-            <h3 className="font-sans font-bold text-lg drop-shadow-md">
-              The Art of Storytelling
-            </h3>
-            <div className="bg-black/60 backdrop-blur px-2 py-1 rounded text-xs font-mono">
-              SCHEDULED
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div className="flex justify-between items-center mt-6">
-        <div className="flex gap-2">
-          <div className="h-2 w-2 rounded-full bg-green-500 animate-pulse" />
-          <span className="font-mono text-[9px] uppercase tracking-widest text-foreground/60">
-            Upload Complete
-          </span>
-        </div>
-        <span className="font-mono text-[9px] uppercase tracking-widest text-brand-primary font-bold">
-          4K Resolution
-        </span>
-      </div>
-    </>
+    /* 
+       -m-8: Cancels out the 'p-8' padding of the parent container so the image hits the edges.
+       w-[calc(100%+4rem)]: Ensures the width fills the space created by the negative margin.
+    */
+    <div className="-m-8 w-[calc(100%+4rem)] bg-background-editorial">
+      <Image
+        src="/marketing/features/features_youtube.webp"
+        alt="YouTube Scheduler Interface"
+        width={1200}
+        height={1000}
+        quality={100}
+        priority
+        className="w-full h-auto object-cover"
+      />
+    </div>
   );
 }
 
