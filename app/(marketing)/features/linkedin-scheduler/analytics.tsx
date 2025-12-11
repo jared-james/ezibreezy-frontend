@@ -34,7 +34,7 @@ export default function Analytics() {
         <div className="lg:col-span-2 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 bg-surface-hover/10">
           {/* Metric 1 */}
           <div className="p-6 border-b sm:border-r border-foreground/20 hover:bg-white transition-colors group">
-            <Users className="w-5 h-5 text-foreground/40 mb-3 group-hover:text-brand-primary transition-colors" />
+            <Users className="w-5 h-5 text-brand-primary mb-3" />
             <h4 className="font-bold font-serif text-lg mb-1">Followers</h4>
             <p className="text-xs font-mono text-foreground/60 uppercase tracking-wider mb-2">
               Growth Tracking
@@ -63,7 +63,7 @@ export default function Analytics() {
 
           {/* Metric 3 */}
           <div className="p-6 border-b sm:border-r-0 md:border-r border-foreground/20 hover:bg-white transition-colors group">
-            <Monitor className="w-5 h-5 text-foreground/40 mb-3 group-hover:text-brand-primary transition-colors" />
+            <Monitor className="w-5 h-5 text-brand-primary mb-3" />
             <h4 className="font-bold font-serif text-lg mb-1">Page Views</h4>
             <p className="text-xs font-mono text-foreground/60 uppercase tracking-wider mb-2">
               Traffic Sources
@@ -75,7 +75,7 @@ export default function Analytics() {
 
           {/* Metric 4 */}
           <div className="p-6 border-b md:border-b-0 sm:border-r border-foreground/20 hover:bg-white transition-colors group">
-            <Globe className="w-5 h-5 text-foreground/40 mb-3 group-hover:text-brand-primary transition-colors" />
+            <Globe className="w-5 h-5 text-brand-primary mb-3" />
             <h4 className="font-bold font-serif text-lg mb-1">Visitors</h4>
             <p className="text-xs font-mono text-foreground/60 uppercase tracking-wider mb-2">
               Page Traffic
@@ -88,7 +88,7 @@ export default function Analytics() {
 
           {/* Metric 5 */}
           <div className="p-6 border-b sm:border-b-0 md:border-r border-foreground/20 hover:bg-white transition-colors group">
-            <BarChart3 className="w-5 h-5 text-foreground/40 mb-3 group-hover:text-brand-primary transition-colors" />
+            <BarChart3 className="w-5 h-5 text-brand-primary mb-3" />
             <h4 className="font-bold font-serif text-lg mb-1">Shares</h4>
             <p className="text-xs font-mono text-foreground/60 uppercase tracking-wider mb-2">
               Network Effect
@@ -101,7 +101,7 @@ export default function Analytics() {
 
           {/* Metric 6 */}
           <div className="p-6 hover:bg-white transition-colors group">
-            <TrendingUp className="w-5 h-5 text-foreground/40 mb-3 group-hover:text-brand-primary transition-colors" />
+            <TrendingUp className="w-5 h-5 text-brand-primary mb-3" />
             <h4 className="font-bold font-serif text-lg mb-1">Post Insights</h4>
             <p className="text-xs font-mono text-foreground/60 uppercase tracking-wider mb-2">
               Engagement

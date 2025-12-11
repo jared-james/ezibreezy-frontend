@@ -10,7 +10,8 @@ export default function GridIntro() {
       <div className="lg:col-span-7 lg:border-r border-foreground pt-8 lg:pr-12 pb-12">
         <div className="relative">
           <div className="absolute -top-4 -left-4 w-full h-full border border-dashed border-foreground/20 bg-foreground/5 -z-10" />
-          <div className="bg-white border-2 border-foreground p-1 shadow-[8px_8px_0_0_rgba(0,0,0,1)]">
+          {/* UPDATED SHADOW: Now uses var(--random-blue) */}
+          <div className="bg-white border-2 border-foreground p-1 shadow-[8px_8px_0_0_var(--random-blue)]">
             <div className="bg-background-editorial border border-dashed border-foreground/20 p-6">
               <div className="flex justify-between items-center mb-6 opacity-60 font-mono text-[10px] uppercase tracking-widest">
                 <span>Fig 1. The Visual Canvas</span>
@@ -44,8 +45,8 @@ export default function GridIntro() {
           <p>
             The <strong>Visual Planner</strong> allows you to step back and see
             the bigger picture. It gives you the space to ensure that every
-            piece of content isn&apos;t just filling a slot, but contributing to the
-            feeling you want to leave behind.
+            piece of content isn&apos;t just filling a slot, but contributing to
+            the feeling you want to leave behind.
           </p>
         </div>
 

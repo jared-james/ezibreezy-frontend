@@ -11,7 +11,8 @@ export default function BoardIntro() {
         <div className="relative">
           <div className="absolute -top-4 -left-4 w-full h-full border border-dashed border-foreground/20 bg-foreground/5 -z-10" />
 
-          <div className="bg-white border-2 border-foreground p-1 shadow-[8px_8px_0_0_rgba(0,0,0,1)]">
+          {/* UPDATED SHADOW: Now uses var(--random-blue) */}
+          <div className="bg-white border-2 border-foreground p-1 shadow-[8px_8px_0_0_var(--random-blue)]">
             <div className="bg-background-editorial border border-dashed border-foreground/20 p-8 min-h-[400px] flex flex-col justify-center relative overflow-hidden">
               {/* Pin Layout Visual */}
               <div className="grid grid-cols-2 gap-4 max-w-sm mx-auto w-full">
@@ -67,17 +68,15 @@ export default function BoardIntro() {
 
         <div className="prose prose-lg font-serif text-foreground/80 leading-relaxed mb-10">
           <p>
-            <span className="float-left text-5xl font-black mr-3 -mt-2">
-              O
-            </span>
+            <span className="float-left text-5xl font-black mr-3 -mt-2">O</span>
             ther platforms are about <em>now</em>. Pinterest is about{" "}
-            <em>next</em>. It is where people go to plan their futures, not
-            just scroll through their present.
+            <em>next</em>. It is where people go to plan their futures, not just
+            scroll through their present.
           </p>
           <p>
-            The <strong>Editorial Desk</strong> helps you build a library
-            that lasts. Organize your inspiration, schedule your pins, and
-            create a resource that people will return to for years to come.
+            The <strong>Editorial Desk</strong> helps you build a library that
+            lasts. Organize your inspiration, schedule your pins, and create a
+            resource that people will return to for years to come.
           </p>
         </div>
 
