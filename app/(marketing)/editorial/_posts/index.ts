@@ -5,6 +5,9 @@ import { ComponentType } from "react";
 import * as InstagramCaptions from "./instagram-captions-2025/post";
 import * as InstagramFontGenerator from "./instagram-font-generator/post";
 import * as InstagramCarouselSplitter from "./instagram-carousel-splitter/post";
+import * as InstagramGridMaker from "./instagram-grid-maker/post";
+import * as InstagramGridPlanner from "./instagram-grid-planner/post";
+import * as LinkedInTextFormatter from "./linkedin-text-formatter/post";
 
 export type Article = {
   slug: string;
@@ -15,6 +18,18 @@ export type Article = {
 };
 
 export const articles: Article[] = [
+  {
+    ...LinkedInTextFormatter.metadata,
+    component: LinkedInTextFormatter.default,
+  },
+  {
+    ...InstagramGridPlanner.metadata,
+    component: InstagramGridPlanner.default,
+  },
+  {
+    ...InstagramGridMaker.metadata,
+    component: InstagramGridMaker.default,
+  },
   {
     ...InstagramCarouselSplitter.metadata,
     component: InstagramCarouselSplitter.default,

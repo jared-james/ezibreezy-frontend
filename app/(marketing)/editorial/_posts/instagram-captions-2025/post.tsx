@@ -31,7 +31,7 @@ export const metadata = {
   title: "400+ Best Instagram Captions for 2025",
   excerpt:
     "A curated library of words to help you bridge the gap between the image you captured and the story you want to tell.",
-  publishedAt: "2025-12-10",
+  publishedAt: "2025-12-06",
 };
 
 export default function Post() {

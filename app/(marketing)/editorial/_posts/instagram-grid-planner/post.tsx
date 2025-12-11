@@ -1,14 +1,14 @@
-// app/(marketing)/editorial/_posts/instagram-carousel-splitter/post.tsx
+// app/(marketing)/editorial/_posts/instagram-grid-planner/post.tsx
 
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 
 export const metadata = {
-  slug: "instagram-carousel-splitter",
-  title: "Instagram Carousel Splitter: Free Online Tool",
+  slug: "instagram-grid-planner",
+  title: "Instagram Grid Planner: Plan Your Feed Layout Online",
   excerpt:
-    "Some stories are too wide for a single frame. A look at how we help turn panoramic moments into swipeable journeys.",
-  publishedAt: "2025-12-07",
+    "Your feed is not a collection of individual posts. It is a gallery. A look at how we help you see the whole before you share the parts.",
+  publishedAt: "2025-12-09",
 };
 
 export default function Post() {
@@ -17,35 +17,41 @@ export default function Post() {
       {/* Intro Section */}
       <p className="lead text-xl md:text-2xl font-serif leading-relaxed mb-8">
         <span className="float-left text-6xl font-black mr-3 -mt-2.5 font-serif text-brand-primary/80">
-          S
+          Y
         </span>
-        ome images don&rsquo;t want to be contained. A sunset stretching across
-        the horizon. A city skyline that demands to be seen in full. A moment
-        captured so wide that cropping it feels like losing the story.
+        ou have done the work. The photo is perfect. The caption is ready. Your
+        finger hovers over the post button. But there is a question you cannot
+        see the answer to: how will this look next to everything else?
+      </p>
+
+      <p className="mb-6 text-lg leading-relaxed text-foreground/80">
+        Instagram was never meant to be about individual moments in isolation.
+        It was designed as a grid. A canvas. A way of showing not just what you
+        see, but how you see.
       </p>
 
       <p className="mb-8 text-lg leading-relaxed text-foreground/80">
-        Instagram&rsquo;s square format is a constraint. But constraints can be
-        invitations. The carousel allows you to turn that panoramic shot into a
-        seamless, swipeable journey.
+        And yet, most of us post one image at a time, hoping it fits. Hoping the
+        colors work. Hoping the rhythm feels right. We cannot see the whole, so
+        we guess.
       </p>
 
       {/* THE TOOL - Minimal, High Contrast, unmistakable CTA */}
       <div className="my-10 p-1 bg-foreground/5 rounded-sm">
         <div className="bg-background border border-foreground/10 p-8 md:p-10 text-center">
           <h3 className="font-serif text-3xl font-medium mb-3">
-            Instagram Carousel Splitter
+            Instagram Grid Planner
           </h3>
           <p className="text-foreground/60 mb-8 max-w-md mx-auto">
-            Upload a panoramic image. We will slice it into perfect 4:5 slides
-            for Instagram.
+            Upload your photos. Arrange them. See your feed the way your
+            audience will before you share it with the world.
           </p>
 
           <Link
-            href="/tools/instagram-carousel-splitter"
+            href="/tools/instagram-grid-planner"
             className="inline-flex items-center justify-center gap-3 w-full md:w-auto bg-foreground text-background px-10 py-4 font-mono text-sm uppercase tracking-widest font-bold hover:bg-brand-primary hover:text-background transition-all duration-300"
           >
-            Launch Tool <ArrowRight className="w-4 h-4" />
+            Launch Planner <ArrowRight className="w-4 h-4" />
           </Link>
 
           <p className="mt-4 font-mono text-[10px] uppercase tracking-wider text-foreground/40">
@@ -55,110 +61,116 @@ export default function Post() {
       </div>
 
       <div className="my-12 p-8 border-l-2 border-brand-primary/60 bg-surface-hover/30 italic font-serif text-xl leading-loose">
-        &ldquo;The swipe is more than a gesture. It is a commitment. When
-        someone swipes to see the rest of your image, they are choosing to stay
-        with you a little longer.&rdquo;
+        &ldquo;A grid is not nine separate squares. It is a single story told in
+        chapters. When you plan it as a whole, your audience feels the
+        difference.&rdquo;
       </div>
 
       <h2 className="text-3xl font-serif font-bold mt-12 mb-6">
-        Why Carousels Matter
+        Why the Grid Matters
       </h2>
 
       <p className="mb-6 text-lg leading-relaxed text-foreground/80">
-        When Instagram introduced the carousel format, they gave us something
-        more valuable than extra image slots. They gave us permission to tell
-        stories that unfold.
+        When someone visits your profile, they are not looking at your latest
+        post. They are looking at your entire presence. The grid is the first
+        impression, the visual handshake, the moment they decide whether to
+        follow or keep scrolling.
       </p>
 
       <p className="mb-6 text-lg leading-relaxed text-foreground/80">
-        A single image asks someone to pause. A carousel asks them to
-        participate. Each swipe is a micro-commitment, a signal that they want
-        to see more. And in a feed designed for speed, that kind of engagement
-        is rare and meaningful.
+        A thoughtful grid does not happen by accident. It happens when you step
+        back far enough to see the patterns. When you notice that three dark
+        images in a row create heaviness. When you realize that alternating
+        between close-ups and wide shots creates rhythm.
       </p>
 
       <p className="mb-10 text-lg leading-relaxed text-foreground/80">
-        When you split a panorama into a seamless carousel, you are doing three
-        things at once:
+        Planning your grid is an act of respect. For your work, yes. But more
+        importantly, for the people who will see it.
       </p>
 
       <ul className="list-none mb-10 text-lg leading-relaxed text-foreground/80 space-y-6">
         <li className="pl-6 border-l border-foreground/20">
-          <strong>You are honoring the original moment.</strong> Instead of
-          cropping away context, you are preserving the full scope of what you
-          saw and felt.
+          <strong>You are creating coherence.</strong> When your feed has a
+          visual rhythm, it feels intentional. It signals that you care about
+          the experience, not just the content.
         </li>
         <li className="pl-6 border-l border-foreground/20">
-          <strong>You are creating curiosity.</strong> That first slide hints at
-          something larger. It makes people wonder what comes next.
+          <strong>You are building trust.</strong> Consistency is a form of
+          reliability. When your aesthetic is clear and deliberate, people know
+          what to expect. And expectation is the foundation of loyalty.
         </li>
         <li className="pl-6 border-l border-foreground/20">
-          <strong>You are inviting interaction.</strong> Every swipe is a form
-          of engagement, and the algorithm notices. More importantly, your
-          audience remembers.
+          <strong>You are telling a story.</strong> A grid is a narrative
+          structure. The order matters. The pacing matters. What comes before
+          influences what comes after.
         </li>
       </ul>
 
       <h2 className="text-3xl font-serif font-bold mt-12 mb-6">
-        When to Use a Carousel Splitter
+        When to Use a Grid Planner
       </h2>
 
       <p className="mb-8 text-lg leading-relaxed text-foreground/80">
-        Not every image needs to be split. But when you have captured something
-        expansive, something that loses its power when confined to a square,
-        that is when this tool becomes useful.
+        Not every account needs a meticulously planned grid. But if you are
+        building a brand, showcasing a portfolio, or trying to create a visual
+        identity that people remember, planning ahead changes everything.
       </p>
 
       <div className="space-y-6 mb-8">
         <div className="p-6 bg-background rounded border border-foreground/5 hover:border-foreground/20 transition-colors">
           <h3 className="font-serif text-lg font-medium mb-2">
-            Landscape Photography
+            Before a Product Launch
           </h3>
           <p className="text-sm text-foreground/60 mb-3 font-serif italic">
-            Mountains, coastlines, cityscapes that stretch beyond the frame.
+            When the first nine posts need to work as one introduction.
           </p>
           <p className="text-base opacity-90">
-            When the width of the scene is part of the story, cropping feels
-            like loss. A carousel lets your audience experience the full vista
-            as you did.
-          </p>
-        </div>
-
-        <div className="p-6 bg-background rounded border border-foreground/5 hover:border-foreground/20 transition-colors">
-          <h3 className="font-serif text-lg font-medium mb-2">Group Moments</h3>
-          <p className="text-sm text-foreground/60 mb-3 font-serif italic">
-            Team photos, family gatherings, events with many faces.
-          </p>
-          <p className="text-base opacity-90">
-            No one wants to be the person cropped out of the photo. A panoramic
-            carousel ensures everyone is included and seen.
+            A launch is not a single announcement. It is a series of moments
+            that build anticipation. When you can see them all at once, you can
+            ensure the story unfolds with intention.
           </p>
         </div>
 
         <div className="p-6 bg-background rounded border border-foreground/5 hover:border-foreground/20 transition-colors">
           <h3 className="font-serif text-lg font-medium mb-2">
-            Before and After Reveals
+            Photographers and Visual Artists
           </h3>
           <p className="text-sm text-foreground/60 mb-3 font-serif italic">
-            Transformations that need context to make sense.
+            When your portfolio is your presence.
           </p>
           <p className="text-base opacity-90">
-            The swipe itself becomes part of the reveal. The first slide sets
-            the scene. The second shows the change. The journey matters as much
-            as the destination.
+            Your grid is your gallery wall. The order, the color harmony, the
+            balance between light and dark—these are not minor details. They are
+            the curatorial choices that define your voice.
           </p>
         </div>
 
         <div className="p-6 bg-background rounded border border-foreground/5 hover:border-foreground/20 transition-colors">
           <h3 className="font-serif text-lg font-medium mb-2">
-            Visual Storytelling
+            Seasonal Campaigns
           </h3>
           <p className="text-sm text-foreground/60 mb-3 font-serif italic">
-            Infographics, step-by-step tutorials, sequential narratives.
+            When you need a cohesive look for a specific period.
           </p>
           <p className="text-base opacity-90">
-            When your message unfolds from left to right, a carousel mirrors the
-            way we naturally read and process information.
+            Planning a week of holiday content? A month of summer vibes? Seeing
+            the full arc before you post the first piece helps you maintain the
+            mood from start to finish.
+          </p>
+        </div>
+
+        <div className="p-6 bg-background rounded border border-foreground/5 hover:border-foreground/20 transition-colors">
+          <h3 className="font-serif text-lg font-medium mb-2">
+            Rebranding or Refreshing Your Aesthetic
+          </h3>
+          <p className="text-sm text-foreground/60 mb-3 font-serif italic">
+            When you are shifting direction and need to see the transition.
+          </p>
+          <p className="text-base opacity-90">
+            Change does not have to be jarring. When you plan the shift, you can
+            ease your audience from the old identity to the new without losing
+            them along the way.
           </p>
         </div>
       </div>
@@ -166,51 +178,55 @@ export default function Post() {
       <h2 className="text-3xl font-serif font-bold mt-12 mb-6">How It Works</h2>
 
       <p className="mb-6 text-lg leading-relaxed text-foreground/80">
-        The tool is intentionally simple. You upload your panoramic image, and
-        we automatically split it into perfectly sized slides that align
-        seamlessly when someone swipes through your carousel.
+        The planner gives you what Instagram itself does not: perspective. You
+        upload your images, drag them into order, and see your feed as a grid.
+        You can rearrange until the rhythm feels right. Until the colors
+        balance. Until the story makes sense.
       </p>
 
       <p className="mb-6 text-lg leading-relaxed text-foreground/80">
-        Each slide maintains Instagram&rsquo;s preferred 4:5 aspect ratio, so
-        your post takes up maximum screen space. And because the splits are
-        calculated precisely, there are no awkward gaps or misalignments. When
-        viewed as a carousel, your panorama flows as one continuous image.
+        It is not about perfection. It is about clarity. When you can see the
+        whole, you make better decisions about the parts.
       </p>
 
       <h2 className="text-3xl font-serif font-bold mt-12 mb-6">
-        A Note on Intention
+        The Difference Between Posting and Planning
       </h2>
 
       <p className="mb-6 text-lg leading-relaxed text-foreground/80">
-        Like any tool, the carousel splitter is only as meaningful as the story
-        you tell with it. A panorama split into slides without purpose is just
-        noise. But when you use it intentionally, when the width of the image
-        carries weight, it becomes a way to respect both your subject and your
-        audience.
+        Posting is reactive. You create something, you share it, you move on.
+        There is a place for that kind of spontaneity. But planning is
+        intentional. It is the difference between throwing paint at a canvas and
+        composing a painting.
+      </p>
+
+      <p className="mb-6 text-lg leading-relaxed text-foreground/80">
+        When you plan your grid, you are not being rigid. You are being
+        thoughtful. You are considering the experience of the person who will
+        visit your profile. You are asking: what do I want them to feel?
       </p>
 
       <p className="mb-12 text-lg leading-relaxed text-foreground/80">
-        Use it when the story is too big for one frame. Use it when you want to
-        slow someone down. Use it when you want them to choose to see more.
+        That question changes everything. Because once you know the feeling you
+        are creating, every choice becomes clearer.
       </p>
 
       {/* Related Tools */}
       <div className="mt-16 pt-8 border-t border-foreground/10">
         <h3 className="font-serif text-2xl font-medium mb-6">
-          Other ways to shape your story
+          Other ways to shape your presence
         </h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <Link
-            href="/tools/instagram-grid-planner"
+            href="/tools/instagram-carousel-splitter"
             className="p-6 bg-surface-hover/20 rounded hover:bg-surface-hover/40 transition-all group"
           >
             <h4 className="font-serif text-lg font-medium mb-2 group-hover:text-brand-primary transition-colors">
-              Grid Planner
+              Carousel Splitter
             </h4>
             <p className="text-sm text-foreground/60 leading-relaxed">
-              Preview how your carousel will sit alongside your other posts
-              before you share it.
+              Turn wide moments into swipeable stories that sit beautifully in
+              your planned grid.
             </p>
           </Link>
           <Link
@@ -221,8 +237,8 @@ export default function Post() {
               Grid Maker
             </h4>
             <p className="text-sm text-foreground/60 leading-relaxed">
-              Turn a single image into a cohesive multi-post grid that tells a
-              unified story.
+              Create a multi-post grid from a single image to anchor your feed
+              with a bold visual statement.
             </p>
           </Link>
           <Link
@@ -233,8 +249,8 @@ export default function Post() {
               Font Generator
             </h4>
             <p className="text-sm text-foreground/60 leading-relaxed">
-              Give your carousel caption a voice that matches the emotion of the
-              image.
+              Give your bio and captions the same intentionality as your visual
+              grid.
             </p>
           </Link>
           <Link
@@ -245,8 +261,7 @@ export default function Post() {
               Caption Library
             </h4>
             <p className="text-sm text-foreground/60 leading-relaxed">
-              Once you have the perfect visual sequence, find the words that
-              complete the story.
+              Once your grid is planned, find the words that complete the story.
             </p>
           </Link>
         </div>
@@ -255,17 +270,17 @@ export default function Post() {
       {/* Footer / CTA specific to this article */}
       <div className="mt-16 p-10 bg-surface-hover/30 border border-foreground/5 rounded-sm text-center">
         <h3 className="font-serif text-2xl font-medium mb-4">
-          Room to plan. Space to create.
+          See the whole. Shape the story.
         </h3>
         <p className="mb-8 text-foreground/70 max-w-md mx-auto leading-relaxed">
-          EziBreezy gives you the tools and the room to think through your
-          content before the world sees it. No pressure, just possibility.
+          EziBreezy helps you step back and see what your audience will see, so
+          you can share with confidence instead of guesswork.
         </p>
         <Link
           href="/auth/signup"
           className="inline-block border border-foreground/30 bg-background text-foreground px-8 py-3 font-serif italic text-lg hover:border-brand-primary hover:text-brand-primary transition-all duration-300"
         >
-          Start Creating &rarr;
+          Start Planning &rarr;
         </Link>
       </div>
     </>
