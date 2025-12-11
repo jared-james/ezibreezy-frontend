@@ -1,9 +1,7 @@
 // app/(marketing)/editorial/_posts/instagram-captions-2025/post.tsx
 
 import Link from "next/link";
-import { ArrowDown } from "lucide-react";
 
-// Imports
 import FunnyCaptions from "./funny";
 import CuteCaptions from "./cute";
 import ShortCaptions from "./short";
@@ -16,7 +14,6 @@ import ReelsCaptions from "./reels";
 import BusinessCaptions from "./business";
 import Winter2025Captions from "./winter-2025";
 
-// The Rest
 import WittyCaptions from "./witty";
 import MotivationalCaptions from "./motivational";
 import FoodCoffeeCaptions from "./food-coffee";
@@ -31,10 +28,10 @@ import WeekendCaptions from "./weekend";
 
 export const metadata = {
   slug: "instagram-captions-2025",
-  title: "Finding the Right Words: A Collection of Captions for Every Moment",
+  title: "400+ Best Instagram Captions for 2025",
   excerpt:
     "A curated library of words to help you bridge the gap between the image you captured and the story you want to tell.",
-  publishedAt: "2025-12-11",
+  publishedAt: "2025-12-10",
 };
 
 export default function Post() {

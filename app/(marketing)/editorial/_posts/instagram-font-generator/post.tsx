@@ -1,11 +1,11 @@
 // app/(marketing)/editorial/_posts/instagram-font-generator/post.tsx
 
 import Link from "next/link";
+import { ArrowRight } from "lucide-react";
 
 export const metadata = {
   slug: "instagram-font-generator",
-  title:
-    "The Art of Being Heard: Using Typography to Tell Your Story on Instagram",
+  title: "Instagram Font Generator, Free & Easy Tool",
   excerpt:
     "In a sea of sameness, how do we signal who we are? A look at using custom typography not as a gimmick, but as a way to find your voice.",
   publishedAt: "2025-12-11",
@@ -31,43 +31,39 @@ export default function Post() {
         𝗯𝗼𝗹𝗱 𝘁𝘆𝗽𝗲 to stand firm.
       </p>
 
-      <p className="mb-6 text-lg leading-relaxed text-foreground/80">
+      <p className="mb-8 text-lg leading-relaxed text-foreground/80">
         It isn't about being loud. It is about alignment. It is about ensuring
         the way your words look matches the way your message feels.
       </p>
+
+      {/* THE TOOL - Minimal, High Contrast, Clear CTA */}
+      <div className="my-10 p-1 bg-foreground/5 rounded-sm">
+        <div className="bg-background border border-foreground/10 p-8 md:p-10 text-center">
+          <h3 className="font-serif text-3xl font-medium mb-3">
+            Instagram Font Generator
+          </h3>
+          <p className="text-foreground/60 mb-8 max-w-md mx-auto">
+            Type your text. Choose a style. Copy and paste to give your words a
+            voice.
+          </p>
+
+          <Link
+            href="/tools/instagram-font-generator"
+            className="inline-flex items-center justify-center gap-3 w-full md:w-auto bg-foreground text-background px-10 py-4 font-mono text-sm uppercase tracking-widest font-bold hover:bg-brand-primary hover:text-background transition-all duration-300"
+          >
+            Launch Generator <ArrowRight className="w-4 h-4" />
+          </Link>
+
+          <p className="mt-4 font-mono text-[10px] uppercase tracking-wider text-foreground/40">
+            Free • Instant • Copy & Paste
+          </p>
+        </div>
+      </div>
 
       <div className="my-12 p-8 border-l-2 border-brand-primary/60 bg-surface-hover/30 italic font-serif text-xl leading-loose">
         &ldquo;The goal isn't just to be seen. The goal is to be understood.
         Typography is the clothes our words wear; it tells people who we are
         before we even finish the sentence.&rdquo;
-      </div>
-
-      {/* Featured CTA to Tool - Soft Invitation Style */}
-      <div className="my-16 bg-surface-hover/20 p-8 md:p-12 rounded-lg border border-foreground/5">
-        <div className="text-center mb-8">
-          <p className="font-serif text-sm italic text-foreground/60 mb-4">
-            An invitation to experiment
-          </p>
-          <h3 className="font-serif text-3xl md:text-4xl font-medium mb-4 leading-tight">
-            Find Your Type.
-          </h3>
-        </div>
-        <div className="max-w-xl mx-auto text-center space-y-6">
-          <p className="text-lg leading-relaxed text-foreground/80">
-            We built a simple space for you to test different voices. No
-            distractions, no sign-ups. Just a quiet place to type your bio or
-            caption and see which style resonates with the story you are trying
-            to tell.
-          </p>
-          <div className="pt-2">
-            <Link
-              href="/tools/instagram-font-generator"
-              className="inline-block border border-foreground/30 bg-background text-foreground px-8 py-3 font-serif italic text-lg hover:border-brand-primary hover:text-brand-primary transition-all duration-300"
-            >
-              Open the Generator &rarr;
-            </Link>
-          </div>
-        </div>
       </div>
 
       <h2 className="text-3xl font-serif font-bold mt-12 mb-6">
