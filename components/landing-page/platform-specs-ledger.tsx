@@ -30,11 +30,13 @@ export default function PlatformSpecsLedger() {
         </div>
       </div>
 
-      {/* 
-        NAVIGATION SIDEBAR 
+      {/*
+        NAVIGATION SIDEBAR
       */}
       <div
         className={`col-span-1 md:col-span-4 lg:col-span-3 bg-background-editorial border-t-0 border-b md:border-b-0 md:border-r ${borderStyle} flex flex-row md:flex-col overflow-x-auto md:overflow-visible no-scrollbar`}
+        role="tablist"
+        aria-label="Platform specifications"
       >
         {PLATFORM_SPECS.map((platform) => {
           const isActive = activeTab === platform.id;
@@ -56,9 +58,10 @@ export default function PlatformSpecsLedger() {
                   : "hover:bg-foreground/5 text-foreground bg-background-editorial"
               )}
               title={platform.name}
-              aria-pressed={isActive}
               role="tab"
               aria-selected={isActive}
+              aria-controls={`panel-${platform.id}`}
+              id={`tab-${platform.id}`}
             >
               <Icon
                 className={cn(
@@ -94,6 +97,8 @@ export default function PlatformSpecsLedger() {
               )}
               role="tabpanel"
               aria-hidden={!isActive}
+              id={`panel-${platform.id}`}
+              aria-labelledby={`tab-${platform.id}`}
             >
               {/* Title Section */}
               <div
