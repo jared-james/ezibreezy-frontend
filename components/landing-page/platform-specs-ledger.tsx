@@ -3,6 +3,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { PLATFORM_SPECS } from "./platform-data";
 import { Check, Cpu } from "lucide-react";
@@ -13,6 +14,18 @@ export default function PlatformSpecsLedger() {
   // Consistent 1950s styling variables
   const borderStyle = "border-foreground/20";
   const dashedBorder = "border-foreground/30 border-dashed";
+
+  // Map platform IDs to their scheduler pages for SEO-friendly links
+  const platformLinks: Record<string, string> = {
+    instagram: "/features/instagram-scheduler",
+    facebook: "/features/facebook-scheduler",
+    threads: "/features/threads-scheduler",
+    tiktok: "/features/tiktok-scheduler",
+    linkedin: "/features/linkedin-scheduler",
+    youtube: "/features/youtube-scheduler",
+    x: "/features/twitter-scheduler",
+    pinterest: "/features/pinterest-scheduler",
+  };
 
   return (
     <>
@@ -41,9 +54,13 @@ export default function PlatformSpecsLedger() {
           const Icon = platform.icon;
 
           return (
-            <button
+            <Link
               key={platform.id}
-              onClick={() => setActiveTab(platform.id)}
+              href={platformLinks[platform.id]}
+              onClick={(e) => {
+                e.preventDefault();
+                setActiveTab(platform.id);
+              }}
               className={cn(
                 "group flex items-center justify-center md:justify-start gap-4 transition-all shrink-0",
                 // Mobile Sizing
@@ -68,7 +85,7 @@ export default function PlatformSpecsLedger() {
               <span className="hidden md:block font-serif font-medium text-sm tracking-wide">
                 {platform.name}
               </span>
-            </button>
+            </Link>
           );
         })}
       </div>
