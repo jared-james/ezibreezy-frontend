@@ -1,13 +1,6 @@
 // app/(marketing)/features/facebook-scheduler/analytics.tsx
 
-import {
-  Users,
-  Star,
-  Eye,
-  Tv,
-  BarChart3,
-  Sparkles,
-} from "lucide-react";
+import { Users, Star, Eye, Tv, BarChart3, Sparkles } from "lucide-react";
 
 export default function Analytics() {
   return (
@@ -28,13 +21,12 @@ export default function Analytics() {
             <span className="italic text-brand-primary">residents.</span>
           </h2>
           <p className="font-serif text-lg leading-relaxed text-foreground/80 mb-6">
-            A community isn&apos;t just a number. It&apos;s people. It&apos;s fans who
-            return, and new faces discovering you for the first time.
+            A community isn&apos;t just a number. It&apos;s people. It&apos;s
+            fans who return, and new faces discovering you for the first time.
           </p>
           <p className="font-serif text-sm leading-relaxed text-foreground/70">
-            Our intelligence report breaks down the health of your Page,
-            showing you not just who sees your content, but who is sticking
-            around.
+            Our intelligence report breaks down the health of your Page, showing
+            you not just who sees your content, but who is sticking around.
           </p>
         </div>
 
@@ -42,7 +34,7 @@ export default function Analytics() {
         <div className="lg:col-span-2 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 bg-surface-hover/10">
           {/* Metric 1 */}
           <div className="p-6 border-b sm:border-r border-foreground/20 hover:bg-white transition-colors group">
-            <Users className="w-5 h-5 text-foreground/40 mb-3 group-hover:text-brand-primary transition-colors" />
+            <Users className="w-5 h-5 text-brand-primary mb-3" />
             <h4 className="font-bold font-serif text-lg mb-1">
               Total Followers
             </h4>
@@ -58,51 +50,47 @@ export default function Analytics() {
           {/* Metric 2 */}
           <div className="p-6 border-b md:border-r border-foreground/20 hover:bg-white transition-colors group">
             <div className="mb-3 flex items-center gap-2">
-              <Star className="w-5 h-5 text-foreground/40 group-hover:text-brand-primary transition-colors" />
+              <Star className="w-5 h-5 text-brand-primary" />
             </div>
             <h4 className="font-bold font-serif text-lg mb-1">Fan Base</h4>
             <p className="text-xs font-mono text-foreground/60 uppercase tracking-wider mb-2">
               Loyalty
             </p>
             <p className="text-sm text-foreground/70 leading-snug">
-              Track gained and lost fans. Understand what content builds
-              loyalty and what drives people away.
+              Track gained and lost fans. Understand what content builds loyalty
+              and what drives people away.
             </p>
           </div>
 
           {/* Metric 3 */}
           <div className="p-6 border-b sm:border-r-0 md:border-r border-foreground/20 hover:bg-white transition-colors group">
-            <Eye className="w-5 h-5 text-foreground/40 mb-3 group-hover:text-brand-primary transition-colors" />
-            <h4 className="font-bold font-serif text-lg mb-1">
-              Page Views
-            </h4>
+            <Eye className="w-5 h-5 text-brand-primary mb-3" />
+            <h4 className="font-bold font-serif text-lg mb-1">Page Views</h4>
             <p className="text-xs font-mono text-foreground/60 uppercase tracking-wider mb-2">
               Visibility
             </p>
             <p className="text-sm text-foreground/70 leading-snug">
-              See how many eyes are on your storefront. Track impressions
-              and views across the platform.
+              See how many eyes are on your storefront. Track impressions and
+              views across the platform.
             </p>
           </div>
 
           {/* Metric 4 */}
           <div className="p-6 border-b md:border-b-0 sm:border-r border-foreground/20 hover:bg-white transition-colors group">
-            <Tv className="w-5 h-5 text-foreground/40 mb-3 group-hover:text-brand-primary transition-colors" />
-            <h4 className="font-bold font-serif text-lg mb-1">
-              Video Views
-            </h4>
+            <Tv className="w-5 h-5 text-brand-primary mb-3" />
+            <h4 className="font-bold font-serif text-lg mb-1">Video Views</h4>
             <p className="text-xs font-mono text-foreground/60 uppercase tracking-wider mb-2">
               Retention
             </p>
             <p className="text-sm text-foreground/70 leading-snug">
-              From Reels to live streams, see how many people are tuning in
-              and watching your stories unfold.
+              From Reels to live streams, see how many people are tuning in and
+              watching your stories unfold.
             </p>
           </div>
 
           {/* Metric 5 */}
           <div className="p-6 border-b sm:border-b-0 md:border-r border-foreground/20 hover:bg-white transition-colors group">
-            <BarChart3 className="w-5 h-5 text-foreground/40 mb-3 group-hover:text-brand-primary transition-colors" />
+            <BarChart3 className="w-5 h-5 text-brand-primary mb-3" />
             <h4 className="font-bold font-serif text-lg mb-1">
               Post Impressions
             </h4>
@@ -110,17 +98,15 @@ export default function Analytics() {
               Reach
             </p>
             <p className="text-sm text-foreground/70 leading-snug">
-              How far did your message travel? Measure the total footprint
-              of your posts in the feed.
+              How far did your message travel? Measure the total footprint of
+              your posts in the feed.
             </p>
           </div>
 
           {/* Metric 6 */}
           <div className="p-6 hover:bg-white transition-colors group">
-            <Sparkles className="w-5 h-5 text-foreground/40 mb-3 group-hover:text-brand-primary transition-colors" />
-            <h4 className="font-bold font-serif text-lg mb-1">
-              Post Tracking
-            </h4>
+            <Sparkles className="w-5 h-5 text-brand-primary mb-3" />
+            <h4 className="font-bold font-serif text-lg mb-1">Post Tracking</h4>
             <p className="text-xs font-mono text-foreground/60 uppercase tracking-wider mb-2">
               Engagement
             </p>

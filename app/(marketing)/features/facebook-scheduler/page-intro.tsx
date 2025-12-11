@@ -11,7 +11,8 @@ export default function PageIntro() {
         <div className="relative">
           <div className="absolute -top-4 -left-4 w-full h-full border border-dashed border-foreground/20 bg-foreground/5 -z-10" />
 
-          <div className="bg-white border-2 border-foreground p-1 shadow-[8px_8px_0_0_rgba(0,0,0,1)]">
+          {/* UPDATED SHADOW HERE: Changed rgba(0,0,0,1) to var(--random-blue) */}
+          <div className="bg-white border-2 border-foreground p-1 shadow-[8px_8px_0_0_var(--random-blue)]">
             <div className="bg-background-editorial border border-dashed border-foreground/20 p-8 min-h-[400px] flex flex-col justify-center relative overflow-hidden">
               {/* Page Post Mockup */}
               <div className="max-w-md mx-auto w-full bg-white border border-foreground/10 shadow-sm rounded-lg overflow-hidden">
@@ -55,18 +56,15 @@ export default function PageIntro() {
 
         <div className="prose prose-lg font-serif text-foreground/80 leading-relaxed mb-10">
           <p>
-            <span className="float-left text-5xl font-black mr-3 -mt-2">
-              F
-            </span>
-            acebook is where your business lives online. It is the
-            storefront, the customer service desk, and the community board
-            all in one.
+            <span className="float-left text-5xl font-black mr-3 -mt-2">F</span>
+            acebook is where your business lives online. It is the storefront,
+            the customer service desk, and the community board all in one.
           </p>
           <p>
             The <strong>Editorial Desk</strong> ensures your Page is always
             active, always welcoming. From reels that entertain to
-            location-tagged updates that drive foot traffic, we help you
-            manage your presence with purpose.
+            location-tagged updates that drive foot traffic, we help you manage
+            your presence with purpose.
           </p>
         </div>
 

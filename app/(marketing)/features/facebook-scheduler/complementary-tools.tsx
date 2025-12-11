@@ -1,52 +1,76 @@
 // app/(marketing)/features/facebook-scheduler/complementary-tools.tsx
 
 import Link from "next/link";
-import { Scissors, Sparkles } from "lucide-react";
+import { Scissors, Sparkles, Crop } from "lucide-react";
 
 export default function ComplementaryTools() {
   return (
-    <section className="bg-foreground/5 border border-foreground p-8 mb-16">
-      <div className="flex items-center gap-2 mb-6">
-        <Scissors className="w-4 h-4" />
-        <span className="font-mono text-xs uppercase tracking-widest font-bold">
-          Complementary Tools
+    <section className="mb-24 relative">
+      {/* "Cut Here" Line Visual */}
+      <div className="flex items-center gap-3 text-foreground/30 mb-2 pl-1">
+        <Scissors className="w-4 h-4 -rotate-90" />
+        <span className="font-mono text-[9px] uppercase tracking-widest">
+          Detach & Keep
         </span>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <Link
-          href="/tools/social-image-resizer"
-          className="group flex items-start gap-4 p-4 bg-background border border-foreground/10 hover:border-brand-primary transition-all"
-        >
-          <div className="w-10 h-10 bg-foreground/5 flex items-center justify-center font-serif font-bold text-xl group-hover:text-brand-primary transition-colors">
-            16:9
-          </div>
-          <div>
-            <h4 className="font-bold text-sm font-sans mb-1 group-hover:underline">
-              Image Resizer
-            </h4>
-            <p className="text-xs text-foreground/60">
-              Crop covers and posts for Facebook.
-            </p>
-          </div>
-        </Link>
+      {/* Main Container - The "Coupon" */}
+      <div className="border-2 border-dashed border-foreground/20 bg-background-editorial p-8 relative overflow-hidden">
+        {/* Subtle texture background */}
+        <div className="absolute inset-0 opacity-[0.03] pointer-events-none bg-[radial-gradient(var(--foreground)_1px,transparent_1px)] [background-size:16px_16px]" />
 
-        <Link
-          href="/tools/screenshot-studio"
-          className="group flex items-start gap-4 p-4 bg-background border border-foreground/10 hover:border-brand-primary transition-all"
-        >
-          <div className="w-10 h-10 bg-foreground/5 flex items-center justify-center font-serif font-bold text-xl group-hover:text-brand-primary transition-colors">
-            <Sparkles className="w-4 h-4" />
+        <div className="relative z-10">
+          <h3 className="font-serif text-2xl font-bold mb-8">
+            The Utility Drawer
+          </h3>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Tool 1: Image Resizer */}
+            <Link
+              href="/tools/social-image-resizer"
+              className="group relative bg-white border border-foreground/10 p-6 transition-all duration-300 hover:-translate-y-1 hover:shadow-[6px_6px_0_0_var(--random-blue)] hover:border-foreground"
+            >
+              <div className="flex items-start gap-4">
+                <div className="w-12 h-12 bg-surface-hover border border-foreground/10 flex items-center justify-center font-serif font-bold text-xl group-hover:text-brand-primary group-hover:bg-brand-primary/5 transition-colors">
+                  <Crop className="w-5 h-5" />
+                </div>
+                <div>
+                  <h4 className="font-bold font-serif text-lg mb-1 group-hover:text-brand-primary transition-colors">
+                    Image Resizer
+                  </h4>
+                  <p className="text-sm text-foreground/70 leading-relaxed">
+                    Don't let Facebook crop your heads off. Resize specifically
+                    for the feed (16:9) or stories (9:16).
+                  </p>
+                </div>
+              </div>
+
+              {/* Decorative Corner */}
+              <div className="absolute top-0 right-0 w-0 h-0 border-t-[10px] border-r-[10px] border-t-foreground/0 border-r-foreground/0 group-hover:border-t-brand-primary/20 group-hover:border-r-brand-primary/20 transition-all" />
+            </Link>
+
+            {/* Tool 2: Screenshot Studio */}
+            <Link
+              href="/tools/screenshot-studio"
+              className="group relative bg-white border border-foreground/10 p-6 transition-all duration-300 hover:-translate-y-1 hover:shadow-[6px_6px_0_0_var(--random-blue)] hover:border-foreground"
+            >
+              <div className="flex items-start gap-4">
+                <div className="w-12 h-12 bg-surface-hover border border-foreground/10 flex items-center justify-center font-serif font-bold text-xl group-hover:text-brand-primary group-hover:bg-brand-primary/5 transition-colors">
+                  <Sparkles className="w-5 h-5" />
+                </div>
+                <div>
+                  <h4 className="font-bold font-serif text-lg mb-1 group-hover:text-brand-primary transition-colors">
+                    Screenshot Studio
+                  </h4>
+                  <p className="text-sm text-foreground/70 leading-relaxed">
+                    Turn boring screenshots into aesthetic assets. Add
+                    backgrounds, shadows, and device frames.
+                  </p>
+                </div>
+              </div>
+            </Link>
           </div>
-          <div>
-            <h4 className="font-bold text-sm font-sans mb-1 group-hover:underline">
-              Screenshot Studio
-            </h4>
-            <p className="text-xs text-foreground/60">
-              Create polished visuals for your Page.
-            </p>
-          </div>
-        </Link>
+        </div>
       </div>
     </section>
   );
