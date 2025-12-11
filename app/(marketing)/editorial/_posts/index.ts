@@ -1,7 +1,6 @@
 // app/(marketing)/editorial/_posts/index.ts
 
 import { ComponentType } from "react";
-import * as VisualGridManifesto from "./visual-grid-manifesto";
 
 // Import specific posts
 import * as InstagramCaptions from "./instagram-captions-2025/post";
@@ -23,10 +22,6 @@ export const articles: Article[] = [
   {
     ...InstagramCaptions.metadata,
     component: InstagramCaptions.default,
-  },
-  {
-    ...VisualGridManifesto.metadata,
-    component: VisualGridManifesto.default,
   },
 ];
 
