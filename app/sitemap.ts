@@ -1,6 +1,7 @@
 // app/sitemap.ts
 
 import { MetadataRoute } from "next";
+import { getAllArticles } from "./(marketing)/editorial/_posts";
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const baseUrl =
@@ -43,5 +44,14 @@ export default function sitemap(): MetadataRoute.Sitemap {
     priority: route === "" ? 1 : route === "/tools" ? 0.8 : 0.5,
   }));
 
-  return [...staticSitemap, ...toolsSitemap];
+  // Editorial/Blog posts
+  const articles = getAllArticles();
+  const editorialSitemap = articles.map((article) => ({
+    url: `${baseUrl}/editorial/${article.slug}`,
+    lastModified: new Date(article.publishedAt),
+    changeFrequency: "weekly" as const,
+    priority: 0.7, // Important content, but lower than tools
+  }));
+
+  return [...staticSitemap, ...toolsSitemap, ...editorialSitemap];
 }
