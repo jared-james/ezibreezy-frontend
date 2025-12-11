@@ -8,6 +8,7 @@ import * as InstagramCarouselSplitter from "./instagram-carousel-splitter/post";
 import * as InstagramGridMaker from "./instagram-grid-maker/post";
 import * as InstagramGridPlanner from "./instagram-grid-planner/post";
 import * as LinkedInTextFormatter from "./linkedin-text-formatter/post";
+import * as ScreenshotStudio from "./screenshot-studio/post";
 
 export type Article = {
   slug: string;
@@ -18,6 +19,10 @@ export type Article = {
 };
 
 export const articles: Article[] = [
+  {
+    ...ScreenshotStudio.metadata,
+    component: ScreenshotStudio.default,
+  },
   {
     ...LinkedInTextFormatter.metadata,
     component: LinkedInTextFormatter.default,
