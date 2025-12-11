@@ -119,7 +119,7 @@ export default function LandingPageCTA() {
             {/* Right Side: The Capture */}
             <div className="w-full max-w-md lg:pb-4">
               {/* The "Cut Line" - Inverted for dark mode */}
-              <div className="mb-3 flex items-center gap-2 text-white/40">
+              <div className="mb-3 flex items-center gap-2 text-white/70">
                 <Scissors className="h-4 w-4 -rotate-90" />
                 <div className="flex-1 border-b border-dashed border-white/30" />
                 <span className="font-mono text-[10px] uppercase tracking-widest">

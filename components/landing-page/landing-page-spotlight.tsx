@@ -48,7 +48,7 @@ export default function LandingPageSpotlight() {
             <div>
               <div className="flex items-center gap-2 mb-4">
                 <div className="w-2 h-2 bg-brand-primary rounded-full opacity-80" />
-                <span className="font-mono text-[10px] uppercase tracking-widest text-foreground/50 font-bold">
+                <span className="font-mono text-[10px] uppercase tracking-widest text-foreground/80 font-bold">
                   Asset Management
                 </span>
               </div>
@@ -81,7 +81,7 @@ export default function LandingPageSpotlight() {
             className={`md:col-span-4 md:row-span-2 bg-background-editorial p-8 border-b ${solidBorder} relative flex flex-col`}
           >
             <div className="flex items-center justify-between mb-6">
-              <span className="font-mono text-[10px] uppercase tracking-widest text-foreground/50 font-bold">
+              <span className="font-mono text-[10px] uppercase tracking-widest text-foreground/80 font-bold">
                 Scheduling
               </span>
               <CalendarDays className="w-4 h-4 text-brand-primary/80" />
@@ -128,7 +128,7 @@ export default function LandingPageSpotlight() {
             className={`md:col-span-4 bg-background-editorial p-8 flex flex-col justify-between border-b md:border-b-0 md:border-r ${solidBorder}`}
           >
             <div className="flex items-center justify-between mb-6">
-              <span className="font-mono text-[10px] uppercase tracking-widest text-foreground/50 font-bold">
+              <span className="font-mono text-[10px] uppercase tracking-widest text-foreground/80 font-bold">
                 Performance
               </span>
               <BarChart3 className="w-4 h-4 text-brand-primary/80" />
@@ -155,7 +155,7 @@ export default function LandingPageSpotlight() {
             className={`md:col-span-4 bg-background-editorial p-8 border-b md:border-b-0 md:border-r ${solidBorder}`}
           >
             <div className="flex items-center justify-between mb-6">
-              <span className="font-mono text-[10px] uppercase tracking-widest text-foreground/50 font-bold">
+              <span className="font-mono text-[10px] uppercase tracking-widest text-foreground/80 font-bold">
                 Connectivity
               </span>
               <div className="relative flex h-2 w-2">
@@ -248,7 +248,7 @@ export default function LandingPageSpotlight() {
             className={`md:col-span-4 bg-background-editorial p-8 border-b ${dashedBorder}`}
           >
             <div className="flex items-center justify-between mb-6">
-              <span className="font-mono text-[10px] uppercase tracking-widest text-foreground/50 font-bold">
+              <span className="font-mono text-[10px] uppercase tracking-widest text-foreground/80 font-bold">
                 Organisations & Workspaces
               </span>
               <FolderOpen className="w-4 h-4 text-brand-primary/80" />
@@ -269,7 +269,7 @@ export default function LandingPageSpotlight() {
             className={`md:col-span-4 bg-background-editorial p-8 border-b md:border-b-0 md:border-r ${dashedBorder}`}
           >
             <div className="flex items-center justify-between mb-6">
-              <span className="font-mono text-[10px] uppercase tracking-widest text-foreground/50 font-bold">
+              <span className="font-mono text-[10px] uppercase tracking-widest text-foreground/80 font-bold">
                 Workflow
               </span>
               <ShieldCheck className="w-4 h-4 text-brand-primary/80" />
@@ -289,7 +289,7 @@ export default function LandingPageSpotlight() {
             className={`md:col-span-4 bg-background-editorial p-8 border-b md:border-b-0 md:border-r ${dashedBorder}`}
           >
             <div className="flex items-center justify-between mb-6">
-              <span className="font-mono text-[10px] uppercase tracking-widest text-foreground/50 font-bold">
+              <span className="font-mono text-[10px] uppercase tracking-widest text-foreground/80 font-bold">
                 Global
               </span>
               <Globe className="w-4 h-4 text-brand-primary/80" />

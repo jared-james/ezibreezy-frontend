@@ -53,6 +53,7 @@ export default function LandingPageFooter() {
   return (
     <footer className="relative bg-background-editorial border-t-2 border-foreground overflow-hidden font-serif">
       <div className="relative mx-auto w-full max-w-7xl px-6 pt-16 pb-8 text-foreground">
+        <h2 className="sr-only">Footer</h2>
         <div className="grid grid-cols-1 md:grid-cols-12 gap-12 mb-16">
           {/* Column 1: Brand & Mission */}
           <div className="md:col-span-4 space-y-6">
@@ -69,9 +70,9 @@ export default function LandingPageFooter() {
 
           {/* Column 2: Free Tools (SEO Powerhouse) */}
           <div className="md:col-span-3">
-            <h4 className="font-mono text-xs font-bold uppercase tracking-widest mb-6 text-foreground/50">
+            <h3 className="font-mono text-xs font-bold uppercase tracking-widest mb-6 text-foreground/80">
               Free Utilities
-            </h4>
+            </h3>
             <ul className="space-y-3 text-sm">
               <li>
                 <Link
@@ -150,9 +151,9 @@ export default function LandingPageFooter() {
 
           {/* Column 3: Company */}
           <div className="md:col-span-2">
-            <h4 className="font-mono text-xs font-bold uppercase tracking-widest mb-6 text-foreground/50">
+            <h3 className="font-mono text-xs font-bold uppercase tracking-widest mb-6 text-foreground/80">
               Company
-            </h4>
+            </h3>
             <ul className="space-y-3 text-sm">
               {/* <li>
                 <Link
@@ -191,9 +192,9 @@ export default function LandingPageFooter() {
 
           {/* Column 4: Newsletter Widget */}
           <div className="md:col-span-3">
-            <h4 className="font-mono text-xs font-bold uppercase tracking-widest mb-6 text-foreground/50">
+            <h3 className="font-mono text-xs font-bold uppercase tracking-widest mb-6 text-foreground/80">
               The Dispatch
-            </h4>
+            </h3>
             <div className="bg-surface border border-dashed border-foreground/30 p-4 relative">
               <AnimatePresence mode="wait">
                 {!isSuccess ? (
@@ -230,6 +231,7 @@ export default function LandingPageFooter() {
                       <button
                         type="submit"
                         disabled={isLoading}
+                        aria-label="Subscribe to newsletter"
                         className="text-foreground hover:text-brand-primary disabled:opacity-50"
                       >
                         {isLoading ? (
@@ -265,62 +267,62 @@ export default function LandingPageFooter() {
 
         {/* Supported Platforms - SEO Section */}
         <div className="py-8 border-t border-dotted border-foreground/20">
-          <h4 className="font-mono text-[10px] font-bold uppercase tracking-widest mb-4 text-foreground/40 text-center">
+          <h3 className="font-mono text-[10px] font-bold uppercase tracking-widest mb-4 text-foreground/80 text-center">
             Supported Platforms
-          </h4>
-          <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-2 text-xs text-foreground/60">
+          </h3>
+          <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-3 text-xs text-foreground/60">
             <Link
               href="/features/instagram-scheduler"
-              className="hover:text-brand-primary hover:underline decoration-dotted underline-offset-4 transition-colors"
+              className="py-2 hover:text-brand-primary hover:underline decoration-dotted underline-offset-4 transition-colors"
             >
               Instagram Scheduler
             </Link>
             <span className="text-foreground/20">•</span>
             <Link
               href="/features/linkedin-scheduler"
-              className="hover:text-brand-primary hover:underline decoration-dotted underline-offset-4 transition-colors"
+              className="py-2 hover:text-brand-primary hover:underline decoration-dotted underline-offset-4 transition-colors"
             >
               LinkedIn Scheduler
             </Link>
             <span className="text-foreground/20">•</span>
             <Link
               href="/features/tiktok-scheduler"
-              className="hover:text-brand-primary hover:underline decoration-dotted underline-offset-4 transition-colors"
+              className="py-2 hover:text-brand-primary hover:underline decoration-dotted underline-offset-4 transition-colors"
             >
               TikTok Scheduler
             </Link>
             <span className="text-foreground/20">•</span>
             <Link
               href="/features/twitter-scheduler"
-              className="hover:text-brand-primary hover:underline decoration-dotted underline-offset-4 transition-colors"
+              className="py-2 hover:text-brand-primary hover:underline decoration-dotted underline-offset-4 transition-colors"
             >
               Twitter Scheduler
             </Link>
             <span className="text-foreground/20">•</span>
             <Link
               href="/features/facebook-scheduler"
-              className="hover:text-brand-primary hover:underline decoration-dotted underline-offset-4 transition-colors"
+              className="py-2 hover:text-brand-primary hover:underline decoration-dotted underline-offset-4 transition-colors"
             >
               Facebook Scheduler
             </Link>
             <span className="text-foreground/20">•</span>
             <Link
               href="/features/youtube-scheduler"
-              className="hover:text-brand-primary hover:underline decoration-dotted underline-offset-4 transition-colors"
+              className="py-2 hover:text-brand-primary hover:underline decoration-dotted underline-offset-4 transition-colors"
             >
               YouTube Scheduler
             </Link>
             <span className="text-foreground/20">•</span>
             <Link
               href="/features/threads-scheduler"
-              className="hover:text-brand-primary hover:underline decoration-dotted underline-offset-4 transition-colors"
+              className="py-2 hover:text-brand-primary hover:underline decoration-dotted underline-offset-4 transition-colors"
             >
               Threads Scheduler
             </Link>
             <span className="text-foreground/20">•</span>
             <Link
               href="/features/pinterest-scheduler"
-              className="hover:text-brand-primary hover:underline decoration-dotted underline-offset-4 transition-colors"
+              className="py-2 hover:text-brand-primary hover:underline decoration-dotted underline-offset-4 transition-colors"
             >
               Pinterest Scheduler
             </Link>
@@ -350,11 +352,11 @@ export default function LandingPageFooter() {
             </a>
           </div>
 
-          <p className="text-foreground/40">
+          <p className="text-foreground/70">
             EziBreezy Editorial Desk · Est. 2025
           </p>
 
-          <span className="text-foreground/60 flex items-center gap-2">
+          <span className="text-foreground/70 flex items-center gap-2">
             <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
             Systems Operational
           </span>

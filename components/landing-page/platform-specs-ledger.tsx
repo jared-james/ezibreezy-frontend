@@ -153,10 +153,10 @@ export default function PlatformSpecsLedger() {
               <div
                 className={`mt-20 pt-6 border-t ${dashedBorder} flex justify-between items-center opacity-70`}
               >
-                <span className="font-mono text-[10px] uppercase tracking-widest text-foreground/60">
+                <span className="font-mono text-[10px] uppercase tracking-widest text-foreground">
                   API Status: {platform.apiStatus.toUpperCase()}
                 </span>
-                <span className="font-mono text-[10px] uppercase tracking-widest text-foreground/60">
+                <span className="font-mono text-[10px] uppercase tracking-widest text-foreground">
                   {platform.uniqueCapability.toUpperCase()}
                 </span>
               </div>
