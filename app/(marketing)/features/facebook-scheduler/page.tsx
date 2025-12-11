@@ -46,7 +46,7 @@ export const metadata: Metadata = {
     url: "https://www.ezibreezy.com/features/facebook-scheduler",
     images: [
       {
-        url: "/og-home.jpg",
+        url: "/marketing/features/features_facebook.webp",
         width: 1200,
         height: 630,
         alt: "EziBreezy Facebook Scheduler",
