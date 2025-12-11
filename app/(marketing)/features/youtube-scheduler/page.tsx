@@ -4,23 +4,41 @@ import { Metadata } from "next";
 import LandingPageHeader from "@/components/landing-page/landing-page-header";
 import LandingPageFooter from "@/components/landing-page/landing-page-footer";
 import Link from "next/link";
-import { ArrowRight, CheckCircle2, Calendar, Video, FileText, Sparkles, Lock } from "lucide-react";
-import { SoftwareApplicationJsonLd, WebPageJsonLd } from "@/components/seo/json-ld";
+import {
+  ArrowRight,
+  CheckCircle2,
+  Scissors,
+  Video,
+  Smartphone,
+  Lock,
+  FileText,
+  Sparkles,
+  BarChart3,
+  Eye,
+  Users,
+  Play,
+  MessageSquare,
+  Image as ImageIcon,
+  Type,
+} from "lucide-react";
+import {
+  SoftwareApplicationJsonLd,
+  WebPageJsonLd,
+} from "@/components/seo/json-ld";
 import { YoutubeIcon } from "@/components/landing-page/platform-icons";
 
 export const metadata: Metadata = {
-  title: "YouTube Scheduler | Schedule YouTube Videos & Shorts | EziBreezy",
+  title: "YouTube Scheduler | Shorts, Video & Community Posts",
   description:
-    "Schedule YouTube videos and Shorts with custom thumbnails. The creator workspace for YouTube publishers. Drag-and-drop calendar, SEO metadata, multi-platform publishing.",
+    "The creator workspace for YouTube. Schedule Shorts and long-form video, manage metadata, and handle community posts from one desk.",
   alternates: {
     canonical: "/features/youtube-scheduler",
   },
   openGraph: {
     title: "YouTube Scheduler | EziBreezy",
     description:
-      "Schedule YouTube videos and Shorts with custom thumbnails. The creator workspace for YouTube publishers.",
+      "The broadcast station. Schedule, optimize, and grow your channel.",
     url: "https://www.ezibreezy.com/features/youtube-scheduler",
-    siteName: "EziBreezy",
     images: [
       {
         url: "/og-home.jpg",
@@ -29,26 +47,16 @@ export const metadata: Metadata = {
         alt: "EziBreezy YouTube Scheduler",
       },
     ],
-    locale: "en_US",
     type: "website",
   },
-  keywords: [
-    "youtube scheduler",
-    "youtube video scheduler",
-    "schedule youtube videos",
-    "youtube shorts scheduler",
-    "youtube content scheduler",
-    "youtube scheduling tool",
-    "schedule youtube shorts",
-  ],
 };
 
 export default function YouTubeSchedulerPage() {
   return (
     <div className="flex flex-col min-h-screen bg-background-editorial text-foreground font-serif selection:bg-brand-primary/20">
       <WebPageJsonLd
-        title="YouTube Scheduler | Schedule YouTube Videos & Shorts | EziBreezy"
-        description="Schedule YouTube videos and Shorts with custom thumbnails. The creator workspace for YouTube publishers."
+        title="YouTube Scheduler | Shorts, Video & Community Posts"
+        description="The creator workspace for YouTube. Schedule Shorts and long-form video, manage metadata, and handle community posts."
         url="https://www.ezibreezy.com/features/youtube-scheduler"
       />
       <SoftwareApplicationJsonLd
@@ -60,308 +68,494 @@ export default function YouTubeSchedulerPage() {
 
       <LandingPageHeader />
 
-      <main className="grow px-4 md:px-6 pb-24 max-w-[1400px] mx-auto w-full">
-        {/* HERO SECTION */}
-        <div className="border-b-2 border-dotted border-foreground/40 py-16 md:py-24 mb-16">
-          <div className="flex flex-col md:flex-row justify-between items-start gap-12">
-            <div className="flex-1">
-              <div className="flex items-center gap-3 mb-6">
-                <YoutubeIcon className="w-8 h-8 text-brand-primary" />
-                <span className="font-mono text-xs uppercase tracking-[0.3em] text-foreground/60">
-                  Platform-Specific Scheduler
+      <main className="grow w-full max-w-[1400px] mx-auto px-4 md:px-6 pb-24">
+        {/* --- MASTHEAD --- */}
+        <header className="border-b-4 border-double border-foreground py-8 mb-12">
+          <div className="flex flex-col md:flex-row justify-between items-end gap-6">
+            <div>
+              <div className="flex items-center gap-3 mb-4">
+                <span className="inline-block border border-foreground px-2 py-0.5 font-mono text-[10px] uppercase tracking-widest">
+                  Platform Specification: 06
+                </span>
+                <YoutubeIcon className="w-5 h-5 text-brand-primary" />
+              </div>
+              <h1 className="text-6xl md:text-8xl lg:text-9xl font-black uppercase leading-[0.8] tracking-tighter">
+                YouTube
+              </h1>
+            </div>
+            <div className="md:text-right max-w-md">
+              <p className="font-serif text-xl md:text-2xl leading-tight">
+                The broadcast station. <br />
+                <span className="text-foreground/60 italic">
+                  Where stories become legacy.
+                </span>
+              </p>
+            </div>
+          </div>
+        </header>
+
+        {/* --- SECTION 1: THE LEAD STORY --- */}
+        <section className="grid grid-cols-1 lg:grid-cols-12 gap-0 border-b border-foreground mb-16">
+          {/* LEFT COLUMN: Visual Representation (Video Player) */}
+          <div className="lg:col-span-7 lg:border-r border-foreground pt-8 lg:pr-12 pb-12">
+            <div className="relative">
+              <div className="absolute -top-4 -left-4 w-full h-full border border-dashed border-foreground/20 bg-foreground/5 -z-10" />
+
+              <div className="bg-white border-2 border-foreground p-1 shadow-[8px_8px_0_0_rgba(0,0,0,1)]">
+                <div className="bg-background-editorial border border-dashed border-foreground/20 p-8 min-h-[400px] flex flex-col justify-center relative overflow-hidden">
+                  {/* Video Player Mockup */}
+                  <div className="w-full aspect-video bg-black relative group cursor-pointer overflow-hidden border border-foreground/10 shadow-xl">
+                    {/* Thumbnail Image Placeholder */}
+                    <div className="absolute inset-0 bg-gradient-to-tr from-zinc-800 to-zinc-700 opacity-80" />
+
+                    {/* Play Button */}
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <div className="w-16 h-16 rounded-full bg-white/10 backdrop-blur-md border border-white/20 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                        <Play
+                          className="w-6 h-6 text-white ml-1"
+                          fill="currentColor"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Progress Bar */}
+                    <div className="absolute bottom-0 left-0 w-full h-1 bg-white/20">
+                      <div className="h-full w-1/3 bg-red-600" />
+                    </div>
+
+                    {/* Metadata Overlay */}
+                    <div className="absolute top-4 left-4 right-4">
+                      <div className="flex justify-between items-start text-white">
+                        <h3 className="font-sans font-bold text-lg drop-shadow-md">
+                          The Art of Storytelling
+                        </h3>
+                        <div className="bg-black/60 backdrop-blur px-2 py-1 rounded text-xs font-mono">
+                          SCHEDULED
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="flex justify-between items-center mt-6">
+                    <div className="flex gap-2">
+                      <div className="h-2 w-2 rounded-full bg-green-500 animate-pulse" />
+                      <span className="font-mono text-[9px] uppercase tracking-widest text-foreground/60">
+                        Upload Complete
+                      </span>
+                    </div>
+                    <span className="font-mono text-[9px] uppercase tracking-widest text-brand-primary font-bold">
+                      4K Resolution
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* RIGHT COLUMN: The Editorial Copy */}
+          <div className="lg:col-span-5 lg:pl-12 pt-8 pb-12 flex flex-col justify-center">
+            <h2 className="font-serif text-4xl md:text-5xl font-bold leading-[0.95] mb-8">
+              Your content is
+              <br />
+              <span className="italic font-normal">an asset.</span>
+            </h2>
+
+            <div className="prose prose-lg font-serif text-foreground/80 leading-relaxed mb-10">
+              <p>
+                <span className="float-left text-5xl font-black mr-3 -mt-2">
+                  V
+                </span>
+                ideo is not just another post type. It is an investment. It
+                requires time, craft, and vision.
+              </p>
+              <p>
+                The <strong>Editorial Desk</strong> treats your uploads with the
+                care they deserve. We handle the technical details—metadata,
+                thumbnails, privacy settings—so you can focus on the story you
+                are trying to tell.
+              </p>
+            </div>
+
+            <div className="mt-auto pt-8 border-t border-dashed border-foreground/30">
+              <Link
+                href="/auth/signup"
+                className="group inline-flex items-center gap-2 font-mono text-xs font-bold uppercase tracking-[0.15em] border-b-2 border-foreground hover:text-brand-primary hover:border-brand-primary transition-colors pb-1"
+              >
+                Schedule Your Premiere{" "}
+                <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
+              </Link>
+            </div>
+          </div>
+        </section>
+
+        {/* --- SECTION 2: ANALYTICS (Market Intelligence) --- */}
+        <section className="mb-24">
+          <div className="flex items-center gap-4 mb-8">
+            <h3 className="font-mono text-xs uppercase tracking-widest font-bold bg-foreground text-background px-2 py-1">
+              Market Intelligence
+            </h3>
+            <div className="h-px flex-1 bg-foreground" />
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-3 border border-foreground">
+            {/* Lead: The Philosophy of Data */}
+            <div className="p-8 lg:col-span-1 border-b lg:border-b-0 lg:border-r border-foreground bg-background-editorial">
+              <h2 className="font-serif text-3xl font-bold leading-none mb-6">
+                Listen to the
+                <br />
+                <span className="italic text-brand-primary">signal.</span>
+              </h2>
+              <p className="font-serif text-lg leading-relaxed text-foreground/80 mb-6">
+                Views are validation, but retention is truth. Analytics tell you
+                not just how many people clicked, but how many people cared.
+              </p>
+              <p className="font-serif text-sm leading-relaxed text-foreground/70">
+                Our intelligence report helps you understand your audience's
+                behavior, so you can create more of what they love.
+              </p>
+            </div>
+
+            {/* The Grid of Metrics */}
+            <div className="lg:col-span-2 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 bg-surface-hover/10">
+              {/* Metric 1 */}
+              <div className="p-6 border-b sm:border-r border-foreground/20 hover:bg-white transition-colors group">
+                <Users className="w-5 h-5 text-foreground/40 mb-3 group-hover:text-brand-primary transition-colors" />
+                <h4 className="font-bold font-serif text-lg mb-1">
+                  Subscribers
+                </h4>
+                <p className="text-xs font-mono text-foreground/60 uppercase tracking-wider mb-2">
+                  Loyalty
+                </p>
+                <p className="text-sm text-foreground/70 leading-snug">
+                  Track the growth of your dedicated audience. See who is
+                  signing up for the long haul.
+                </p>
+              </div>
+
+              {/* Metric 2 */}
+              <div className="p-6 border-b md:border-r border-foreground/20 hover:bg-white transition-colors group">
+                <div className="mb-3 flex items-center gap-2">
+                  <Play className="w-5 h-5 text-foreground/40 group-hover:text-brand-primary transition-colors" />
+                </div>
+                <h4 className="font-bold font-serif text-lg mb-1">
+                  Video Views
+                </h4>
+                <p className="text-xs font-mono text-foreground/60 uppercase tracking-wider mb-2">
+                  Reach
+                </p>
+                <p className="text-sm text-foreground/70 leading-snug">
+                  See the total footprint of your library. Track which videos
+                  continue to perform over time.
+                </p>
+              </div>
+
+              {/* Metric 3 */}
+              <div className="p-6 border-b sm:border-r-0 md:border-r border-foreground/20 hover:bg-white transition-colors group">
+                <Eye className="w-5 h-5 text-foreground/40 mb-3 group-hover:text-brand-primary transition-colors" />
+                <h4 className="font-bold font-serif text-lg mb-1">
+                  Impressions
+                </h4>
+                <p className="text-xs font-mono text-foreground/60 uppercase tracking-wider mb-2">
+                  Discovery
+                </p>
+                <p className="text-sm text-foreground/70 leading-snug">
+                  Understand how often your thumbnails are appearing in search
+                  and recommendations.
+                </p>
+              </div>
+
+              {/* Metric 4 */}
+              <div className="p-6 border-b md:border-b-0 sm:border-r border-foreground/20 hover:bg-white transition-colors group">
+                <Smartphone className="w-5 h-5 text-foreground/40 mb-3 group-hover:text-brand-primary transition-colors" />
+                <h4 className="font-bold font-serif text-lg mb-1">
+                  Shorts Views
+                </h4>
+                <p className="text-xs font-mono text-foreground/60 uppercase tracking-wider mb-2">
+                  Momentum
+                </p>
+                <p className="text-sm text-foreground/70 leading-snug">
+                  Track the performance of your short-form content in the Shorts
+                  Feed.
+                </p>
+              </div>
+
+              {/* Metric 5 */}
+              <div className="p-6 border-b sm:border-b-0 md:border-r border-foreground/20 hover:bg-white transition-colors group">
+                <BarChart3 className="w-5 h-5 text-foreground/40 mb-3 group-hover:text-brand-primary transition-colors" />
+                <h4 className="font-bold font-serif text-lg mb-1">
+                  Watch Time
+                </h4>
+                <p className="text-xs font-mono text-foreground/60 uppercase tracking-wider mb-2">
+                  Attention
+                </p>
+                <p className="text-sm text-foreground/70 leading-snug">
+                  The metric that matters most. See how many hours your audience
+                  has spent with you.
+                </p>
+              </div>
+
+              {/* Metric 6 */}
+              <div className="p-6 hover:bg-white transition-colors group">
+                <Sparkles className="w-5 h-5 text-foreground/40 mb-3 group-hover:text-brand-primary transition-colors" />
+                <h4 className="font-bold font-serif text-lg mb-1">
+                  Engagement
+                </h4>
+                <p className="text-xs font-mono text-foreground/60 uppercase tracking-wider mb-2">
+                  Interaction
+                </p>
+                <p className="text-sm text-foreground/70 leading-snug">
+                  Track likes, comments, and shares to see which videos spark a
+                  reaction.
+                </p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* --- SECTION 3: THE INBOX (Community) --- */}
+        <section className="mb-24">
+          <div className="grid grid-cols-1 md:grid-cols-12 gap-12 items-center">
+            {/* Visual */}
+            <div className="md:col-span-5 order-2 md:order-1">
+              <div className="relative border-2 border-foreground bg-surface p-8 shadow-[8px_8px_0_0_rgba(0,0,0,0.1)]">
+                <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white px-4 border border-foreground font-mono text-[10px] uppercase tracking-widest">
+                  Viewer Feedback
+                </div>
+
+                <div className="space-y-6 pt-2">
+                  <div className="flex items-start gap-4">
+                    <div className="w-8 h-8 rounded-full bg-foreground/10 shrink-0" />
+                    <div className="space-y-2 flex-1">
+                      <div className="bg-white p-3 border border-foreground/10 rounded-tr-lg rounded-br-lg rounded-bl-lg">
+                        <p className="text-xs font-serif italic text-foreground/80">
+                          "I've been subscribed for 3 years and this is your
+                          best work yet."
+                        </p>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <div className="h-px w-4 bg-foreground/20" />
+                        <span className="font-mono text-[9px] uppercase text-brand-primary font-bold">
+                          Hearted & Replied
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Editorial Copy */}
+            <div className="md:col-span-7 order-1 md:order-2">
+              <div className="mb-6 flex items-center gap-2 text-brand-primary">
+                <MessageSquare className="w-6 h-6" />
+                <span className="font-mono text-xs uppercase tracking-widest font-bold">
+                  Community Management
                 </span>
               </div>
-              <h1 className="text-5xl md:text-7xl font-black uppercase leading-[0.85] tracking-tighter mb-8">
-                YouTube
-                <br />
-                Scheduler
-              </h1>
-              <p className="text-xl md:text-2xl text-foreground/80 leading-relaxed max-w-2xl mb-10">
-                Schedule YouTube videos and Shorts from one editorial desk.
-                Manage metadata, thumbnails, and publishing. Draft once, refine per platform, ship with confidence.
-              </p>
-              <div className="flex flex-col sm:flex-row gap-4">
-                <Link
-                  href="/auth/signup"
-                  className="inline-flex items-center justify-center gap-3 bg-foreground text-background px-8 py-4 font-mono text-sm uppercase tracking-widest font-bold hover:bg-brand-primary hover:text-background transition-all duration-300"
-                >
-                  Start Free Trial <ArrowRight className="w-4 h-4" />
-                </Link>
-                <Link
-                  href="/tools/youtube-title-checker"
-                  className="inline-flex items-center justify-center gap-3 border-2 border-foreground/30 text-foreground px-8 py-4 font-mono text-sm uppercase tracking-widest font-bold hover:border-brand-primary hover:text-brand-primary transition-all duration-300"
-                >
-                  Try Title Checker Free
-                </Link>
+
+              <h2 className="font-serif text-4xl md:text-5xl font-bold leading-tight mb-6">
+                Turn viewers into
+                <br />a community.
+              </h2>
+
+              <div className="prose prose-lg font-serif text-foreground/80 leading-relaxed">
+                <p>
+                  A comment is a viewer taking the time to say, "I am here." It
+                  is an opportunity to turn a passive watcher into a loyal fan.
+                </p>
+                <p>
+                  Our <strong>Unified Inbox</strong> helps you manage the
+                  conversation. Reply to comments, heart the best ones, and
+                  build the kind of community that shows up for every upload.
+                </p>
               </div>
             </div>
           </div>
-        </div>
+        </section>
 
-        {/* YOUTUBE-SPECIFIC FEATURES */}
-        <div className="mb-20">
-          <div className="mb-12 flex items-center gap-4">
-            <span className="font-mono text-xs uppercase tracking-widest bg-foreground text-background-editorial px-3 py-1">
-              YouTube-Specific Features
+        {/* --- SECTION 4: THE CLASSIFIEDS (Technical Specs) --- */}
+        <section className="mb-24">
+          <div className="border-t-4 border-double border-foreground pt-2">
+            <div className="grid grid-cols-1 md:grid-cols-12 gap-8">
+              <div className="md:col-span-3 pt-6">
+                <h3 className="font-serif text-3xl font-bold leading-none mb-2">
+                  Technical
+                  <br />
+                  Ledger
+                </h3>
+                <p className="font-mono text-xs text-foreground/60">
+                  Broadcast Capabilities
+                </p>
+              </div>
+
+              <div className="md:col-span-9">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-12 gap-y-6 pt-6">
+                  {/* List Items styled like classified ads */}
+
+                  {/* Feature: Shorts */}
+                  <div className="flex items-start gap-3 pb-6 border-b border-dotted border-foreground/30">
+                    <Smartphone className="w-4 h-4 text-brand-primary mt-1 shrink-0" />
+                    <div>
+                      <strong className="block font-serif text-lg mb-1">
+                        Shorts Publishing
+                      </strong>
+                      <p className="font-serif text-sm text-foreground/70">
+                        Capture the vertical feed. Publish videos up to 60
+                        seconds long. We automatically detect the format and
+                        optimize for the Shorts shelf.
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Feature: Privacy */}
+                  <div className="flex items-start gap-3 pb-6 border-b border-dotted border-foreground/30">
+                    <Lock className="w-4 h-4 text-brand-primary mt-1 shrink-0" />
+                    <div>
+                      <strong className="block font-serif text-lg mb-1">
+                        Privacy Control
+                      </strong>
+                      <p className="font-serif text-sm text-foreground/70">
+                        Control the release. Set your status to Private for
+                        drafts, Unlisted for exclusive access, or Public when
+                        you are ready to go live.
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Feature: Titles */}
+                  <div className="flex items-start gap-3 pb-6 border-b border-dotted border-foreground/30">
+                    <Type className="w-4 h-4 text-brand-primary mt-1 shrink-0" />
+                    <div>
+                      <strong className="block font-serif text-lg mb-1">
+                        Optimized Titles
+                      </strong>
+                      <p className="font-serif text-sm text-foreground/70">
+                        Write titles that get clicked. Use our integrated
+                        checker to ensure your hook doesn't get truncated on
+                        mobile devices.
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Feature: Descriptions */}
+                  <div className="flex items-start gap-3 pb-6 border-b border-dotted border-foreground/30">
+                    <FileText className="w-4 h-4 text-brand-primary mt-1 shrink-0" />
+                    <div>
+                      <strong className="block font-serif text-lg mb-1">
+                        Rich Descriptions
+                      </strong>
+                      <p className="font-serif text-sm text-foreground/70">
+                        Add context, links, and timestamps. Format your
+                        description to help SEO and guide viewers to your other
+                        content.
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Feature: Carousels (Community) */}
+                  <div className="flex items-start gap-3 pb-6 border-b border-dotted border-foreground/30">
+                    <ImageIcon className="w-4 h-4 text-brand-primary mt-1 shrink-0" />
+                    <div>
+                      <strong className="block font-serif text-lg mb-1">
+                        Community Posts
+                      </strong>
+                      <p className="font-serif text-sm text-foreground/70">
+                        Engage between uploads. Publish image carousels (up to
+                        10 slides) to your Community Tab to keep the
+                        conversation going.
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Feature: Thumbnails */}
+                  <div className="flex items-start gap-3 pb-6 border-b border-dotted border-foreground/30">
+                    <Sparkles className="w-4 h-4 text-brand-primary mt-1 shrink-0" />
+                    <div>
+                      <strong className="block font-serif text-lg mb-1">
+                        Custom Thumbnails
+                      </strong>
+                      <p className="font-serif text-sm text-foreground/70">
+                        The first impression matters. Upload custom high-res
+                        thumbnails that stand out in a crowded subscription
+                        feed.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* --- SECTION 5: RELATED UTILITIES (Sidebar style) --- */}
+        <section className="bg-foreground/5 border border-foreground p-8 mb-16">
+          <div className="flex items-center gap-2 mb-6">
+            <Scissors className="w-4 h-4" />
+            <span className="font-mono text-xs uppercase tracking-widest font-bold">
+              Complementary Tools
             </span>
-            <div className="flex-1 h-px bg-foreground/20" />
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            {/* Feature 1: Smart Format Detection */}
-            <div className="border-l-4 border-brand-primary/60 bg-surface-hover/30 p-8">
-              <div className="flex items-center gap-3 mb-4">
-                <Video className="w-6 h-6 text-brand-primary" />
-                <h3 className="font-serif text-2xl font-bold">Smart Format Detection</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <Link
+              href="/tools/youtube-title-checker"
+              className="group flex items-start gap-4 p-4 bg-background border border-foreground/10 hover:border-brand-primary transition-all"
+            >
+              <div className="w-10 h-10 bg-foreground/5 flex items-center justify-center font-serif font-bold text-xl group-hover:text-brand-primary transition-colors">
+                T
               </div>
-              <ul className="space-y-3 text-foreground/80 leading-relaxed">
-                <li className="flex items-start gap-2">
-                  <CheckCircle2 className="w-5 h-5 text-brand-primary shrink-0 mt-0.5" />
-                  <span>Upload standard long-form videos</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <CheckCircle2 className="w-5 h-5 text-brand-primary shrink-0 mt-0.5" />
-                  <span>Auto-detects vertical videos under 60s as YouTube Shorts.</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <CheckCircle2 className="w-5 h-5 text-brand-primary shrink-0 mt-0.5" />
-                  <span>Preview how your video will appear before publishing.</span>
-                </li>
-              </ul>
-            </div>
+              <div>
+                <h4 className="font-bold text-sm font-sans mb-1 group-hover:underline">
+                  Title Checker
+                </h4>
+                <p className="text-xs text-foreground/60">
+                  Preview truncation and CTR.
+                </p>
+              </div>
+            </Link>
 
-            {/* Feature 2: Rich Metadata */}
-            <div className="border-l-4 border-brand-primary/60 bg-surface-hover/30 p-8">
-              <div className="flex items-center gap-3 mb-4">
-                <FileText className="w-6 h-6 text-brand-primary" />
-                <h3 className="font-serif text-2xl font-bold">Rich Metadata</h3>
+            <Link
+              href="/tools/social-image-resizer"
+              className="group flex items-start gap-4 p-4 bg-background border border-foreground/10 hover:border-brand-primary transition-all"
+            >
+              <div className="w-10 h-10 bg-foreground/5 flex items-center justify-center font-serif font-bold text-xl group-hover:text-brand-primary transition-colors">
+                16:9
               </div>
-              <ul className="space-y-3 text-foreground/80 leading-relaxed">
-                <li className="flex items-start gap-2">
-                  <CheckCircle2 className="w-5 h-5 text-brand-primary shrink-0 mt-0.5" />
-                  <span>Full control over Titles (100 chars) and Descriptions (5k chars).</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <CheckCircle2 className="w-5 h-5 text-brand-primary shrink-0 mt-0.5" />
-                  <span>Manage Tags and Categories for SEO discovery.</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <CheckCircle2 className="w-5 h-5 text-brand-primary shrink-0 mt-0.5" />
-                  <span>Preview how your video details will look before publishing.</span>
-                </li>
-              </ul>
-            </div>
-
-            {/* Feature 3: Custom Thumbnails */}
-            <div className="border-l-4 border-brand-primary/60 bg-surface-hover/30 p-8">
-              <div className="flex items-center gap-3 mb-4">
-                <Sparkles className="w-6 h-6 text-brand-primary" />
-                <h3 className="font-serif text-2xl font-bold">Custom Thumbnails</h3>
+              <div>
+                <h4 className="font-bold text-sm font-sans mb-1 group-hover:underline">
+                  Thumbnail Resizer
+                </h4>
+                <p className="text-xs text-foreground/60">
+                  Ensure your thumbs look perfect.
+                </p>
               </div>
-              <ul className="space-y-3 text-foreground/80 leading-relaxed">
-                <li className="flex items-start gap-2">
-                  <CheckCircle2 className="w-5 h-5 text-brand-primary shrink-0 mt-0.5" />
-                  <span>Upload separate custom cover images for your videos.</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <CheckCircle2 className="w-5 h-5 text-brand-primary shrink-0 mt-0.5" />
-                  <span>Optimize thumbnails for maximum click-through rates.</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <CheckCircle2 className="w-5 h-5 text-brand-primary shrink-0 mt-0.5" />
-                  <span>Preview thumbnail appearance across different devices.</span>
-                </li>
-              </ul>
-            </div>
-
-            {/* Feature 4: Compliance & Privacy */}
-            <div className="border-l-4 border-brand-primary/60 bg-surface-hover/30 p-8">
-              <div className="flex items-center gap-3 mb-4">
-                <Lock className="w-6 h-6 text-brand-primary" />
-                <h3 className="font-serif text-2xl font-bold">Compliance & Privacy</h3>
-              </div>
-              <ul className="space-y-3 text-foreground/80 leading-relaxed">
-                <li className="flex items-start gap-2">
-                  <CheckCircle2 className="w-5 h-5 text-brand-primary shrink-0 mt-0.5" />
-                  <span>Full COPPA &apos;Made for Kids&apos; flag support.</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <CheckCircle2 className="w-5 h-5 text-brand-primary shrink-0 mt-0.5" />
-                  <span>Set visibility to Public, Private, or Unlisted.</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <CheckCircle2 className="w-5 h-5 text-brand-primary shrink-0 mt-0.5" />
-                  <span>Proactive token refresh prevents failure during long uploads.</span>
-                </li>
-              </ul>
-            </div>
+            </Link>
           </div>
-        </div>
+        </section>
 
-        {/* CORE SCHEDULING FEATURES */}
-        <div className="mb-20 p-10 border-2 border-foreground/20 bg-background">
-          <div className="mb-10">
-            <span className="font-mono text-xs uppercase tracking-widest text-foreground/60">
-              Core Scheduling
-            </span>
-            <h2 className="text-4xl md:text-5xl font-black leading-tight mt-2">
-              The Editorial Workflow You Deserve
+        {/* --- FINAL CTA --- */}
+        <div className="relative py-20 px-6 text-center overflow-hidden border-t-2 border-foreground">
+          <div className="relative z-10 max-w-2xl mx-auto">
+            <div className="mb-6 flex justify-center">
+              <Sparkles className="w-8 h-8 text-brand-primary" />
+            </div>
+            <h2 className="font-serif text-4xl md:text-5xl font-bold mb-6">
+              Own your channel.
             </h2>
+            <p className="font-serif text-lg text-foreground/70 mb-10">
+              The editorial desk is open. Organize your library, schedule your
+              premieres, and grow your legacy.
+            </p>
+            <Link
+              href="/auth/signup"
+              className="inline-block bg-foreground text-background px-10 py-4 font-mono text-xs uppercase tracking-[0.2em] font-bold hover:bg-brand-primary hover:text-white transition-all duration-300"
+            >
+              Get Early Access
+            </Link>
+            <p className="mt-6 font-mono text-[10px] uppercase tracking-wider text-foreground/40">
+              Limited Availability • Editorial Standards Applied
+            </p>
           </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <div>
-              <Calendar className="w-8 h-8 text-brand-primary mb-4" />
-              <h3 className="font-serif text-xl font-bold mb-3">Drag-and-Drop Calendar</h3>
-              <p className="text-foreground/80 leading-relaxed">
-                Your entire strategy at a glance. Schedule YouTube videos alongside TikTok, Instagram Reels,
-                and 5 other platforms. Drag to reschedule, click to edit.
-              </p>
-            </div>
-
-            <div>
-              <Video className="w-8 h-8 text-brand-primary mb-4" />
-              <h3 className="font-serif text-xl font-bold mb-3">Multi-Platform Video Distribution</h3>
-              <p className="text-foreground/80 leading-relaxed">
-                Upload once, publish everywhere. Schedule the same video to YouTube Shorts, TikTok,
-                and Instagram Reels simultaneously. Maximize reach with minimal effort.
-              </p>
-            </div>
-
-            <div>
-              <Sparkles className="w-8 h-8 text-brand-primary mb-4" />
-              <h3 className="font-serif text-xl font-bold mb-3">Cross-Platform Editorial Desk</h3>
-              <p className="text-foreground/80 leading-relaxed">
-                Write your description, select YouTube and other channels, make platform-specific
-                tweaks, and ship it all without leaving the desk.
-              </p>
-            </div>
-          </div>
-        </div>
-
-        {/* USE CASES */}
-        <div className="mb-20">
-          <div className="mb-10">
-            <span className="font-mono text-xs uppercase tracking-widest text-foreground/60">
-              Use Cases
-            </span>
-            <h2 className="text-4xl md:text-5xl font-black leading-tight mt-2">
-              Built for YouTube Creators
-            </h2>
-          </div>
-
-          <div className="space-y-6">
-            <div className="p-8 bg-surface-hover/20 border border-foreground/10">
-              <h3 className="font-serif text-2xl font-medium mb-3">Content Creators & Influencers</h3>
-              <p className="text-foreground/80 leading-relaxed">
-                Plan your YouTube content calendar weeks in advance. Schedule long-form videos and Shorts
-                for optimal posting times. Maintain consistent upload schedule to grow your subscriber base.
-                Cross-post Shorts to TikTok and Instagram Reels to maximize reach.
-              </p>
-            </div>
-
-            <div className="p-8 bg-surface-hover/20 border border-foreground/10">
-              <h3 className="font-serif text-2xl font-medium mb-3">Agencies & Media Companies</h3>
-              <p className="text-foreground/80 leading-relaxed">
-                Manage multiple YouTube channels for different clients or brands. Schedule campaigns across
-                YouTube and other platforms simultaneously. Get approval on metadata and thumbnails before
-                videos go live. Track performance across all channels from one dashboard.
-              </p>
-            </div>
-
-            <div className="p-8 bg-surface-hover/20 border border-foreground/10">
-              <h3 className="font-serif text-2xl font-medium mb-3">Educational & Tutorial Channels</h3>
-              <p className="text-foreground/80 leading-relaxed">
-                Schedule educational series with detailed descriptions and proper categorization. Manage
-                tags for SEO discovery. Upload custom thumbnails that clearly communicate video topics.
-                Set appropriate audience flags for educational content compliance.
-              </p>
-            </div>
-          </div>
-        </div>
-
-        {/* FAQ */}
-        <div className="mb-20">
-          <div className="mb-10">
-            <span className="font-mono text-xs uppercase tracking-widest text-foreground/60">
-              Frequently Asked Questions
-            </span>
-            <h2 className="text-3xl md:text-4xl font-black leading-tight mt-2">
-              Everything You Need to Know
-            </h2>
-          </div>
-
-          <div className="space-y-6">
-            <div className="p-6 border-l-2 border-brand-primary/60 bg-surface-hover/20">
-              <h3 className="font-serif text-lg font-bold mb-2">
-                Can I schedule YouTube Shorts?
-              </h3>
-              <p className="text-foreground/80 leading-relaxed">
-                Yes. EziBreezy automatically detects vertical videos under 60 seconds as YouTube Shorts
-                and schedules them appropriately. Schedule Shorts to TikTok and Instagram Reels at the same time.
-              </p>
-            </div>
-
-            <div className="p-6 border-l-2 border-brand-primary/60 bg-surface-hover/20">
-              <h3 className="font-serif text-lg font-bold mb-2">
-                Can I upload custom thumbnails for scheduled videos?
-              </h3>
-              <p className="text-foreground/80 leading-relaxed">
-                Yes. Upload separate custom cover images for your videos to optimize click-through rates.
-                Preview how thumbnails will appear before scheduling your video.
-              </p>
-            </div>
-
-            <div className="p-6 border-l-2 border-brand-primary/60 bg-surface-hover/20">
-              <h3 className="font-serif text-lg font-bold mb-2">
-                Can I manage video metadata like titles, descriptions, and tags?
-              </h3>
-              <p className="text-foreground/80 leading-relaxed">
-                Yes. Full control over titles (100 characters), descriptions (5,000 characters), tags,
-                and categories. Optimize your metadata for SEO discovery and viewer engagement.
-              </p>
-            </div>
-
-            <div className="p-6 border-l-2 border-brand-primary/60 bg-surface-hover/20">
-              <h3 className="font-serif text-lg font-bold mb-2">
-                Can I set privacy settings for scheduled YouTube videos?
-              </h3>
-              <p className="text-foreground/80 leading-relaxed">
-                Yes. Set visibility to Public, Private, or Unlisted. Control COPPA compliance with
-                &apos;Made for Kids&apos; flags. Full privacy and audience control before your video goes live.
-              </p>
-            </div>
-
-            <div className="p-6 border-l-2 border-brand-primary/60 bg-surface-hover/20">
-              <h3 className="font-serif text-lg font-bold mb-2">
-                Can I schedule the same video to YouTube, TikTok, and Instagram Reels?
-              </h3>
-              <p className="text-foreground/80 leading-relaxed">
-                Yes. Upload once in the Editorial Desk, select YouTube Shorts, TikTok, and Instagram Reels,
-                make platform-specific adjustments to metadata, and schedule to all platforms at once.
-              </p>
-            </div>
-          </div>
-        </div>
-
-        {/* FINAL CTA */}
-        <div className="p-12 bg-brand-primary text-brand-primary-foreground border-2 border-foreground text-center">
-          <h2 className="font-serif text-3xl md:text-4xl font-bold mb-4">
-            Grow Your YouTube Channel with Strategic Scheduling
-          </h2>
-          <p className="text-xl mb-8 max-w-2xl mx-auto leading-relaxed opacity-90">
-            Stop missing upload schedules. Plan your YouTube content in advance, maintain consistent
-            publishing, and grow your audience with strategic planning.
-          </p>
-          <Link
-            href="/auth/signup"
-            className="inline-flex items-center justify-center gap-3 bg-background text-foreground px-10 py-4 font-mono text-sm uppercase tracking-widest font-bold hover:bg-foreground hover:text-background transition-all duration-300"
-          >
-            Start Free Trial <ArrowRight className="w-4 h-4" />
-          </Link>
-          <p className="mt-6 font-mono text-xs uppercase tracking-wider opacity-70">
-            Free 14-day trial • No credit card required
-          </p>
         </div>
       </main>
 

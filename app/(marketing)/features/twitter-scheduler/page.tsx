@@ -4,23 +4,41 @@ import { Metadata } from "next";
 import LandingPageHeader from "@/components/landing-page/landing-page-header";
 import LandingPageFooter from "@/components/landing-page/landing-page-footer";
 import Link from "next/link";
-import { ArrowRight, CheckCircle2, Calendar, MessageSquare, Image, Sparkles } from "lucide-react";
-import { SoftwareApplicationJsonLd, WebPageJsonLd } from "@/components/seo/json-ld";
+import {
+  ArrowRight,
+  CheckCircle2,
+  Scissors,
+  MessageSquare,
+  Image as ImageIcon,
+  Video,
+  Crop,
+  Type,
+  Eye,
+  AtSign,
+  Sparkles,
+  BarChart3,
+  Repeat,
+  Heart,
+  MousePointer2,
+} from "lucide-react";
+import {
+  SoftwareApplicationJsonLd,
+  WebPageJsonLd,
+} from "@/components/seo/json-ld";
 import { TwitterIcon } from "@/components/landing-page/platform-icons";
 
 export const metadata: Metadata = {
-  title: "Twitter Scheduler | Schedule Tweets & Threads | EziBreezy",
+  title: "Twitter Scheduler | Threads, Polls & Analytics",
   description:
-    "Schedule Twitter/X posts and threads with preview. The editorial workspace for Twitter creators. Drag-and-drop calendar, native threading, multi-platform publishing.",
+    "The editorial workspace for X (Twitter). Schedule threads, format tweets, and manage conversations from one desk.",
   alternates: {
     canonical: "/features/twitter-scheduler",
   },
   openGraph: {
     title: "Twitter Scheduler | EziBreezy",
     description:
-      "Schedule Twitter/X posts and threads with preview. The editorial workspace for Twitter creators.",
+      "The editorial workspace for X. Schedule threads, analyze impact, and engage.",
     url: "https://www.ezibreezy.com/features/twitter-scheduler",
-    siteName: "EziBreezy",
     images: [
       {
         url: "/og-home.jpg",
@@ -29,27 +47,16 @@ export const metadata: Metadata = {
         alt: "EziBreezy Twitter Scheduler",
       },
     ],
-    locale: "en_US",
     type: "website",
   },
-  keywords: [
-    "twitter scheduler",
-    "x scheduler",
-    "twitter post scheduler",
-    "schedule twitter posts",
-    "twitter thread scheduler",
-    "schedule tweets",
-    "twitter scheduling tool",
-    "x post scheduler",
-  ],
 };
 
 export default function TwitterSchedulerPage() {
   return (
     <div className="flex flex-col min-h-screen bg-background-editorial text-foreground font-serif selection:bg-brand-primary/20">
       <WebPageJsonLd
-        title="Twitter Scheduler | Schedule Tweets & Threads | EziBreezy"
-        description="Schedule Twitter/X posts and threads with preview. The editorial workspace for Twitter creators."
+        title="Twitter Scheduler | Threads, Polls & Analytics"
+        description="The editorial workspace for X (Twitter). Schedule threads, format tweets, and manage conversations from one desk."
         url="https://www.ezibreezy.com/features/twitter-scheduler"
       />
       <SoftwareApplicationJsonLd
@@ -61,326 +68,503 @@ export default function TwitterSchedulerPage() {
 
       <LandingPageHeader />
 
-      <main className="grow px-4 md:px-6 pb-24 max-w-[1400px] mx-auto w-full">
-        {/* HERO SECTION */}
-        <div className="border-b-2 border-dotted border-foreground/40 py-16 md:py-24 mb-16">
-          <div className="flex flex-col md:flex-row justify-between items-start gap-12">
-            <div className="flex-1">
-              <div className="flex items-center gap-3 mb-6">
-                <TwitterIcon className="w-8 h-8 text-brand-primary" />
-                <span className="font-mono text-xs uppercase tracking-[0.3em] text-foreground/60">
-                  Platform-Specific Scheduler
+      <main className="grow w-full max-w-[1400px] mx-auto px-4 md:px-6 pb-24">
+        {/* --- MASTHEAD --- */}
+        <header className="border-b-4 border-double border-foreground py-8 mb-12">
+          <div className="flex flex-col md:flex-row justify-between items-end gap-6">
+            <div>
+              <div className="flex items-center gap-3 mb-4">
+                <span className="inline-block border border-foreground px-2 py-0.5 font-mono text-[10px] uppercase tracking-widest">
+                  Platform Specification: 04
                 </span>
+                <TwitterIcon className="w-5 h-5 text-brand-primary" />
               </div>
-              <h1 className="text-5xl md:text-7xl font-black uppercase leading-[0.85] tracking-tighter mb-8">
-                Twitter
-                <br />
-                Scheduler
+              <h1 className="text-6xl md:text-8xl lg:text-9xl font-black uppercase leading-[0.8] tracking-tighter">
+                Twitter / X
               </h1>
-              <p className="text-xl md:text-2xl text-foreground/80 leading-relaxed max-w-2xl mb-10">
-                Schedule Twitter/X posts and threads from one editorial desk.
-                Build your audience with consistent publishing. Draft once, refine per platform, ship with confidence.
-              </p>
-              <div className="flex flex-col sm:flex-row gap-4">
-                <Link
-                  href="/auth/signup"
-                  className="inline-flex items-center justify-center gap-3 bg-foreground text-background px-8 py-4 font-mono text-sm uppercase tracking-widest font-bold hover:bg-brand-primary hover:text-background transition-all duration-300"
-                >
-                  Start Free Trial <ArrowRight className="w-4 h-4" />
-                </Link>
-              </div>
             </div>
-            <div className="w-full md:w-auto md:shrink-0 p-8 border-2 border-foreground/20 bg-surface-hover/30">
-              <div className="space-y-4 w-80">
-                {[1, 2, 3].map((i) => (
-                  <div key={i} className="p-4 border border-foreground/10 bg-background rounded">
-                    <div className="flex items-center gap-2 mb-2">
-                      <div className="w-8 h-8 rounded-full bg-foreground/10" />
-                      <div className="flex-1 space-y-1">
-                        <div className="h-2 bg-foreground/20 rounded w-2/3" />
-                        <div className="h-1.5 bg-foreground/10 rounded w-1/2" />
+            <div className="md:text-right max-w-md">
+              <p className="font-serif text-xl md:text-2xl leading-tight">
+                The public square. <br />
+                <span className="text-foreground/60 italic">
+                  Brevity is the soul of wit.
+                </span>
+              </p>
+            </div>
+          </div>
+        </header>
+
+        {/* --- SECTION 1: THE LEAD STORY --- */}
+        <section className="grid grid-cols-1 lg:grid-cols-12 gap-0 border-b border-foreground mb-16">
+          {/* LEFT COLUMN: Visual Representation (Threads) */}
+          <div className="lg:col-span-7 lg:border-r border-foreground pt-8 lg:pr-12 pb-12">
+            <div className="relative">
+              <div className="absolute -top-4 -left-4 w-full h-full border border-dashed border-foreground/20 bg-foreground/5 -z-10" />
+
+              <div className="bg-white border-2 border-foreground p-1 shadow-[8px_8px_0_0_rgba(0,0,0,1)]">
+                <div className="bg-background-editorial border border-dashed border-foreground/20 p-8 min-h-[400px] flex flex-col justify-center relative overflow-hidden">
+                  {/* Thread Visual */}
+                  <div className="max-w-sm mx-auto w-full space-y-4">
+                    {/* Tweet 1 */}
+                    <div className="bg-white p-4 border border-foreground/10 rounded-lg shadow-sm relative z-10">
+                      <div className="flex gap-3">
+                        <div className="w-10 h-10 rounded-full bg-brand-primary/20" />
+                        <div className="flex-1">
+                          <div className="h-2 w-24 bg-foreground/10 mb-2 rounded" />
+                          <div className="space-y-1">
+                            <div className="h-2 w-full bg-foreground/20 rounded" />
+                            <div className="h-2 w-3/4 bg-foreground/20 rounded" />
+                          </div>
+                        </div>
                       </div>
                     </div>
-                    <div className="space-y-1.5">
-                      <div className="h-1.5 bg-foreground/15 rounded w-full" />
-                      <div className="h-1.5 bg-foreground/15 rounded w-5/6" />
+
+                    {/* Connector Line */}
+                    <div className="absolute left-[3.25rem] top-16 bottom-20 w-0.5 bg-foreground/10 -z-0" />
+
+                    {/* Tweet 2 */}
+                    <div className="bg-white p-4 border border-foreground/10 rounded-lg shadow-sm relative z-10 ml-8 transform rotate-1">
+                      <div className="flex gap-3">
+                        <div className="w-10 h-10 rounded-full bg-brand-primary/20" />
+                        <div className="flex-1">
+                          <div className="h-2 w-24 bg-foreground/10 mb-2 rounded" />
+                          <div className="space-y-1">
+                            <div className="h-2 w-full bg-foreground/20 rounded" />
+                            <div className="h-2 w-1/2 bg-foreground/20 rounded" />
+                          </div>
+                        </div>
+                      </div>
                     </div>
                   </div>
-                ))}
+
+                  <p className="text-center font-mono text-[9px] uppercase tracking-widest text-brand-primary mt-8 font-bold">
+                    Native Thread Construction
+                  </p>
+                </div>
               </div>
-              <p className="font-mono text-xs uppercase tracking-wider text-foreground/60 text-center mt-4">
-                Thread Preview Included
-              </p>
             </div>
           </div>
-        </div>
 
-        {/* TWITTER-SPECIFIC FEATURES */}
-        <div className="mb-20">
-          <div className="mb-12 flex items-center gap-4">
-            <span className="font-mono text-xs uppercase tracking-widest bg-foreground text-background-editorial px-3 py-1">
-              Twitter-Specific Features
-            </span>
-            <div className="flex-1 h-px bg-foreground/20" />
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            {/* Feature 1: Native Threading */}
-            <div className="border-l-4 border-brand-primary/60 bg-surface-hover/30 p-8">
-              <div className="flex items-center gap-3 mb-4">
-                <MessageSquare className="w-6 h-6 text-brand-primary" />
-                <h3 className="font-serif text-2xl font-bold">Native Threading</h3>
-              </div>
-              <ul className="space-y-3 text-foreground/80 leading-relaxed">
-                <li className="flex items-start gap-2">
-                  <CheckCircle2 className="w-5 h-5 text-brand-primary shrink-0 mt-0.5" />
-                  <span>Create seamless conversation threads that flow naturally.</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <CheckCircle2 className="w-5 h-5 text-brand-primary shrink-0 mt-0.5" />
-                  <span>Full media support in every segment of the thread.</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <CheckCircle2 className="w-5 h-5 text-brand-primary shrink-0 mt-0.5" />
-                  <span>Preview entire threads before scheduling.</span>
-                </li>
-              </ul>
-            </div>
-
-            {/* Feature 2: Multiple Content Types */}
-            <div className="border-l-4 border-brand-primary/60 bg-surface-hover/30 p-8">
-              <div className="flex items-center gap-3 mb-4">
-                <Image className="w-6 h-6 text-brand-primary" />
-                <h3 className="font-serif text-2xl font-bold">Rich Media Support</h3>
-              </div>
-              <ul className="space-y-3 text-foreground/80 leading-relaxed">
-                <li className="flex items-start gap-2">
-                  <CheckCircle2 className="w-5 h-5 text-brand-primary shrink-0 mt-0.5" />
-                  <span>Share text-only posts for fast updates.</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <CheckCircle2 className="w-5 h-5 text-brand-primary shrink-0 mt-0.5" />
-                  <span>Publish single images, videos, or mixed media posts.</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <CheckCircle2 className="w-5 h-5 text-brand-primary shrink-0 mt-0.5" />
-                  <span>Attach up to 4 items per Tweet (images, GIFs, or videos).</span>
-                </li>
-              </ul>
-            </div>
-
-            {/* Feature 3: Tagging & Accessibility */}
-            <div className="border-l-4 border-brand-primary/60 bg-surface-hover/30 p-8">
-              <div className="flex items-center gap-3 mb-4">
-                <Sparkles className="w-6 h-6 text-brand-primary" />
-                <h3 className="font-serif text-2xl font-bold">Tagging & Accessibility</h3>
-              </div>
-              <ul className="space-y-3 text-foreground/80 leading-relaxed">
-                <li className="flex items-start gap-2">
-                  <CheckCircle2 className="w-5 h-5 text-brand-primary shrink-0 mt-0.5" />
-                  <span>Mention users directly using @handles.</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <CheckCircle2 className="w-5 h-5 text-brand-primary shrink-0 mt-0.5" />
-                  <span>Add Alt Text to images for accessibility.</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <CheckCircle2 className="w-5 h-5 text-brand-primary shrink-0 mt-0.5" />
-                  <span>Preview how your post or thread will look before publishing.</span>
-                </li>
-              </ul>
-            </div>
-
-            {/* Feature 4: Feed Optimization */}
-            <div className="border-l-4 border-brand-primary/60 bg-surface-hover/30 p-8">
-              <div className="flex items-center gap-3 mb-4">
-                <Calendar className="w-6 h-6 text-brand-primary" />
-                <h3 className="font-serif text-2xl font-bold">Feed Optimization</h3>
-              </div>
-              <ul className="space-y-3 text-foreground/80 leading-relaxed">
-                <li className="flex items-start gap-2">
-                  <CheckCircle2 className="w-5 h-5 text-brand-primary shrink-0 mt-0.5" />
-                  <span>Apply custom crops (e.g., 16:9) specifically optimized for X.</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <CheckCircle2 className="w-5 h-5 text-brand-primary shrink-0 mt-0.5" />
-                  <span>Automatic format optimization for best display.</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <CheckCircle2 className="w-5 h-5 text-brand-primary shrink-0 mt-0.5" />
-                  <span>Schedule at optimal times for maximum engagement.</span>
-                </li>
-              </ul>
-            </div>
-          </div>
-        </div>
-
-        {/* CORE SCHEDULING FEATURES */}
-        <div className="mb-20 p-10 border-2 border-foreground/20 bg-background">
-          <div className="mb-10">
-            <span className="font-mono text-xs uppercase tracking-widest text-foreground/60">
-              Core Scheduling
-            </span>
-            <h2 className="text-4xl md:text-5xl font-black leading-tight mt-2">
-              The Editorial Workflow You Deserve
+          {/* RIGHT COLUMN: The Editorial Copy */}
+          <div className="lg:col-span-5 lg:pl-12 pt-8 pb-12 flex flex-col justify-center">
+            <h2 className="font-serif text-4xl md:text-5xl font-bold leading-[0.95] mb-8">
+              The art of the
+              <br />
+              <span className="italic font-normal">short form.</span>
             </h2>
-          </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <div>
-              <Calendar className="w-8 h-8 text-brand-primary mb-4" />
-              <h3 className="font-serif text-xl font-bold mb-3">Drag-and-Drop Calendar</h3>
-              <p className="text-foreground/80 leading-relaxed">
-                Your entire strategy at a glance. Schedule Twitter/X posts alongside LinkedIn, Instagram,
-                and 5 other platforms. Drag to reschedule, click to edit.
+            <div className="prose prose-lg font-serif text-foreground/80 leading-relaxed mb-10">
+              <p>
+                <span className="float-left text-5xl font-black mr-3 -mt-2">
+                  W
+                </span>
+                riting simply is often harder than writing at length. Every
+                character counts. Every word must earn its place.
+              </p>
+              <p>
+                The <strong>Editorial Desk</strong> helps you craft clarity.
+                Whether it's a single powerful statement or a thoughtfully woven
+                thread, we give you the tools to structure your thoughts so they
+                land with impact.
               </p>
             </div>
 
-            <div>
-              <MessageSquare className="w-8 h-8 text-brand-primary mb-4" />
-              <h3 className="font-serif text-xl font-bold mb-3">Thread Composer</h3>
-              <p className="text-foreground/80 leading-relaxed">
-                Create multi-tweet threads with ease. Add media to each tweet, preview the full thread,
-                and schedule it all at once. Perfect for thought leadership and storytelling.
-              </p>
-            </div>
-
-            <div>
-              <Sparkles className="w-8 h-8 text-brand-primary mb-4" />
-              <h3 className="font-serif text-xl font-bold mb-3">Cross-Platform Editorial Desk</h3>
-              <p className="text-foreground/80 leading-relaxed">
-                Write your message, select Twitter/X and other channels, make platform-specific
-                tweaks, and ship it all without leaving the desk.
-              </p>
+            <div className="mt-auto pt-8 border-t border-dashed border-foreground/30">
+              <Link
+                href="/auth/signup"
+                className="group inline-flex items-center gap-2 font-mono text-xs font-bold uppercase tracking-[0.15em] border-b-2 border-foreground hover:text-brand-primary hover:border-brand-primary transition-colors pb-1"
+              >
+                Compose Your Thread{" "}
+                <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
+              </Link>
             </div>
           </div>
-        </div>
+        </section>
 
-        {/* USE CASES */}
-        <div className="mb-20">
-          <div className="mb-10">
-            <span className="font-mono text-xs uppercase tracking-widest text-foreground/60">
-              Use Cases
+        {/* --- SECTION 2: ANALYTICS (Market Intelligence) --- */}
+        <section className="mb-24">
+          <div className="flex items-center gap-4 mb-8">
+            <h3 className="font-mono text-xs uppercase tracking-widest font-bold bg-foreground text-background px-2 py-1">
+              Market Intelligence
+            </h3>
+            <div className="h-px flex-1 bg-foreground" />
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-3 border border-foreground">
+            {/* Lead: The Philosophy of Data */}
+            <div className="p-8 lg:col-span-1 border-b lg:border-b-0 lg:border-r border-foreground bg-background-editorial">
+              <h2 className="font-serif text-3xl font-bold leading-none mb-6">
+                Measure the
+                <br />
+                <span className="italic text-brand-primary">resonance.</span>
+              </h2>
+              <p className="font-serif text-lg leading-relaxed text-foreground/80 mb-6">
+                Twitter moves fast. Analytics allow you to see the ripples your
+                words create in real-time.
+              </p>
+              <p className="font-serif text-sm leading-relaxed text-foreground/70">
+                Understand which topics spark conversation and which formats
+                drive action. Turn the noise into a clear signal for your next
+                move.
+              </p>
+            </div>
+
+            {/* The Grid of Metrics */}
+            <div className="lg:col-span-2 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 bg-surface-hover/10">
+              {/* Metric 1 */}
+              <div className="p-6 border-b sm:border-r border-foreground/20 hover:bg-white transition-colors group">
+                <Eye className="w-5 h-5 text-foreground/40 mb-3 group-hover:text-brand-primary transition-colors" />
+                <h4 className="font-bold font-serif text-lg mb-1">
+                  Impressions
+                </h4>
+                <p className="text-xs font-mono text-foreground/60 uppercase tracking-wider mb-2">
+                  Visibility
+                </p>
+                <p className="text-sm text-foreground/70 leading-snug">
+                  See how many timelines your thoughts have graced. The total
+                  reach of your voice.
+                </p>
+              </div>
+
+              {/* Metric 2 */}
+              <div className="p-6 border-b md:border-r border-foreground/20 hover:bg-white transition-colors group">
+                <div className="mb-3 flex items-center gap-2">
+                  <MousePointer2 className="w-5 h-5 text-foreground/40 group-hover:text-brand-primary transition-colors" />
+                </div>
+                <h4 className="font-bold font-serif text-lg mb-1">
+                  Profile Visits
+                </h4>
+                <p className="text-xs font-mono text-foreground/60 uppercase tracking-wider mb-2">
+                  Curiosity
+                </p>
+                <p className="text-sm text-foreground/70 leading-snug">
+                  Track how many people stopped scrolling to learn more about
+                  who you are.
+                </p>
+              </div>
+
+              {/* Metric 3 */}
+              <div className="p-6 border-b sm:border-r-0 md:border-r border-foreground/20 hover:bg-white transition-colors group">
+                <Heart className="w-5 h-5 text-foreground/40 mb-3 group-hover:text-brand-primary transition-colors" />
+                <h4 className="font-bold font-serif text-lg mb-1">Likes</h4>
+                <p className="text-xs font-mono text-foreground/60 uppercase tracking-wider mb-2">
+                  Appreciation
+                </p>
+                <p className="text-sm text-foreground/70 leading-snug">
+                  A simple signal of agreement. See which sentiments resonate
+                  most.
+                </p>
+              </div>
+
+              {/* Metric 4 */}
+              <div className="p-6 border-b md:border-b-0 sm:border-r border-foreground/20 hover:bg-white transition-colors group">
+                <Repeat className="w-5 h-5 text-foreground/40 mb-3 group-hover:text-brand-primary transition-colors" />
+                <h4 className="font-bold font-serif text-lg mb-1">Retweets</h4>
+                <p className="text-xs font-mono text-foreground/60 uppercase tracking-wider mb-2">
+                  Amplification
+                </p>
+                <p className="text-sm text-foreground/70 leading-snug">
+                  The highest compliment. Track who is spreading your message to
+                  their own network.
+                </p>
+              </div>
+
+              {/* Metric 5 */}
+              <div className="p-6 border-b sm:border-b-0 md:border-r border-foreground/20 hover:bg-white transition-colors group">
+                <MessageSquare className="w-5 h-5 text-foreground/40 mb-3 group-hover:text-brand-primary transition-colors" />
+                <h4 className="font-bold font-serif text-lg mb-1">Replies</h4>
+                <p className="text-xs font-mono text-foreground/60 uppercase tracking-wider mb-2">
+                  Conversation
+                </p>
+                <p className="text-sm text-foreground/70 leading-snug">
+                  Track the discussions you ignite. Identify the topics that
+                  people want to talk about.
+                </p>
+              </div>
+
+              {/* Metric 6 */}
+              <div className="p-6 hover:bg-white transition-colors group">
+                <BarChart3 className="w-5 h-5 text-foreground/40 mb-3 group-hover:text-brand-primary transition-colors" />
+                <h4 className="font-bold font-serif text-lg mb-1">
+                  Link Clicks
+                </h4>
+                <p className="text-xs font-mono text-foreground/60 uppercase tracking-wider mb-2">
+                  Conversion
+                </p>
+                <p className="text-sm text-foreground/70 leading-snug">
+                  See how effectively your content drives traffic to your work,
+                  newsletter, or portfolio.
+                </p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* --- SECTION 3: THE INBOX (Engagement) --- */}
+        <section className="mb-24">
+          <div className="grid grid-cols-1 md:grid-cols-12 gap-12 items-center">
+            {/* Visual */}
+            <div className="md:col-span-5 order-2 md:order-1">
+              <div className="relative border-2 border-foreground bg-surface p-8 shadow-[8px_8px_0_0_rgba(0,0,0,0.1)]">
+                <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white px-4 border border-foreground font-mono text-[10px] uppercase tracking-widest">
+                  The Wire
+                </div>
+
+                <div className="space-y-6 pt-2">
+                  <div className="flex items-start gap-4">
+                    <div className="w-8 h-8 rounded-full bg-foreground/10 shrink-0" />
+                    <div className="space-y-2 flex-1">
+                      <div className="bg-white p-3 border border-foreground/10 rounded-tr-lg rounded-br-lg rounded-bl-lg">
+                        <p className="text-xs font-serif italic text-foreground/80">
+                          "This thread changed how I look at..."
+                        </p>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <div className="h-px w-4 bg-foreground/20" />
+                        <span className="font-mono text-[9px] uppercase text-brand-primary font-bold">
+                          Reply Sent
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Editorial Copy */}
+            <div className="md:col-span-7 order-1 md:order-2">
+              <div className="mb-6 flex items-center gap-2 text-brand-primary">
+                <AtSign className="w-6 h-6" />
+                <span className="font-mono text-xs uppercase tracking-widest font-bold">
+                  The Correspondence Desk
+                </span>
+              </div>
+
+              <h2 className="font-serif text-4xl md:text-5xl font-bold leading-tight mb-6">
+                Be present in
+                <br />
+                the moment.
+              </h2>
+
+              <div className="prose prose-lg font-serif text-foreground/80 leading-relaxed">
+                <p>
+                  Twitter is a living, breathing conversation. It rewards those
+                  who show up.
+                </p>
+                <p>
+                  Our <strong>Unified Inbox</strong> gathers your Mentions,
+                  Replies, and DMs into a single stream. It allows you to
+                  participate in the dialogue without getting lost in the noise
+                  of the timeline.
+                </p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* --- SECTION 4: THE CLASSIFIEDS (Technical Specs) --- */}
+        <section className="mb-24">
+          <div className="border-t-4 border-double border-foreground pt-2">
+            <div className="grid grid-cols-1 md:grid-cols-12 gap-8">
+              <div className="md:col-span-3 pt-6">
+                <h3 className="font-serif text-3xl font-bold leading-none mb-2">
+                  Technical
+                  <br />
+                  Ledger
+                </h3>
+                <p className="font-mono text-xs text-foreground/60">
+                  Publishing Capabilities
+                </p>
+              </div>
+
+              <div className="md:col-span-9">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-12 gap-y-6 pt-6">
+                  {/* Feature: Image Cropping */}
+                  <div className="flex items-start gap-3 pb-6 border-b border-dotted border-foreground/30">
+                    <Crop className="w-4 h-4 text-brand-primary mt-1 shrink-0" />
+                    <div>
+                      <strong className="block font-serif text-lg mb-1">
+                        Image Cropping
+                      </strong>
+                      <p className="font-serif text-sm text-foreground/70">
+                        Crop to square, landscape, portrait, or story. Ensure
+                        your media looks intentional, not accidental.
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Feature: Text Publishing */}
+                  <div className="flex items-start gap-3 pb-6 border-b border-dotted border-foreground/30">
+                    <Type className="w-4 h-4 text-brand-primary mt-1 shrink-0" />
+                    <div>
+                      <strong className="block font-serif text-lg mb-1">
+                        Text Publishing
+                      </strong>
+                      <p className="font-serif text-sm text-foreground/70">
+                        Publish text-only posts. We handle the character count
+                        and threading logic for you.
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Feature: Video Publishing */}
+                  <div className="flex items-start gap-3 pb-6 border-b border-dotted border-foreground/30">
+                    <Video className="w-4 h-4 text-brand-primary mt-1 shrink-0" />
+                    <div>
+                      <strong className="block font-serif text-lg mb-1">
+                        Video Support
+                      </strong>
+                      <p className="font-serif text-sm text-foreground/70">
+                        Publish videos up to 250MB. Share clips, animations, and
+                        moments directly to the feed.
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Feature: Image Publishing */}
+                  <div className="flex items-start gap-3 pb-6 border-b border-dotted border-foreground/30">
+                    <ImageIcon className="w-4 h-4 text-brand-primary mt-1 shrink-0" />
+                    <div>
+                      <strong className="block font-serif text-lg mb-1">
+                        High-Res Images
+                      </strong>
+                      <p className="font-serif text-sm text-foreground/70">
+                        Publish images up to 5MB. Maintain the fidelity of your
+                        photos and graphics.
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Feature: Carousel */}
+                  <div className="flex items-start gap-3 pb-6 border-b border-dotted border-foreground/30">
+                    <CheckCircle2 className="w-4 h-4 text-brand-primary mt-1 shrink-0" />
+                    <div>
+                      <strong className="block font-serif text-lg mb-1">
+                        Multi-Image Grid
+                      </strong>
+                      <p className="font-serif text-sm text-foreground/70">
+                        Tell a visual story. Publish carousels with up to 4
+                        images that display as a clean grid in the feed.
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Feature: Alt Text */}
+                  <div className="flex items-start gap-3 pb-6 border-b border-dotted border-foreground/30">
+                    <Eye className="w-4 h-4 text-brand-primary mt-1 shrink-0" />
+                    <div>
+                      <strong className="block font-serif text-lg mb-1">
+                        Alt Text
+                      </strong>
+                      <p className="font-serif text-sm text-foreground/70">
+                        Add accessible alt text to images. Make your content
+                        inclusive for everyone in your audience.
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Feature: Mentions */}
+                  <div className="flex items-start gap-3 pb-6 border-b border-dotted border-foreground/30">
+                    <AtSign className="w-4 h-4 text-brand-primary mt-1 shrink-0" />
+                    <div>
+                      <strong className="block font-serif text-lg mb-1">
+                        Mention Users
+                      </strong>
+                      <p className="font-serif text-sm text-foreground/70">
+                        Tag collaborators and friends. Mention other Twitter
+                        accounts directly in the composer.
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Feature: Preview */}
+                  <div className="flex items-start gap-3 pb-6 border-b border-dotted border-foreground/30">
+                    <Sparkles className="w-4 h-4 text-brand-primary mt-1 shrink-0" />
+                    <div>
+                      <strong className="block font-serif text-lg mb-1">
+                        Post Preview
+                      </strong>
+                      <p className="font-serif text-sm text-foreground/70">
+                        Preview how your post will look once published. Check
+                        line breaks and media layout before you tweet.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* --- SECTION 5: RELATED UTILITIES (Sidebar style) --- */}
+        <section className="bg-foreground/5 border border-foreground p-8 mb-16">
+          <div className="flex items-center gap-2 mb-6">
+            <Scissors className="w-4 h-4" />
+            <span className="font-mono text-xs uppercase tracking-widest font-bold">
+              Complementary Tools
             </span>
-            <h2 className="text-4xl md:text-5xl font-black leading-tight mt-2">
-              Built for Twitter/X Professionals
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <Link
+              href="/tools/screenshot-studio"
+              className="group flex items-start gap-4 p-4 bg-background border border-foreground/10 hover:border-brand-primary transition-all"
+            >
+              <div className="w-10 h-10 bg-foreground/5 flex items-center justify-center font-serif font-bold text-xl group-hover:text-brand-primary transition-colors">
+                <Sparkles className="w-4 h-4" />
+              </div>
+              <div>
+                <h4 className="font-bold text-sm font-sans mb-1 group-hover:underline">
+                  Screenshot Studio
+                </h4>
+                <p className="text-xs text-foreground/60">
+                  Turn screenshots into aesthetic Twitter assets.
+                </p>
+              </div>
+            </Link>
+
+            <Link
+              href="/tools/social-image-resizer"
+              className="group flex items-start gap-4 p-4 bg-background border border-foreground/10 hover:border-brand-primary transition-all"
+            >
+              <div className="w-10 h-10 bg-foreground/5 flex items-center justify-center font-serif font-bold text-xl group-hover:text-brand-primary transition-colors">
+                16:9
+              </div>
+              <div>
+                <h4 className="font-bold text-sm font-sans mb-1 group-hover:underline">
+                  Image Resizer
+                </h4>
+                <p className="text-xs text-foreground/60">
+                  Crop photos perfectly for the X feed.
+                </p>
+              </div>
+            </Link>
+          </div>
+        </section>
+
+        {/* --- FINAL CTA --- */}
+        <div className="relative py-20 px-6 text-center overflow-hidden border-t-2 border-foreground">
+          <div className="relative z-10 max-w-2xl mx-auto">
+            <div className="mb-6 flex justify-center">
+              <Sparkles className="w-8 h-8 text-brand-primary" />
+            </div>
+            <h2 className="font-serif text-4xl md:text-5xl font-bold mb-6">
+              Make your statement.
             </h2>
+            <p className="font-serif text-lg text-foreground/70 mb-10">
+              The editorial desk is open. Schedule your threads and join the
+              public discourse.
+            </p>
+            <Link
+              href="/auth/signup"
+              className="inline-block bg-foreground text-background px-10 py-4 font-mono text-xs uppercase tracking-[0.2em] font-bold hover:bg-brand-primary hover:text-white transition-all duration-300"
+            >
+              Get Early Access
+            </Link>
+            <p className="mt-6 font-mono text-[10px] uppercase tracking-wider text-foreground/40">
+              Limited Availability • Editorial Standards Applied
+            </p>
           </div>
-
-          <div className="space-y-6">
-            <div className="p-8 bg-surface-hover/20 border border-foreground/10">
-              <h3 className="font-serif text-2xl font-medium mb-3">Thought Leaders & Executives</h3>
-              <p className="text-foreground/80 leading-relaxed">
-                Build your personal brand on Twitter/X with consistent, high-quality content. Schedule
-                threads sharing insights from your expertise. Maintain daily presence without the pressure
-                of real-time posting. Cross-post key insights to LinkedIn to maximize professional reach.
-              </p>
-            </div>
-
-            <div className="p-8 bg-surface-hover/20 border border-foreground/10">
-              <h3 className="font-serif text-2xl font-medium mb-3">Agencies & Social Media Managers</h3>
-              <p className="text-foreground/80 leading-relaxed">
-                Manage multiple Twitter/X accounts for different clients or brands. Schedule campaigns
-                across Twitter/X and other platforms simultaneously. Get client approval before posts go
-                live. Track engagement and reach across all accounts from one unified dashboard.
-              </p>
-            </div>
-
-            <div className="p-8 bg-surface-hover/20 border border-foreground/10">
-              <h3 className="font-serif text-2xl font-medium mb-3">Creators & Media Companies</h3>
-              <p className="text-foreground/80 leading-relaxed">
-                Schedule announcement threads for new content releases. Share bite-sized insights that
-                drive traffic to your long-form content. Maintain consistent posting schedule to grow
-                your audience. Use threads to tell compelling stories that resonate with your community.
-              </p>
-            </div>
-          </div>
-        </div>
-
-        {/* FAQ */}
-        <div className="mb-20">
-          <div className="mb-10">
-            <span className="font-mono text-xs uppercase tracking-widest text-foreground/60">
-              Frequently Asked Questions
-            </span>
-            <h2 className="text-3xl md:text-4xl font-black leading-tight mt-2">
-              Everything You Need to Know
-            </h2>
-          </div>
-
-          <div className="space-y-6">
-            <div className="p-6 border-l-2 border-brand-primary/60 bg-surface-hover/20">
-              <h3 className="font-serif text-lg font-bold mb-2">
-                Can I schedule Twitter/X threads?
-              </h3>
-              <p className="text-foreground/80 leading-relaxed">
-                Yes. EziBreezy supports native Twitter/X threading with full media support in every
-                segment. Create multi-tweet threads, preview them before scheduling, and publish them
-                all at once at your optimal posting time.
-              </p>
-            </div>
-
-            <div className="p-6 border-l-2 border-brand-primary/60 bg-surface-hover/20">
-              <h3 className="font-serif text-lg font-bold mb-2">
-                Can I schedule tweets with images and videos?
-              </h3>
-              <p className="text-foreground/80 leading-relaxed">
-                Yes. Attach up to 4 images, GIFs, or videos per tweet. EziBreezy automatically optimizes
-                media formats and applies custom crops specifically for Twitter/X&apos;s feed display.
-              </p>
-            </div>
-
-            <div className="p-6 border-l-2 border-brand-primary/60 bg-surface-hover/20">
-              <h3 className="font-serif text-lg font-bold mb-2">
-                Can I mention other users in scheduled tweets?
-              </h3>
-              <p className="text-foreground/80 leading-relaxed">
-                Yes. Mention users directly using @handles in your scheduled tweets and threads. Great
-                for collaborations, shoutouts, and building community engagement.
-              </p>
-            </div>
-
-            <div className="p-6 border-l-2 border-brand-primary/60 bg-surface-hover/20">
-              <h3 className="font-serif text-lg font-bold mb-2">
-                Can I schedule to multiple platforms from one post?
-              </h3>
-              <p className="text-foreground/80 leading-relaxed">
-                Yes. Draft once in the Editorial Desk, select Twitter/X and any other platforms (LinkedIn,
-                Instagram, Facebook, TikTok, YouTube, Threads, Pinterest), make platform-specific tweaks,
-                and schedule to all of them at once.
-              </p>
-            </div>
-
-            <div className="p-6 border-l-2 border-brand-primary/60 bg-surface-hover/20">
-              <h3 className="font-serif text-lg font-bold mb-2">
-                Does EziBreezy support Alt Text for Twitter images?
-              </h3>
-              <p className="text-foreground/80 leading-relaxed">
-                Yes. Add Alt Text to all images for improved accessibility. Make your content inclusive
-                while following Twitter/X best practices for screen reader compatibility.
-              </p>
-            </div>
-          </div>
-        </div>
-
-        {/* FINAL CTA */}
-        <div className="p-12 bg-brand-primary text-brand-primary-foreground border-2 border-foreground text-center">
-          <h2 className="font-serif text-3xl md:text-4xl font-bold mb-4">
-            Build Your Audience on Twitter/X
-          </h2>
-          <p className="text-xl mb-8 max-w-2xl mx-auto leading-relaxed opacity-90">
-            Stop posting sporadically. Schedule tweets and threads in advance, maintain consistent
-            presence, and grow your following with strategic content planning.
-          </p>
-          <Link
-            href="/auth/signup"
-            className="inline-flex items-center justify-center gap-3 bg-background text-foreground px-10 py-4 font-mono text-sm uppercase tracking-widest font-bold hover:bg-foreground hover:text-background transition-all duration-300"
-          >
-            Start Free Trial <ArrowRight className="w-4 h-4" />
-          </Link>
-          <p className="mt-6 font-mono text-xs uppercase tracking-wider opacity-70">
-            Free 14-day trial • No credit card required
-          </p>
         </div>
       </main>
 

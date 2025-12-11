@@ -4,23 +4,39 @@ import { Metadata } from "next";
 import LandingPageHeader from "@/components/landing-page/landing-page-header";
 import LandingPageFooter from "@/components/landing-page/landing-page-footer";
 import Link from "next/link";
-import { ArrowRight, CheckCircle2, Calendar, MessageSquare, Image, Sparkles } from "lucide-react";
-import { SoftwareApplicationJsonLd, WebPageJsonLd } from "@/components/seo/json-ld";
+import {
+  ArrowRight,
+  CheckCircle2,
+  Scissors,
+  MessageCircle,
+  Image as ImageIcon,
+  Video,
+  Crop,
+  Type,
+  Layers,
+  Sparkles,
+  Hash,
+  Heart,
+  Repeat,
+  UserPlus,
+} from "lucide-react";
+import {
+  SoftwareApplicationJsonLd,
+  WebPageJsonLd,
+} from "@/components/seo/json-ld";
 import { ThreadsIcon } from "@/components/landing-page/platform-icons";
 
 export const metadata: Metadata = {
-  title: "Threads Scheduler | Schedule Threads Posts | EziBreezy",
+  title: "Threads Scheduler | Thread Composer & Carousels",
   description:
-    "Schedule Threads posts and conversations with preview. The editorial workspace for Threads creators. Drag-and-drop calendar, native threading, multi-platform publishing.",
+    "The editorial workspace for Threads. Schedule multi-post threads, mixed media carousels, and manage conversations from one desk.",
   alternates: {
     canonical: "/features/threads-scheduler",
   },
   openGraph: {
     title: "Threads Scheduler | EziBreezy",
-    description:
-      "Schedule Threads posts and conversations with preview. The editorial workspace for Threads creators.",
+    description: "The modern conversation. Schedule, visualize, and connect.",
     url: "https://www.ezibreezy.com/features/threads-scheduler",
-    siteName: "EziBreezy",
     images: [
       {
         url: "/og-home.jpg",
@@ -29,25 +45,16 @@ export const metadata: Metadata = {
         alt: "EziBreezy Threads Scheduler",
       },
     ],
-    locale: "en_US",
     type: "website",
   },
-  keywords: [
-    "threads scheduler",
-    "threads post scheduler",
-    "schedule threads posts",
-    "threads content scheduler",
-    "threads scheduling tool",
-    "meta threads scheduler",
-  ],
 };
 
 export default function ThreadsSchedulerPage() {
   return (
     <div className="flex flex-col min-h-screen bg-background-editorial text-foreground font-serif selection:bg-brand-primary/20">
       <WebPageJsonLd
-        title="Threads Scheduler | Schedule Threads Posts | EziBreezy"
-        description="Schedule Threads posts and conversations with preview. The editorial workspace for Threads creators."
+        title="Threads Scheduler | Thread Composer & Carousels"
+        description="The editorial workspace for Threads. Schedule multi-post threads, mixed media carousels, and manage conversations."
         url="https://www.ezibreezy.com/features/threads-scheduler"
       />
       <SoftwareApplicationJsonLd
@@ -59,305 +66,483 @@ export default function ThreadsSchedulerPage() {
 
       <LandingPageHeader />
 
-      <main className="grow px-4 md:px-6 pb-24 max-w-[1400px] mx-auto w-full">
-        {/* HERO SECTION */}
-        <div className="border-b-2 border-dotted border-foreground/40 py-16 md:py-24 mb-16">
-          <div className="flex flex-col md:flex-row justify-between items-start gap-12">
-            <div className="flex-1">
-              <div className="flex items-center gap-3 mb-6">
-                <ThreadsIcon className="w-8 h-8 text-brand-primary" />
-                <span className="font-mono text-xs uppercase tracking-[0.3em] text-foreground/60">
-                  Platform-Specific Scheduler
+      <main className="grow w-full max-w-[1400px] mx-auto px-4 md:px-6 pb-24">
+        {/* --- MASTHEAD --- */}
+        <header className="border-b-4 border-double border-foreground py-8 mb-12">
+          <div className="flex flex-col md:flex-row justify-between items-end gap-6">
+            <div>
+              <div className="flex items-center gap-3 mb-4">
+                <span className="inline-block border border-foreground px-2 py-0.5 font-mono text-[10px] uppercase tracking-widest">
+                  Platform Specification: 07
+                </span>
+                <ThreadsIcon className="w-5 h-5 text-brand-primary" />
+              </div>
+              <h1 className="text-6xl md:text-8xl lg:text-9xl font-black uppercase leading-[0.8] tracking-tighter">
+                Threads
+              </h1>
+            </div>
+            <div className="md:text-right max-w-md">
+              <p className="font-serif text-xl md:text-2xl leading-tight">
+                The modern salon. <br />
+                <span className="text-foreground/60 italic">
+                  Where dialogue flows without friction.
+                </span>
+              </p>
+            </div>
+          </div>
+        </header>
+
+        {/* --- SECTION 1: THE LEAD STORY --- */}
+        <section className="grid grid-cols-1 lg:grid-cols-12 gap-0 border-b border-foreground mb-16">
+          {/* LEFT COLUMN: Visual Representation (Thread UI) */}
+          <div className="lg:col-span-7 lg:border-r border-foreground pt-8 lg:pr-12 pb-12">
+            <div className="relative">
+              <div className="absolute -top-4 -left-4 w-full h-full border border-dashed border-foreground/20 bg-foreground/5 -z-10" />
+
+              <div className="bg-white border-2 border-foreground p-1 shadow-[8px_8px_0_0_rgba(0,0,0,1)]">
+                <div className="bg-background-editorial border border-dashed border-foreground/20 p-8 min-h-[400px] flex flex-col justify-center relative overflow-hidden">
+                  {/* Thread Chain Visual */}
+                  <div className="max-w-sm mx-auto w-full relative pl-4">
+                    {/* Connecting Line */}
+                    <div className="absolute left-[1.65rem] top-6 bottom-12 w-0.5 bg-foreground/10 -z-0" />
+
+                    {/* Post 1 */}
+                    <div className="relative z-10 mb-6">
+                      <div className="flex gap-4 items-start">
+                        <div className="w-9 h-9 rounded-full bg-black border-2 border-white shadow-sm shrink-0" />
+                        <div className="flex-1 bg-white p-4 rounded-xl border border-foreground/10 shadow-sm">
+                          <div className="h-2 w-24 bg-foreground/10 mb-3 rounded" />
+                          <div className="space-y-1.5 mb-3">
+                            <div className="h-2 w-full bg-foreground/80 rounded" />
+                            <div className="h-2 w-5/6 bg-foreground/80 rounded" />
+                          </div>
+                          <div className="flex gap-4 opacity-30">
+                            <Heart className="w-4 h-4" />
+                            <MessageCircle className="w-4 h-4" />
+                            <Repeat className="w-4 h-4" />
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Post 2 */}
+                    <div className="relative z-10 pl-2">
+                      <div className="flex gap-4 items-start">
+                        <div className="w-7 h-7 rounded-full bg-black/80 border-2 border-white shadow-sm shrink-0 mt-2" />
+                        <div className="flex-1 bg-white p-4 rounded-xl border border-foreground/10 shadow-sm">
+                          <div className="h-2 w-20 bg-foreground/10 mb-3 rounded" />
+                          <div className="space-y-1.5">
+                            <div className="h-2 w-full bg-foreground/60 rounded" />
+                            <div className="h-2 w-4/6 bg-foreground/60 rounded" />
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <p className="text-center font-mono text-[9px] uppercase tracking-widest text-brand-primary mt-8 font-bold">
+                    Automatic Thread Stitching
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* RIGHT COLUMN: The Editorial Copy */}
+          <div className="lg:col-span-5 lg:pl-12 pt-8 pb-12 flex flex-col justify-center">
+            <h2 className="font-serif text-4xl md:text-5xl font-bold leading-[0.95] mb-8">
+              Start a conversation,
+              <br />
+              <span className="italic font-normal">not a monologue.</span>
+            </h2>
+
+            <div className="prose prose-lg font-serif text-foreground/80 leading-relaxed mb-10">
+              <p>
+                <span className="float-left text-5xl font-black mr-3 -mt-2">
+                  T
+                </span>
+                hreads feels different. It is intimate. It is immediate. It is
+                less about broadcasting to the masses and more about sitting in
+                a circle with your community.
+              </p>
+              <p>
+                The <strong>Editorial Desk</strong> removes the friction of
+                participation. Write your thoughts naturally, and let our tools
+                handle the splitting, tagging, and formatting so you can focus
+                on the flow.
+              </p>
+            </div>
+
+            <div className="mt-auto pt-8 border-t border-dashed border-foreground/30">
+              <Link
+                href="/auth/signup"
+                className="group inline-flex items-center gap-2 font-mono text-xs font-bold uppercase tracking-[0.15em] border-b-2 border-foreground hover:text-brand-primary hover:border-brand-primary transition-colors pb-1"
+              >
+                Start a Thread{" "}
+                <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
+              </Link>
+            </div>
+          </div>
+        </section>
+
+        {/* --- SECTION 2: ANALYTICS (Market Intelligence) --- */}
+        <section className="mb-24">
+          <div className="flex items-center gap-4 mb-8">
+            <h3 className="font-mono text-xs uppercase tracking-widest font-bold bg-foreground text-background px-2 py-1">
+              Market Intelligence
+            </h3>
+            <div className="h-px flex-1 bg-foreground" />
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-3 border border-foreground">
+            {/* Lead: The Philosophy of Data */}
+            <div className="p-8 lg:col-span-1 border-b lg:border-b-0 lg:border-r border-foreground bg-background-editorial">
+              <h2 className="font-serif text-3xl font-bold leading-none mb-6">
+                Read the
+                <br />
+                <span className="italic text-brand-primary">room.</span>
+              </h2>
+              <p className="font-serif text-lg leading-relaxed text-foreground/80 mb-6">
+                In a conversation, listening is as important as speaking.
+                Analytics help you listen at scale.
+              </p>
+              <p className="font-serif text-sm leading-relaxed text-foreground/70">
+                Our intelligence report shows you which topics ignite dialogue,
+                helping you steer the conversation where it naturally wants to
+                go.
+              </p>
+            </div>
+
+            {/* The Grid of Metrics */}
+            <div className="lg:col-span-2 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 bg-surface-hover/10">
+              {/* Metric 1 */}
+              <div className="p-6 border-b sm:border-r border-foreground/20 hover:bg-white transition-colors group">
+                <UserPlus className="w-5 h-5 text-foreground/40 mb-3 group-hover:text-brand-primary transition-colors" />
+                <h4 className="font-bold font-serif text-lg mb-1">Followers</h4>
+                <p className="text-xs font-mono text-foreground/60 uppercase tracking-wider mb-2">
+                  Circle Growth
+                </p>
+                <p className="text-sm text-foreground/70 leading-snug">
+                  See how many people have pulled up a chair to listen to what
+                  you have to say.
+                </p>
+              </div>
+
+              {/* Metric 2 */}
+              <div className="p-6 border-b md:border-r border-foreground/20 hover:bg-white transition-colors group">
+                <div className="mb-3 flex items-center gap-2">
+                  <Heart className="w-5 h-5 text-foreground/40 group-hover:text-brand-primary transition-colors" />
+                </div>
+                <h4 className="font-bold font-serif text-lg mb-1">Likes</h4>
+                <p className="text-xs font-mono text-foreground/60 uppercase tracking-wider mb-2">
+                  Resonance
+                </p>
+                <p className="text-sm text-foreground/70 leading-snug">
+                  Track the moments of agreement. See which sentiments connect
+                  instantly.
+                </p>
+              </div>
+
+              {/* Metric 3 */}
+              <div className="p-6 border-b sm:border-r-0 md:border-r border-foreground/20 hover:bg-white transition-colors group">
+                <MessageCircle className="w-5 h-5 text-foreground/40 mb-3 group-hover:text-brand-primary transition-colors" />
+                <h4 className="font-bold font-serif text-lg mb-1">Replies</h4>
+                <p className="text-xs font-mono text-foreground/60 uppercase tracking-wider mb-2">
+                  Dialogue
+                </p>
+                <p className="text-sm text-foreground/70 leading-snug">
+                  The heart of Threads. Track the depth of the conversations you
+                  start.
+                </p>
+              </div>
+
+              {/* Metric 4 */}
+              <div className="p-6 border-b md:border-b-0 sm:border-r border-foreground/20 hover:bg-white transition-colors group">
+                <Repeat className="w-5 h-5 text-foreground/40 mb-3 group-hover:text-brand-primary transition-colors" />
+                <h4 className="font-bold font-serif text-lg mb-1">Reposts</h4>
+                <p className="text-xs font-mono text-foreground/60 uppercase tracking-wider mb-2">
+                  Amplification
+                </p>
+                <p className="text-sm text-foreground/70 leading-snug">
+                  See who is taking your message and sharing it with their own
+                  circle.
+                </p>
+              </div>
+
+              {/* Metric 5 */}
+              <div className="p-6 border-b sm:border-b-0 md:border-r border-foreground/20 hover:bg-white transition-colors group">
+                <Hash className="w-5 h-5 text-foreground/40 mb-3 group-hover:text-brand-primary transition-colors" />
+                <h4 className="font-bold font-serif text-lg mb-1">
+                  Topic Tags
+                </h4>
+                <p className="text-xs font-mono text-foreground/60 uppercase tracking-wider mb-2">
+                  Discovery
+                </p>
+                <p className="text-sm text-foreground/70 leading-snug">
+                  Analyze which tags are helping you reach new audiences outside
+                  your following.
+                </p>
+              </div>
+
+              {/* Metric 6 */}
+              <div className="p-6 hover:bg-white transition-colors group">
+                <Sparkles className="w-5 h-5 text-foreground/40 mb-3 group-hover:text-brand-primary transition-colors" />
+                <h4 className="font-bold font-serif text-lg mb-1">
+                  Engagement
+                </h4>
+                <p className="text-xs font-mono text-foreground/60 uppercase tracking-wider mb-2">
+                  Activity Rate
+                </p>
+                <p className="text-sm text-foreground/70 leading-snug">
+                  The pulse of your profile. Measure the overall liveliness of
+                  your presence.
+                </p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* --- SECTION 3: THE INBOX (Connection) --- */}
+        <section className="mb-24">
+          <div className="grid grid-cols-1 md:grid-cols-12 gap-12 items-center">
+            {/* Visual */}
+            <div className="md:col-span-5 order-2 md:order-1">
+              <div className="relative border-2 border-foreground bg-surface p-8 shadow-[8px_8px_0_0_rgba(0,0,0,0.1)]">
+                <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white px-4 border border-foreground font-mono text-[10px] uppercase tracking-widest">
+                  The Salon
+                </div>
+
+                <div className="space-y-6 pt-2">
+                  <div className="flex items-start gap-4">
+                    <div className="w-8 h-8 rounded-full bg-foreground/10 shrink-0" />
+                    <div className="space-y-2 flex-1">
+                      <div className="bg-white p-3 border border-foreground/10 rounded-tr-lg rounded-br-lg rounded-bl-lg">
+                        <p className="text-xs font-serif italic text-foreground/80">
+                          "This is exactly what I've been thinking about..."
+                        </p>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <div className="h-px w-4 bg-foreground/20" />
+                        <span className="font-mono text-[9px] uppercase text-brand-primary font-bold">
+                          Reply Sent
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Editorial Copy */}
+            <div className="md:col-span-7 order-1 md:order-2">
+              <div className="mb-6 flex items-center gap-2 text-brand-primary">
+                <MessageCircle className="w-6 h-6" />
+                <span className="font-mono text-xs uppercase tracking-widest font-bold">
+                  The Correspondence Desk
                 </span>
               </div>
-              <h1 className="text-5xl md:text-7xl font-black uppercase leading-[0.85] tracking-tighter mb-8">
-                Threads
+
+              <h2 className="font-serif text-4xl md:text-5xl font-bold leading-tight mb-6">
+                Be part of the
                 <br />
-                Scheduler
-              </h1>
-              <p className="text-xl md:text-2xl text-foreground/80 leading-relaxed max-w-2xl mb-10">
-                Schedule Threads posts and conversations from one editorial desk.
-                Join the conversation strategically. Draft once, refine per platform, ship with confidence.
-              </p>
-              <div className="flex flex-col sm:flex-row gap-4">
-                <Link
-                  href="/auth/signup"
-                  className="inline-flex items-center justify-center gap-3 bg-foreground text-background px-8 py-4 font-mono text-sm uppercase tracking-widest font-bold hover:bg-brand-primary hover:text-background transition-all duration-300"
-                >
-                  Start Free Trial <ArrowRight className="w-4 h-4" />
-                </Link>
+                flow.
+              </h2>
+
+              <div className="prose prose-lg font-serif text-foreground/80 leading-relaxed">
+                <p>
+                  Threads is not a place for "posting and ghosting." It is a
+                  place for being present.
+                </p>
+                <p>
+                  Our <strong>Unified Inbox</strong> ensures you never miss a
+                  beat. Reply to comments and mentions from a calm, focused
+                  environment, turning casual interactions into lasting
+                  connections.
+                </p>
               </div>
             </div>
           </div>
-        </div>
+        </section>
 
-        {/* THREADS-SPECIFIC FEATURES */}
-        <div className="mb-20">
-          <div className="mb-12 flex items-center gap-4">
-            <span className="font-mono text-xs uppercase tracking-widest bg-foreground text-background-editorial px-3 py-1">
-              Threads-Specific Features
+        {/* --- SECTION 4: THE CLASSIFIEDS (Technical Specs) --- */}
+        <section className="mb-24">
+          <div className="border-t-4 border-double border-foreground pt-2">
+            <div className="grid grid-cols-1 md:grid-cols-12 gap-8">
+              <div className="md:col-span-3 pt-6">
+                <h3 className="font-serif text-3xl font-bold leading-none mb-2">
+                  Technical
+                  <br />
+                  Ledger
+                </h3>
+                <p className="font-mono text-xs text-foreground/60">
+                  Publishing Capabilities
+                </p>
+              </div>
+
+              <div className="md:col-span-9">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-12 gap-y-6 pt-6">
+                  {/* List Items styled like classified ads */}
+
+                  {/* Feature: Image Cropping */}
+                  <div className="flex items-start gap-3 pb-6 border-b border-dotted border-foreground/30">
+                    <Crop className="w-4 h-4 text-brand-primary mt-1 shrink-0" />
+                    <div>
+                      <strong className="block font-serif text-lg mb-1">
+                        Image Cropping
+                      </strong>
+                      <p className="font-serif text-sm text-foreground/70">
+                        Crop to square, landscape, portrait, or story. Ensure
+                        your visuals look intentional, whether it's a quick snap
+                        or a polished graphic.
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Feature: Native Threading */}
+                  <div className="flex items-start gap-3 pb-6 border-b border-dotted border-foreground/30">
+                    <MessageCircle className="w-4 h-4 text-brand-primary mt-1 shrink-0" />
+                    <div>
+                      <strong className="block font-serif text-lg mb-1">
+                        Auto-Threading
+                      </strong>
+                      <p className="font-serif text-sm text-foreground/70">
+                        Write as much as you need. We automatically split long
+                        text into a connected chain of posts (500 chars each) so
+                        your thought stays intact.
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Feature: Carousels */}
+                  <div className="flex items-start gap-3 pb-6 border-b border-dotted border-foreground/30">
+                    <Layers className="w-4 h-4 text-brand-primary mt-1 shrink-0" />
+                    <div>
+                      <strong className="block font-serif text-lg mb-1">
+                        Carousel Publishing
+                      </strong>
+                      <p className="font-serif text-sm text-foreground/70">
+                        Tell a visual story. Publish carousels with up to 10
+                        images or videos that users can swipe through natively.
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Feature: Mixed Media */}
+                  <div className="flex items-start gap-3 pb-6 border-b border-dotted border-foreground/30">
+                    <ImageIcon className="w-4 h-4 text-brand-primary mt-1 shrink-0" />
+                    <div>
+                      <strong className="block font-serif text-lg mb-1">
+                        Mixed Media
+                      </strong>
+                      <p className="font-serif text-sm text-foreground/70">
+                        Combine photos and videos in the same post or carousel.
+                        We handle the formatting so it looks seamless.
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Feature: Topic Tags */}
+                  <div className="flex items-start gap-3 pb-6 border-b border-dotted border-foreground/30">
+                    <Hash className="w-4 h-4 text-brand-primary mt-1 shrink-0" />
+                    <div>
+                      <strong className="block font-serif text-lg mb-1">
+                        Topic Tags
+                      </strong>
+                      <p className="font-serif text-sm text-foreground/70">
+                        Join the wider conversation. Add one Topic Tag per post
+                        to help your content get discovered by the right people.
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Feature: Text Publishing */}
+                  <div className="flex items-start gap-3 pb-6 border-b border-dotted border-foreground/30">
+                    <Type className="w-4 h-4 text-brand-primary mt-1 shrink-0" />
+                    <div>
+                      <strong className="block font-serif text-lg mb-1">
+                        Text Publishing
+                      </strong>
+                      <p className="font-serif text-sm text-foreground/70">
+                        Keep it simple. Publish text-only updates when you want
+                        to spark a discussion without the need for visuals.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* --- SECTION 5: RELATED UTILITIES (Sidebar style) --- */}
+        <section className="bg-foreground/5 border border-foreground p-8 mb-16">
+          <div className="flex items-center gap-2 mb-6">
+            <Scissors className="w-4 h-4" />
+            <span className="font-mono text-xs uppercase tracking-widest font-bold">
+              Complementary Tools
             </span>
-            <div className="flex-1 h-px bg-foreground/20" />
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            {/* Feature 1: Rich Content */}
-            <div className="border-l-4 border-brand-primary/60 bg-surface-hover/30 p-8">
-              <div className="flex items-center gap-3 mb-4">
-                <Image className="w-6 h-6 text-brand-primary" />
-                <h3 className="font-serif text-2xl font-bold">Rich Content Publishing</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <Link
+              href="/tools/instagram-carousel-splitter"
+              className="group flex items-start gap-4 p-4 bg-background border border-foreground/10 hover:border-brand-primary transition-all"
+            >
+              <div className="w-10 h-10 bg-foreground/5 flex items-center justify-center font-serif font-bold text-xl group-hover:text-brand-primary transition-colors">
+                1/10
               </div>
-              <ul className="space-y-3 text-foreground/80 leading-relaxed">
-                <li className="flex items-start gap-2">
-                  <CheckCircle2 className="w-5 h-5 text-brand-primary shrink-0 mt-0.5" />
-                  <span>Create text, images, and videos.</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <CheckCircle2 className="w-5 h-5 text-brand-primary shrink-0 mt-0.5" />
-                  <span>Create mixed carousels with up to 20 photos and videos.</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <CheckCircle2 className="w-5 h-5 text-brand-primary shrink-0 mt-0.5" />
-                  <span>Add links with automatic rich preview cards.</span>
-                </li>
-              </ul>
-            </div>
+              <div>
+                <h4 className="font-bold text-sm font-sans mb-1 group-hover:underline">
+                  Carousel Splitter
+                </h4>
+                <p className="text-xs text-foreground/60">
+                  Create seamless panoramic swipes.
+                </p>
+              </div>
+            </Link>
 
-            {/* Feature 2: Native Threading */}
-            <div className="border-l-4 border-brand-primary/60 bg-surface-hover/30 p-8">
-              <div className="flex items-center gap-3 mb-4">
-                <MessageSquare className="w-6 h-6 text-brand-primary" />
-                <h3 className="font-serif text-2xl font-bold">True Conversation Threading</h3>
+            <Link
+              href="/tools/instagram-font-generator"
+              className="group flex items-start gap-4 p-4 bg-background border border-foreground/10 hover:border-brand-primary transition-all"
+            >
+              <div className="w-10 h-10 bg-foreground/5 flex items-center justify-center font-serif font-bold text-xl group-hover:text-brand-primary transition-colors">
+                Aa
               </div>
-              <ul className="space-y-3 text-foreground/80 leading-relaxed">
-                <li className="flex items-start gap-2">
-                  <CheckCircle2 className="w-5 h-5 text-brand-primary shrink-0 mt-0.5" />
-                  <span>Create authentic threaded conversations that flow naturally.</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <CheckCircle2 className="w-5 h-5 text-brand-primary shrink-0 mt-0.5" />
-                  <span>Auto-split long text into a connected chain (500 char limit per segment).</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <CheckCircle2 className="w-5 h-5 text-brand-primary shrink-0 mt-0.5" />
-                  <span>Preview entire thread before publishing.</span>
-                </li>
-              </ul>
-            </div>
-
-            {/* Feature 3: Smart Tags & Discovery */}
-            <div className="border-l-4 border-brand-primary/60 bg-surface-hover/30 p-8">
-              <div className="flex items-center gap-3 mb-4">
-                <Sparkles className="w-6 h-6 text-brand-primary" />
-                <h3 className="font-serif text-2xl font-bold">Smart Tags & Discovery</h3>
+              <div>
+                <h4 className="font-bold text-sm font-sans mb-1 group-hover:underline">
+                  Font Generator
+                </h4>
+                <p className="text-xs text-foreground/60">
+                  Add emphasis with bold/italic text.
+                </p>
               </div>
-              <ul className="space-y-3 text-foreground/80 leading-relaxed">
-                <li className="flex items-start gap-2">
-                  <CheckCircle2 className="w-5 h-5 text-brand-primary shrink-0 mt-0.5" />
-                  <span>Add one &apos;Topic Tag&apos; per post to join conversations.</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <CheckCircle2 className="w-5 h-5 text-brand-primary shrink-0 mt-0.5" />
-                  <span>Tag locations with full address details for local discoverability.</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <CheckCircle2 className="w-5 h-5 text-brand-primary shrink-0 mt-0.5" />
-                  <span>Preview how your post will look before scheduling.</span>
-                </li>
-              </ul>
-            </div>
-
-            {/* Feature 4: Intelligent Media Handling */}
-            <div className="border-l-4 border-brand-primary/60 bg-surface-hover/30 p-8">
-              <div className="flex items-center gap-3 mb-4">
-                <Calendar className="w-6 h-6 text-brand-primary" />
-                <h3 className="font-serif text-2xl font-bold">Intelligent Media Handling</h3>
-              </div>
-              <ul className="space-y-3 text-foreground/80 leading-relaxed">
-                <li className="flex items-start gap-2">
-                  <CheckCircle2 className="w-5 h-5 text-brand-primary shrink-0 mt-0.5" />
-                  <span>Auto-convert unsupported formats (PNG/WEBP) to JPEG.</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <CheckCircle2 className="w-5 h-5 text-brand-primary shrink-0 mt-0.5" />
-                  <span>Optimize images for fast loading and quality display.</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <CheckCircle2 className="w-5 h-5 text-brand-primary shrink-0 mt-0.5" />
-                  <span>Support for mixed media carousels with photos and videos.</span>
-                </li>
-              </ul>
-            </div>
+            </Link>
           </div>
-        </div>
+        </section>
 
-        {/* CORE SCHEDULING FEATURES */}
-        <div className="mb-20 p-10 border-2 border-foreground/20 bg-background">
-          <div className="mb-10">
-            <span className="font-mono text-xs uppercase tracking-widest text-foreground/60">
-              Core Scheduling
-            </span>
-            <h2 className="text-4xl md:text-5xl font-black leading-tight mt-2">
-              The Editorial Workflow You Deserve
+        {/* --- FINAL CTA --- */}
+        <div className="relative py-20 px-6 text-center overflow-hidden border-t-2 border-foreground">
+          <div className="relative z-10 max-w-2xl mx-auto">
+            <div className="mb-6 flex justify-center">
+              <Sparkles className="w-8 h-8 text-brand-primary" />
+            </div>
+            <h2 className="font-serif text-4xl md:text-5xl font-bold mb-6">
+              Find your circle.
             </h2>
+            <p className="font-serif text-lg text-foreground/70 mb-10">
+              The editorial desk is open. Schedule your thoughts and start the
+              conversation.
+            </p>
+            <Link
+              href="/auth/signup"
+              className="inline-block bg-foreground text-background px-10 py-4 font-mono text-xs uppercase tracking-[0.2em] font-bold hover:bg-brand-primary hover:text-white transition-all duration-300"
+            >
+              Get Early Access
+            </Link>
+            <p className="mt-6 font-mono text-[10px] uppercase tracking-wider text-foreground/40">
+              Limited Availability • Editorial Standards Applied
+            </p>
           </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <div>
-              <Calendar className="w-8 h-8 text-brand-primary mb-4" />
-              <h3 className="font-serif text-xl font-bold mb-3">Drag-and-Drop Calendar</h3>
-              <p className="text-foreground/80 leading-relaxed">
-                Your entire strategy at a glance. Schedule Threads posts alongside Instagram, Twitter,
-                and 5 other platforms. Drag to reschedule, click to edit.
-              </p>
-            </div>
-
-            <div>
-              <MessageSquare className="w-8 h-8 text-brand-primary mb-4" />
-              <h3 className="font-serif text-xl font-bold mb-3">Thread Composer</h3>
-              <p className="text-foreground/80 leading-relaxed">
-                Create multi-post threads that flow naturally. Auto-split long text into connected
-                segments. Preview the entire conversation before scheduling.
-              </p>
-            </div>
-
-            <div>
-              <Sparkles className="w-8 h-8 text-brand-primary mb-4" />
-              <h3 className="font-serif text-xl font-bold mb-3">Cross-Platform Editorial Desk</h3>
-              <p className="text-foreground/80 leading-relaxed">
-                Write your message, select Threads and other channels, make platform-specific
-                tweaks, and ship it all without leaving the desk.
-              </p>
-            </div>
-          </div>
-        </div>
-
-        {/* USE CASES */}
-        <div className="mb-20">
-          <div className="mb-10">
-            <span className="font-mono text-xs uppercase tracking-widest text-foreground/60">
-              Use Cases
-            </span>
-            <h2 className="text-4xl md:text-5xl font-black leading-tight mt-2">
-              Built for Threads Creators
-            </h2>
-          </div>
-
-          <div className="space-y-6">
-            <div className="p-8 bg-surface-hover/20 border border-foreground/10">
-              <h3 className="font-serif text-2xl font-medium mb-3">Creators & Thought Leaders</h3>
-              <p className="text-foreground/80 leading-relaxed">
-                Build your presence on Threads with consistent, engaging content. Schedule threaded
-                conversations sharing insights and stories. Maintain daily presence without the pressure
-                of real-time posting. Cross-post to Twitter/X to maximize reach across text-based platforms.
-              </p>
-            </div>
-
-            <div className="p-8 bg-surface-hover/20 border border-foreground/10">
-              <h3 className="font-serif text-2xl font-medium mb-3">Brands & Businesses</h3>
-              <p className="text-foreground/80 leading-relaxed">
-                Join conversations in your industry with strategic Threads posts. Schedule announcements,
-                behind-the-scenes content, and community engagement. Use topic tags to increase
-                discoverability. Build authentic connections with your audience.
-              </p>
-            </div>
-
-            <div className="p-8 bg-surface-hover/20 border border-foreground/10">
-              <h3 className="font-serif text-2xl font-medium mb-3">Agencies & Social Media Teams</h3>
-              <p className="text-foreground/80 leading-relaxed">
-                Manage multiple Threads accounts for different clients. Schedule campaigns across Threads
-                and Instagram simultaneously (same Meta ecosystem). Get approval before posts go live.
-                Track engagement across all accounts from one unified dashboard.
-              </p>
-            </div>
-          </div>
-        </div>
-
-        {/* FAQ */}
-        <div className="mb-20">
-          <div className="mb-10">
-            <span className="font-mono text-xs uppercase tracking-widest text-foreground/60">
-              Frequently Asked Questions
-            </span>
-            <h2 className="text-3xl md:text-4xl font-black leading-tight mt-2">
-              Everything You Need to Know
-            </h2>
-          </div>
-
-          <div className="space-y-6">
-            <div className="p-6 border-l-2 border-brand-primary/60 bg-surface-hover/20">
-              <h3 className="font-serif text-lg font-bold mb-2">
-                Can I schedule threaded conversations on Threads?
-              </h3>
-              <p className="text-foreground/80 leading-relaxed">
-                Yes. EziBreezy supports native Threads threading with automatic text splitting for long
-                messages (500 character limit per segment). Create multi-post threads that flow naturally
-                and schedule them all at once.
-              </p>
-            </div>
-
-            <div className="p-6 border-l-2 border-brand-primary/60 bg-surface-hover/20">
-              <h3 className="font-serif text-lg font-bold mb-2">
-                Can I schedule Threads posts with images and videos?
-              </h3>
-              <p className="text-foreground/80 leading-relaxed">
-                Yes. Create mixed carousels with up to 20 photos and videos per post. EziBreezy
-                automatically converts unsupported formats (PNG/WEBP) to JPEG for optimal compatibility.
-              </p>
-            </div>
-
-            <div className="p-6 border-l-2 border-brand-primary/60 bg-surface-hover/20">
-              <h3 className="font-serif text-lg font-bold mb-2">
-                Can I add topic tags to scheduled Threads posts?
-              </h3>
-              <p className="text-foreground/80 leading-relaxed">
-                Yes. Add one &apos;Topic Tag&apos; per post to join relevant conversations and increase
-                discoverability. Tag locations with full address details for local community engagement.
-              </p>
-            </div>
-
-            <div className="p-6 border-l-2 border-brand-primary/60 bg-surface-hover/20">
-              <h3 className="font-serif text-lg font-bold mb-2">
-                Can I schedule Threads posts with links?
-              </h3>
-              <p className="text-foreground/80 leading-relaxed">
-                Yes. Add links to your Threads posts and EziBreezy will automatically generate rich
-                preview cards with images, titles, and descriptions. Perfect for driving traffic to
-                your content or website.
-              </p>
-            </div>
-
-            <div className="p-6 border-l-2 border-brand-primary/60 bg-surface-hover/20">
-              <h3 className="font-serif text-lg font-bold mb-2">
-                Can I schedule to multiple platforms from one post?
-              </h3>
-              <p className="text-foreground/80 leading-relaxed">
-                Yes. Draft once in the Editorial Desk, select Threads and any other platforms (Instagram,
-                Twitter/X, LinkedIn, Facebook, TikTok, YouTube, Pinterest), make platform-specific tweaks,
-                and schedule to all of them at once.
-              </p>
-            </div>
-          </div>
-        </div>
-
-        {/* FINAL CTA */}
-        <div className="p-12 bg-brand-primary text-brand-primary-foreground border-2 border-foreground text-center">
-          <h2 className="font-serif text-3xl md:text-4xl font-bold mb-4">
-            Join the Conversation on Threads
-          </h2>
-          <p className="text-xl mb-8 max-w-2xl mx-auto leading-relaxed opacity-90">
-            Stop posting sporadically. Schedule Threads posts and conversations in advance, maintain
-            consistent presence, and build your community with strategic content planning.
-          </p>
-          <Link
-            href="/auth/signup"
-            className="inline-flex items-center justify-center gap-3 bg-background text-foreground px-10 py-4 font-mono text-sm uppercase tracking-widest font-bold hover:bg-foreground hover:text-background transition-all duration-300"
-          >
-            Start Free Trial <ArrowRight className="w-4 h-4" />
-          </Link>
-          <p className="mt-6 font-mono text-xs uppercase tracking-wider opacity-70">
-            Free 14-day trial • No credit card required
-          </p>
         </div>
       </main>
 
